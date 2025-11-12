@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import compression from 'compression';
-import express, { ErrorRequestHandler } from 'express';
+import express, { ErrorRequestHandler, RequestHandler } from 'express';
 import { expressjwt } from 'express-jwt';
 import morgan from 'morgan';
 import path from 'path';
@@ -11,10 +11,10 @@ import apiRouter from './routes/api.router.js';
 import authRouter from './routes/auth.router.js';
 import logger from './util/logger.js';
 
-const authGuard = expressjwt({
+const authGuard: RequestHandler = expressjwt({
   secret: process.env.JWT_SECRET!,
   algorithms: ['HS256'],
-});
+}) as unknown as RequestHandler;
 
 const jwtErrorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   if (err.name === 'UnauthorizedError') {

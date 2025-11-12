@@ -1,8 +1,8 @@
-import { RequestHandler } from 'express';
-import { Request as JWTRequest } from 'express-jwt';
+import { Request, Response } from 'express';
 import { body, param } from 'express-validator';
 import EventEmitter from 'node:events';
 
+import { JwtPayload } from 'jsonwebtoken';
 import ArticleLoader from '../loaders/ArticleLoader.js';
 import { ILoader } from '../loaders/BaseLoader.js';
 import DictLoader from '../loaders/DictLoader.js';
@@ -19,7 +19,12 @@ const CONCURRENCY = 2;
 
 const taskQueue = new TaskQueue<void>(CONCURRENCY);
 
-export const getIndexTopics: RequestHandler = async (req: JWTRequest, res) => {
+// ref: https://blog.logrocket.com/extend-express-request-object-typescript/
+
+export const getIndexTopics = async (
+  req: Request & JwtPayload,
+  res: Response
+) => {
   try {
     const topics = await Topic.find({ type: 'index' })
       .sort({ sortIndex: 1 })
@@ -41,11 +46,10 @@ export const updateSortIndicesValidations = () => [
   body('ids.*.id').isMongoId(),
 ];
 
-export const updateSortIndices: RequestHandler<
-  any,
-  any,
-  { ids: { id: string }[] }
-> = async (req, res) => {
+export const updateSortIndices = async (
+  req: Request<never, never, { ids: { id: string }[] }, never>,
+  res: Response
+) => {
   const { ids } = req.body;
   try {
     await Promise.all(
@@ -71,11 +75,9 @@ export const updateSortIndices: RequestHandler<
 
 export const getArticleValidations = () => [param('filename').notEmpty()];
 
-type ArticleParams = { filename: string };
-
-export const getArticle: RequestHandler<ArticleParams> = async (
-  req: JWTRequest,
-  res
+export const getArticle = async (
+  req: Request<{ filename: string }> & JwtPayload,
+  res: Response
 ) => {
   try {
     const article = await Article.findOne({ filename: req.params.filename })
@@ -102,11 +104,10 @@ export const getPublicationTopicsValidations = () => [
   param('groupName').notEmpty(),
 ];
 
-type PublicationTopicsParams = { publication: string };
-
-export const getPublicationTopics: RequestHandler<
-  PublicationTopicsParams
-> = async (req: JWTRequest, res) => {
+export const getPublicationTopics = async (
+  req: Request<{ groupName: string }> & JwtPayload,
+  res: Response
+) => {
   const { groupName } = req.params;
 
   try {
@@ -126,7 +127,7 @@ export const getPublicationTopics: RequestHandler<
   }
 };
 
-export const uploadTopic: RequestHandler = (req, res) => {
+export const uploadTopic = (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No file provided' });
   }
@@ -167,11 +168,9 @@ export const uploadTopic: RequestHandler = (req, res) => {
 
 export const removeTopicValidations = () => [param('filename').notEmpty()];
 
-type RemoveTopicParams = { filename: string };
-
-export const removeTopic: RequestHandler<RemoveTopicParams> = async (
-  req,
-  res
+export const removeTopic = async (
+  req: Request<{ filename: string }>,
+  res: Response
 ) => {
   const filename = req.params.filename;
   const topic = await Topic.findOne({ filename: filename }).exec();

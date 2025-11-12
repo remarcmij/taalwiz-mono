@@ -1,5 +1,4 @@
 import { RequestHandler } from 'express';
-import { Request } from 'express-jwt';
 import { param } from 'express-validator';
 import Hashtag from '../models/hashtag.model.js';
 import { ITopic } from '../models/topic.model.js';
@@ -14,8 +13,7 @@ type HashTagGroup = {
   tags: HashTagName[];
 };
 
-export const getHashtagIndex: RequestHandler = async (req: Request, res) => {
-  // const criterion: any = {};
+export const getHashtagIndex: RequestHandler = async (req, res) => {
   // const groups = req.auth!.groups;
   // if (!groups.includes('admin')) {
   //   criterion.groupName = { $in: groups };

@@ -1,5 +1,4 @@
-import express, { NextFunction, Response } from 'express';
-import { Request } from 'express-jwt';
+import express, { NextFunction, Request, Response } from 'express';
 import { contact, contactValidations } from '../controllers/auth.controller.js';
 import {
   getArticleValidations as articleValidations,
@@ -25,7 +24,8 @@ import adminRouter from './admin.router.js';
 const router = express.Router();
 
 const adminGuard = (req: Request, res: Response, next: NextFunction) => {
-  if (req.auth?.role === 'admin') {
+  // const adminGuard = (req: express.Request, res: Response, next: NextFunction) => {
+  if ((req as any).auth?.role === 'admin') {
     return next();
   }
   return res.status(403).send({ message: 'Forbidden' });
