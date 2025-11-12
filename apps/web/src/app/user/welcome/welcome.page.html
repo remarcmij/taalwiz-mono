@@ -1,0 +1,25 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button routerLink="/home/tabs/content">
+        <ion-icon slot="icon-only" name="home-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'user.welcome' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="content-container noselect">
+    @if (safeHtml$ | async; as safeHtml) {
+    <article
+      class="text-content markdown-body ion-padding"
+      [innerHTML]="safeHtml"></article>
+    <div class="ion-text-center">
+      <ion-button routerLink="/home/tabs/content">
+        {{ 'common.close' | translate }}
+      </ion-button>
+    </div>
+    }
+  </div>
+</ion-content>

@@ -1,0 +1,22 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="tertiary">
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/admin"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ title() }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onDelete()">Delete</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    @if (safeHtml()) {
+    <article
+      class="text-content markdown-body ion-padding"
+      [ngClass]="{deleted: isDeleted()}"
+      [innerHTML]="safeHtml()"></article>
+    }
+  </div>
+</ion-content>

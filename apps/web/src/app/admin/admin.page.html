@@ -1,0 +1,35 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="tertiary">
+    <ion-buttons slot="start">
+      <app-back-button></app-back-button>
+    </ion-buttons>
+    <ion-title>Administrative Tasks</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    <ion-list>
+      <ion-item detail routerLink="/admin/new-user">
+        <ion-icon slot="start" name="person-add-outline"></ion-icon>
+        <ion-label>Invite New User</ion-label>
+      </ion-item>
+      <ion-item detail routerLink="/admin/content">
+        <ion-icon name="library-outline" slot="start"></ion-icon>
+        <ion-label>Manage Content</ion-label>
+      </ion-item>
+      <ion-item detail routerLink="/admin/users">
+        <ion-icon name="people-outline" slot="start"></ion-icon>
+        <ion-label>Manage Users</ion-label>
+      </ion-item>
+      <ion-item detail routerLink="/admin/upload">
+        <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+        <ion-label>Upload Content</ion-label>
+      </ion-item>
+      <ion-item detail routerLink="/admin/system-settings">
+        <ion-icon name="settings-outline" slot="start"></ion-icon>
+        <ion-label>System Settings</ion-label>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>

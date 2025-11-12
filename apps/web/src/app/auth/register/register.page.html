@@ -1,0 +1,84 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      {{ 'common.app-name' | translate }} {{ 'auth.register' | translate }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    <form #f="ngForm" (ngSubmit)="onSubmit(f)">
+      <ion-grid>
+        <ion-row>
+          <ion-col size-sm="6" offset-sm="3">
+            <ion-text>
+              <p>{{ 'auth.register-message' | translate }}</p>
+            </ion-text>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size-sm="6" offset-sm="3">
+            <ion-list lines="none">
+              <ion-item>
+                <ion-input
+                  type="email"
+                  label="Email"
+                  labelPlacement="floating"
+                  [errorText]="'auth.email-invalid' | translate"
+                  [ngModel]="email()"
+                  (ngModelChange)="email.set($event)"
+                  name="email"
+                  [disabled]="true"
+                  required
+                  email></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-input
+                  #nameInput
+                  type="text"
+                  [label]="'common.name' | translate"
+                  labelPlacement="floating"
+                  [errorText]="'auth.name-required' | translate"
+                  [ngModel]="name()"
+                  (ngModelChange)="name.set($event)"
+                  name="name"
+                  required
+                  [autofocus]="true"
+                  [minlength]="3"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-input
+                  type="password"
+                  [label]="'auth.password' | translate"
+                  labelPlacement="floating"
+                  [errorText]="'auth.password-invalid' | translate"
+                  [ngModel]="password()"
+                  (ngModelChange)="password.set($event)"
+                  name="password"
+                  required
+                  [minlength]="minLength">
+                  @if (password()) {
+                  <ion-input-password-toggle
+                    slot="end"></ion-input-password-toggle>
+                  }
+                </ion-input>
+              </ion-item>
+            </ion-list>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size-md="6" offset-md="3">
+            <ion-button
+              type="submit"
+              color="primary"
+              expand="block"
+              [disabled]="f.invalid">
+              {{ 'auth.register' | translate }}
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </form>
+  </div>
+</ion-content>

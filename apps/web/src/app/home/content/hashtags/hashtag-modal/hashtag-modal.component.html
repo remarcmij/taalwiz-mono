@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>#{{ hashtagName() }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-list>
+    @for (hashtag of hashtags$ | async; track hashtag.id) {
+    <ion-item button detail (click)="onClick(hashtag)">
+      <ion-label>
+        <h1>
+          {{ hashtag.publicationTitle }}
+        </h1>
+        <h2>{{ hashtag.articleTitle }}</h2>
+        <h3>
+          @if (hashtag.filename === article()?.filename) {
+          <span>&#9656;</span>
+          }
+          {{ hashtag.sectionHeader }}
+        </h3>
+      </ion-label>
+    </ion-item>
+    }
+  </ion-list>
+</ion-content>

@@ -1,0 +1,14 @@
+<div style="position: relative">
+  <div class="dropdown-anchor" [hidden]="!showSearches()">
+    <ion-list class="dropdown-list">
+      @for (suggestion of suggestions(); track suggestion._id) {
+      <ion-item button (click)="itemClicked.emit(suggestion)">
+        <ion-label
+          [ngClass]="suggestion.lang === 'id' ? 'foreign-text' : 'native-text'">
+          {{ suggestion.word }}
+        </ion-label>
+      </ion-item>
+      }
+    </ion-list>
+  </div>
+</div>

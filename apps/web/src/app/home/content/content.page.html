@@ -1,0 +1,49 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button menu="m1"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{ 'common.library' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <div class="content-container">
+    <ion-list class="ion-padding-vertical">
+      @for (topic of topics$ | async; track topic._id) {
+      <ion-item
+        detail
+        button
+        [routerLink]="['/', 'home', 'tabs', 'content', topic.groupName]">
+        <ion-thumbnail slot="start">
+          <ion-img
+            [src]="'/assets/images/' + topic.groupName + '.jpg'"></ion-img>
+        </ion-thumbnail>
+        <ion-label>
+          <h2>{{ topic.title }}</h2>
+          @if (topic.author) {
+          <h3>{{ topic.author }}</h3>
+          }
+          <p>{{ topic.subtitle }}</p>
+          @if (topic.publisher) {
+          <p>{{ topic.publisher }}</p>
+          }
+        </ion-label>
+      </ion-item>
+      } @empty { @if (giveUpWaiting()) {
+      <ion-text color="medium" class="ion-text-center">
+        <h2>{{ 'common.no-data' | translate }}</h2>
+      </ion-text>
+      @if (isDesktop) {
+      <div class="ion-text-center">
+        <ion-button (click)="handleRefresh()">
+          {{ 'common.retry' | translate }}
+        </ion-button>
+      </div>
+      } } }
+    </ion-list>
+  </div>
+</ion-content>

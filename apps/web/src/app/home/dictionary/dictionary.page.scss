@@ -1,0 +1,27 @@
+.searchbar {
+  max-width: 576px;
+  margin: auto;
+}
+
+.dimmed {
+  opacity: 0.5;
+}
+
+.lemma-card {
+  width: 100%;
+  box-shadow: var(--box-shadow-md);
+  margin: 8px;
+}
+
+ion-item {
+  --inner-padding-end: 0;
+}
+
+ion-breadcrumb {
+  cursor: pointer;
+}
+
+.lemma-button {
+  float: right;
+  text-transform: uppercase;
+}

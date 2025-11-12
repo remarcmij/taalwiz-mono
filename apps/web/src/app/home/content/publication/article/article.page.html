@@ -1,0 +1,28 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <app-back-button></app-back-button>
+    </ion-buttons>
+    @if (article()) {
+    <ion-title>{{ article().title }}</ion-title>
+    @if(hasFlashcards()) {
+    <ion-buttons slot="end">
+      <ion-button
+        [routerLink]="['/flashcard', article().filename]"
+        title="Flashcards">
+        <ion-icon slot="icon-only" name="school-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    } }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="content-container noselect">
+    @if (article()) {
+    <app-article-body
+      [article]="article()"
+      (clicked)="onClicked($event)"></app-article-body>
+    }
+  </div>
+</ion-content>

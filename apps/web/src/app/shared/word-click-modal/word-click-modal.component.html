@@ -1,0 +1,50 @@
+@if (lemmas().length === 0) {
+<div class="ion-padding">
+  <ion-label>
+    {{ 'common.word-not-found' | translate }}
+    <span class="clicked-word">{{ clickedWord() }}</span>
+  </ion-label>
+</div>
+} @else {
+<ion-toolbar>
+  <ion-title>
+    <ion-label>
+      <span class="clicked-word">{{ clickedWord() }}</span>
+    </ion-label>
+  </ion-title>
+  <ion-buttons slot="end">
+    @if(canSpeak()) { @if(sentence() !== clickedWord()) {
+    <ion-button (click)="speakSentence()">
+      <ion-icon
+        slot="icon-only"
+        name="play-outline"
+        aria-label="sentence"></ion-icon>
+    </ion-button>
+    }
+    <ion-button (click)="speakWord()">
+      <ion-icon
+        slot="icon-only"
+        name="volume-high-outline"
+        aria-label="pronounce"></ion-icon>
+    </ion-button>
+    }
+    <ion-button (click)="dictionaryLookup()">
+      <ion-icon
+        slot="icon-only"
+        name="search-outline"
+        aria-label="lookup"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+</ion-toolbar>
+<ion-content>
+  <ion-list lines="none">
+    @for (homonym of safeHomonyms(); track $index) {
+    <ion-item>
+      <ion-label>
+        <div [innerHTML]="homonym" class="homonym"></div>
+      </ion-label>
+    </ion-item>
+    }
+  </ion-list>
+</ion-content>
+}

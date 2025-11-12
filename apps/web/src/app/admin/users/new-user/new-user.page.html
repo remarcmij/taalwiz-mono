@@ -1,0 +1,85 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="tertiary">
+    <ion-buttons slot="start">
+      <app-back-button></app-back-button>
+    </ion-buttons>
+    <ion-title>Invite New User</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    <form #f="ngForm" (ngSubmit)="onSubmit(f)">
+      <ion-grid>
+        <ion-row>
+          <ion-col size-sm="6" offset-sm="3">
+            <ion-text>
+              <p class="ion-padding">
+                Please enter the email address of the user you wish to invite
+                and select the preferred language of communication.
+              </p>
+            </ion-text>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size-sm="6" offset-sm="3">
+            <ion-list lines="none">
+              <ion-list-header>
+                <ion-label>Email Address</ion-label>
+              </ion-list-header>
+              <ion-item>
+                <ion-input
+                  type="email"
+                  label="Email"
+                  labelPlacement="floating"
+                  [errorText]="'auth.email-invalid' | translate"
+                  ngModel
+                  name="email"
+                  [clearInput]="true"
+                  required
+                  email></ion-input>
+              </ion-item>
+            </ion-list>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size-sm="6" offset-sm="3">
+            <ion-radio-group
+              name="lang"
+              [ngModel]="lang()"
+              (ngModelChange)="lang.set($event)">
+              <ion-list-header>
+                <ion-label>Language</ion-label>
+              </ion-list-header>
+              <ion-item lines="none">
+                <ion-label>Nederlands</ion-label>
+                <ion-radio value="nl"></ion-radio>
+              </ion-item>
+              <ion-item lines="none">
+                <ion-label>English</ion-label>
+                <ion-radio value="en"></ion-radio>
+              </ion-item>
+            </ion-radio-group>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size-md="6" offset-md="3">
+            <ion-button
+              type="submit"
+              color="primary"
+              expand="block"
+              [disabled]="f.invalid"
+              class="ion-margin-top">
+              Invite User
+            </ion-button>
+          </ion-col>
+        </ion-row>
+        <ion-toast
+          [isOpen]="isToastOpen()"
+          [message]="'An invitaton email has been sent successfully to ' + acceptedEmails + '.'"
+          [duration]="5000"
+          (didDismiss)="isToastOpen.set(false)"></ion-toast>
+      </ion-grid>
+    </form>
+  </div>
+</ion-content>

@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button menu="m1"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Hashtags</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <div class="content-container">
+    <ion-list lines="none">
+      @for(hashtagGroup of hashtagGroups$ | async; track hashtagGroup._id) {
+      <ion-item class="ion-no-padding">
+        <ion-card class="hashtag-card">
+          <ion-card-header>
+            <ion-card-title>{{ hashtagGroup._id }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            @for(hashtag of hashtagGroup.tags; track hashtag.name) {
+            <ion-chip (click)="openModal(hashtag.name)">
+              <ion-label>{{ hashtag.name }}</ion-label>
+            </ion-chip>
+            }
+          </ion-card-content>
+        </ion-card>
+      </ion-item>
+      } @empty { @if (giveUpWaiting()) {
+      <ion-text color="medium" class="ion-text-center">
+        <h2>{{ 'common.no-data' | translate }}</h2>
+      </ion-text>
+      @if (isDesktop) {
+      <div class="ion-text-center">
+        <ion-button (click)="handleRefresh()">
+          {{ 'common.retry' | translate }}
+        </ion-button>
+      </div>
+      } } }
+    </ion-list>
+  </div>
+</ion-content>

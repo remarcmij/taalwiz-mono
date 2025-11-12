@@ -1,0 +1,40 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="tertiary">
+    <ion-buttons slot="start">
+      <app-back-button></app-back-button>
+    </ion-buttons>
+    <ion-title>System Settings</ion-title>
+    <ion-buttons slot="end"></ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    <ion-list>
+      @for(setting of settings(); track setting._id) { @if (setting.valueType
+      === 'string') {
+      <ion-item>
+        <ion-label position="floating">{{ setting.label }}</ion-label>
+        <ion-input type="text" [(ngModel)]="setting.stringVal"></ion-input>
+      </ion-item>
+      } @else if (setting.valueType === 'number') {
+      <ion-item>
+        <ion-label position="floating">{{ setting.label }}</ion-label>
+        <ion-input type="number" [(ngModel)]="setting.numberVal"></ion-input>
+      </ion-item>
+      } @else if (setting.valueType === 'boolean') {
+      <ion-item>
+        <ion-label>{{ setting.label }}</ion-label>
+        <ion-toggle [(ngModel)]="setting.booleanVal"></ion-toggle>
+      </ion-item>
+      } @else if (setting.valueType === 'date') {
+      <ion-item>
+        <ion-label>{{ setting.label }}</ion-label>
+        <ion-datetime
+          displayFormat="MM/DD/YYYY"
+          [(ngModel)]="setting.dateVal"></ion-datetime>
+      </ion-item>
+      } }
+    </ion-list>
+  </div>
+</ion-content>

@@ -1,0 +1,93 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="tertiary">
+    <ion-buttons slot="start">
+      <ion-back-button text="" defaultHref="/admin"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Upload Content</ion-title>
+    @if (showProgressBar()) {
+    <ion-progress-bar color="dark" [value]="progress()"></ion-progress-bar>
+    }
+  </ion-toolbar>
+</ion-header>
+
+@if (!!theUploader()) {
+<ion-content [fullscreen]="true">
+  @let uploader = theUploader()!;
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-sm="8" offset-sm="2">
+        <div
+          ng2FileDrop
+          [ngClass]="{'nv-file-over': hasBaseDropZoneOver()}"
+          (fileOver)="fileOverBase($event)"
+          [uploader]="uploader"
+          class="well">
+          Drag files here
+        </div>
+        <input type="file" ng2FileSelect [uploader]="uploader" multiple />
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12" size-sm="8" offset-sm="2">
+        <h3>Upload queue</h3>
+        <p>Queue length: {{ uploader.queue.length }}</p>
+      </ion-col>
+    </ion-row>
+    @if (uploader.queue.length) {
+    <ion-row>
+      <ion-col size="6" size-sm="4" offset-sm="2">Name</ion-col>
+      <ion-col size="3" size-sm="2" class="ion-text-center">Size</ion-col>
+      <ion-col size="3" size-sm="2" class="ion-text-center">Status</ion-col>
+    </ion-row>
+    } @for(item of uploader.queue; track $index) {
+    <ion-row>
+      <ion-col size="6" size-sm="4" offset-sm="2">{{ item.file.name }}</ion-col>
+      <ion-col size="3" size-sm="2" class="ion-text-center">
+        {{ item.file.size/1024 | number: '.1-1' }} KB
+      </ion-col>
+      <ion-col size="3" size-sm="2" class="ion-text-center">
+        @if (item.isSuccess) {
+        <span>
+          <ion-icon name="checkmark-outline" color="success"></ion-icon>
+        </span>
+        } @else if (item.isCancel) {
+        <span>
+          <ion-icon name="alert-outline" color="warning"></ion-icon>
+        </span>
+        } @else if (item.isError) {
+        <span>
+          <ion-icon name="close-outline" color="danger"></ion-icon>
+        </span>
+        }
+      </ion-col>
+    </ion-row>
+    }
+    <ion-row>
+      <ion-col size="12" size-sm="8" offset-sm="2">
+        <ion-toolbar>
+          <ion-buttons>
+            <ion-button
+              color="primary"
+              (click)="uploadAll()"
+              [disabled]="!uploader.queue.length">
+              Upload All
+            </ion-button>
+            <ion-button
+              color="danger"
+              (click)="cancelAll()"
+              [disabled]="!uploader.isUploading">
+              Cancel All
+            </ion-button>
+            <ion-button
+              color="warning"
+              (click)="uploader.clearQueue()"
+              [disabled]="!uploader.queue.length">
+              Clear Queue
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+}

@@ -1,0 +1,119 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <app-back-button></app-back-button>
+    </ion-buttons>
+    <ion-title>Flashcards</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <ion-item>
+          <ion-text class="ion-text-center">
+            <h3>{{title() }}</h3>
+          </ion-text>
+        </ion-item>
+        <ion-item class="ion-text-center" lines="none">
+          <ion-select
+            interface="action-sheet"
+            aria-label="flashcard section"
+            [cancelText]="'common.close' | translate"
+            [value]="0"
+            (ionChange)="handleChange($event)">
+            @for (section of flashcardSections(); track $index) {
+            <ion-select-option [value]="$index">
+              {{ section.title }}
+            </ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size-md="8" offset-md="2" size-lg="6" offset-lg="3">
+        <swiper-container
+          #swiper
+          [modules]="swiperModules"
+          [navigation]="true"
+          (swiperslidechange)="onSlideDidChange()"
+          [ngClass]="{'hide-navigation-mobile': !isDesktop()}">
+          @for(flashcard of flashcards(); track flashcard.key){
+          <swiper-slide class="swiper-slide">
+            <div class="flashcard">
+              <ion-text
+                [ngClass]="{'foreign-text': flashcardMode() === 'foreignFirst'}">
+                <h2 class="ion-text-center">{{ flashcard.prompt.text }}</h2>
+              </ion-text>
+              <ion-text
+                class="dimmed-text"
+                [ngClass]="{'foreign-text': flashcardMode() === 'nativeFirst'}">
+                <h2 class="ion-text-center">&#8230;</h2>
+              </ion-text>
+            </div>
+          </swiper-slide>
+          <swiper-slide class="swiper-slide">
+            <div class="flashcard">
+              <ion-text
+                class="dimmed-text"
+                [ngClass]="{'foreign-text': flashcardMode() === 'foreignFirst'}">
+                <h2 class="ion-text-center">{{ flashcard.prompt.text }}</h2>
+              </ion-text>
+              <ion-text
+                color="dark"
+                [ngClass]="{'foreign-text': flashcardMode() === 'nativeFirst'}">
+                <h2 class="ion-text-center">{{ flashcard.answer.text }}</h2>
+              </ion-text>
+            </div>
+          </swiper-slide>
+          }
+        </swiper-container>
+        <div class="progress-bar-container">
+          <ion-progress-bar [value]="progress()"></ion-progress-bar>
+        </div>
+      </ion-col>
+    </ion-row>
+    @if (!isDesktop() && activeIndex === 0) {
+    <ion-row class="ion-margin-top">
+      <ion-col
+        size-md="8"
+        offset-md="2"
+        size-lg="6"
+        offset-lg="3"
+        class="ion-text-center">
+        <ion-text color="medium">
+          <h4>{{ 'flashcards.swipe' | translate}}</h4>
+        </ion-text>
+      </ion-col>
+    </ion-row>
+    }
+  </ion-grid>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button [disabled]="activeIndex === 0" (click)="restart()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="shuffleFlashcards()">
+        <ion-icon slot="icon-only" name="shuffle-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggleLanguage()">
+        @if (flashcardMode() === 'foreignFirst') { id&#9656;nl } @else {
+        nl&#9656;id }
+      </ion-button>
+      <ion-button (click)="toggleIsSpeaking()">
+        @if (isSpeaking) {
+        <ion-icon slot="icon-only" name="volume-high-outline"></ion-icon>
+        } @else {
+        <ion-icon slot="icon-only" name="volume-mute-outline"></ion-icon>
+        }
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,23 @@
+[
+  {
+    "name": "custodian_name",
+    "label": "Custodian Name",
+    "valueType": "string",
+    "stringVal": "Jim Cramer",
+    "sortOrder": 1
+  },
+  {
+    "name": "customer_service_email",
+    "label": "Customer Service Email",
+    "valueType": "string",
+    "stringVal": "taalwiz@kpnmail.nl",
+    "sortOrder": 2
+  },
+  {
+    "name": "email_opt_out",
+    "label": "Email Opt-out",
+    "valueType": "boolean",
+    "booleanVal": false,
+    "sortOrder": 3
+  }
+]

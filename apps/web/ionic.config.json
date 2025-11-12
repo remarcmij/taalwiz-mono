@@ -1,0 +1,7 @@
+{
+  "name": "TaalWiz",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

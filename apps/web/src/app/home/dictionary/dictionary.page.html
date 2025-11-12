@@ -1,0 +1,65 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button menu="m1"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{ 'common.dictionary' | translate }}</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      #searchbarInput
+      placeholder="{{ 'common.search' | translate }}"
+      [ngModel]="word()"
+      (ngModelChange)="word.set($event)"
+      (ionClear)="onClear()"
+      class="searchbar"></ion-searchbar>
+  </ion-toolbar>
+  <app-searchbar-dropdown
+    [showSearches]="showSearches()"
+    [suggestions]="suggestions()"
+    (itemClicked)="onItemClicked($event)"></app-searchbar-dropdown>
+</ion-header>
+
+<ion-content
+  #content
+  [fullscreen]="true"
+  (click)="onClear()"
+  [ngClass]="{dimmed: showSearches()}">
+  <div class="content-container">
+    @if (recentSearches().length > 1) {
+    <ion-breadcrumbs color="primary">
+      @for(wordLang of recentSearches(); track wordLang.key) {
+      <ion-breadcrumb (click)="lookup(wordLang)">
+        {{ wordLang.word }}
+      </ion-breadcrumb>
+      }
+    </ion-breadcrumbs>
+    }
+    <ion-list lines="none">
+      @if (results$ | async; as results) {
+      <!---->
+      @for (base of results.bases; track base.key; let isFirst = $first) {
+      <ion-item class="ion-no-padding">
+        <ion-card class="lemma-card">
+          @if (isFirst) {
+          <ion-card-header>
+            <ion-card-title>{{ base.word }}</ion-card-title>
+          </ion-card-header>
+          }
+          <ion-card-content>
+            <app-lemma
+              [lemmas]="results.lemmas[base.key]"
+              (clicked)="onWordClicked($event)"></app-lemma>
+          </ion-card-content>
+          <ion-button
+            fill="clear"
+            class="lemma-button"
+            (click)="onBaseClicked(base)">
+            {{ base.word }}
+          </ion-button>
+        </ion-card>
+      </ion-item>
+      } }
+    </ion-list>
+  </div>
+</ion-content>

@@ -1,0 +1,49 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="tertiary">
+    <ion-buttons slot="start">
+      <app-back-button></app-back-button>
+    </ion-buttons>
+    <ion-title>Manage Content</ion-title>
+    <ion-buttons slot="primary">
+      @if (!isReorderMode()) {
+      <ion-button (click)="presentActionSheet()">
+        <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+      </ion-button>
+      } @else {
+      <ion-button [disabled]="!isDirty" (click)="resetOrder()">Undo</ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    @if (isLoading()) {
+    <div class="ion-text-center">
+      <ion-spinner color="primary"></ion-spinner>
+    </div>
+    }
+    <ion-list class="ion-padding-vertical">
+      <ion-reorder-group
+        [disabled]="!isReorderMode()"
+        (ionItemReorder)="handleReorder($any($event))">
+        @for( topic of topics(); track topic._id) {
+        <ion-item
+          button
+          [detail]="!isReorderMode()"
+          (click)="navigateToArticles(topic)">
+          <ion-label>
+            <h2>{{ topic.title }}</h2>
+            @if (topic.author || topic.subtitle) {
+            <h3>{{ topic.author }}</h3>
+            } @if (topic.subtitle) {
+            <p>{{ topic.subtitle }}</p>
+            }
+          </ion-label>
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+        }
+      </ion-reorder-group>
+    </ion-list>
+  </div>
+</ion-content>

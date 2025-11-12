@@ -1,0 +1,26 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <app-back-button></app-back-button>
+    </ion-buttons>
+    <ion-title>{{ publicationTitle() }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    <ion-list>
+      @for (topic of topics(); track topic._id) {
+      <ion-item
+        detail
+        button
+        [routerLink]="['/', 'home', 'tabs',  'content', 'article', topic.filename]">
+        <ion-label>
+          <h2>{{ topic.title }}</h2>
+          <p>{{ topic.subtitle }}</p>
+        </ion-label>
+      </ion-item>
+      }
+    </ion-list>
+  </div>
+</ion-content>
