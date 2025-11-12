@@ -10,7 +10,6 @@ import { type ILemma } from './lemma.model';
 
 @Component({
   selector: 'app-lemma',
-  standalone: true,
   imports: [],
   templateUrl: './lemma.component.html',
   styleUrls: ['./lemma.component.scss'],

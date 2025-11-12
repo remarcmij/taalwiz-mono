@@ -20,16 +20,13 @@ import {
 
 import { Observable } from 'rxjs';
 
-import { SharedModule } from '../../../../shared/shared.module';
 import { type IArticle } from '../../publication/article/article.model';
 import { type IHashtag } from '../hashtag.model';
 import { HashtagsService } from '../hashtags.service';
 
 @Component({
   selector: 'app-hashtag-modal',
-  standalone: true,
   imports: [
-    SharedModule,
     AsyncPipe,
     CommonModule,
     IonHeader,

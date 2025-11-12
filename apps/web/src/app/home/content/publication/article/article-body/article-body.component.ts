@@ -13,7 +13,6 @@ import { type IArticle } from '../article.model';
 
 @Component({
   selector: 'app-article-body',
-  standalone: true,
   templateUrl: './article-body.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -27,7 +26,7 @@ export class ArticleBodyComponent implements OnInit {
 
   ngOnInit() {
     this.safeHtml.set(
-      this.#sanitizer.bypassSecurityTrustHtml(this.article().htmlText),
+      this.#sanitizer.bypassSecurityTrustHtml(this.article().htmlText)
     );
   }
 }

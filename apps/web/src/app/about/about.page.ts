@@ -12,22 +12,21 @@ import {
 
 import { filter, map, switchMap } from 'rxjs';
 
+import { TranslatePipe } from '@ngx-translate/core';
 import { ContentService } from '../home/content/content.service';
 import { BackButtonComponent } from '../shared/back-button/back-button.component';
-import { SharedModule } from '../shared/shared.module';
 
 @Component({
   selector: 'app-about',
-  standalone: true,
   imports: [
     AsyncPipe,
-    SharedModule,
     BackButtonComponent,
     IonHeader,
     IonToolbar,
     IonButtons,
     IonTitle,
     IonContent,
+    TranslatePipe,
   ],
   templateUrl: './about.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,9 +42,9 @@ export class AboutPage {
       this.#contentService.fetchArticle(`about.${lang}.md`).pipe(
         filter((article) => !!article),
         map((article) =>
-          this.#sanitizer.bypassSecurityTrustHtml(article.htmlText),
-        ),
-      ),
-    ),
+          this.#sanitizer.bypassSecurityTrustHtml(article.htmlText)
+        )
+      )
+    )
   );
 }

@@ -26,7 +26,7 @@ import { addIcons } from 'ionicons';
 import { alertOutline, checkmarkOutline, closeOutline } from 'ionicons/icons';
 
 import { FileUploader, FileUploadModule } from 'ng2-file-upload';
-import { first, take } from 'rxjs';
+import { first } from 'rxjs';
 
 import { AuthService } from '../../../auth/auth.service';
 import { ContentService } from '../../../home/content/content.service';
@@ -35,7 +35,6 @@ import { ContentService } from '../../../home/content/content.service';
   selector: 'app-upload',
   templateUrl: './upload.page.html',
   styleUrls: ['./upload.page.scss'],
-  standalone: true,
   imports: [
     FileUploadModule,
     NgClass,

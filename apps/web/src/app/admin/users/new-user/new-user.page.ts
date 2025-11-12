@@ -27,21 +27,19 @@ import {
   LoadingController,
 } from '@ionic/angular/standalone';
 
+import { TranslatePipe } from '@ngx-translate/core';
 import { EMAIL_EXISTS } from '../../../server/shared/shared';
 import { ApiErrorAlertService } from '../../../shared/api-error-alert.service';
 import { BackButtonComponent } from '../../../shared/back-button/back-button.component';
 import { LoggerService } from '../../../shared/logger.service';
-import { SharedModule } from '../../../shared/shared.module';
 import { AdminService } from '../../admin.service';
 
 const DEFAULT_LANG = 'nl';
 
 @Component({
   selector: 'app-new-user',
-  standalone: true,
   imports: [
     FormsModule,
-    SharedModule,
     BackButtonComponent,
     IonHeader,
     IonToolbar,
@@ -61,6 +59,7 @@ const DEFAULT_LANG = 'nl';
     IonRadio,
     IonButton,
     IonToast,
+    TranslatePipe,
   ],
   templateUrl: './new-user.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

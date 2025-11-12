@@ -30,7 +30,6 @@ import { AdminService } from '../admin.service';
 
 @Component({
   selector: 'app-users',
-  standalone: true,
   imports: [
     DatePipe,
     IonHeader,
@@ -62,7 +61,7 @@ export class UsersPage {
       this.users.set(
         users
           .filter((user) => user.role !== 'admin')
-          .sort((a, b) => a.email.localeCompare(b.email)),
+          .sort((a, b) => a.email.localeCompare(b.email))
       );
     });
   }

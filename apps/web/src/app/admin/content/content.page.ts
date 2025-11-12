@@ -35,7 +35,6 @@ import { AdminService } from '../admin.service';
 
 @Component({
   selector: 'app-content',
-  standalone: true,
   imports: [
     BackButtonComponent,
     IonHeader,

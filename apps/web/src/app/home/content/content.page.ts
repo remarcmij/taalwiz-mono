@@ -26,12 +26,11 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 
-import { SharedModule } from '../../shared/shared.module';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ContentService } from './content.service';
 
 @Component({
   selector: 'app-content',
-  standalone: true,
   imports: [
     IonButton,
     IonText,
@@ -52,7 +51,7 @@ import { ContentService } from './content.service';
     IonLabel,
     RouterLink,
     AsyncPipe,
-    SharedModule,
+    TranslatePipe,
   ],
   templateUrl: './content.page.html',
   styleUrls: ['./content.page.scss'],

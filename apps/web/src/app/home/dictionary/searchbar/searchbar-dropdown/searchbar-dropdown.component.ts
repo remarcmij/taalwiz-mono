@@ -13,7 +13,6 @@ import { WordLang } from '../../word-lang.model';
 
 @Component({
   selector: 'app-searchbar-dropdown',
-  standalone: true,
   imports: [NgClass, IonList, IonItem, IonLabel],
   templateUrl: './searchbar-dropdown.component.html',
   styleUrls: ['./searchbar-dropdown.component.scss'],

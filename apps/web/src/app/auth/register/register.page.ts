@@ -20,7 +20,6 @@ import {
   IonItem,
   IonList,
   IonRow,
-  IonSpinner,
   IonText,
   IonTitle,
   IonToolbar,
@@ -39,7 +38,6 @@ import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-auth',
-  standalone: true,
   imports: [
     FormsModule,
     TranslateModule,

@@ -22,8 +22,6 @@ import {
 } from 'ionicons/icons';
 
 import { filter, first, Subject, takeUntil } from 'rxjs';
-
-// import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { environment } from '../environments/environment';
 
 import {
@@ -51,7 +49,6 @@ import { PromptUpdateService } from './sw-update/prompt-update.service';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  standalone: true,
   imports: [
     IonApp,
     IonMenu,
@@ -68,13 +65,11 @@ import { PromptUpdateService } from './sw-update/prompt-update.service';
     RouterLink,
     IonRouterOutlet,
     TranslatePipe,
-    // TranslateModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit, OnDestroy {
   #router = inject(Router);
-  // #translate = inject(TranslateService);
   #authService = inject(AuthService);
   #speechService = inject(SpeechSynthesizerService);
   #logger = inject(LoggerService);
@@ -87,7 +82,6 @@ export class AppComponent implements OnInit, OnDestroy {
   #destroy$ = new Subject<void>();
 
   constructor() {
-    // this.#translate.setDefaultLang('en');
     addIcons({
       informationCircleOutline,
       shieldHalfOutline,

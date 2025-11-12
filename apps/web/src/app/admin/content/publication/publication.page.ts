@@ -39,7 +39,6 @@ import { AdminService } from '../../admin.service';
 
 @Component({
   selector: 'app-publication',
-  standalone: true,
   imports: [
     BackButtonComponent,
     IonHeader,
@@ -192,7 +191,7 @@ export class PublicationPage {
     confirmedObs$.subscribe((result) => {
       if (result) {
         this.topics.update((topics) =>
-          topics.filter((t) => t._id !== topic._id),
+          topics.filter((t) => t._id !== topic._id)
         );
         this.isToastOpen.set(true);
       }
@@ -203,7 +202,7 @@ export class PublicationPage {
     const topics = [...this.topics(), this.#indexTopic!];
     const deleteObs$ = from(topics).pipe(
       map((topic) => this.#adminService.deleteTopic(topic.filename)),
-      mergeAll(),
+      mergeAll()
     );
 
     const confirmedObs$ = await this.#adminService.deleteConfirmed(deleteObs$);

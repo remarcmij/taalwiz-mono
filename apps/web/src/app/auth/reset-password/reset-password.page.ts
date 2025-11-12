@@ -18,7 +18,6 @@ import {
   IonItem,
   IonList,
   IonRow,
-  IonSpinner,
   IonTitle,
   IonToolbar,
   LoadingController,
@@ -26,17 +25,15 @@ import {
 
 import { TranslateService } from '@ngx-translate/core';
 
+import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { MIN_PASSWORD_LENGTH } from '../../server/shared/shared';
-import { SharedModule } from '../../shared/shared.module';
 import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-reset-password',
-  standalone: true,
   imports: [
     FormsModule,
-    SharedModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -49,6 +46,7 @@ import { AuthService } from '../auth.service';
     IonInput,
     IonInputPasswordToggle,
     IonButton,
+    TranslatePipe,
   ],
   templateUrl: './reset-password.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

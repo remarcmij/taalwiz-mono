@@ -43,9 +43,10 @@ import Swiper from 'swiper';
 import { Navigation } from 'swiper/modules';
 
 import { NgClass } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { SpeechSynthesizerService } from '../home/speech-synthesizer.service';
 import { BackButtonComponent } from '../shared/back-button/back-button.component';
-import { SharedModule } from '../shared/shared.module';
+
 import {
   Flashcard,
   flashCardMode,
@@ -56,10 +57,8 @@ import {
 
 @Component({
   selector: 'app-flashcard',
-  standalone: true,
   imports: [
     NgClass,
-    SharedModule,
     BackButtonComponent,
     IonHeader,
     IonToolbar,
@@ -77,6 +76,7 @@ import {
     IonFooter,
     IonButton,
     IonIcon,
+    TranslatePipe,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './flashcard.page.html',
@@ -93,7 +93,7 @@ export class FlashcardPage {
     map(({ article }) => article),
     tap((article) => this.title.set(article.title)),
     map((article) => this.#flashcardService.extractFlashcards(article.mdText)),
-    tap((flashcardSections) => this.prepareFlashcards(flashcardSections)),
+    tap((flashcardSections) => this.prepareFlashcards(flashcardSections))
   );
 
   flashcardSections = toSignal(this.#flashcardSections$, {
@@ -149,8 +149,8 @@ export class FlashcardPage {
         flashcard,
         'nl-NL',
         'id-ID',
-        this.flashcardMode(),
-      ),
+        this.flashcardMode()
+      )
     );
     this.flashcards.set(flashcards);
     if (this.swiperInstance) {
@@ -215,7 +215,7 @@ export class FlashcardPage {
 
   toggleLanguage() {
     this.flashcardMode.update((mode) =>
-      mode === 'foreignFirst' ? 'nativeFirst' : 'foreignFirst',
+      mode === 'foreignFirst' ? 'nativeFirst' : 'foreignFirst'
     );
     this.prepareFlashcards(this.flashcardSections());
     this.onSlideDidChange();

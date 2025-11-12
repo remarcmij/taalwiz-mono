@@ -41,9 +41,9 @@ import {
   tap,
 } from 'rxjs';
 
-import { SharedModule } from '../../shared/shared.module';
+import { TranslatePipe } from '@ngx-translate/core';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
-import { DictionaryService, LookupResult } from './dictionary.service';
+import { DictionaryService } from './dictionary.service';
 import { LemmaComponent } from './lemma/lemma.component';
 import { SearchbarDropdownComponent } from './searchbar/searchbar-dropdown/searchbar-dropdown.component';
 import { WordLang } from './word-lang.model';
@@ -52,12 +52,10 @@ const MAX_RECENT_SEARCHES = 4;
 
 @Component({
   selector: 'app-dictionary',
-  standalone: true,
   imports: [
     AsyncPipe,
     NgClass,
     FormsModule,
-    SharedModule,
     SearchbarDropdownComponent,
     LemmaComponent,
     IonHeader,
@@ -76,6 +74,7 @@ const MAX_RECENT_SEARCHES = 4;
     IonCardTitle,
     IonCardContent,
     IonButton,
+    TranslatePipe,
   ],
   templateUrl: './dictionary.page.html',
   styleUrls: ['./dictionary.page.scss'],
@@ -101,7 +100,7 @@ export class DictionaryPage implements OnDestroy {
       this.word.set(results.targetBase!.word);
       this.addRecentSearch(results.targetBase!);
       this.content?.nativeElement.scrollToTop();
-    }),
+    })
   );
 
   addRecentSearch(wordLang: WordLang) {
@@ -131,13 +130,13 @@ export class DictionaryPage implements OnDestroy {
         map((event) => (event.target as HTMLInputElement).value),
         debounceTime(250),
         switchMap((term) =>
-          term ? this.getSuggestions(term) : of<WordLang[]>([]),
+          term ? this.getSuggestions(term) : of<WordLang[]>([])
         ),
         tap((suggestions) => {
           this.showSearches.set(suggestions.length > 0);
         }),
         catchError(() => of<WordLang[]>([])),
-        takeUntil(this.#destroy$),
+        takeUntil(this.#destroy$)
       )
       .subscribe((suggestions) => {
         this.suggestions.set(suggestions);

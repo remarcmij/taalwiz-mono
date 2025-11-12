@@ -15,7 +15,6 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
-  IonIcon,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
@@ -24,12 +23,10 @@ import { addIcons } from 'ionicons';
 import { schoolOutline } from 'ionicons/icons';
 
 import { type IArticle } from '../../../../home/content/publication/article/article.model';
-import { BackButtonComponent } from '../../../../shared/back-button/back-button.component';
 import { AdminService } from '../../../admin.service';
 
 @Component({
   selector: 'app-article',
-  standalone: true,
   imports: [
     NgClass,
     IonHeader,

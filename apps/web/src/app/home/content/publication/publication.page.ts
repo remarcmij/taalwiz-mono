@@ -25,7 +25,6 @@ import { type ITopic } from '../topic.model';
 
 @Component({
   selector: 'app-publication',
-  standalone: true,
   imports: [
     IonHeader,
     IonToolbar,
@@ -52,12 +51,12 @@ export class PublicationPage {
   });
 
   topics = computed(() =>
-    this.#topics().filter((topic) => topic.type === 'article'),
+    this.#topics().filter((topic) => topic.type === 'article')
   );
 
   publicationTitle = computed(
     () =>
       this.#topics().find((topic) => topic.type === 'index')?.title ||
-      'Publication',
+      'Publication'
   );
 }

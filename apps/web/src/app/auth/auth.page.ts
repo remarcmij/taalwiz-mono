@@ -18,7 +18,6 @@ import {
   IonItem,
   IonList,
   IonRow,
-  IonSpinner,
   IonTitle,
   IonToolbar,
   LoadingController,
@@ -33,7 +32,6 @@ import { AuthService } from './auth.service';
 
 @Component({
   selector: 'app-auth',
-  standalone: true,
   imports: [
     RouterLink,
     FormsModule,

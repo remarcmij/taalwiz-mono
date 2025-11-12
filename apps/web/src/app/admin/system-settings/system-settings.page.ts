@@ -39,7 +39,6 @@ function deepEqual<T>(a: T, b: T): boolean {
 
 @Component({
   selector: 'app-system-settings',
-  standalone: true,
   imports: [
     FormsModule,
     BackButtonComponent,
@@ -89,7 +88,7 @@ export class SystemSettingsPage implements OnInit, OnDestroy {
         tap(() => {
           this.#logger.debug('Settings updated');
         }),
-        catchError((error) => this.#apiErrorAlertService.showError(error)),
+        catchError((error) => this.#apiErrorAlertService.showError(error))
       )
       .subscribe();
   }

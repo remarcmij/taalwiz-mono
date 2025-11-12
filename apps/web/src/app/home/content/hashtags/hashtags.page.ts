@@ -31,13 +31,12 @@ import {
   ModalController,
 } from '@ionic/angular/standalone';
 
-import { SharedModule } from '../../../shared/shared.module';
+import { TranslatePipe } from '@ngx-translate/core';
 import { HashtagModalComponent } from './hashtag-modal/hashtag-modal.component';
 import { HashtagsService } from './hashtags.service';
 
 @Component({
   selector: 'app-hashtags',
-  standalone: true,
   imports: [
     AsyncPipe,
     IonRefresher,
@@ -58,7 +57,7 @@ import { HashtagsService } from './hashtags.service';
     IonLabel,
     IonText,
     IonButton,
-    SharedModule,
+    TranslatePipe,
   ],
   templateUrl: './hashtags.page.html',
   styleUrls: ['./hashtags.page.scss'],

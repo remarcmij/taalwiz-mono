@@ -20,18 +20,16 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { first, switchMap, tap } from 'rxjs';
 
+import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../auth/auth.service';
 import { User } from '../../auth/user.model';
 import { homeUrl } from '../../home/home.routes';
 import { BackButtonComponent } from '../../shared/back-button/back-button.component';
-import { SharedModule } from '../../shared/shared.module';
 
 @Component({
   selector: 'app-contact',
-  standalone: true,
   imports: [
     FormsModule,
-    SharedModule,
     BackButtonComponent,
     IonHeader,
     IonToolbar,
@@ -43,6 +41,7 @@ import { SharedModule } from '../../shared/shared.module';
     IonCol,
     IonTextarea,
     IonButton,
+    TranslatePipe,
   ],
   templateUrl: './contact.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,9 +82,9 @@ export class ContactPage {
           return this.#http.post(
             '/api/contact',
             { message, email: user.email },
-            { headers },
+            { headers }
           );
-        }),
+        })
       )
       .subscribe({
         next: (res) => {
@@ -94,7 +93,7 @@ export class ContactPage {
           this.showAlert(this.#translate.instant('user.contact-sent')).then(
             () => {
               this.#navCtrl.navigateBack(homeUrl);
-            },
+            }
           );
         },
         error: (err) => {

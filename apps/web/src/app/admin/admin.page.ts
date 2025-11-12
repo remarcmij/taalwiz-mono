@@ -26,7 +26,6 @@ import { BackButtonComponent } from '../shared/back-button/back-button.component
 
 @Component({
   selector: 'app-admin',
-  standalone: true,
   imports: [
     RouterLink,
     BackButtonComponent,

@@ -28,7 +28,6 @@ import { IArticle } from './article.model';
 
 @Component({
   selector: 'app-article',
-  standalone: true,
   imports: [
     IonHeader,
     IonToolbar,
@@ -56,7 +55,7 @@ export class ArticlePage {
   article = toSignal(this.#article$, { initialValue: {} as IArticle });
 
   hasFlashcards = computed(
-    () => this.article().htmlText.indexOf(`<!-- flashcard -->`) !== -1,
+    () => this.article().htmlText.indexOf(`<!-- flashcard -->`) !== -1
   );
 
   constructor() {
@@ -72,7 +71,7 @@ export class ArticlePage {
         map((queryParamMap) => queryParamMap.get('id')),
         filter((hashtagId) => !!hashtagId),
         map((hashtagId) => document.querySelector(`#_${hashtagId}_`)),
-        filter((spanEl) => !!spanEl),
+        filter((spanEl) => !!spanEl)
       )
       .subscribe((spanEl) => {
         spanEl.scrollIntoView({

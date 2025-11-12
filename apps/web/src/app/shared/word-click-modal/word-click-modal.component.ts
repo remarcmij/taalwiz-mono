@@ -21,6 +21,7 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
+import { TranslatePipe } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import { playOutline, searchOutline, volumeHighOutline } from 'ionicons/icons';
 import { MarkdownService } from '../../home/content/markdown.service';
@@ -28,13 +29,10 @@ import { DictionaryService } from '../../home/dictionary/dictionary.service';
 import { type ILemma } from '../../home/dictionary/lemma/lemma.model';
 import { WordLang } from '../../home/dictionary/word-lang.model';
 import { SpeechSynthesizerService } from '../../home/speech-synthesizer.service';
-import { SharedModule } from '../shared.module';
 
 @Component({
   selector: 'app-word-click-modal',
-  standalone: true,
   imports: [
-    SharedModule,
     IonLabel,
     IonToolbar,
     IonTitle,
@@ -44,6 +42,7 @@ import { SharedModule } from '../shared.module';
     IonContent,
     IonList,
     IonItem,
+    TranslatePipe,
   ],
   templateUrl: './word-click-modal.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -86,7 +85,7 @@ export class WordClickModalComponent implements OnInit {
         return text.replace(regexp, '$1');
       });
       const homonymText = this.#markdownService.tinyMarkdown(
-        texts.join(' ').replace(/;$/, '.'),
+        texts.join(' ').replace(/;$/, '.')
       );
 
       const homonymHtml = this.#sanitizer.bypassSecurityTrustHtml(homonymText);

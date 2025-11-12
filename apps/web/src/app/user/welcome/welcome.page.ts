@@ -17,18 +17,16 @@ import { homeOutline } from 'ionicons/icons';
 
 import { filter, first, map, switchMap } from 'rxjs';
 
+import { AsyncPipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ContentService } from '../../home/content/content.service';
 import { homeUrl } from '../../home/home.routes';
-import { SharedModule } from '../../shared/shared.module';
-import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-welcome',
-  standalone: true,
   imports: [
     AsyncPipe,
     RouterLink,
-    SharedModule,
     IonRouterLink,
     IonHeader,
     IonToolbar,
@@ -37,6 +35,7 @@ import { AsyncPipe } from '@angular/common';
     IonIcon,
     IonTitle,
     IonContent,
+    TranslatePipe,
   ],
   templateUrl: './welcome.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,7 +53,7 @@ export class WelcomePage {
       return this.#contentService.fetchArticle(`welcome.${lang}.md`);
     }),
     filter((article) => !!article),
-    map((article) => this.#sanitizer.bypassSecurityTrustHtml(article.htmlText)),
+    map((article) => this.#sanitizer.bypassSecurityTrustHtml(article.htmlText))
   );
 
   goHome() {
