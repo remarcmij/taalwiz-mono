@@ -1,6 +1,7 @@
 @for (lemma of lemmas(); let idx = $index; track lemma._id) {
-<div
-  class="noselect markdown-body text-content"
-  [innerHTML]="convertMarkdown(lemma.text)"
-  (click)="clicked.emit($event)"></div>
+  <div
+    class="noselect markdown-body text-content"
+    [innerHTML]="convertMarkdown(lemma.text)"
+    (click)="clicked.emit($event)"
+  ></div>
 }

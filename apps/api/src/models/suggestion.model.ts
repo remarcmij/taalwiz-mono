@@ -1,6 +1,7 @@
 import { model, Schema } from 'mongoose';
 
 export interface ISuggestion {
+  _id?: string;
   word: string;
   lang: string;
 }

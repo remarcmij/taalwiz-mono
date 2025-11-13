@@ -86,6 +86,7 @@ uploadEventEmitter.on('upload', (filename: string) => {
 
 function execSearchRequest(searchRequest: SearchRequestQuery) {
   const { word, keyword, lang, limit, skip } = searchRequest;
+  console.log('execSearchRequest', searchRequest);
 
   const condition: any = { word, lang };
 
@@ -93,16 +94,19 @@ function execSearchRequest(searchRequest: SearchRequestQuery) {
     condition.keyword = Number(keyword) !== 0;
   }
 
-  if (typeof skip === 'number' && typeof limit === 'number') {
-    return Lemma.find(condition)
-      .sort('word order')
-      .skip(skip)
-      .limit(limit)
-      .lean()
-      .exec();
-  } else {
-    return Lemma.find(condition).sort('word order').lean().exec();
+  const query = Lemma.find(condition)
+    .sort('word order')
+    .select('-order -attr -groupName -keyword -_topic');
+
+  if (skip) {
+    query.skip(Number(skip));
   }
+
+  if (limit) {
+    query.limit(Number(limit));
+  }
+
+  return query.lean().exec();
 }
 
 export const suggestionsValidations = () => [param('term').notEmpty()];
