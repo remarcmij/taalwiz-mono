@@ -45,7 +45,6 @@ export default class TeeuwParser extends ParserBase {
           } else {
             this.tildeWord = null;
             this.parseDblStarFragment(tokenizer, result.sourceKeywords);
-            arrowSeen = true;
           }
           break;
         }
