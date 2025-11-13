@@ -23,6 +23,7 @@ export class WordClickModalService {
     const sentence = target.parentElement?.textContent ?? '';
 
     const wordLang = this.getWordClickParams(target);
+
     if (wordLang) {
       this.fetchLemmas(removeAccents(wordLang.word), wordLang.lang).subscribe({
         next: (response) => {

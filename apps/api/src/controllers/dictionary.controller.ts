@@ -34,14 +34,19 @@ export const lemmasValidations = () => [
   query('limit').optional().isInt({ min: 1, max: 100 }),
 ];
 
-type GetLemmasRequest = Request<never, never, never, SearchRequestQuery>;
+type GetLemmasRequest = Request<
+  { word: string; lang: string },
+  never,
+  never,
+  SearchRequestQuery
+>;
 
 export const getLemmas = async (req: GetLemmasRequest, res: Response) => {
-  const words = req.query.word.split(',');
+  const words = req.params.word.split(',');
 
   const searchRequest: SearchRequestQuery = {
     word: '',
-    lang: req.query.lang,
+    lang: req.params.lang,
   };
 
   if (req.query.keyword) {
@@ -64,7 +69,7 @@ export const getLemmas = async (req: GetLemmasRequest, res: Response) => {
       : false;
 
     if (lemmas.length) {
-      res.json({ word, lang: req.query.lang, lemmas, haveMore });
+      res.json({ word, lang: req.params.lang, lemmas, haveMore });
       return;
     }
   }
