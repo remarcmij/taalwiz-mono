@@ -1,4 +1,4 @@
-import { RequestHandler } from 'express';
+import type { Request, Response } from 'express';
 import { body, param, query } from 'express-validator';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import assert from 'node:assert/strict';
@@ -21,7 +21,7 @@ export const userValidations = () => [
   body('password').isLength({ min: 6 }),
 ];
 
-export const getUsers: RequestHandler = async (req, res) => {
+export const getUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.find({}).sort('email').select('-password').lean();
     res.status(200).json(users);
@@ -34,7 +34,9 @@ export const getUsers: RequestHandler = async (req, res) => {
 
 export const userIdValidations = () => [param('id').notEmpty()];
 
-export const getUser: RequestHandler<{ id: string }> = async (req, res) => {
+type GetUserRequest = Request<{ id: string }>;
+
+export const getUser = async (req: GetUserRequest, res: Response) => {
   const { id } = req.params;
   try {
     const user = await User.findById(id).select('-password').lean();
@@ -50,7 +52,9 @@ export const getUser: RequestHandler<{ id: string }> = async (req, res) => {
   }
 };
 
-export const deleteUser: RequestHandler<{ id: string }> = async (req, res) => {
+type DeleteUserRequest = Request<{ id: string }>;
+
+export const deleteUser = async (req: DeleteUserRequest, res: Response) => {
   const { id } = req.params;
   try {
     const user = await User.findByIdAndDelete(id);
@@ -66,11 +70,6 @@ export const deleteUser: RequestHandler<{ id: string }> = async (req, res) => {
   }
 };
 
-export const inviteNewUserValidations = () => [
-  param('email').isEmail(),
-  param('lang').isIn(['en', 'nl']),
-];
-
 export const createRegistrationToken = (email: string, lang: string) => {
   assert(process.env.JWT_SECRET);
 
@@ -79,10 +78,17 @@ export const createRegistrationToken = (email: string, lang: string) => {
   });
 };
 
-export const inviteNewUser: RequestHandler<{
-  email: string;
-  lang: string;
-}> = async (req, res) => {
+export const inviteNewUserValidations = () => [
+  param('email').isEmail(),
+  param('lang').isIn(['en', 'nl']),
+];
+
+type InviteNewUserRequest = Request<{ email: string; lang: string }>;
+
+export const inviteNewUser = async (
+  req: InviteNewUserRequest,
+  res: Response
+) => {
   const { email, lang } = req.params;
 
   const existing = await User.findOne({ email });
@@ -135,12 +141,17 @@ export const validateRegTokenValidations = () => [
   query('token').isJWT(),
 ];
 
-export const validateRegToken: RequestHandler<
-  any,
-  any,
-  any,
+type ValidateRegTokenRequest = Request<
+  never,
+  never,
+  never,
   { email: string; token: string }
-> = async (req, res) => {
+>;
+
+export const validateRegToken = async (
+  req: ValidateRegTokenRequest,
+  res: Response
+) => {
   const { email, token } = req.query;
   let decoded: JwtPayload;
 
@@ -164,7 +175,7 @@ export const validateRegToken: RequestHandler<
   res.json({ message: OK });
 };
 
-export const getSettings: RequestHandler = async (req, res) => {
+export const getSettings = async (req: Request, res: Response) => {
   try {
     const settings = await Settings.find({}).sort({ sortOrder: 1 }).lean();
     res.status(200).json(settings);
@@ -179,11 +190,12 @@ export const updateSettingsValidations = () => [
   body('settings').isArray().notEmpty(),
 ];
 
-export const updateSettings: RequestHandler<
-  any,
-  any,
-  { settings: ISetting[] }
-> = async (req, res) => {
+type UpdateSettingsRequest = Request<never, never, { settings: ISetting[] }>;
+
+export const updateSettings = async (
+  req: UpdateSettingsRequest,
+  res: Response
+) => {
   const { settings } = req.body;
 
   const updatePromises = settings.map((setting) => {

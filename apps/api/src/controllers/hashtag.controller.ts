@@ -1,7 +1,7 @@
-import { RequestHandler } from 'express';
+import type { Request, Response } from 'express';
 import { param } from 'express-validator';
 import Hashtag from '../models/hashtag.model.js';
-import { ITopic } from '../models/topic.model.js';
+import type { ITopic } from '../models/topic.model.js';
 
 type HashTagName = {
   name: string;
@@ -13,7 +13,7 @@ type HashTagGroup = {
   tags: HashTagName[];
 };
 
-export const getHashtagIndex: RequestHandler = async (req, res) => {
+export const getHashtagIndex = async (req: Request, res: Response) => {
   // const groups = req.auth!.groups;
   // if (!groups.includes('admin')) {
   //   criterion.groupName = { $in: groups };
@@ -66,9 +66,11 @@ export const getHashtagIndex: RequestHandler = async (req, res) => {
 
 export const searchHashTagsValidations = () => [param('name').notEmpty()];
 
-export const searchHashTags: RequestHandler<{ name: string }> = async (
-  req,
-  res
+type SearchHashTagsRequest = Request<{ name: string }>;
+
+export const searchHashTags = async (
+  req: SearchHashTagsRequest,
+  res: Response
 ) => {
   const name = req.params.name;
   if (!name) {

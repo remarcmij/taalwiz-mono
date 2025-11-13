@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { RequestHandler } from 'express';
+import type { Request, Response } from 'express';
 import { body } from 'express-validator';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import assert from 'node:assert/strict';
@@ -50,16 +50,13 @@ export const registerValidations = () => [
   body('token').isJWT(),
 ];
 
-export const register: RequestHandler<
-  any,
-  any,
-  {
-    email: string;
-    password: string;
-    name: string;
-    token: string;
-  }
-> = async (req, res) => {
+type RegisterRequest = Request<
+  never,
+  never,
+  { email: string; password: string; name: string; token: string }
+>;
+
+export const register = async (req: RegisterRequest, res: Response) => {
   const { email, password, name, token } = req.body;
   let decoded: JwtPayload | undefined;
 
@@ -153,14 +150,9 @@ export const loginValidations = () => [
   body('password').isLength({ min: MIN_PASSWORD_LENGTH }),
 ];
 
-export const login: RequestHandler<
-  unknown,
-  unknown,
-  {
-    email: string;
-    password: string;
-  }
-> = async (req, res) => {
+type LoginRequest = Request<never, never, { email: string; password: string }>;
+
+export const login = async (req: LoginRequest, res: Response) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email }).exec();
@@ -200,15 +192,16 @@ export const changePasswordValidations = () => [
   body('newPassword').isLength({ min: MIN_PASSWORD_LENGTH }),
 ];
 
-export const changePassword: RequestHandler<
-  unknown,
-  unknown,
-  {
-    email: string;
-    password: string;
-    newPassword: string;
-  }
-> = async (req, res) => {
+type ChangePasswordRequest = Request<
+  never,
+  never,
+  { email: string; password: string; newPassword: string }
+>;
+
+export const changePassword = async (
+  req: ChangePasswordRequest,
+  res: Response
+) => {
   const { email, password, newPassword } = req.body;
   try {
     const user = await User.findOne({ email }).exec();
@@ -237,11 +230,12 @@ export const changePassword: RequestHandler<
 
 export const requestPasswordResetValidations = () => [body('email').isEmail()];
 
-export const requestPasswordReset: RequestHandler<
-  any,
-  any,
-  { email: string }
-> = async (req, res) => {
+type RequestPasswordResetRequest = Request<never, never, { email: string }>;
+
+export const requestPasswordReset = async (
+  req: RequestPasswordResetRequest,
+  res: Response
+) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email }).exec();
@@ -285,11 +279,16 @@ export const resetPasswordValidations = () => [
   body('newPassword').isLength({ min: MIN_PASSWORD_LENGTH }),
 ];
 
-export const resetPassword: RequestHandler<
-  any,
-  any,
+type ResetPasswordRequest = Request<
+  never,
+  never,
   { token: string; newPassword: string }
-> = async (req, res) => {
+>;
+
+export const resetPassword = async (
+  req: ResetPasswordRequest,
+  res: Response
+) => {
   const { token, newPassword } = req.body;
 
   assert(process.env.JWT_SECRET);
@@ -322,16 +321,15 @@ export const resetPassword: RequestHandler<
     res.status(403).json({ message: 'TOKEN_INVALID' });
   }
 };
+
 export const contactValidations = () => [
   body('message').notEmpty(),
   body('email').isEmail(),
 ];
 
-export const contact: RequestHandler<
-  any,
-  any,
-  { message: string; email: string }
-> = (req, resp) => {
+type ContactRequest = Request<never, never, { message: string; email: string }>;
+
+export const contact = (req: ContactRequest, resp: Response) => {
   const { message, email } = req.body;
   assert(process.env.SMTP_USER);
   assert(process.env.CUSTOMER_SERVICE_EMAIL);
@@ -350,11 +348,16 @@ export const refreshAccessTokenValidations = () => [
   body('refreshToken').notEmpty(),
 ];
 
-export const refreshAccessToken: RequestHandler<
-  unknown,
-  unknown,
+type RefreshAccessTokenRequest = Request<
+  never,
+  never,
   { refreshToken: string }
-> = async (req, res) => {
+>;
+
+export const refreshAccessToken = async (
+  req: RefreshAccessTokenRequest,
+  res: Response
+) => {
   assert(process.env.JWT_SECRET);
 
   const { refreshToken } = req.body;

@@ -1,5 +1,4 @@
-import { RequestHandler } from 'express';
-import { ParamsDictionary } from 'express-serve-static-core';
+import type { Request, Response } from 'express';
 import { param, query } from 'express-validator';
 import { LRUCache } from 'lru-cache';
 import Lemma from '../models/lemma.model.js';
@@ -19,14 +18,6 @@ const autoCompleteCache = new LRUCache<string, SuggestionsResponse>({
   ttl: 1000 * 60 * 60,
 });
 
-interface SearchRequest {
-  word?: string;
-  lang: string;
-  attr?: string;
-  skip?: number;
-  limit?: number;
-}
-
 type SearchRequestQuery = {
   word: string;
   lang: string;
@@ -42,15 +33,13 @@ export const lemmasValidations = () => [
   query('limit').optional().isInt(),
 ];
 
-export const getLemmas: RequestHandler<
-  ParamsDictionary,
-  any,
-  any,
-  SearchRequestQuery
-> = async (req, res) => {
+type GetLemmasRequest = Request<never, never, never, SearchRequestQuery>;
+
+export const getLemmas = async (req: GetLemmasRequest, res: Response) => {
   const words = req.query.word.split(',');
 
-  const searchRequest: SearchRequest = {
+  const searchRequest: SearchRequestQuery = {
+    word: '',
     lang: req.query.lang,
   };
 
@@ -59,18 +48,18 @@ export const getLemmas: RequestHandler<
   }
 
   if (req.query.skip) {
-    searchRequest.skip = parseInt(req.query.skip, 10);
+    searchRequest.skip = req.query.skip;
   }
 
   if (req.query.limit) {
-    searchRequest.limit = parseInt(req.query.limit, 10);
+    searchRequest.limit = req.query.limit;
   }
 
   for (const word of words) {
     searchRequest.word = word;
     const lemmas = await execSearchRequest(searchRequest);
     const haveMore = searchRequest.limit
-      ? lemmas.length === searchRequest.limit
+      ? lemmas.length === Number(searchRequest.limit)
       : false;
 
     if (lemmas.length) {
@@ -83,13 +72,13 @@ export const getLemmas: RequestHandler<
 };
 
 uploadEventEmitter.on('upload', (filename: string) => {
-  if (filename.endsWith('.dict.json')) {
+  if (filename.endsWith('.json')) {
     logger.silly('Clearing suggestion cache');
     autoCompleteCache.clear();
   }
 });
 
-function execSearchRequest(searchRequest: SearchRequest) {
+function execSearchRequest(searchRequest: SearchRequestQuery) {
   const { word, attr, lang, limit, skip } = searchRequest;
 
   const condition: any = { word, lang };
@@ -112,9 +101,9 @@ function execSearchRequest(searchRequest: SearchRequest) {
 
 export const suggestionsValidations = () => [param('text').notEmpty()];
 
-type SuggestionsParams = { text: string };
+type GetSuggestionsRequest = Request<{ text: string }>;
 
-export const getSuggestions: RequestHandler<SuggestionsParams> = (req, res) => {
+export const getSuggestions = (req: GetSuggestionsRequest, res: Response) => {
   const term = req.params.text.trim();
   if (term.length === 0 || !validTermRegex.test(term)) {
     return void res.json([]);

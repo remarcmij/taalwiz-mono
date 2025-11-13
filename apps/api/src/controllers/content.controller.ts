@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { body, param } from 'express-validator';
 import EventEmitter from 'node:events';
 
-import { JwtPayload } from 'jsonwebtoken';
+import type { JwtPayload } from 'jsonwebtoken';
 import ArticleLoader from '../loaders/ArticleLoader.js';
-import { ILoader } from '../loaders/BaseLoader.js';
+import type { ILoader } from '../loaders/BaseLoader.js';
 import DictLoader from '../loaders/DictLoader.js';
 import Article from '../models/article.model.js';
 import Topic from '../models/topic.model.js';
@@ -21,10 +21,9 @@ const taskQueue = new TaskQueue<void>(CONCURRENCY);
 
 // ref: https://blog.logrocket.com/extend-express-request-object-typescript/
 
-export const getIndexTopics = async (
-  req: Request & JwtPayload,
-  res: Response
-) => {
+type JWTRequest = Request & JwtPayload;
+
+export const getIndexTopics = async (req: JWTRequest, res: Response) => {
   try {
     const topics = await Topic.find({ type: 'index' })
       .sort({ sortIndex: 1 })
@@ -46,8 +45,14 @@ export const updateSortIndicesValidations = () => [
   body('ids.*.id').isMongoId(),
 ];
 
+type UpdateSortIndicesRequest = Request<
+  never,
+  never,
+  { ids: { id: string }[] }
+>;
+
 export const updateSortIndices = async (
-  req: Request<never, never, { ids: { id: string }[] }, never>,
+  req: UpdateSortIndicesRequest,
   res: Response
 ) => {
   const { ids } = req.body;
@@ -75,10 +80,9 @@ export const updateSortIndices = async (
 
 export const getArticleValidations = () => [param('filename').notEmpty()];
 
-export const getArticle = async (
-  req: Request<{ filename: string }> & JwtPayload,
-  res: Response
-) => {
+type GetArticleRequest = Request<{ filename: string }> & JwtPayload;
+
+export const getArticle = async (req: GetArticleRequest, res: Response) => {
   try {
     const article = await Article.findOne({ filename: req.params.filename })
       .select('-indexText')
@@ -104,8 +108,10 @@ export const getPublicationTopicsValidations = () => [
   param('groupName').notEmpty(),
 ];
 
+type GetPublicationTopicsRequest = Request<{ groupName: string }> & JwtPayload;
+
 export const getPublicationTopics = async (
-  req: Request<{ groupName: string }> & JwtPayload,
+  req: GetPublicationTopicsRequest,
   res: Response
 ) => {
   const { groupName } = req.params;
@@ -168,10 +174,9 @@ export const uploadTopic = (req: Request, res: Response) => {
 
 export const removeTopicValidations = () => [param('filename').notEmpty()];
 
-export const removeTopic = async (
-  req: Request<{ filename: string }>,
-  res: Response
-) => {
+type RemoveTopicRequest = Request<{ filename: string }>;
+
+export const removeTopic = async (req: RemoveTopicRequest, res: Response) => {
   const filename = req.params.filename;
   const topic = await Topic.findOne({ filename: filename }).exec();
   if (!topic) {
