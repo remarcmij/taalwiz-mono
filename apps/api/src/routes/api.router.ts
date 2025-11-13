@@ -41,12 +41,17 @@ router
   )
   .get('/article/:filename', articleValidations(), validate, getArticle)
   .get(
-    '/dictionary/suggestions/:text',
+    '/dictionary/suggestions/:term',
     suggestionsValidations(),
     validate,
     getSuggestions
   )
-  .get('/dictionary/lookup', lemmasValidations(), validate, getLemmas)
+  .get(
+    '/dictionary/lookup/:word/:lang',
+    lemmasValidations(),
+    validate,
+    getLemmas
+  )
   .get('/hashtags', getHashtagIndex)
   .get('/hashtags/:name', searchHashTagsValidations(), validate, searchHashTags)
   .post('/contact', contactValidations(), validate, contact);

@@ -8,7 +8,7 @@ import VanDaleParser from './compiler/VanDaleParser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DICT_PATH = '../data';
+const DICT_PATH = '../dict';
 const DEST_PATH = '../json';
 
 async function main() {

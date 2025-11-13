@@ -21,16 +21,17 @@ const autoCompleteCache = new LRUCache<string, SuggestionsResponse>({
 type SearchRequestQuery = {
   word: string;
   lang: string;
-  attr?: string;
+  keyword?: string;
   skip?: string;
   limit?: string;
 };
 
 export const lemmasValidations = () => [
-  query('word').notEmpty(),
-  query('lang').isISO6391(),
-  query('skip').optional().isInt(),
-  query('limit').optional().isInt(),
+  param('word').notEmpty(),
+  param('lang').isISO6391(),
+  query('keyword').optional().isInt({ min: 0, max: 1 }),
+  query('skip').optional().isInt({ min: 0 }),
+  query('limit').optional().isInt({ min: 1, max: 100 }),
 ];
 
 type GetLemmasRequest = Request<never, never, never, SearchRequestQuery>;
@@ -43,8 +44,8 @@ export const getLemmas = async (req: GetLemmasRequest, res: Response) => {
     lang: req.query.lang,
   };
 
-  if (req.query.attr) {
-    searchRequest.attr = req.query.attr;
+  if (req.query.keyword) {
+    searchRequest.keyword = req.query.keyword;
   }
 
   if (req.query.skip) {
@@ -79,12 +80,12 @@ uploadEventEmitter.on('upload', (filename: string) => {
 });
 
 function execSearchRequest(searchRequest: SearchRequestQuery) {
-  const { word, attr, lang, limit, skip } = searchRequest;
+  const { word, keyword, lang, limit, skip } = searchRequest;
 
   const condition: any = { word, lang };
 
-  if (searchRequest.attr) {
-    condition.attr = attr;
+  if (searchRequest.keyword) {
+    condition.keyword = Number(keyword) !== 0;
   }
 
   if (typeof skip === 'number' && typeof limit === 'number') {
@@ -99,12 +100,12 @@ function execSearchRequest(searchRequest: SearchRequestQuery) {
   }
 }
 
-export const suggestionsValidations = () => [param('text').notEmpty()];
+export const suggestionsValidations = () => [param('term').notEmpty()];
 
-type GetSuggestionsRequest = Request<{ text: string }>;
+type GetSuggestionsRequest = Request<{ term: string }>;
 
 export const getSuggestions = (req: GetSuggestionsRequest, res: Response) => {
-  const term = req.params.text.trim();
+  const term = req.params.term.trim();
   if (term.length === 0 || !validTermRegex.test(term)) {
     return void res.json([]);
   }

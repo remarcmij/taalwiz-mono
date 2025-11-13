@@ -42,18 +42,17 @@ const debouncedRebuildWordCollection = debounce(async () => {
 }, REBUILD_DELAY);
 
 export interface IDictDataJson {
-  groupName: string;
   baseLang: string;
   lemmas: [
     {
+      text: string;
       base: string;
       homonym: number;
-      text: string;
       words: [
         {
           word: string;
-          attr: string;
           lang: string;
+          keyword: number;
           order: number;
         },
       ];
@@ -68,12 +67,12 @@ class DictLoader extends BaseLoader<IDictDataJson> {
   ): Promise<IUpload<IDictDataJson>> {
     const payload: IDictDataJson = JSON.parse(content);
 
-    const match = filename.match(/(.+)_(.+)\./);
+    const match = filename.match(/^[a-z]_(.+)\.json/);
     if (!match) {
       throw new Error(`ill-formed filename: ${filename}`);
     }
 
-    const groupName = match[2];
+    const groupName = match[1];
 
     return {
       topic: {
@@ -95,14 +94,14 @@ class DictLoader extends BaseLoader<IDictDataJson> {
     for (const lemmaDef of lemmas) {
       for (const wordDef of lemmaDef.words) {
         bulk.insert({
-          baseWord: lemmaDef.base,
-          homonym: lemmaDef.homonym,
           text: lemmaDef.text,
           word: wordDef.word,
-          attr: wordDef.attr,
-          order: wordDef.order,
           lang: wordDef.lang,
+          keyword: wordDef.keyword !== 0,
+          baseWord: lemmaDef.base,
           baseLang: baseLang,
+          order: wordDef.order,
+          homonym: lemmaDef.homonym,
           groupName: data.topic.groupName,
           _topic: topic._id,
         });

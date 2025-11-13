@@ -11,7 +11,7 @@ import { WordLang } from './word-lang.model';
 interface SearchRequest {
   word: string;
   lang: string;
-  attr?: string;
+  keyword?: boolean;
   skip?: number;
   limit?: number;
 }
@@ -60,8 +60,8 @@ export class DictionaryService {
       switchMap((headers) =>
         this.#http.get<WordLang[]>(`/api/dictionary/suggestions/${term}`, {
           headers,
-        }),
-      ),
+        })
+      )
     );
   }
 
@@ -84,7 +84,7 @@ export class DictionaryService {
             this.handleError(error);
             combinedResult.haveMore = false;
             return of(combinedResult);
-          }),
+          })
         )
         .subscribe((results) => {
           reorderLookupResult(results);
@@ -112,9 +112,10 @@ export class DictionaryService {
   }
 
   execSearchRequest(searchRequest: SearchRequest) {
-    const { word, lang, attr, skip, limit } = searchRequest;
-    let params = new HttpParams().set('word', word).set('lang', lang);
-    attr !== undefined && (params = params.set('attr', attr));
+    const { word, lang, keyword, skip, limit } = searchRequest;
+    let params = new HttpParams();
+    keyword !== undefined &&
+      (params = params.set('keyword', keyword ? '1' : '0'));
 
     // Skip and limit are optional,skip could be 0
     typeof skip === 'number' && (params = params.set('skip', skip));
@@ -122,12 +123,14 @@ export class DictionaryService {
 
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
-        const url = '/api/dictionary/lookup';
+        const url = `/api/dictionary/lookup/${encodeURIComponent(
+          word
+        )}/${encodeURIComponent(lang)}`;
         return this.#http.get<LookupResponse>(url, {
           headers,
           params,
         });
-      }),
+      })
     );
   }
 }
@@ -152,7 +155,7 @@ function makeLookupResult(response: LookupResponse) {
 
 function mergeLookupResult(
   combinedResult: LookupResult,
-  nextResult: LookupResult,
+  nextResult: LookupResult
 ) {
   combinedResult.haveMore = nextResult.haveMore;
 
@@ -175,11 +178,11 @@ function mergeLookupResult(
 // Ensure the target base is the first one in the list
 function reorderLookupResult(result: LookupResult) {
   const headBase = result.bases.find(
-    (base) => base.key === result.targetBase!.key,
+    (base) => base.key === result.targetBase!.key
   );
   if (headBase) {
     const otherBases = result.bases.filter(
-      (base) => base.key !== result.targetBase!.key,
+      (base) => base.key !== result.targetBase!.key
     );
     result.bases = [headBase, ...otherBases];
   }
