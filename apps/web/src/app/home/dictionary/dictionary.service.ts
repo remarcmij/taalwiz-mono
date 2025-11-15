@@ -16,21 +16,14 @@ interface SearchRequest {
   limit?: number;
 }
 
-export interface PopoverResponse {
-  baseWords: string[];
-  resolvedWord: string;
-  targetLang: string;
-  text: string;
-}
-
-export class LookupResult {
+class LookupResult {
   targetBase: WordLang | null = null;
   bases: WordLang[] = [];
   lemmas: Record<string, ILemma[]> = {};
   haveMore = false;
 }
 
-export interface LookupResponse {
+interface LookupResponse {
   word: string;
   lang: string;
   lemmas: ILemma[];

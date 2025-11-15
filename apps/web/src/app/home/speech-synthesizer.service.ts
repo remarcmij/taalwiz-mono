@@ -1,7 +1,7 @@
 declare const speechSynthesis: any;
 declare const SpeechSynthesisUtterance: any;
 
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   Observable,
   Observer,
@@ -41,11 +41,14 @@ export class SpeechSynthesizerService {
   voicesAvailable!: SpeechSynthesisVoice[];
   private _hasSpoken = false; // needed for iOS
   isCancelling = false;
-  speechSubscription: Subscription | undefined;
+  speechSubscription?: Subscription;
   utterance: any;
   private _speechEnabled = false;
 
-  constructor(private logger: LoggerService) {
+  private logger!: LoggerService;
+
+  constructor() {
+    this.logger = inject(LoggerService);
     this.onInit();
   }
 
@@ -67,14 +70,14 @@ export class SpeechSynthesizerService {
 
     this.loadVoices().then((voices) => {
       this.voicesAvailable = voices.sort((a, b) =>
-        a.lang.localeCompare(b.lang),
+        a.lang.localeCompare(b.lang)
       );
       if (!environment.production && this.logger.isMinLevel('silly')) {
         console.table(this.voicesAvailable);
       }
       this.logger.debug(
         'SpeechSynthesizerService',
-        `${voices.length} voices loaded`,
+        `${voices.length} voices loaded`
       );
     });
   }
@@ -104,7 +107,7 @@ export class SpeechSynthesizerService {
           if (voices.length !== 0 || retries > MAX_RETRIES) {
             this.logger.debug(
               'SpeechSynthesizerService.loadVoices',
-              'retries ' + retries,
+              'retries ' + retries
             );
             clearInterval(intervalID);
             resolve(voices);
@@ -166,15 +169,15 @@ export class SpeechSynthesizerService {
       map((phrase) => phrase.trim()),
       filter((phrase) => phrase.length !== 0),
       concatMap((phrase) =>
-        this.speakObservable(phrase, lang, options).pipe(delay(options!.pause)),
-      ),
+        this.speakObservable(phrase, lang, options).pipe(delay(options!.pause))
+      )
     );
   }
 
   speakSingle(
     text: string,
     lang: string,
-    options?: SpeakOptions,
+    options?: SpeakOptions
   ): Observable<void> {
     if (!this.isSynthesisSupported()) {
       return throwError(() => new Error('speech synthesis not supported'));
@@ -220,7 +223,7 @@ export class SpeechSynthesizerService {
       } catch (err: any) {
         this.logger.error(
           'SpeechSynthesizerService.speakObservable',
-          err.message,
+          err.message
         );
         observer.error(err);
       }

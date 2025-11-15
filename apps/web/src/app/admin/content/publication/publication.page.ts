@@ -77,7 +77,7 @@ export class PublicationPage {
   #contentService = inject(ContentService);
   #adminService = inject(AdminService);
 
-  #indexTopic: ITopic | undefined = undefined;
+  #indexTopic?: ITopic;
   #resetTopics: ITopic[] = [];
 
   topics = signal<ITopic[]>([]);
