@@ -20,11 +20,14 @@ export class WordClickModalService {
     event.preventDefault();
     event.stopPropagation();
     const target = event.target as HTMLInputElement;
+
     const sentence = target.parentElement?.textContent ?? '';
 
     const wordLang = this.getWordClickParams(target);
 
     if (wordLang) {
+      target.classList.add('clicked');
+
       this.fetchLemmas(removeAccents(wordLang.word), wordLang.lang).subscribe({
         next: (response) => {
           const { word, lang, lemmas } = response;
@@ -45,6 +48,9 @@ export class WordClickModalService {
             })
             .then((modal) => {
               modal.present();
+              modal.onDidDismiss().then(() => {
+                target.classList.remove('clicked');
+              });
             });
         },
         error: (error) => {},
