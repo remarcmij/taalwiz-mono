@@ -10,7 +10,7 @@
 <ion-content [fullscreen]="true">
   <div class="content-container">
     <ion-list class="ion-padding-vertical">
-      @for (user of users(); track user._id) {
+      @for (user of users(); track user.id) {
       <ion-item-sliding #slidingItem>
         <ion-item>
           <ion-label>
@@ -27,7 +27,8 @@
         <ion-item-options>
           <ion-item-option
             color="danger"
-            (click)="onDeleteUser(user._id, slidingItem)">
+            (click)="onDeleteUser(user.id, slidingItem)"
+          >
             <ion-icon name="trash" slot="icon-only"></ion-icon>
           </ion-item-option>
         </ion-item-options>
@@ -38,6 +39,7 @@
       [isOpen]="isToastOpen()"
       message="User deleted successfully."
       [duration]="2000"
-      (didDismiss)="isToastOpen.set(false)"></ion-toast>
+      (didDismiss)="isToastOpen.set(false)"
+    ></ion-toast>
   </div>
 </ion-content>

@@ -19,23 +19,25 @@
             detail
             button
             lines="none"
-            [routerLink]="'/about/' + user?.lang">
+            [routerLink]="'/about/' + user?.lang"
+          >
             <ion-icon slot="start" name="information-circle-outline"></ion-icon>
             <ion-label>{{ 'common.about' | translate }}</ion-label>
           </ion-item>
         </ion-menu-toggle>
 
-        @if (user && user.role !== 'demo') {
-        <ion-menu-toggle menu="m1">
-          <ion-item
-            detail
-            button
-            lines="none"
-            routerLink="/auth/change-password">
-            <ion-icon slot="start" name="shield-half-outline"></ion-icon>
-            <ion-label>{{ 'auth.change-password' | translate }}</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
+        @if (user && !user.roles.includes('demo')) {
+          <ion-menu-toggle menu="m1">
+            <ion-item
+              detail
+              button
+              lines="none"
+              routerLink="/auth/change-password"
+            >
+              <ion-icon slot="start" name="shield-half-outline"></ion-icon>
+              <ion-label>{{ 'auth.change-password' | translate }}</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
         }
         <ion-menu-toggle menu="m1">
           <ion-item detail button lines="none" routerLink="/contact">
@@ -55,16 +57,16 @@
             <ion-label>{{ 'auth.logout' | translate }}</ion-label>
           </ion-item>
         </ion-menu-toggle>
-        @if (user?.role === 'admin') {
-        <ion-list-header>
-          <ion-label><h2>Administrator Only</h2></ion-label>
-        </ion-list-header>
-        <ion-menu-toggle menu="m1">
-          <ion-item detail button lines="none" routerLink="admin">
-            <ion-icon slot="start" name="rocket-outline"></ion-icon>
-            <ion-label>Administrative Tasks</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
+        @if (user?.roles?.includes('admin')) {
+          <ion-list-header>
+            <ion-label><h2>Administrator Only</h2></ion-label>
+          </ion-list-header>
+          <ion-menu-toggle menu="m1">
+            <ion-item detail button lines="none" routerLink="admin">
+              <ion-icon slot="start" name="rocket-outline"></ion-icon>
+              <ion-label>Administrative Tasks</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
         }
       </ion-list>
     </ion-content>

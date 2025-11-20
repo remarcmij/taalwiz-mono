@@ -24,7 +24,7 @@ export class ContentService {
     this.#authService.user$
       .pipe(
         takeUntilDestroyed(),
-        filter((user) => !user),
+        filter((user) => !user)
       )
       .subscribe(() => {
         this.clearCache();
@@ -51,22 +51,22 @@ export class ContentService {
         return this.#http.get<ITopic[]>(url, { headers }).pipe(
           tap((topics) => {
             this.#contentCache.set(url, topics);
-          }),
+          })
         );
       }),
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of([]);
-      }),
+      })
     );
   }
 
   fetchPublications(): Observable<ITopic[]> {
-    return this.fetchTopics('/api/topics/index');
+    return this.fetchTopics('/api/v1/content/index');
   }
 
   fetchPublicationTopics(groupName: string): Observable<ITopic[]> {
-    return this.fetchTopics(`/api/topics/${groupName}`);
+    return this.fetchTopics(`/api/v1/content/${groupName}`);
   }
 
   fetchArticle(filename: string): Observable<IArticle | null> {
@@ -75,7 +75,7 @@ export class ContentService {
         if (!headers) {
           return of(null);
         }
-        const url = `/api/article/${filename}`;
+        const url = `/api/v1/content/article/${filename}`;
         const cached = this.#contentCache.get(url);
         if (cached) {
           this.#logger.silly('ContentService', `cache hit: ${url}`);
@@ -86,13 +86,13 @@ export class ContentService {
         return this.#http.get<IArticle>(url, { headers }).pipe(
           tap((article) => {
             this.#contentCache.set(url, article);
-          }),
+          })
         );
       }),
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of(null);
-      }),
+      })
     );
   }
 }

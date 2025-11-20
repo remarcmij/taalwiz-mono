@@ -19,41 +19,41 @@ export class HashtagsService {
   #authService = inject(AuthService);
   #apiErrorAlertService = inject(ApiErrorAlertService);
 
-  fetchHashtagIndex(): Observable<HashtagGroup[]> {
+  getHashtagIndex(): Observable<HashtagGroup[]> {
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
         if (!headers) {
           return of([]);
         }
         return this.#http
-          .get<HashtagGroup[]>('/api/hashtags', { headers })
+          .get<HashtagGroup[]>('/api/v1/hashtags', { headers })
           .pipe(
             catchError((error) => {
               this.#apiErrorAlertService.showError(error);
               return of([]);
-            }),
+            })
           );
-      }),
+      })
     );
   }
 
-  searchHashtags(name: string): Observable<IHashtag[]> {
+  findHashtag(name: string): Observable<IHashtag[]> {
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
         if (!headers) {
           return of([]);
         }
         return this.#http
-          .get<IHashtag[]>(`/api/hashtags/${name}`, {
+          .get<IHashtag[]>(`/api/v1/hashtags/${name}`, {
             headers,
           })
           .pipe(
             catchError((error) => {
               this.#apiErrorAlertService.showError(error);
               return of([]);
-            }),
+            })
           );
-      }),
+      })
     );
   }
 }

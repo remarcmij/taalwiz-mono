@@ -51,7 +51,7 @@ export class HashtagModalComponent implements OnInit {
   hashtags$!: Observable<IHashtag[]>;
 
   ngOnInit() {
-    this.hashtags$ = this.#hashTagService.searchHashtags(this.hashtagName());
+    this.hashtags$ = this.#hashTagService.findHashtag(this.hashtagName());
   }
 
   onClick(hashtag: IHashtag) {

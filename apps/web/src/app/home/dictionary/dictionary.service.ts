@@ -51,7 +51,7 @@ export class DictionaryService {
   fetchSuggestions(term: string) {
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) =>
-        this.#http.get<WordLang[]>(`/api/dictionary/suggestions/${term}`, {
+        this.#http.get<WordLang[]>(`/api/v1/dictionary/autocomplete/${term}`, {
           headers,
         })
       )
@@ -116,7 +116,7 @@ export class DictionaryService {
 
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
-        const url = `/api/dictionary/lookup/${encodeURIComponent(
+        const url = `/api/v1/dictionary/find/${encodeURIComponent(
           word
         )}/${encodeURIComponent(lang)}`;
         return this.#http.get<LookupResponse>(url, {

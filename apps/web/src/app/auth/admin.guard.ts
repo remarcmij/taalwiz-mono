@@ -19,14 +19,14 @@ export const adminGuard: CanActivateFn = (route, state) => {
       return authService.user$.pipe(
         first(),
         map((user) => {
-          const isAdmin = user?.role === 'admin';
+          const isAdmin = user?.roles.includes('admin') ?? false;
           if (!isAdmin) {
             logger.warn('adminGuard', 'User is not an admin');
             router.navigateByUrl(homeUrl, { replaceUrl: true });
           }
           return isAdmin;
-        }),
+        })
       );
-    }),
+    })
   );
 };

@@ -22,13 +22,13 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { homeUrl } from '../home/home.routes';
 import { LoggerService } from '../shared/logger.service';
-import { User } from './user.model';
+import { Role, User } from './user.model';
 
 export interface AuthResponseData {
   id: string;
   email: string;
   name: string;
-  role: 'user' | 'admin';
+  roles: Role[];
   lang: string;
   refreshToken: string;
   refreshExp: string;
@@ -42,7 +42,10 @@ type TokenResponseData = {
 const LATENCY_MARGIN = 5;
 
 class TokenData {
-  constructor(public token: string, public exp: number) {}
+  constructor(
+    public token: string,
+    public exp: number
+  ) {}
 }
 
 @Injectable({
@@ -58,14 +61,14 @@ export class AuthService implements OnDestroy {
     private http: HttpClient,
     private router: Router,
     private translate: TranslateService,
-    private logger: LoggerService,
+    private logger: LoggerService
   ) {
     this.#user$.subscribe((user) => {
       if (user) {
         this.translate.use(user.lang);
         logger.debug(
           'AuthService',
-          `user ${user.email} logged in as ${user.role} using language ${user.lang}.`,
+          `user ${user.email} logged in as ${user.roles} using language ${user.lang}.`
         );
       }
     });
@@ -102,27 +105,27 @@ export class AuthService implements OnDestroy {
               return of(null);
             }
             return this.http
-              .post<TokenResponseData>('/auth-api/token', { refreshToken })
+              .post<TokenResponseData>('/api/v1/auth/refresh', { refreshToken })
               .pipe(
                 switchMap((tokenData) => {
                   // Add a safety margin to allow for backend latency.
                   const newTokenData = new TokenData(
                     tokenData.token,
-                    +tokenData.exp - LATENCY_MARGIN,
+                    +tokenData.exp - LATENCY_MARGIN
                   );
                   this.#tokenData$.next(newTokenData);
                   this.logger.debug('AuthService', 'token refreshed');
                   return of(tokenData.token);
-                }),
+                })
               );
-          }),
+          })
         );
       }),
       catchError((error) => {
         this.logout();
         return of(null);
       }),
-      takeUntil(this.#destroy$),
+      takeUntil(this.#destroy$)
     );
   }
 
@@ -143,7 +146,7 @@ export class AuthService implements OnDestroy {
       catchError((error) => {
         this.logout();
         return of(headers);
-      }),
+      })
     );
   }
 
@@ -159,7 +162,7 @@ export class AuthService implements OnDestroy {
     catchError(() => {
       this.logout();
       return of(null);
-    }),
+    })
   );
 
   autoLogin() {
@@ -179,13 +182,13 @@ export class AuthService implements OnDestroy {
         const parsedData = JSON.parse(storedData.value) as User;
 
         const user = new User(
-          parsedData._id,
+          parsedData.id,
           parsedData.email,
           parsedData.name,
           parsedData.lang,
-          parsedData.role,
+          parsedData.roles,
           parsedData.refreshToken,
-          +parsedData.refreshExp,
+          +parsedData.refreshExp
         );
         if (parsedData.name) {
           user.name = parsedData.name;
@@ -200,7 +203,7 @@ export class AuthService implements OnDestroy {
       }),
       map((user) => {
         return !!user;
-      }),
+      })
     );
   }
 
@@ -214,7 +217,7 @@ export class AuthService implements OnDestroy {
         return user.refreshExp < new Date().getTime() / 1000
           ? null
           : user.refreshToken;
-      }),
+      })
     );
   }
 
@@ -231,7 +234,7 @@ export class AuthService implements OnDestroy {
 
   login(email: string, password: string) {
     return this.http
-      .post<AuthResponseData>('/auth-api/login', {
+      .post<AuthResponseData>('/api/v1/auth/login', {
         email,
         password,
       })
@@ -267,9 +270,9 @@ export class AuthService implements OnDestroy {
       userData.email,
       userData.name,
       userData.lang,
-      userData.role,
+      userData.roles,
       userData.refreshToken,
-      refreshExp,
+      refreshExp
     );
 
     this.#user$.next(user);
@@ -279,9 +282,9 @@ export class AuthService implements OnDestroy {
       userData.email,
       userData.name,
       userData.lang,
-      userData.role,
+      userData.roles,
       userData.refreshToken,
-      refreshExp,
+      refreshExp
     );
   }
 
@@ -290,16 +293,16 @@ export class AuthService implements OnDestroy {
     email: string,
     name: string,
     lang: string,
-    role: string,
+    roles: Role[],
     refreshToken: string,
-    refreshExp: number,
+    refreshExp: number
   ) {
     const data = JSON.stringify({
       id,
       email,
       name,
       lang,
-      role,
+      roles,
       refreshToken,
       refreshExp,
     });

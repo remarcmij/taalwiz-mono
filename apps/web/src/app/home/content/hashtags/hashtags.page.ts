@@ -70,7 +70,7 @@ export class HashtagsPage implements OnInit {
 
   @ViewChild(IonModal) modal!: IonModal;
 
-  hashtagGroups$ = this.#hashtagsService.fetchHashtagIndex();
+  hashtagGroups$ = this.#hashtagsService.getHashtagIndex();
 
   isDesktop = this.#platform.is('desktop');
   giveUpWaiting = signal(false);
@@ -82,7 +82,7 @@ export class HashtagsPage implements OnInit {
   }
 
   handleRefresh(event?: any) {
-    this.hashtagGroups$ = this.#hashtagsService.fetchHashtagIndex();
+    this.hashtagGroups$ = this.#hashtagsService.getHashtagIndex();
     event?.target.complete();
   }
 

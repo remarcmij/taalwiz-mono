@@ -60,7 +60,7 @@ export class UsersPage {
     this.#adminService.getUsers().subscribe((users) => {
       this.users.set(
         users
-          .filter((user) => user.role !== 'admin')
+          .filter((user) => !user.roles.includes('admin'))
           .sort((a, b) => a.email.localeCompare(b.email))
       );
     });
@@ -74,7 +74,7 @@ export class UsersPage {
 
     confirmedObs$.subscribe((result) => {
       if (result) {
-        this.users.update((users) => users.filter((user) => user._id !== id));
+        this.users.update((users) => users.filter((user) => user.id !== id));
         this.isToastOpen.set(true);
       }
     });
