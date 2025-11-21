@@ -74,7 +74,7 @@ export class UploadPage implements OnInit {
 
     this.#authService.token.pipe(first()).subscribe((token) => {
       const uploader = new FileUploader({
-        url: '/api/admin/upload',
+        url: '/api/v1/content/upload',
         authToken: 'Bearer ' + token,
         isHTML5: true,
       });

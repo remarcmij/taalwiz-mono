@@ -21,7 +21,7 @@ export class TaskQueue<T> {
   private next(): void {
     while (this.running < this.concurrency && this.queue.length) {
       const task = this.queue.shift()!;
-      void task().then(() => {
+      task().then(() => {
         this.running--;
         this.next();
       });
