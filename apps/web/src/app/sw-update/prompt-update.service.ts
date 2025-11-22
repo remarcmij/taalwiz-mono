@@ -9,7 +9,6 @@ export class PromptUpdateService {
   #alertCtrl = inject(AlertController);
   #translate = inject(TranslateService);
 
-
   constructor(swUpdate: SwUpdate) {
     if (!swUpdate.isEnabled) {
       return;
@@ -17,9 +16,9 @@ export class PromptUpdateService {
 
     swUpdate.versionUpdates
       .pipe(
-        filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'),
+        filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY')
       )
-      .subscribe(async (evt) => {
+      .subscribe(async (_evt) => {
         const alertEl = await this.#alertCtrl.create({
           header: this.#translate.instant('update.update-available'),
           message: this.#translate.instant('update.update-message'),

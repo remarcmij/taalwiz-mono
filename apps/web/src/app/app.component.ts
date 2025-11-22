@@ -76,6 +76,7 @@ export class AppComponent implements OnInit, OnDestroy {
   #translate = inject(TranslateService);
 
   // Inject the PromptUpdateService - this will trigger the service to start
+  // eslint-disable-next-line no-unused-private-class-members
   #updateService = inject(PromptUpdateService);
 
   currentUser = signal<User | null>(null);

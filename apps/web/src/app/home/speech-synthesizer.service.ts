@@ -208,7 +208,7 @@ export class SpeechSynthesizerService {
         this.utterance.volume =
           typeof options.volume === 'number' ? options.volume : 1;
 
-        const onEndHandler = (e?: any) => {
+        const onEndHandler = () => {
           this._hasSpoken = true;
           observer.next(this.utterance);
           observer.complete();

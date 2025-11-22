@@ -122,6 +122,7 @@ export class AuthService implements OnDestroy {
         );
       }),
       catchError((error) => {
+        this.logger.error('AuthService', 'Token retrieval failed', error);
         this.logout();
         return of(null);
       }),
@@ -144,6 +145,11 @@ export class AuthService implements OnDestroy {
         return of(headers);
       }),
       catchError((error) => {
+        this.logger.error(
+          'AuthService',
+          'Request headers retrieval failed',
+          error
+        );
         this.logout();
         return of(headers);
       })

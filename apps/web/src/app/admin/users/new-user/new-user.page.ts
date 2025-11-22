@@ -101,7 +101,7 @@ export class NewUserPage {
         if (error.message === EMAIL_EXISTS) {
           message = 'The email address is already registered.';
         }
-        this.#apiErrorAlertService.showError(error);
+        this.#apiErrorAlertService.showError(message);
       },
     });
   }

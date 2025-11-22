@@ -53,7 +53,9 @@ export class WordClickModalService {
               });
             });
         },
-        error: (error) => {},
+        error: () => {
+          // Do nothing on error
+        },
       });
     }
   }

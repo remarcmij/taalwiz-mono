@@ -29,7 +29,7 @@ export class AdminService {
           return of([]);
         }
         return this.#http.get<User[]>('/api/admin/users', { headers });
-      }),
+      })
     );
   }
 
@@ -40,7 +40,7 @@ export class AdminService {
           return of(null);
         }
         return this.#http.get<User>(`/api/admin/users/${id}`, { headers });
-      }),
+      })
     );
   }
 
@@ -51,7 +51,7 @@ export class AdminService {
           return of(null);
         }
         return this.#http.delete(`/api/admin/users/${id}`, { headers });
-      }),
+      })
     );
   }
 
@@ -64,7 +64,7 @@ export class AdminService {
         return this.#http.get(`/api/admin/users/invite/${email}/${lang}`, {
           headers,
         });
-      }),
+      })
     );
   }
 
@@ -80,11 +80,11 @@ export class AdminService {
             { ids },
             {
               headers,
-            },
+            }
           )
           .pipe(map(() => true));
       }),
-      tap((resp) => {
+      tap(() => {
         this.#contentService.clearCache();
       }),
       catchError((error) => {
@@ -98,7 +98,7 @@ export class AdminService {
             alertEl.present();
           });
         return of(false);
-      }),
+      })
     );
   }
 
@@ -109,7 +109,7 @@ export class AdminService {
           return of(null);
         }
         return this.#http.delete(`/api/admin/topics/${filename}`, { headers });
-      }),
+      })
     );
   }
 
@@ -153,7 +153,7 @@ export class AdminService {
           })
           .then((alertEl) => alertEl.present());
         return of(null);
-      }),
+      })
     );
   }
 
@@ -187,12 +187,12 @@ export class AdminService {
       switchMap((headers) =>
         this.#http.get<ISystemSettings[]>('/api/admin/settings', {
           headers,
-        }),
+        })
       ),
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of([]);
-      }),
+      })
     );
   }
 
@@ -205,9 +205,9 @@ export class AdminService {
         return this.#http.patch(
           '/api/admin/settings',
           { settings },
-          { headers },
+          { headers }
         );
-      }),
+      })
     );
   }
 }

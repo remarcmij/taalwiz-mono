@@ -79,7 +79,7 @@ export class UploadPage implements OnInit {
         isHTML5: true,
       });
 
-      uploader.onErrorItem = (item, response, status, headers) => {
+      uploader.onErrorItem = (item, response) => {
         const body = JSON.parse(response);
         errorMessages.push(`${item.file.name}: ${body.message}`);
       };

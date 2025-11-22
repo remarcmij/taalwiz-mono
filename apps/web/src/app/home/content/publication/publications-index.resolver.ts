@@ -1,17 +1,12 @@
 import { inject } from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  ResolveFn,
-  RouterStateSnapshot,
-} from '@angular/router';
+import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
 import { ContentService } from '../content.service';
 import { type ITopic } from '../topic.model';
 
 export const publicationsIndexResolver: ResolveFn<ITopic[]> = (
-  route: ActivatedRouteSnapshot,
-  state: RouterStateSnapshot,
+  route: ActivatedRouteSnapshot
 ) => {
   return inject(ContentService).fetchPublicationTopics(
-    route.paramMap.get('groupName')!,
+    route.paramMap.get('groupName')!
   );
 };

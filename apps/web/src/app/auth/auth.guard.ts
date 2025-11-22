@@ -4,7 +4,7 @@ import { of, tap } from 'rxjs';
 import { LoggerService } from '../shared/logger.service';
 import { AuthService } from './auth.service';
 
-export const authGuard: CanActivateFn = (route, state) => {
+export const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const logger = inject(LoggerService);
@@ -16,6 +16,6 @@ export const authGuard: CanActivateFn = (route, state) => {
         logger.warn('authGuard', 'User is not authenticated');
         router.navigateByUrl('/auth');
       }
-    }),
+    })
   );
 };

@@ -4,7 +4,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { LoggerService } from '../../shared/logger.service';
 
-export const registerGuard: CanActivateFn = (route, state) => {
+export const registerGuard: CanActivateFn = (route) => {
   const http = inject(HttpClient);
   const router = inject(Router);
   const logger = inject(LoggerService);
@@ -22,6 +22,6 @@ export const registerGuard: CanActivateFn = (route, state) => {
         logger.warn('registerGuard', 'Invalid registration token');
         router.navigateByUrl('/auth');
         return of(false);
-      }),
+      })
     );
 };

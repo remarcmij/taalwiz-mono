@@ -87,7 +87,7 @@ export class ContactPage {
         })
       )
       .subscribe({
-        next: (res) => {
+        next: () => {
           form.reset();
           loadingEl.dismiss();
           this.showAlert(this.#translate.instant('user.contact-sent')).then(
@@ -96,7 +96,7 @@ export class ContactPage {
             }
           );
         },
-        error: (err) => {
+        error: () => {
           loadingEl.dismiss();
           this.showAlert(this.#translate.instant('user.contact-failed'));
         },

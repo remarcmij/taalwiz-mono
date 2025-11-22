@@ -60,7 +60,7 @@ export class DictionaryService {
 
   searchDictionary(target: WordLang) {
     let skip = 0;
-    let combinedResult = new LookupResult();
+    const combinedResult = new LookupResult();
     combinedResult.targetBase = target;
 
     const doSearch = () => {
@@ -92,7 +92,7 @@ export class DictionaryService {
     doSearch();
   }
 
-  private handleError(error: any) {
+  private handleError(_error: any) {
     this.#alertCtrl
       .create({
         header: this.#translate.instant('common.search-alert-header'),
@@ -107,12 +107,18 @@ export class DictionaryService {
   execSearchRequest(searchRequest: SearchRequest) {
     const { word, lang, keyword, skip, limit } = searchRequest;
     let params = new HttpParams();
-    keyword !== undefined &&
-      (params = params.set('keyword', keyword ? '1' : '0'));
 
-    // Skip and limit are optional,skip could be 0
-    typeof skip === 'number' && (params = params.set('skip', skip));
-    typeof limit === 'number' && (params = params.set('limit', limit));
+    if (keyword !== undefined) {
+      params = params.set('keyword', keyword ? '1' : '0');
+    }
+
+    if (typeof skip === 'number') {
+      params = params.set('skip', String(skip));
+    }
+
+    if (typeof limit === 'number') {
+      params = params.set('limit', String(limit));
+    }
 
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
