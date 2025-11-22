@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import EventEmitter from 'node:events';
 import { TaskQueue } from '../util/TaskQueue.js';
 import ArticleLoader from './loaders/ArticleLoader.js';
@@ -58,12 +58,13 @@ export class ContentService {
         this.logger.log(`file '${file.originalname}' uploaded successfully`);
         res.json({ filename: file.originalname });
       } catch (err) {
-        const error = err as Error;
-        let message: string;
-        if (error.name === 'ValidationError') {
-          message = error.toString();
-        } else {
-          message = error.message;
+        let message = 'unknown error';
+        if (err instanceof Error) {
+          if (err.name === 'ValidationError') {
+            message = err.toString();
+          } else {
+            message = err.message;
+          }
         }
         this.logger.error(`error uploading file '${file.originalname}': ${message}`);
         res.status(400).json({ message: message });

@@ -3,14 +3,9 @@ import debounce from 'lodash.debounce';
 import AutoComplete from '../../dictionary/models/completions.model.js';
 import Lemma from '../../dictionary/models/lemma.model.js';
 import type { ITopic } from '../models/topic.model.js';
-import BaseLoader from './BaseLoader.js';
+import BaseLoader, { IUpload } from './BaseLoader.js';
 
 const REBUILD_DELAY = 10000; // 10 secs
-
-export interface IUpload<T> {
-  topic: ITopic;
-  payload: T;
-}
 
 export interface IDictDataJson {
   baseLang: string;

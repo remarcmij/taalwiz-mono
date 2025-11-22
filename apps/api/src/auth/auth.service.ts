@@ -25,9 +25,7 @@ export class AuthService {
       for (const seedUser of plainToInstance(UserDto, seedUsers)) {
         const errors = await validate(seedUser);
         if (errors.length > 0) {
-          this.logger.error(
-            `Invalid seed user data: ${JSON.stringify(errors)}`,
-          );
+          this.logger.error(`Invalid seed user data: ${JSON.stringify(errors)}`);
           continue;
         }
         const user = await this.usersService.findOne(seedUser.email);
@@ -42,9 +40,9 @@ export class AuthService {
             });
             this.logger.log(`Seeded user: ${seedUser.email}`);
           } catch (err) {
-            this.logger.error(
-              `Error seeding user ${seedUser.email}: ${(err as Error).message}`,
-            );
+            if (err instanceof Error) {
+              this.logger.error(`Error seeding user ${seedUser.email}: ${err.message}`);
+            }
           }
         }
       }
@@ -77,9 +75,7 @@ export class AuthService {
       secret: process.env.JWT_REFRESH_SECRET,
     });
 
-    const expirationDate = new Date(
-      Date.now() + REFRESH_TOKEN_EXPIRATION * 1000,
-    );
+    const expirationDate = new Date(Date.now() + REFRESH_TOKEN_EXPIRATION * 1000);
 
     return {
       id: user._id!.toString(),
@@ -99,7 +95,9 @@ export class AuthService {
         secret: process.env.JWT_REFRESH_SECRET,
       });
     } catch (err) {
-      this.logger.error(`Verification error: ${(err as Error).message}`);
+      if (err instanceof Error) {
+        this.logger.error(`Verification error: ${err.message}`);
+      }
       throw new UnauthorizedException();
     }
 
@@ -122,9 +120,7 @@ export class AuthService {
       secret: process.env.JWT_SECRET,
     });
 
-    const expirationDate = new Date(
-      Date.now() + ACCESS_TOKEN_EXPIRATION * 1000,
-    );
+    const expirationDate = new Date(Date.now() + ACCESS_TOKEN_EXPIRATION * 1000);
     this.logger.debug(`Refreshed access token for user ${user.email}`);
 
     return { token: accessToken, exp: expirationDate.getTime() };

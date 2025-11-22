@@ -5,11 +5,11 @@ export type Language = 'en' | 'nl';
 
 export interface IUser {
   _id?: Types.ObjectId;
-  name?: string;
+  name: string;
   email: string;
   password: string;
+  lang: Language;
   roles: Role[];
-  lang?: Language;
   created?: Date;
   lastAccessed?: Date;
 }

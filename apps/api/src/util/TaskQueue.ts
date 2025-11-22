@@ -1,9 +1,9 @@
-export interface ITask<T> {
+interface ITask<T> {
   (): Promise<T>;
 }
 
 export class TaskQueue<T> {
-  private concurrency: number;
+  private readonly concurrency: number;
   private running: number;
   private queue: ITask<T>[];
 
