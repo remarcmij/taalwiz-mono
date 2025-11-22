@@ -9,7 +9,7 @@ export class ApiErrorAlertService {
   #alertCtrl = inject(AlertController);
   #translate = inject(TranslateService);
 
-  async showError(error: any) {
+  async showError(error: Error) {
     const alert = await this.#alertCtrl.create({
       header: this.#translate.instant('common.server-error'),
       message: error.message,

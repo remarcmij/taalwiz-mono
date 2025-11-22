@@ -81,7 +81,7 @@ export class HashtagsPage implements OnInit {
     }, 1000);
   }
 
-  handleRefresh(event?: any) {
+  handleRefresh(event?: { target: { complete: () => void } }) {
     this.hashtagGroups$ = this.#hashtagsService.getHashtagIndex();
     event?.target.complete();
   }

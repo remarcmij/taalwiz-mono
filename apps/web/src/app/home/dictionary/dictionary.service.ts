@@ -73,8 +73,8 @@ export class DictionaryService {
         .pipe(
           map((data) => makeLookupResult(data)),
           map((nextResult) => mergeLookupResult(combinedResult, nextResult)),
-          catchError((error) => {
-            this.handleError(error);
+          catchError(() => {
+            this.handleError();
             combinedResult.haveMore = false;
             return of(combinedResult);
           })
@@ -92,7 +92,7 @@ export class DictionaryService {
     doSearch();
   }
 
-  private handleError(_error: any) {
+  private handleError() {
     this.#alertCtrl
       .create({
         header: this.#translate.instant('common.search-alert-header'),

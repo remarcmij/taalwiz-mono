@@ -136,7 +136,7 @@ export class FlashcardPage {
     });
   }
 
-  handleChange(e: any) {
+  handleChange(e: { detail: { value: number } }) {
     this.#sectionIndex = e.detail.value;
     this.prepareFlashcards(this.flashcardSections());
     this.onSlideDidChange();

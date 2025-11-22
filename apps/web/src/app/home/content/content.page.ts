@@ -72,7 +72,7 @@ export class ContentPage implements OnInit {
     }, 1000);
   }
 
-  handleRefresh(event?: any) {
+  handleRefresh(event?: { target: { complete: () => void } }) {
     this.topics$ = this.#contentService.fetchPublications();
     event?.target.complete();
   }

@@ -109,11 +109,11 @@ export class UploadPage implements OnInit {
     });
   }
 
-  fileOverBase(e: any) {
+  fileOverBase(e: boolean) {
     this.hasBaseDropZoneOver.set(e);
   }
 
-  fileOverAnother(e: any) {
+  fileOverAnother(e: boolean) {
     this.hasAnotherDropZoneOver = e;
   }
 

@@ -1,6 +1,6 @@
 export interface IArticle {
   _id: string;
-  _topic: any;
+  _topic: string;
   baseLang: string;
   filename: string;
   foreignLang: string;

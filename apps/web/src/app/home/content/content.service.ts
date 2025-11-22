@@ -18,7 +18,7 @@ export class ContentService {
   #apiErrorAlertService = inject(ApiErrorAlertService);
   #logger = inject(LoggerService);
 
-  #contentCache = new Map<string, any>();
+  #contentCache = new Map<string, unknown>();
 
   constructor() {
     this.#authService.user$
@@ -42,7 +42,7 @@ export class ContentService {
         if (!headers) {
           return of([]);
         }
-        const cached = this.#contentCache.get(url);
+        const cached = this.#contentCache.get(url) as ITopic[] | undefined;
         if (cached) {
           this.#logger.silly('ContentService', `cache hit: ${url}`);
           return of(cached);
@@ -76,7 +76,7 @@ export class ContentService {
           return of(null);
         }
         const url = `/api/v1/content/article/${filename}`;
-        const cached = this.#contentCache.get(url);
+        const cached = this.#contentCache.get(url) as IArticle | undefined;
         if (cached) {
           this.#logger.silly('ContentService', `cache hit: ${url}`);
           return of(cached);

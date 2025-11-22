@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare const speechSynthesis: any;
 declare const SpeechSynthesisUtterance: any;
 

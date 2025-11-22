@@ -88,6 +88,7 @@ export class NewUserPage {
     loadingEl.present();
 
     this.#adminService.sendRegistrationRequest(email, this.lang()).subscribe({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       next: (info: any) => {
         this.acceptedEmails.set(info.accepted.join(', '));
         loadingEl.dismiss();
@@ -101,7 +102,7 @@ export class NewUserPage {
         if (error.message === EMAIL_EXISTS) {
           message = 'The email address is already registered.';
         }
-        this.#apiErrorAlertService.showError(message);
+        this.#apiErrorAlertService.showError(new Error(message));
       },
     });
   }
