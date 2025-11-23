@@ -7,8 +7,8 @@ import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ContentModule } from './content/content.module.js';
 import { DictionaryModule } from './dictionary/dictionary.module.js';
-import { UsersModule } from './users/users.module.js';
 import { HashtagModule } from './hashtag/hashtag.module.js';
+import { UsersModule } from './users/users.module.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

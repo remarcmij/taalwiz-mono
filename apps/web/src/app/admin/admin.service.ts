@@ -28,18 +28,7 @@ export class AdminService {
         if (!headers) {
           return of([]);
         }
-        return this.#http.get<User[]>('/api/admin/users', { headers });
-      })
-    );
-  }
-
-  getUser(id: string) {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) {
-          return of(null);
-        }
-        return this.#http.get<User>(`/api/admin/users/${id}`, { headers });
+        return this.#http.get<User[]>('/api/v1/users', { headers });
       })
     );
   }
@@ -50,7 +39,7 @@ export class AdminService {
         if (!headers) {
           return of(null);
         }
-        return this.#http.delete(`/api/admin/users/${id}`, { headers });
+        return this.#http.delete(`/api/v1/users/${id}`, { headers });
       })
     );
   }
@@ -61,7 +50,7 @@ export class AdminService {
         if (!headers) {
           return of(null);
         }
-        return this.#http.get(`/api/admin/users/invite/${email}/${lang}`, {
+        return this.#http.get(`/api/v1/users/invite/${email}/${lang}`, {
           headers,
         });
       })
@@ -76,11 +65,9 @@ export class AdminService {
         }
         return this.#http
           .patch(
-            '/api/admin/sort-indices',
-            { ids },
-            {
-              headers,
-            }
+            '/api/v1/content/sort',
+            ids.map((id) => id.id),
+            { headers }
           )
           .pipe(map(() => true));
       }),

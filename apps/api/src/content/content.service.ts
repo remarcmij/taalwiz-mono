@@ -20,17 +20,14 @@ export class ContentService {
 
   async findIndexTopics() {
     return await Topic.find({ type: 'index' }).sort({ sortIndex: 1 }).lean();
-    // Implementation here
   }
 
   async findPublicationTopics(groupName: string) {
     return await Topic.find({ groupName }).sort('sortIndex title').lean();
-    // Implementation here
   }
 
   async findArticle(filename: string) {
     return await Article.findOne({ filename }).select('-indexText').lean();
-    // Implementation here
   }
 
   uploadContent(file: Express.Multer.File, res: Response) {
@@ -70,5 +67,26 @@ export class ContentService {
         res.status(400).json({ message: message });
       }
     });
+  }
+
+  async deleteTopic(filename: string) {
+    const result = await Topic.deleteOne({ filename }).exec();
+    return { deletedCount: result.deletedCount || 0 };
+  }
+
+  async updateSortIndices(ids: string[]) {
+    // Fetch all topics by their IDs to ensure they exist
+    const topics = await Promise.all(ids.map((id) => Topic.findById(id).exec()));
+    if (topics.includes(null)) {
+      throw new Error('One or more topics not found');
+    }
+
+    // Update sortIndex for each topic based on its position in the ids array
+    return Promise.all(
+      topics.map((topic, index) => {
+        topic!.sortIndex = index;
+        return topic!.save();
+      }),
+    );
   }
 }
