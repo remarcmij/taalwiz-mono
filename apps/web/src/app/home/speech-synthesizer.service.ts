@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-declare const speechSynthesis: any;
-declare const SpeechSynthesisUtterance: any;
-
 import { Injectable, inject } from '@angular/core';
 import {
   Observable,
@@ -93,17 +89,18 @@ export class SpeechSynthesizerService {
         let voices: SpeechSynthesisVoice[] = [];
         let retries = 0;
 
-        if (typeof speechSynthesis === 'undefined') {
+        if (!this.isSynthesisSupported()) {
           return resolve([]);
         }
-        voices = speechSynthesis.getVoices();
+
+        voices = window.speechSynthesis.getVoices();
         if (voices.length !== 0) {
           resolve(voices);
           return;
         }
 
         const intervalID = setInterval((): void => {
-          voices = speechSynthesis.getVoices();
+          voices = window.speechSynthesis.getVoices();
           retries += 1;
           if (voices.length !== 0 || retries > MAX_RETRIES) {
             this.logger.debug(
@@ -122,7 +119,7 @@ export class SpeechSynthesizerService {
   }
 
   isSynthesisSupported() {
-    return typeof speechSynthesis !== 'undefined';
+    return typeof window !== 'undefined' && 'speechSynthesis' in window;
   }
 
   canSpeakLanguage(lang: string) {
@@ -135,13 +132,13 @@ export class SpeechSynthesizerService {
 
   cancel() {
     this.isCancelling = true;
-    speechSynthesis.cancel();
+    window.speechSynthesis.cancel();
     if (this.speechSubscription) {
       this.speechSubscription.unsubscribe();
       this.speechSubscription = undefined;
     }
     if (this.isSynthesisSupported()) {
-      speechSynthesis.cancel();
+      window.speechSynthesis.cancel();
     }
   }
 
@@ -220,7 +217,7 @@ export class SpeechSynthesizerService {
         // Safari fires onerror instead onend while there is no error apparent
         this.utterance.addEventListener('error', onEndHandler);
 
-        speechSynthesis.speak(this.utterance);
+        window.speechSynthesis.speak(this.utterance);
       } catch (err: any) {
         this.logger.error(
           'SpeechSynthesizerService.speakObservable',
