@@ -52,6 +52,10 @@ export class ContentService {
             this.#logger.silly('ContentService', `cache hit: ${url}`);
             return of(cached.topics);
           } else {
+            this.#logger.warn(
+              'ContentService',
+              `cache type mismatch for url: ${url}`
+            );
             return of([]);
           }
         }
@@ -90,6 +94,10 @@ export class ContentService {
             this.#logger.silly('ContentService', `cache hit: ${url}`);
             return of(cached.article);
           } else {
+            this.#logger.warn(
+              'ContentService',
+              `cache type mismatch for url: ${url}`
+            );
             return of(null);
           }
         }
