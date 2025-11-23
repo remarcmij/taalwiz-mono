@@ -9,6 +9,10 @@ import { LoggerService } from '../../shared/logger.service';
 import { type IArticle } from './publication/article/article.model';
 import { type ITopic } from './topic.model';
 
+type IndexListNode = { type: 'index'; topics: ITopic[] };
+type ArticleNode = { type: 'article'; article: IArticle };
+type CacheNode = IndexListNode | ArticleNode;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -18,7 +22,7 @@ export class ContentService {
   #apiErrorAlertService = inject(ApiErrorAlertService);
   #logger = inject(LoggerService);
 
-  #contentCache = new Map<string, unknown>();
+  #contentCache = new Map<string, CacheNode>();
 
   constructor() {
     this.#authService.user$
@@ -42,15 +46,19 @@ export class ContentService {
         if (!headers) {
           return of([]);
         }
-        const cached = this.#contentCache.get(url) as ITopic[] | undefined;
+        const cached = this.#contentCache.get(url);
         if (cached) {
-          this.#logger.silly('ContentService', `cache hit: ${url}`);
-          return of(cached);
+          if (cached.type === 'index') {
+            this.#logger.silly('ContentService', `cache hit: ${url}`);
+            return of(cached.topics);
+          } else {
+            return of([]);
+          }
         }
         this.#logger.silly('ContentService', `cache miss: ${url}`);
         return this.#http.get<ITopic[]>(url, { headers }).pipe(
           tap((topics) => {
-            this.#contentCache.set(url, topics);
+            this.#contentCache.set(url, { type: 'index', topics });
           })
         );
       }),
@@ -76,16 +84,20 @@ export class ContentService {
           return of(null);
         }
         const url = `/api/v1/content/article/${filename}`;
-        const cached = this.#contentCache.get(url) as IArticle | undefined;
+        const cached = this.#contentCache.get(url);
         if (cached) {
-          this.#logger.silly('ContentService', `cache hit: ${url}`);
-          return of(cached);
+          if (cached.type === 'article') {
+            this.#logger.silly('ContentService', `cache hit: ${url}`);
+            return of(cached.article);
+          } else {
+            return of(null);
+          }
         }
         this.#logger.silly('ContentService', `cache miss: ${url}`);
 
         return this.#http.get<IArticle>(url, { headers }).pipe(
           tap((article) => {
-            this.#contentCache.set(url, article);
+            this.#contentCache.set(url, { type: 'article', article });
           })
         );
       }),
