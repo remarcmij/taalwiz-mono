@@ -87,7 +87,7 @@ export class NewUserPage {
     });
     loadingEl.present();
 
-    this.#adminService.sendRegistrationRequest(email, this.lang()).subscribe({
+    this.#adminService.inviteNewUser(email, this.lang()).subscribe({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       next: (info: any) => {
         this.acceptedEmails.set(info.accepted.join(', '));

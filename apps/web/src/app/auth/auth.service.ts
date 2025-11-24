@@ -229,7 +229,7 @@ export class AuthService implements OnDestroy {
 
   register(email: string, password: string, name: string, token: string) {
     return this.http
-      .post<AuthResponseData>('/auth-api/register', {
+      .post<AuthResponseData>('/api/v1/users/register', {
         email,
         password,
         name,
@@ -248,7 +248,7 @@ export class AuthService implements OnDestroy {
   }
 
   changePassword(email: string, password: string, newPassword: string) {
-    return this.http.post('/auth-api/change-password', {
+    return this.http.post('/api/v1/users/change-password', {
       email,
       password,
       newPassword,
@@ -256,11 +256,14 @@ export class AuthService implements OnDestroy {
   }
 
   requestPasswordReset(email: string) {
-    return this.http.post('/auth-api/request-password-reset', { email });
+    return this.http.post('/api/v1/users/request-password-reset', { email });
   }
 
   resetPassword(newPassword: string, token: string) {
-    return this.http.post('/auth-api/reset-password', { newPassword, token });
+    return this.http.post('/api/v1/users/reset-password', {
+      newPassword,
+      token,
+    });
   }
 
   logout() {

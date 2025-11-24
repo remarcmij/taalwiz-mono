@@ -44,15 +44,17 @@ export class AdminService {
     );
   }
 
-  sendRegistrationRequest(email: string, lang: string) {
+  inviteNewUser(email: string, lang: string) {
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
         if (!headers) {
           return of(null);
         }
-        return this.#http.get(`/api/v1/users/invite/${email}/${lang}`, {
-          headers,
-        });
+        return this.#http.post(
+          `/api/v1/users/invite`,
+          { email, lang },
+          { headers }
+        );
       })
     );
   }

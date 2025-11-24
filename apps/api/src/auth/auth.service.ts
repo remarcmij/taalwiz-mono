@@ -3,12 +3,12 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import assert from 'node:assert';
 import { UsersService } from '../users/users.service.js';
-import { UserDto } from './dto/user.dto.js';
+import { UserSeedDto } from './dto/user-seed.dto.js';
 import { seedUsers } from './seed/users.seed.js';
 import { JwtPayload } from './types/jwtpayload.interface.js';
 
-const REFRESH_TOKEN_EXPIRATION = 60 * 60 * 24 * 365; // 1 year
 // const ACCESS_TOKEN_EXPIRATION = 60 * 60; // 1 hour
 // TODO revert to 1 hour expiration after testing
 const ACCESS_TOKEN_EXPIRATION = 60 * 60 * 24; // 1 day
@@ -22,7 +22,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {
     void (async () => {
-      for (const seedUser of plainToInstance(UserDto, seedUsers)) {
+      for (const seedUser of plainToInstance(UserSeedDto, seedUsers)) {
         const errors = await validate(seedUser);
         if (errors.length > 0) {
           this.logger.error(`Invalid seed user data: ${JSON.stringify(errors)}`);
@@ -34,7 +34,7 @@ export class AuthService {
             await this.usersService.createUser({
               name: seedUser.name,
               email: seedUser.email,
-              password: bcrypt.hashSync(seedUser.password, 10),
+              password: await this.usersService.encryptPassword(seedUser.password),
               roles: seedUser.roles,
               lang: seedUser.lang,
             });
@@ -64,18 +64,7 @@ export class AuthService {
 
     this.logger.debug(`User ${email} signed in successfully`);
 
-    const payload: JwtPayload = {
-      sub: user._id!.toString(),
-      email: user.email,
-      roles: user.roles,
-    };
-
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      expiresIn: REFRESH_TOKEN_EXPIRATION,
-      secret: process.env.JWT_REFRESH_SECRET,
-    });
-
-    const expirationDate = new Date(Date.now() + REFRESH_TOKEN_EXPIRATION * 1000);
+    const { token, exp } = await this.usersService.generateRefreshToken(user);
 
     return {
       id: user._id!.toString(),
@@ -83,8 +72,8 @@ export class AuthService {
       name: user.name,
       lang: user.lang,
       roles: user.roles,
-      refreshToken: refreshToken,
-      refreshExp: expirationDate.getTime(),
+      refreshToken: token,
+      refreshExp: exp,
     };
   }
 
@@ -124,5 +113,22 @@ export class AuthService {
     this.logger.debug(`Refreshed access token for user ${user.email}`);
 
     return { token: accessToken, exp: expirationDate.getTime() };
+  }
+
+  async validateRegToken(email: string, token: string): Promise<void> {
+    let decoded: JwtPayload;
+
+    assert(process.env.JWT_SECRET);
+
+    try {
+      decoded = this.jwtService.verify(token, { secret: process.env.JWT_SECRET }) as JwtPayload;
+    } catch (_) {
+      this.logger.error('Invalid registration token');
+      throw new UnauthorizedException();
+    }
+    if (decoded.email !== email) {
+      this.logger.error("Email in token doesn't match provided email");
+      throw new UnauthorizedException();
+    }
   }
 }

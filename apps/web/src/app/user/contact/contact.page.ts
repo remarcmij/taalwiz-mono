@@ -80,7 +80,7 @@ export class ContactPage {
         switchMap(() => this.#authService.getRequestHeaders()),
         switchMap((headers) => {
           return this.#http.post(
-            '/api/contact',
+            '/api/v1/users/contact',
             { message, email: user.email },
             { headers }
           );

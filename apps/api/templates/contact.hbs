@@ -1,0 +1,33 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Invitation Email</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        margin: 0;
+        padding: 16px;
+      }
+      p {
+        margin-bottom: 1.5em;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .padding-left {
+        padding-left: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <p>The following message was received from: {{email}}</p>
+    <p><em>{{message}}</em></p>
+  </body>
+</html>

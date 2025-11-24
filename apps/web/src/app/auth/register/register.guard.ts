@@ -14,14 +14,12 @@ export const registerGuard: CanActivateFn = (route) => {
   if (!email || !token) {
     of(false);
   }
-  return http
-    .get(`/auth-api/validate-regtoken?email=${email}&token=${token}`)
-    .pipe(
-      map(() => true),
-      catchError(() => {
-        logger.warn('registerGuard', 'Invalid registration token');
-        router.navigateByUrl('/auth');
-        return of(false);
-      })
-    );
+  return http.post(`/api/v1/auth/validate-regtoken`, { email, token }).pipe(
+    map(() => true),
+    catchError(() => {
+      logger.warn('registerGuard', 'Invalid registration token');
+      router.navigateByUrl('/auth');
+      return of(false);
+    })
+  );
 };

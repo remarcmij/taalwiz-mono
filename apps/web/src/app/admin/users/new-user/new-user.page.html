@@ -37,7 +37,8 @@
                   name="email"
                   [clearInput]="true"
                   required
-                  email></ion-input>
+                  email
+                ></ion-input>
               </ion-item>
             </ion-list>
           </ion-col>
@@ -47,7 +48,8 @@
             <ion-radio-group
               name="lang"
               [ngModel]="lang()"
-              (ngModelChange)="lang.set($event)">
+              (ngModelChange)="lang.set($event)"
+            >
               <ion-list-header>
                 <ion-label>Language</ion-label>
               </ion-list-header>
@@ -69,16 +71,18 @@
               color="primary"
               expand="block"
               [disabled]="f.invalid"
-              class="ion-margin-top">
+              class="ion-margin-top"
+            >
               Invite User
             </ion-button>
           </ion-col>
         </ion-row>
         <ion-toast
           [isOpen]="isToastOpen()"
-          [message]="'An invitaton email has been sent successfully to ' + acceptedEmails + '.'"
+          [message]="'An invitaton email has been sent successfully to ' + acceptedEmails() + '.'"
           [duration]="5000"
-          (didDismiss)="isToastOpen.set(false)"></ion-toast>
+          (didDismiss)="isToastOpen.set(false)"
+        ></ion-toast>
       </ion-grid>
     </form>
   </div>

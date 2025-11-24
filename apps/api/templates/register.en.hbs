@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invitation Email</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        margin: 0;
+        padding: 16px;
+      }
+      p {
+        margin-bottom: 1.5em;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .padding-left {
+        padding-left: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <p>
+      You are invited to register as a new user at {{site_name}} with email address
+      {{email}}.
+    </p>
+
+    <p>
+      Please click the link below to activate your account and choose a password:
+    </p>
+
+    <p class="padding-left">
+      <a href="{{activation_url}}">Activate account</a>
+    </p>
+
+    <p>This link is valid for {{expiration_days}} days.</p>
+
+    <p>If you have trouble activating your account, plase copy and paste the URL below into the address bar your web browser:</p>
+    </p>
+
+    <p class="padding-left">{{activation_url}}</p>
+
+    <p>With kind regards,
+      <br />{{custodian_name}}</p>
+  </body>
+</html>

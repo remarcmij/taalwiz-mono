@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Uitnodigingsbericht</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        margin: 0;
+        padding: 16px;
+      }
+      p {
+        margin-bottom: 1.5em;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .padding-left {
+        padding-left: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <p>
+      Je bent bij deze uitgenodigd om je als nieuwe gebruiker aan te melden bij
+      {{site_name}} met emailadres {{email}}.
+    </p>
+
+    <p>
+      Klik op de onderstaande link om je account te activeren en een wachtwoord
+      te kiezen:
+    </p>
+
+    <p class="padding-left">
+      <a href="{{activation_url}}">Activeer account</a>
+    </p>
+
+    <p>Deze link is {{expiration_days}} dagen geldig.</p>
+
+    <p>
+      Als je problemen ondervindt bij het activeren van je account, kopieer en
+      plak dan de onderstaande URL in je webbrowser:
+    </p>
+
+    <p class="padding-left">{{activation_url}}</p>
+
+    <p>Met vriendelijke groet,<br />{{custodian_name}}</p>
+  </body>
+</html>

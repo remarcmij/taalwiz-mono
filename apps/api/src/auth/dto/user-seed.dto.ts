@@ -4,7 +4,7 @@ import type { Language, Role } from '../../users/models/user.model.js';
 const ALLOWED_ROLES = ['admin', 'user', 'demo'];
 const ALLOWED_LANGUAGES = ['en', 'nl'];
 
-export class UserDto {
+export class UserSeedDto {
   @IsString()
   @IsNotEmpty()
   name = '';
