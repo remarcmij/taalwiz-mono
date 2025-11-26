@@ -1,15 +1,12 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core/services/index.js';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
 import type { JwtPayload } from '../types/jwtpayload.interface.js';
+import { EnvDto } from '../../util/env.dto.js';
 
+const env = EnvDto.getInstance();
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
@@ -34,7 +31,7 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
-        secret: process.env.JWT_SECRET!,
+        secret: env.jwtSecret,
       });
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers

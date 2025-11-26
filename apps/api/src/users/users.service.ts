@@ -8,9 +8,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
-import assert from 'node:assert';
 import { JwtPayload } from '../auth/types/jwtpayload.interface.js';
+import { EnvDto } from '../util/env.dto.js';
 import User, { IUser } from './models/user.model.js';
+
+const env = EnvDto.getInstance();
 
 const REFRESH_TOKEN_EXPIRATION = 60 * 60 * 24 * 365; // 1 year
 @Injectable()
@@ -37,7 +39,7 @@ export class UsersService {
 
     const token = await this.jwtService.signAsync(payload, {
       expiresIn: REFRESH_TOKEN_EXPIRATION,
-      secret: process.env.JWT_REFRESH_SECRET,
+      secret: env.jwtRefreshSecret,
     });
 
     return { token, exp: expirationDate.getTime() };
@@ -77,26 +79,22 @@ export class UsersService {
     const token = this.jwtService.sign(
       { email, lang },
       {
-        secret: process.env.JWT_SECRET,
+        secret: env.jwtSecret,
         expiresIn: '7d',
       },
     );
 
     const template = lang === 'nl' ? 'register.nl.hbs' : 'register.en.hbs';
 
-    assert(process.env.SITE_NAME);
-    assert(process.env.HOST_URL);
-    assert(process.env.SMTP_USER);
-
     return await this.mailerService.sendMail({
-      from: process.env.SMTP_USER,
+      from: env.smtpUser,
       to: email,
       subject: lang == 'nl' ? 'Registratie Code' : 'Registration Code',
       template,
       context: {
         email,
-        site_name: process.env.SITE_NAME,
-        activation_url: `${process.env.HOST_URL}/auth/register?email=${email}&lang=${lang}&token=${token}`,
+        site_name: env.siteName,
+        activation_url: `${env.hostUrl}/auth/register?email=${email}&lang=${lang}&token=${token}`,
         expiration_days: '7',
         custodian_name: /*custodianNameSetting?.stringVal ??*/ 'The Custodian',
       },
@@ -106,10 +104,8 @@ export class UsersService {
   async registerNewUser(email: string, password: string, name: string, token: string) {
     let decoded: JwtPayload;
 
-    assert(process.env.JWT_SECRET);
-
     try {
-      decoded = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
+      decoded = this.jwtService.verify(token, { secret: env.jwtSecret });
     } catch (_) {
       this.logger.error('Invalid registration token');
       throw new ForbiddenException('TOKEN_INVALID');
@@ -140,8 +136,8 @@ export class UsersService {
     const { token: refreshToken, exp } = await this.generateRefreshToken(user.toObject<IUser>());
 
     await this.mailerService.sendMail({
-      from: process.env.SMTP_USER,
-      to: process.env.CUSTODIAN_EMAIL,
+      from: env.smtpUser,
+      to: env.custodianEmail,
       subject: 'New User Registration',
       template: 'user-registered',
       context: {
@@ -171,21 +167,17 @@ export class UsersService {
       throw new ForbiddenException('DEMO_ACCOUNT');
     }
 
-    assert(process.env.HOST_URL);
-    assert(process.env.SMTP_USER);
-    assert(process.env.JWT_SECRET);
-
     const payload: JwtPayload = { sub: user._id.toString(), email: user.email };
     const resetToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
+      secret: env.jwtSecret,
       expiresIn: '1h',
     });
 
-    const resetLink = `${process.env.HOST_URL}/auth/reset-password?email=${email}&token=${resetToken}`;
+    const resetLink = `${env.hostUrl}/auth/reset-password?email=${email}&token=${resetToken}`;
 
     // Send reset email
     await this.mailerService.sendMail({
-      from: process.env.SMTP_USER,
+      from: env.smtpUser,
       to: user.email,
       subject: 'Password Reset',
       template: 'reset-password-request',
@@ -216,9 +208,7 @@ export class UsersService {
   }
 
   async resetPassword(newPassword: string, token: string) {
-    assert(process.env.JWT_SECRET);
-
-    const decoded: JwtPayload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
+    const decoded: JwtPayload = this.jwtService.verify(token, { secret: env.jwtSecret });
 
     const user = await User.findById(decoded.sub).exec();
     if (!user) {
@@ -239,12 +229,9 @@ export class UsersService {
   }
 
   async contactRequest(email: string, message: string) {
-    assert(process.env.SMTP_USER);
-    assert(process.env.CUSTODIAN_EMAIL);
-
     return await this.mailerService.sendMail({
-      from: process.env.SMTP_USER,
-      to: process.env.CUSTODIAN_EMAIL,
+      from: env.smtpUser,
+      to: env.custodianEmail,
       subject: 'Contact Form Submission',
       template: 'contact',
       context: {

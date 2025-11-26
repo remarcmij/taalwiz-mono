@@ -11,9 +11,12 @@ import { ContentModule } from './content/content.module.js';
 import { DictionaryModule } from './dictionary/dictionary.module.js';
 import { HashtagModule } from './hashtag/hashtag.module.js';
 import { UsersModule } from './users/users.module.js';
+import { EnvDto } from './util/env.dto.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const env = EnvDto.getInstance();
 
 console.log(path.join(__dirname, '../../web/www/browser'));
 @Module({
@@ -31,16 +34,16 @@ console.log(path.join(__dirname, '../../web/www/browser'));
     }),
     MailerModule.forRoot({
       transport: {
-        host: process.env.SMTP_HOST!,
-        port: parseInt(process.env.SMTP_PORT!, 10),
+        host: env.smtpHost,
+        port: parseInt(env.smtpPort!, 10),
         auth: {
           type: 'login',
-          user: process.env.SMTP_USER!,
-          pass: process.env.SMTP_PASSWORD!,
+          user: env.smtpUser,
+          pass: env.smtpPassword,
         },
       },
       defaults: {
-        from: '"TaalWiz" <taalwiz@kpnmail.nl>',
+        from: `"${env.siteName}" <${env.smtpUser}>`,
       },
       template: {
         dir: path.join(__dirname, '..', 'templates'),

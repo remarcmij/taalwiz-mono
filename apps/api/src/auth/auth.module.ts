@@ -6,13 +6,16 @@ import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { AuthGuard } from './guards/auth.guard.js';
 import { RolesGuard } from './guards/role.guard.js';
+import { EnvDto } from '../util/env.dto.js';
+
+const env = EnvDto.getInstance();
 
 @Module({
   imports: [
     UsersModule,
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET,
+      secret: env.jwtSecret,
     }),
   ],
   controllers: [AuthController],

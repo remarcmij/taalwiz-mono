@@ -3,11 +3,13 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import assert from 'node:assert';
 import { UsersService } from '../users/users.service.js';
+import { EnvDto } from '../util/env.dto.js';
 import { UserSeedDto } from './dto/user-seed.dto.js';
 import { seedUsers } from './seed/users.seed.js';
 import { JwtPayload } from './types/jwtpayload.interface.js';
+
+const env = EnvDto.getInstance();
 
 // const ACCESS_TOKEN_EXPIRATION = 60 * 60; // 1 hour
 // TODO revert to 1 hour expiration after testing
@@ -81,7 +83,7 @@ export class AuthService {
     let decoded: JwtPayload;
     try {
       decoded = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret: env.jwtRefreshSecret,
       });
     } catch (err) {
       if (err instanceof Error) {
@@ -106,7 +108,7 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: ACCESS_TOKEN_EXPIRATION,
-      secret: process.env.JWT_SECRET,
+      secret: env.jwtSecret,
     });
 
     const expirationDate = new Date(Date.now() + ACCESS_TOKEN_EXPIRATION * 1000);
@@ -118,10 +120,8 @@ export class AuthService {
   async validateRegToken(email: string, token: string): Promise<void> {
     let decoded: JwtPayload;
 
-    assert(process.env.JWT_SECRET);
-
     try {
-      decoded = this.jwtService.verify(token, { secret: process.env.JWT_SECRET }) as JwtPayload;
+      decoded = this.jwtService.verify(token, { secret: env.jwtSecret }) as JwtPayload;
     } catch (_) {
       this.logger.error('Invalid registration token');
       throw new UnauthorizedException();
