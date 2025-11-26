@@ -2,7 +2,7 @@ export interface JwtPayload {
   sub: string;
   email: string;
   lang?: string;
-  roles: string[];
+  roles?: string[];
   iss?: string | undefined;
   aud?: string | string[] | undefined;
   exp?: number | undefined;

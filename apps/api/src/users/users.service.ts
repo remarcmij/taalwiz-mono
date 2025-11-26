@@ -175,7 +175,7 @@ export class UsersService {
     assert(process.env.SMTP_USER);
     assert(process.env.JWT_SECRET);
 
-    const payload = { sub: user._id, email: user.email };
+    const payload: JwtPayload = { sub: user._id.toString(), email: user.email };
     const resetToken = this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
       expiresIn: '1h',
