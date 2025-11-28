@@ -3,11 +3,11 @@ import debounce from 'lodash.debounce';
 import AutoComplete from '../../dictionary/models/completions.model.js';
 import Lemma from '../../dictionary/models/lemma.model.js';
 import type { TopicDoc } from '../models/topic.model.js';
-import BaseLoader, { IUpload } from './BaseLoader.js';
+import BaseLoader, { Upload } from './BaseLoader.js';
 
 const REBUILD_DELAY = 10000; // 10 secs
 
-export interface IDictDataJson {
+interface DictDataJson {
   baseLang: string;
   lemmas: [
     {
@@ -26,7 +26,7 @@ export interface IDictDataJson {
   ];
 }
 
-class DictLoader extends BaseLoader<IDictDataJson> {
+class DictLoader extends BaseLoader<DictDataJson> {
   static debouncedRebuildWordCollection = debounce(async () => {
     const logger = new Logger(DictLoader.name);
 
@@ -56,8 +56,8 @@ class DictLoader extends BaseLoader<IDictDataJson> {
     }
   }, REBUILD_DELAY) as () => void;
 
-  protected parseContent(content: string, filename: string): IUpload<IDictDataJson> {
-    const payload = JSON.parse(content) as IDictDataJson;
+  protected parseContent(content: string, filename: string): Upload<DictDataJson> {
+    const payload = JSON.parse(content) as DictDataJson;
 
     const match = filename.match(/^[a-z]_(.+)\.json/);
     if (!match) {
@@ -76,7 +76,7 @@ class DictLoader extends BaseLoader<IDictDataJson> {
     };
   }
 
-  protected async createData(topic: TopicDoc, data: IUpload<IDictDataJson>): Promise<void> {
+  protected async createData(topic: TopicDoc, data: Upload<DictDataJson>): Promise<void> {
     const bulk = Lemma.collection.initializeUnorderedBulkOp();
     const { lemmas, baseLang } = data.payload;
 

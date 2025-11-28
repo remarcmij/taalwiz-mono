@@ -1,15 +1,15 @@
 import Topic, { TopicDoc } from '../models/topic.model.js';
 
-export interface IUpload<T> {
+export interface Upload<T> {
   topic: TopicDoc;
   payload: T;
 }
-export interface ILoader {
+export interface Loader {
   importUpload(filePath: string, originalFilename: string): Promise<void>;
   removeTopic(topic: TopicDoc): Promise<void>;
 }
 
-abstract class BaseLoader<T> implements ILoader {
+abstract class BaseLoader<T> implements Loader {
   async importUpload(content: string, originalFilename: string): Promise<void> {
     const data = await this.parseContent(content, originalFilename);
     let topic = await Topic.findOne({ filename: originalFilename }).exec();
@@ -33,8 +33,8 @@ abstract class BaseLoader<T> implements ILoader {
   protected abstract parseContent(
     content: string,
     filename: string,
-  ): IUpload<T> | Promise<IUpload<T>>;
-  protected abstract createData(topic: TopicDoc, data: IUpload<T>): Promise<void>;
+  ): Upload<T> | Promise<Upload<T>>;
+  protected abstract createData(topic: TopicDoc, data: Upload<T>): Promise<void>;
   protected abstract removeData(topic: TopicDoc): Promise<void>;
 }
 

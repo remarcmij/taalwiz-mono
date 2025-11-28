@@ -96,7 +96,7 @@ export class UsersService {
         site_name: env.siteName,
         activation_url: `${env.hostUrl}/auth/register?email=${email}&lang=${lang}&token=${token}`,
         expiration_days: '7',
-        custodian_name: /*custodianNameSetting?.stringVal ??*/ 'The Custodian',
+        custodian_name: env.custodianName,
       },
     });
   }

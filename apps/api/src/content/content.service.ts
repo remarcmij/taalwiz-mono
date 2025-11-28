@@ -3,7 +3,7 @@ import type { Response } from 'express';
 import EventEmitter from 'node:events';
 import { TaskQueue } from '../util/TaskQueue.js';
 import ArticleLoader from './loaders/ArticleLoader.js';
-import { ILoader } from './loaders/BaseLoader.js';
+import { Loader } from './loaders/BaseLoader.js';
 import DictLoader from './loaders/DictLoader.js';
 import Article from './models/article.model.js';
 import Topic from './models/topic.model.js';
@@ -35,7 +35,7 @@ export class ContentService {
       return res.status(400).json({ message: 'No file provided' });
     }
 
-    let loader: ILoader;
+    let loader: Loader;
 
     if (/\.json$/.test(file.originalname)) {
       loader = this.dictLoader;

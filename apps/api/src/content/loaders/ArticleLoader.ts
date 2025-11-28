@@ -5,28 +5,28 @@ import { convertMarkdown } from '../../util/markup.js';
 import Article, { ArticleDoc } from '../models/article.model.js';
 import Hashtag, { ExtractedHashtag, HashtagDoc } from '../models/hashtag.model.js';
 import Topic, { TopicDoc } from '../models/topic.model.js';
-import BaseLoader, { IUpload } from './BaseLoader.js';
+import BaseLoader, { Upload } from './BaseLoader.js';
 
-interface IFrontMatterAttributes {
-  author: string;
-  baseLang: string;
-  chapter: string;
-  copyright: string;
-  foreignLang: string;
-  groupName: string;
-  isbn: string;
-  published: string;
-  publisher: string;
-  sortIndex: string;
-  subtitle: string;
-  targetLang: string;
-  title: string;
+interface FrontMatterAttributes {
+  author?: string;
+  baseLang?: string;
+  chapter?: string;
+  copyright?: string;
+  foreignLang?: string;
+  groupName?: string;
+  isbn?: string;
+  published?: string;
+  publisher?: string;
+  sortIndex?: string;
+  subtitle?: string;
+  targetLang?: string;
+  title?: string;
 }
 
 const createHashtagRegExp = () => /\\?#([-\p{L}0-9]{2,})/gu;
 
 class ArticleLoader extends BaseLoader<ArticleDoc> {
-  protected async parseContent(content: string, filename: string): Promise<IUpload<ArticleDoc>> {
+  protected async parseContent(content: string, filename: string): Promise<Upload<ArticleDoc>> {
     let match = filename.match(/^(.+)\.(.+)\.md$/);
     if (!match) {
       throw new Error(`ill-formed filename: ${filename}`);
@@ -35,7 +35,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     const chapter = match[2];
 
     const frontMatter = content.split('---')[1];
-    const attributes = yaml.load(frontMatter) as Partial<IFrontMatterAttributes>;
+    const attributes = yaml.load(frontMatter) as FrontMatterAttributes;
     const body = content.split('---')[2];
     let title = attributes.title;
 
@@ -43,6 +43,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     if (!title) {
       const h1RegExp = /^# *([^#][^\n]+)/m;
       match = content.match(h1RegExp);
+      title = 'untitled';
       if (match) {
         title = match[1];
       }
@@ -66,7 +67,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       }
     }
 
-    const topic = {
+    const topic: TopicDoc = {
       type: chapter === 'index' ? 'index' : 'article',
       filename: filename,
       foreignLang: attributes.foreignLang,
@@ -80,7 +81,8 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       publisher: attributes.publisher,
       published: attributes.published,
       isbn: attributes.isbn,
-    } as TopicDoc;
+      lastModified: Date.now(),
+    };
 
     const article: ArticleDoc = {
       baseLang: attributes.baseLang ?? 'nl',
@@ -115,7 +117,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
 
   protected async createData(
     topic: TopicDoc,
-    { payload: article }: IUpload<ArticleDoc>,
+    { payload: article }: Upload<ArticleDoc>,
   ): Promise<void> {
     await Article.create({ ...article, _topic: topic._id });
     if (article.hashtags.length > 0) {

@@ -1,11 +1,9 @@
-interface ITask<T> {
-  (): Promise<T>;
-}
+type Task<T> = () => Promise<T>;
 
 export class TaskQueue<T> {
   private readonly concurrency: number;
   private running: number;
-  private queue: ITask<T>[];
+  private queue: Task<T>[];
 
   constructor(concurrency: number) {
     this.concurrency = concurrency;
@@ -13,7 +11,7 @@ export class TaskQueue<T> {
     this.queue = [];
   }
 
-  public pushTask(task: ITask<T>): void {
+  public pushTask(task: Task<T>): void {
     this.queue.push(task);
     this.next();
   }
