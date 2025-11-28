@@ -1,12 +1,12 @@
 import { InferSchemaType, model, Schema, Types } from 'mongoose';
 
-export type ExtractedHashtag = {
+export interface ExtractedHashtag {
   tagname: string;
   id: string;
   publicationTitle: string;
   articleTitle: string;
   sectionHeader: string;
-};
+}
 
 const HashtagSchema = new Schema({
   name: { type: String, required: true, index: true },

@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import type { Request } from 'express';
 import Lemma from './models/lemma.model.js';
 
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
@@ -8,26 +7,11 @@ import { FindWordParamsDto } from './dto/find-word-params.dto.js';
 import { FindWordQueryDto } from './dto/find-word-query.dto.js';
 import AutoCompletions, { AutoCompletionDoc } from './models/completions.model.js';
 
-type SearchRequestQuery = {
+interface Condition {
   word: string;
   lang: string;
   keyword?: boolean;
-  skip?: number;
-  limit?: number;
-};
-
-export type FindWordRequest = Request<
-  { word: string; lang: string },
-  never,
-  never,
-  SearchRequestQuery
->;
-
-type Condition = {
-  word: string;
-  lang: string;
-  keyword?: boolean;
-};
+}
 
 const validTermRegex = /^[-'()\p{L}]+$/u;
 

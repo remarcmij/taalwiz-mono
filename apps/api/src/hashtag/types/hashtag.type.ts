@@ -1,9 +1,9 @@
-export type HashTagName = {
+export interface HashTagName {
   name: string;
   count: number;
-};
+}
 
-export type HashTagGroup = {
+export interface HashTagGroup {
   _id: string;
   tags: HashTagName[];
-};
+}
