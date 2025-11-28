@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import Hashtag from '../content/models/hashtag.model.js';
-import { ITopic } from '../content/models/topic.model.js';
+import { TopicDoc } from '../content/models/topic.model.js';
 import { HashTagGroup } from './types/hashtag.type.js';
 
 @Injectable()
@@ -45,9 +45,7 @@ export class HashtagService {
   }
 
   async findHashtag(name: string) {
-    const hashtags = await Hashtag.find({ name })
-      .populate<{ _topic: ITopic }>('_topic')
-      .lean();
+    const hashtags = await Hashtag.find({ name }).populate<{ _topic: TopicDoc }>('_topic').lean();
 
     return hashtags.map((hashtag) => ({
       id: hashtag.id,

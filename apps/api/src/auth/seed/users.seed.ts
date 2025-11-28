@@ -1,9 +1,9 @@
-import type { IUser } from '../../users/models/user.model.js';
+import type { UserDoc } from '../../users/models/user.model.js';
 import { EnvDto } from '../../util/env.dto.js';
 
 const env = EnvDto.getInstance();
 
-export const seedUsers: Omit<IUser, '_id' | 'created' | 'lastAccessed'>[] = [
+export const seedUsers: Omit<UserDoc, '_id' | 'created' | 'lastAccessed'>[] = [
   {
     name: 'Admin',
     email: env.adminEmail!,

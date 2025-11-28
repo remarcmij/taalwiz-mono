@@ -1,20 +1,7 @@
-import { Model, model, Schema, Types } from 'mongoose';
+import { InferSchemaType, model, Schema, Types } from 'mongoose';
 import { ExtractedHashtag } from './hashtag.model.js';
 
-export interface IArticle {
-  _topic?: Types.ObjectId;
-  baseLang: string;
-  filename: string;
-  foreignLang: string;
-  groupName: string;
-  htmlText: string;
-  mdText: string;
-  title: string;
-  //Not used in the mongoose model:
-  hashtags: ExtractedHashtag[];
-}
-
-const ArticleSchema = new Schema<IArticle>({
+const ArticleSchema = new Schema({
   _topic: { type: Schema.Types.ObjectId, index: true, ref: 'Topic' },
   baseLang: { type: String },
   filename: { type: String, required: true, index: true },
@@ -25,7 +12,12 @@ const ArticleSchema = new Schema<IArticle>({
   title: { type: String, required: true },
 });
 
+export type ArticleDoc = InferSchemaType<typeof ArticleSchema> & {
+  _id?: Types.ObjectId;
+  hashtags: ExtractedHashtag[];
+};
+
 ArticleSchema.index({ indexText: 'text' }, { default_language: 'none' });
 
-const Article: Model<IArticle> = model<IArticle>('Article', ArticleSchema);
+const Article = model('Article', ArticleSchema);
 export default Article;

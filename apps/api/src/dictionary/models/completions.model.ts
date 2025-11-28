@@ -1,12 +1,6 @@
-import { model, Schema } from 'mongoose';
+import { InferSchemaType, model, Schema, Types } from 'mongoose';
 
-export interface IAutoCompletion {
-  _id?: string;
-  word: string;
-  lang: string;
-}
-
-const AutoCompletionsSchema = new Schema<IAutoCompletion>(
+const AutoCompletionSchema = new Schema(
   {
     word: { type: String, required: true, index: true },
     lang: { type: String, required: true },
@@ -14,5 +8,9 @@ const AutoCompletionsSchema = new Schema<IAutoCompletion>(
   { collation: { locale: 'nl', strength: 1 } },
 );
 
-const AutoCompletions = model<IAutoCompletion>('Word', AutoCompletionsSchema);
+export type AutoCompletionDoc = InferSchemaType<typeof AutoCompletionSchema> & {
+  _id?: Types.ObjectId;
+};
+
+const AutoCompletions = model('Word', AutoCompletionSchema);
 export default AutoCompletions;

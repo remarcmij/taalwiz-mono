@@ -6,7 +6,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { ContentService } from '../content/content.service.js';
 import { FindWordParamsDto } from './dto/find-word-params.dto.js';
 import { FindWordQueryDto } from './dto/find-word-query.dto.js';
-import AutoCompletions, { IAutoCompletion } from './models/completions.model.js';
+import AutoCompletions, { AutoCompletionDoc } from './models/completions.model.js';
 
 type SearchRequestQuery = {
   word: string;
@@ -71,7 +71,7 @@ export class DictionaryService {
       return [];
     }
 
-    const cachedResult = (await this.cacheManager.get(term)) as IAutoCompletion;
+    const cachedResult = (await this.cacheManager.get(term)) as AutoCompletionDoc;
 
     if (cachedResult) {
       this.logger.debug(`Cache hit for '${term}'`);

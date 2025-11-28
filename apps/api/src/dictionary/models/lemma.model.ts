@@ -1,21 +1,6 @@
-import { model, Schema, Types } from 'mongoose';
+import { InferSchemaType, model, Schema, Types } from 'mongoose';
 
-export interface ILemma extends Document {
-  _id: Types.ObjectId;
-  text: string;
-  word: string;
-  lang: string;
-  keyword: boolean;
-  baseWord: string;
-  baseLang: string;
-  order: number;
-  homonym: number;
-  groupName: string;
-  _lemma?: Types.ObjectId;
-  _topic?: Types.ObjectId;
-}
-
-const LemmaSchema = new Schema<ILemma>(
+const LemmaSchema = new Schema(
   {
     text: { type: String, required: true },
     word: { type: String, required: true },
@@ -31,7 +16,11 @@ const LemmaSchema = new Schema<ILemma>(
   { collation: { locale: 'nl', strength: 1 } },
 );
 
+export type LemmaDoc = InferSchemaType<typeof LemmaSchema> & {
+  _id?: Types.ObjectId;
+};
+
 LemmaSchema.index({ word: 1, lang: 1, order: 1 });
 
-const Lemma = model<ILemma>('Lemma', LemmaSchema);
+const Lemma = model('Lemma', LemmaSchema);
 export default Lemma;

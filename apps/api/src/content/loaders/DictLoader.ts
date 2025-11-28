@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import debounce from 'lodash.debounce';
 import AutoComplete from '../../dictionary/models/completions.model.js';
 import Lemma from '../../dictionary/models/lemma.model.js';
-import type { ITopic } from '../models/topic.model.js';
+import type { TopicDoc } from '../models/topic.model.js';
 import BaseLoader, { IUpload } from './BaseLoader.js';
 
 const REBUILD_DELAY = 10000; // 10 secs
@@ -71,12 +71,12 @@ class DictLoader extends BaseLoader<IDictDataJson> {
         filename: filename,
         type: 'dict',
         groupName,
-      } as ITopic,
+      } as TopicDoc,
       payload,
     };
   }
 
-  protected async createData(topic: ITopic, data: IUpload<IDictDataJson>): Promise<void> {
+  protected async createData(topic: TopicDoc, data: IUpload<IDictDataJson>): Promise<void> {
     const bulk = Lemma.collection.initializeUnorderedBulkOp();
     const { lemmas, baseLang } = data.payload;
 
@@ -101,7 +101,7 @@ class DictLoader extends BaseLoader<IDictDataJson> {
     DictLoader.debouncedRebuildWordCollection();
   }
 
-  protected async removeData(topic: ITopic): Promise<any> {
+  protected async removeData(topic: TopicDoc): Promise<any> {
     await Lemma.deleteMany({ _topic: topic._id }).exec();
   }
 }

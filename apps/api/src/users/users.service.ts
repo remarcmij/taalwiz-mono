@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import { EnvDto } from '../util/env.dto.js';
-import User, { IUser } from './models/user.model.js';
+import User, { UserDoc } from './models/user.model.js';
 
 const env = EnvDto.getInstance();
 
@@ -28,7 +28,7 @@ export class UsersService {
     return bcrypt.hash(password, 10);
   }
 
-  async generateRefreshToken(user: IUser): Promise<{ token: string; exp: number }> {
+  async generateRefreshToken(user: UserDoc): Promise<{ token: string; exp: number }> {
     const payload: JwtPayload = {
       sub: user._id!.toString(),
       email: user.email,
@@ -45,32 +45,32 @@ export class UsersService {
     return { token, exp: expirationDate.getTime() };
   }
 
-  async findOne(email: string): Promise<IUser | null> {
+  async findOne(email: string): Promise<UserDoc | null> {
     return await User.findOne({ email }).exec();
   }
 
-  async findById(id: string): Promise<IUser | null> {
+  async findById(id: string): Promise<UserDoc | null> {
     return await User.findById(id).exec();
   }
 
-  async updateLastAccessed(id: string): Promise<IUser | null> {
+  async updateLastAccessed(id: string): Promise<UserDoc | null> {
     return await User.findByIdAndUpdate(id, { lastAccessed: new Date() }).exec();
   }
 
-  async createUser(userData: Partial<IUser>): Promise<IUser> {
+  async createUser(userData: Partial<UserDoc>): Promise<UserDoc> {
     const user = new User(userData);
     return await user.save();
   }
 
-  async getUsers(): Promise<IUser[]> {
+  async getUsers(): Promise<UserDoc[]> {
     return await User.find().exec();
   }
 
-  async deleteUserById(id: string): Promise<IUser | null> {
+  async deleteUserById(id: string): Promise<UserDoc | null> {
     return await User.findByIdAndDelete(id).exec();
   }
 
-  async inviteNewUser(email: string, lang: string): Promise<IUser> {
+  async inviteNewUser(email: string, lang: string): Promise<UserDoc> {
     const existing = await User.findOne({ email });
     if (existing) {
       throw new ForbiddenException('EMAIL_EXISTS');
@@ -133,7 +133,7 @@ export class UsersService {
     });
     await user.save();
 
-    const { token: refreshToken, exp } = await this.generateRefreshToken(user.toObject<IUser>());
+    const { token: refreshToken, exp } = await this.generateRefreshToken(user.toObject<UserDoc>());
 
     await this.mailerService.sendMail({
       from: env.smtpUser,

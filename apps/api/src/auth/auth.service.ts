@@ -121,7 +121,7 @@ export class AuthService {
     let decoded: JwtPayload;
 
     try {
-      decoded = this.jwtService.verify(token, { secret: env.jwtSecret }) as JwtPayload;
+      decoded = this.jwtService.verify<JwtPayload>(token, { secret: env.jwtSecret });
     } catch (_) {
       this.logger.error('Invalid registration token');
       throw new UnauthorizedException();

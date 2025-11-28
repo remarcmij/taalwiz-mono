@@ -1,12 +1,12 @@
-import Topic, { ITopic } from '../models/topic.model.js';
+import Topic, { TopicDoc } from '../models/topic.model.js';
 
 export interface IUpload<T> {
-  topic: ITopic;
+  topic: TopicDoc;
   payload: T;
 }
 export interface ILoader {
   importUpload(filePath: string, originalFilename: string): Promise<void>;
-  removeTopic(topic: ITopic): Promise<void>;
+  removeTopic(topic: TopicDoc): Promise<void>;
 }
 
 abstract class BaseLoader<T> implements ILoader {
@@ -25,7 +25,7 @@ abstract class BaseLoader<T> implements ILoader {
     await this.createData(topic, data);
   }
 
-  async removeTopic(topic: ITopic): Promise<any> {
+  async removeTopic(topic: TopicDoc): Promise<any> {
     await this.removeData(topic);
     return Topic.deleteOne({ _id: topic._id }).exec();
   }
@@ -34,8 +34,8 @@ abstract class BaseLoader<T> implements ILoader {
     content: string,
     filename: string,
   ): IUpload<T> | Promise<IUpload<T>>;
-  protected abstract createData(topic: ITopic, data: IUpload<T>): Promise<void>;
-  protected abstract removeData(topic: ITopic): Promise<void>;
+  protected abstract createData(topic: TopicDoc, data: IUpload<T>): Promise<void>;
+  protected abstract removeData(topic: TopicDoc): Promise<void>;
 }
 
 export default BaseLoader;

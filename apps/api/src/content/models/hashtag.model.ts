@@ -1,4 +1,4 @@
-import { model, Schema, Types } from 'mongoose';
+import { InferSchemaType, model, Schema, Types } from 'mongoose';
 
 export type ExtractedHashtag = {
   tagname: string;
@@ -8,16 +8,7 @@ export type ExtractedHashtag = {
   sectionHeader: string;
 };
 
-export interface IHashtag {
-  name: string;
-  id: string;
-  publicationTitle: string;
-  sectionHeader: string;
-  groupName: string;
-  _topic?: Types.ObjectId; // reference to Article topic
-}
-
-const HashtagSchema = new Schema<IHashtag>({
+const HashtagSchema = new Schema({
   name: { type: String, required: true, index: true },
   id: { type: String, required: true },
   publicationTitle: { type: String, required: true },
@@ -25,6 +16,8 @@ const HashtagSchema = new Schema<IHashtag>({
   groupName: { type: String, required: true },
   _topic: { type: Schema.Types.ObjectId, index: true, ref: 'Topic' },
 });
+
+export type HashtagDoc = InferSchemaType<typeof HashtagSchema> & { _id?: Types.ObjectId };
 
 const Hashtag = model('Hashtag', HashtagSchema);
 export default Hashtag;

@@ -1,26 +1,7 @@
+import type { InferSchemaType } from 'mongoose';
 import { model, Schema, Types } from 'mongoose';
 
-export interface ITopic {
-  _id?: Types.ObjectId;
-  author?: string;
-  baseLang?: string;
-  copyright?: string;
-  filename: string;
-  foreignLang?: string;
-  groupName: string;
-  isbn?: string;
-  lastModified?: number;
-  published?: string;
-  publisher?: string;
-  sha?: string;
-  sortIndex?: number;
-  subtitle?: string;
-  targetLang?: string;
-  title: string;
-  type: 'index' | 'article' | 'dict';
-}
-
-const TopicSchema = new Schema<ITopic>({
+const TopicSchema = new Schema({
   author: String,
   baseLang: String,
   copyright: String,
@@ -35,9 +16,12 @@ const TopicSchema = new Schema<ITopic>({
   sortIndex: { type: Number, default: 0 },
   subtitle: String,
   targetLang: String,
-  title: String,
+  title: { type: String, required: true },
   type: { type: String, required: true, enum: ['index', 'article', 'dict'] },
 });
 
+export type TopicDoc = InferSchemaType<typeof TopicSchema> & { _id?: Types.ObjectId };
+
 const Topic = model('Topic', TopicSchema);
+
 export default Topic;

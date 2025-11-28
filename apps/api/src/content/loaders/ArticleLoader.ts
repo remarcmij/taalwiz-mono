@@ -2,9 +2,9 @@ import crypto from 'crypto';
 import yaml from 'js-yaml';
 
 import { convertMarkdown } from '../../util/markup.js';
-import Article, { IArticle } from '../models/article.model.js';
-import Hashtag, { ExtractedHashtag, IHashtag } from '../models/hashtag.model.js';
-import Topic, { ITopic } from '../models/topic.model.js';
+import Article, { ArticleDoc } from '../models/article.model.js';
+import Hashtag, { ExtractedHashtag, HashtagDoc } from '../models/hashtag.model.js';
+import Topic, { TopicDoc } from '../models/topic.model.js';
 import BaseLoader, { IUpload } from './BaseLoader.js';
 
 interface IFrontMatterAttributes {
@@ -25,8 +25,8 @@ interface IFrontMatterAttributes {
 
 const createHashtagRegExp = () => /\\?#([-\p{L}0-9]{2,})/gu;
 
-class ArticleLoader extends BaseLoader<IArticle> {
-  protected async parseContent(content: string, filename: string): Promise<IUpload<IArticle>> {
+class ArticleLoader extends BaseLoader<ArticleDoc> {
+  protected async parseContent(content: string, filename: string): Promise<IUpload<ArticleDoc>> {
     let match = filename.match(/^(.+)\.(.+)\.md$/);
     if (!match) {
       throw new Error(`ill-formed filename: ${filename}`);
@@ -80,9 +80,9 @@ class ArticleLoader extends BaseLoader<IArticle> {
       publisher: attributes.publisher,
       published: attributes.published,
       isbn: attributes.isbn,
-    } as ITopic;
+    } as TopicDoc;
 
-    const article: IArticle = {
+    const article: ArticleDoc = {
       baseLang: attributes.baseLang ?? 'nl',
       filename: filename,
       foreignLang: attributes.foreignLang ?? 'en',
@@ -114,8 +114,8 @@ class ArticleLoader extends BaseLoader<IArticle> {
   }
 
   protected async createData(
-    topic: ITopic,
-    { payload: article }: IUpload<IArticle>,
+    topic: TopicDoc,
+    { payload: article }: IUpload<ArticleDoc>,
   ): Promise<void> {
     await Article.create({ ...article, _topic: topic._id });
     if (article.hashtags.length > 0) {
@@ -123,16 +123,16 @@ class ArticleLoader extends BaseLoader<IArticle> {
     }
   }
 
-  protected async removeData(topic: ITopic): Promise<any> {
+  protected async removeData(topic: TopicDoc): Promise<any> {
     await Article.deleteOne({ _topic: topic._id }).exec();
     await Hashtag.deleteMany({ _topic: topic._id }).exec();
   }
 
-  private async bulkLoadHashTags(hashtags: ExtractedHashtag[], topic: ITopic): Promise<void> {
+  private async bulkLoadHashTags(hashtags: ExtractedHashtag[], topic: TopicDoc): Promise<void> {
     const bulk = Hashtag.collection.initializeUnorderedBulkOp();
 
     for (const hashtag of hashtags) {
-      const data: IHashtag = {
+      const data: HashtagDoc = {
         name: hashtag.tagname,
         id: hashtag.id,
         publicationTitle: hashtag.publicationTitle,
@@ -147,7 +147,7 @@ class ArticleLoader extends BaseLoader<IArticle> {
     await bulk.execute();
   }
 
-  private async extractHashtags(body: string, article: IArticle) {
+  private async extractHashtags(body: string, article: ArticleDoc) {
     const hashtagRegExp1 = createHashtagRegExp();
     const hashtagRegExp2 = createHashtagRegExp();
     const outLines: string[] = [];
