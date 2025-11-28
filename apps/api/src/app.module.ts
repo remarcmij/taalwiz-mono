@@ -4,8 +4,6 @@ import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'node:path';
 import { fileURLToPath } from 'url';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ContentModule } from './content/content.module.js';
 import { DictionaryModule } from './dictionary/dictionary.module.js';
@@ -18,7 +16,6 @@ const __dirname = path.dirname(__filename);
 
 const env = EnvDto.getInstance();
 
-console.log(path.join(__dirname, '../../web/www/browser'));
 @Module({
   imports: [
     DictionaryModule,
@@ -54,7 +51,5 @@ console.log(path.join(__dirname, '../../web/www/browser'));
       },
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
