@@ -2,7 +2,7 @@ import { WriteStream } from 'fs';
 import fs from 'node:fs';
 import readline from 'node:readline';
 import path from 'path';
-import { IParser, ParserResult } from './ParserBase.js';
+import { Parser, ParserResult } from './ParserBase.js';
 import TeeuwParser from './TeeuwParser.js';
 import VanDaleParser from './VanDaleParser.js';
 
@@ -34,7 +34,7 @@ interface Lemma {
 }
 
 export class Compiler {
-  private parser: IParser | null = null;
+  private parser: Parser | undefined;
 
   constructor(
     public inFile: string,

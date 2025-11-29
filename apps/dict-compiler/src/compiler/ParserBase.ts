@@ -6,7 +6,7 @@ export class WordSets {
   targetKeywords: Set<string> = new Set();
 }
 
-export interface IParser {
+export interface Parser {
   get sourceLang(): string;
   get targetLang(): string;
   get base(): string | null;
@@ -23,7 +23,7 @@ export class ParserResult {
   targetKeywords: Set<string> = new Set();
 }
 
-abstract class ParserBase implements IParser {
+abstract class ParserBase implements Parser {
   private _sourceLang: string;
   private _targetLang: string;
   protected _base: string | null = null;

@@ -2,9 +2,6 @@ import { glob } from 'glob';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Compiler } from './compiler/Compiler.js';
-import { IParser } from './compiler/ParserBase.js';
-import TeeuwParser from './compiler/TeeuwParser.js';
-import VanDaleParser from './compiler/VanDaleParser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,16 +18,6 @@ async function main() {
   const filenames = await glob(globPattern);
 
   const promises = filenames.map(async (inFile) => {
-    let parser: IParser | null = null;
-    if (inFile.endsWith('teeuw.md')) {
-      parser = new TeeuwParser();
-    } else if (inFile.endsWith('vandale.md')) {
-      parser = new VanDaleParser();
-    }
-    if (!parser) {
-      throw new Error(`Unrecognized file extension for file: ${inFile}`);
-    }
-
     const stem = path.basename(inFile, '.md').toLowerCase();
     const outFile = path.join(__dirname, DEST_PATH, `${stem}.json`);
     const compiler = new Compiler(inFile, outFile);
