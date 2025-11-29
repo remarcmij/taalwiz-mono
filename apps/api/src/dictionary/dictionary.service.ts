@@ -13,6 +13,13 @@ interface Condition {
   keyword?: boolean;
 }
 
+export interface FindWordResult {
+  word: string;
+  lang: string;
+  lemmas: any[];
+  haveMore: boolean;
+}
+
 const validTermRegex = /^[-'()\p{L}]+$/u;
 
 @Injectable()
@@ -29,7 +36,10 @@ export class DictionaryService {
     });
   }
 
-  async findWord(paramsDto: FindWordParamsDto, queryDto: FindWordQueryDto): Promise<any> {
+  async findWord(
+    paramsDto: FindWordParamsDto,
+    queryDto: FindWordQueryDto,
+  ): Promise<FindWordResult> {
     const words = paramsDto.word.split(',');
 
     for (const word of words) {
@@ -43,11 +53,11 @@ export class DictionaryService {
       const haveMore = queryDto.limit ? lemmas.length === queryDto.limit : false;
 
       if (lemmas.length) {
-        return { word: word, lang: paramsDto.lang, lemmas, haveMore };
+        return { word, lang: paramsDto.lang, lemmas, haveMore };
       }
     }
 
-    return { lemmas: [], haveMore: false };
+    return { word: paramsDto.word, lang: paramsDto.lang, lemmas: [], haveMore: false };
   }
 
   async findAutoCompletions(term: string) {
@@ -55,13 +65,13 @@ export class DictionaryService {
       return [];
     }
 
-    const cachedResult = (await this.cacheManager.get(term)) as AutoCompletionDoc;
+    const cachedResult = await this.cacheManager.get<AutoCompletionDoc[]>(term);
 
     if (cachedResult) {
       this.logger.debug(`Cache hit for '${term}'`);
       return cachedResult;
     } else {
-      const completions = await AutoCompletions.find({
+      const completions: AutoCompletionDoc[] = await AutoCompletions.find({
         word: { $regex: '^' + term, $options: 'i' },
       })
         .sort('word')

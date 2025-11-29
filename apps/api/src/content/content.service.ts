@@ -30,9 +30,9 @@ export class ContentService {
     return await Article.findOne({ filename }).select('-indexText').lean();
   }
 
-  uploadContent(file: Express.Multer.File, res: Response) {
+  uploadContent(file: Express.Multer.File, res: Response): void {
     if (!file) {
-      return res.status(400).json({ message: 'No file provided' });
+      return void res.status(400).json({ message: 'No file provided' });
     }
 
     let loader: Loader;
@@ -42,7 +42,7 @@ export class ContentService {
     } else if (/\.md$/.test(file.originalname)) {
       loader = this.articleLoader;
     } else {
-      return res.status(400).json({ message: 'Invalid upload file type' });
+      return void res.status(400).json({ message: 'Invalid upload file type' });
     }
 
     const data = file.buffer.toString('utf8');
@@ -82,7 +82,7 @@ export class ContentService {
     }
 
     // Update sortIndex for each topic based on its position in the ids array
-    return Promise.all(
+    Promise.all(
       topics.map((topic, index) => {
         topic!.sortIndex = index;
         return topic!.save();

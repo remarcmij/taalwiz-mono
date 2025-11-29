@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import yaml from 'js-yaml';
 
+import { Logger } from '@nestjs/common';
 import { convertMarkdown } from '../../util/markup.js';
 import Article, { ArticleDoc } from '../models/article.model.js';
 import Hashtag, { ExtractedHashtag, HashtagDoc } from '../models/hashtag.model.js';
@@ -23,9 +24,16 @@ interface FrontMatterAttributes {
   title?: string;
 }
 
+interface ExtractHashtagResult {
+  body: string;
+  hashtags: ExtractedHashtag[];
+}
+
 const createHashtagRegExp = () => /\\?#([-\p{L}0-9]{2,})/gu;
 
 class ArticleLoader extends BaseLoader<ArticleDoc> {
+  private readonly logger = new Logger(ArticleLoader.name);
+
   protected async parseContent(content: string, filename: string): Promise<Upload<ArticleDoc>> {
     let match = filename.match(/^(.+)\.(.+)\.md$/);
     if (!match) {
@@ -149,7 +157,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     await bulk.execute();
   }
 
-  private async extractHashtags(body: string, article: ArticleDoc) {
+  private async extractHashtags(body: string, article: ArticleDoc): Promise<ExtractHashtagResult> {
     const hashtagRegExp1 = createHashtagRegExp();
     const hashtagRegExp2 = createHashtagRegExp();
     const outLines: string[] = [];
@@ -163,10 +171,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     const indexTopic = indexTopics.find((topic) => topic.groupName === article.groupName);
     if (!indexTopic) {
       // No index topic found, so no hashtags to extract
-      // TODO how to log this?
-      // logger.warn(
-      //   `extractHashtags: No index topic found for ${article.groupName}`,
-      // );
+      this.logger.warn(`extractHashtags: No index topic found for ${article.groupName}`);
       return { body, hashtags: [] };
     }
 

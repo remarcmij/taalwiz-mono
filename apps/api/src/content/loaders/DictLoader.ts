@@ -71,7 +71,7 @@ class DictLoader extends BaseLoader<DictDataJson> {
         filename: filename,
         type: 'dict',
         groupName,
-      } as TopicDoc,
+      },
       payload,
     };
   }

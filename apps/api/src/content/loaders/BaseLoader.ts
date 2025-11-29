@@ -1,12 +1,11 @@
 import Topic, { TopicDoc } from '../models/topic.model.js';
 
 export interface Upload<T> {
-  topic: TopicDoc;
+  topic: Partial<TopicDoc>;
   payload: T;
 }
 export interface Loader {
   importUpload(filePath: string, originalFilename: string): Promise<void>;
-  removeTopic(topic: TopicDoc): Promise<void>;
 }
 
 abstract class BaseLoader<T> implements Loader {
@@ -25,16 +24,18 @@ abstract class BaseLoader<T> implements Loader {
     await this.createData(topic, data);
   }
 
-  async removeTopic(topic: TopicDoc): Promise<any> {
+  async removeTopic(topic: TopicDoc): Promise<void> {
     await this.removeData(topic);
-    return Topic.deleteOne({ _id: topic._id }).exec();
+    return void Topic.deleteOne({ _id: topic._id }).exec();
   }
 
   protected abstract parseContent(
     content: string,
     filename: string,
   ): Upload<T> | Promise<Upload<T>>;
+
   protected abstract createData(topic: TopicDoc, data: Upload<T>): Promise<void>;
+
   protected abstract removeData(topic: TopicDoc): Promise<void>;
 }
 

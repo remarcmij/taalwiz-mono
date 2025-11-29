@@ -6,7 +6,7 @@ import { HashTagGroup } from './types/hashtag.type.js';
 @Injectable()
 export class HashtagService {
   async getHashtagIndex() {
-    const hashtagGroups = (await Hashtag.aggregate([
+    const hashtagGroups: HashTagGroup[] = await Hashtag.aggregate([
       {
         $group: {
           _id: '$name',
@@ -35,7 +35,7 @@ export class HashtagService {
           _id: 1,
         },
       },
-    ]).exec()) as HashTagGroup[];
+    ]).exec();
 
     hashtagGroups.forEach((group) => {
       group.tags.sort((a, b) => a.name.localeCompare(b.name));
