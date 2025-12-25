@@ -60,6 +60,7 @@ export class DictionaryService {
     return { word: paramsDto.word, lang: paramsDto.lang, lemmas: [], haveMore: false };
   }
 
+  // TODO allow for word variants like in findWord
   async findAutoCompletions(term: string) {
     if (term.length === 0 || !validTermRegex.test(term)) {
       return [];
