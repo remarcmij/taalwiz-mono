@@ -2,6 +2,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonPage,
   IonTitle,
   IonToolbar,
 } from '@ionic/react';
@@ -16,7 +17,7 @@ const AboutPage: React.FC = () => {
   const { data: article } = useArticle(`about.${lang || 'en'}.md`);
 
   return (
-    <>
+    <IonPage>
       <IonHeader translucent>
         <IonToolbar>
           <IonButtons slot="start">
@@ -35,7 +36,7 @@ const AboutPage: React.FC = () => {
           )}
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 

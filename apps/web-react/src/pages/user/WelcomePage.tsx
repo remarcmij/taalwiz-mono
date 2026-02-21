@@ -4,6 +4,7 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
+  IonPage,
   IonTitle,
   IonToolbar,
 } from '@ionic/react';
@@ -18,7 +19,7 @@ const WelcomePage: React.FC = () => {
   const { data: article } = useArticle(`welcome.${lang || 'en'}.md`);
 
   return (
-    <>
+    <IonPage>
       <IonHeader translucent>
         <IonToolbar>
           <IonButtons slot="start">
@@ -46,7 +47,7 @@ const WelcomePage: React.FC = () => {
           )}
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 

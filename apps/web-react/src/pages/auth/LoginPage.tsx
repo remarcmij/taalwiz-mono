@@ -7,6 +7,7 @@ import {
   IonInput,
   IonItem,
   IonList,
+  IonPage,
   IonRow,
   IonTitle,
   IonToolbar,
@@ -59,7 +60,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <>
+    <IonPage>
       <IonHeader translucent>
         <IonToolbar>
           <IonTitle>
@@ -128,7 +129,7 @@ const LoginPage: React.FC = () => {
           </form>
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 

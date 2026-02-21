@@ -10,6 +10,7 @@ import {
   IonItem,
   IonList,
   IonRow,
+  IonPage,
   IonTitle,
   IonToast,
   IonToolbar,
@@ -56,7 +57,7 @@ const RequestPasswordResetPage: React.FC = () => {
   };
 
   return (
-    <>
+    <IonPage>
       <IonHeader translucent>
         <IonToolbar>
           <IonButtons slot="start">
@@ -111,7 +112,7 @@ const RequestPasswordResetPage: React.FC = () => {
           />
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 

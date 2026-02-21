@@ -13,6 +13,7 @@ import {
   IonList,
   IonMenuButton,
   IonSearchbar,
+  IonPage,
   IonTitle,
   IonToolbar,
 } from '@ionic/react';
@@ -118,7 +119,7 @@ const DictionaryPage: React.FC = () => {
   }, [result]);
 
   return (
-    <>
+    <IonPage>
       <IonHeader translucent>
         <IonToolbar>
           <IonButtons slot="start">
@@ -186,7 +187,7 @@ const DictionaryPage: React.FC = () => {
           </IonList>
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 

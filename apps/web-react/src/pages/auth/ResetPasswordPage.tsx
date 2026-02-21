@@ -8,6 +8,7 @@ import {
   IonItem,
   IonList,
   IonRow,
+  IonPage,
   IonTitle,
   IonToolbar,
   useIonAlert,
@@ -66,7 +67,7 @@ const ResetPasswordPage: React.FC = () => {
   };
 
   return (
-    <>
+    <IonPage>
       <IonHeader translucent>
         <IonToolbar>
           <IonTitle>{t('common.app-name')}</IonTitle>
@@ -122,7 +123,7 @@ const ResetPasswordPage: React.FC = () => {
           </form>
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 

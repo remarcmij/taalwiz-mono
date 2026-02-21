@@ -9,6 +9,7 @@ import {
   IonList,
   IonRow,
   IonText,
+  IonPage,
   IonTitle,
   IonToolbar,
   useIonAlert,
@@ -81,7 +82,7 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <>
+    <IonPage>
       <IonHeader translucent>
         <IonToolbar>
           <IonTitle>
@@ -158,7 +159,7 @@ const RegisterPage: React.FC = () => {
           </form>
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 

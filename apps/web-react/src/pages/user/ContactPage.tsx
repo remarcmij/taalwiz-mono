@@ -5,6 +5,7 @@ import {
   IonContent,
   IonGrid,
   IonHeader,
+  IonPage,
   IonRow,
   IonTextarea,
   IonTitle,
@@ -66,7 +67,7 @@ const ContactPage: React.FC = () => {
   };
 
   return (
-    <>
+    <IonPage>
       <IonHeader translucent>
         <IonToolbar>
           <IonButtons slot="start">
@@ -112,7 +113,7 @@ const ContactPage: React.FC = () => {
           </form>
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 

@@ -9,6 +9,7 @@ import {
   IonItem,
   IonList,
   IonRow,
+  IonPage,
   IonTitle,
   IonToolbar,
   useIonAlert,
@@ -63,7 +64,7 @@ const ChangePasswordPage: React.FC = () => {
   };
 
   return (
-    <>
+    <IonPage>
       <IonHeader translucent>
         <IonToolbar>
           <IonButtons slot="start">
@@ -122,7 +123,7 @@ const ChangePasswordPage: React.FC = () => {
           </form>
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 

@@ -8,6 +8,7 @@ import {
   IonHeader,
   IonIcon,
   IonItem,
+  IonPage,
   IonProgressBar,
   IonRow,
   IonSelect,
@@ -149,7 +150,7 @@ const FlashcardPage: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <IonPage>
       <IonHeader>
         <IonToolbar>
           <IonButtons slot="start">
@@ -329,7 +330,7 @@ const FlashcardPage: React.FC = () => {
           </IonButtons>
         </IonToolbar>
       </IonFooter>
-    </>
+    </IonPage>
   );
 };
 

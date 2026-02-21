@@ -12,6 +12,7 @@ import {
   IonLabel,
   IonList,
   IonMenuButton,
+  IonPage,
   IonRefresher,
   IonRefresherContent,
   IonText,
@@ -67,7 +68,7 @@ const HashtagsPage: React.FC = () => {
   );
 
   return (
-    <>
+    <IonPage>
       <IonHeader>
         <IonToolbar>
           <IonButtons slot="start">
@@ -116,7 +117,7 @@ const HashtagsPage: React.FC = () => {
           </IonList>
         </div>
       </IonContent>
-    </>
+    </IonPage>
   );
 };
 
