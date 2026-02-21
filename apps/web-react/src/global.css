@@ -1,0 +1,55 @@
+/*
+ * App Global CSS
+ * Port of apps/web/src/global.scss for React + Ionic
+ */
+
+:root {
+  --foreign-text-color: var(--ion-color-primary);
+  --native-text-color: rgba(0, 0, 0, 0.87);
+  --box-shadow-md:
+    0 3px 1px -2px rgba(0, 0, 0, 0.2),
+    0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+
+.text-content {
+  font-family: var(--ion-font-family, inherit);
+}
+
+.text-content span {
+  cursor: pointer;
+  color: var(--foreign-text-color);
+}
+
+.text-content span.clicked {
+  background-color: yellow;
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+
+.text-content h1,
+.text-content h2 {
+  border-bottom: none;
+}
+
+span.hashtag {
+  color: var(--ion-color-danger);
+  cursor: pointer;
+}
+
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.plt-desktop .content-container {
+  width: 768px !important;
+  margin: auto;
+}
+
+ion-back-button {
+  padding: 5px 10px 5px 5px;
+}
