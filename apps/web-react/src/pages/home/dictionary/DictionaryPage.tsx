@@ -12,6 +12,7 @@ import {
   IonItem,
   IonList,
   IonMenuButton,
+  IonModal,
   IonSearchbar,
   IonPage,
   IonTitle,
@@ -20,8 +21,10 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import LemmaCard from '../../../components/LemmaCard.tsx';
+import WordClickModal from '../../../components/WordClickModal.tsx';
 import SearchbarDropdown from '../../../components/SearchbarDropdown.tsx';
 import { useDictionary } from '../../../hooks/useDictionary.ts';
+import { useWordClickModal } from '../../../hooks/useWordClickModal.ts';
 import { WordLang } from '../../../types/models.ts';
 
 const MAX_RECENT_SEARCHES = 4;
@@ -29,6 +32,9 @@ const MAX_RECENT_SEARCHES = 4;
 const DictionaryPage: React.FC = () => {
   const { t } = useTranslation();
   const { result, lookup, getSuggestions } = useDictionary();
+  const { modalData, onClicked: handleWordClick, dismissModal: dismissWordModal } =
+    useWordClickModal();
+  const wordModalRef = useRef<HTMLIonModalElement>(null);
   const contentRef = useRef<HTMLIonContentElement>(null);
 
   const [word, setWord] = useState('');
@@ -111,6 +117,20 @@ const DictionaryPage: React.FC = () => {
     [suggestions, handleItemClicked],
   );
 
+  const handleLemmaClicked = useCallback(
+    (e: React.MouseEvent) => {
+      handleWordClick(e.nativeEvent);
+    },
+    [handleWordClick],
+  );
+
+  const handleDictionaryLookup = useCallback(
+    (lookupWord: string, lang: string) => {
+      handleLookup(new WordLang(lookupWord, lang));
+    },
+    [handleLookup],
+  );
+
   // Scroll to top when results change
   useEffect(() => {
     if (result) {
@@ -172,7 +192,7 @@ const DictionaryPage: React.FC = () => {
                     </IonCardHeader>
                   )}
                   <IonCardContent>
-                    <LemmaCard lemmas={result.lemmas[base.key] ?? []} />
+                    <LemmaCard lemmas={result.lemmas[base.key] ?? []} onClicked={handleLemmaClicked} />
                   </IonCardContent>
                   <IonButton
                     fill="clear"
@@ -187,6 +207,27 @@ const DictionaryPage: React.FC = () => {
           </IonList>
         </div>
       </IonContent>
+
+      <IonModal
+        ref={wordModalRef}
+        isOpen={modalData !== null}
+        initialBreakpoint={0.25}
+        breakpoints={[0, 0.25, 0.5]}
+        handleBehavior="cycle"
+        onDidDismiss={dismissWordModal}
+      >
+        {modalData && (
+          <WordClickModal
+            clickedWord={modalData.clickedWord}
+            word={modalData.word}
+            lang={modalData.lang}
+            sentence={modalData.sentence}
+            lemmas={modalData.lemmas}
+            onDismiss={() => wordModalRef.current?.dismiss()}
+            onDictionaryLookup={handleDictionaryLookup}
+          />
+        )}
+      </IonModal>
     </IonPage>
   );
 };
