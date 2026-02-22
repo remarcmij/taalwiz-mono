@@ -1,4 +1,5 @@
 import {
+  IonAlert,
   IonButton,
   IonCol,
   IonContent,
@@ -7,12 +8,11 @@ import {
   IonInput,
   IonItem,
   IonList,
+  IonLoading,
   IonPage,
   IonRow,
   IonTitle,
   IonToolbar,
-  useIonAlert,
-  useIonLoading,
 } from '@ionic/react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,37 +25,39 @@ const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const history = useHistory();
   const { login } = useAuth();
-  const [presentLoading, dismissLoading] = useIonLoading();
-  const [presentAlert] = useIonAlert();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const isValid = email.includes('@') && password.length >= MIN_PASSWORD_LENGTH;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isValid) return;
+  const handleLogin = async () => {
+    if (!isValid) {
+      if (!email.includes('@')) {
+        setErrorMessage(t('auth.email-invalid'));
+      } else {
+        setErrorMessage(t('auth.password-invalid'));
+      }
+      return;
+    }
 
-    await presentLoading({ message: t('auth.logging-in'), keyboardClose: true });
+    setIsLoading(true);
 
     try {
       await login(email, password);
-      await dismissLoading();
+      setIsLoading(false);
       setEmail('');
       setPassword('');
       history.replace(HOME_URL);
     } catch (err) {
-      await dismissLoading();
+      setIsLoading(false);
       const msgKey =
         err instanceof Error && err.message === AUTH_FAILED
           ? 'auth.auth-failed'
           : 'auth.login-failed';
-      await presentAlert({
-        header: t('auth.login-error'),
-        message: t(msgKey),
-        buttons: [t('common.close')],
-      });
+      setErrorMessage(t(msgKey));
     }
   };
 
@@ -70,64 +72,70 @@ const LoginPage: React.FC = () => {
       </IonHeader>
       <IonContent fullscreen>
         <div className="content-container">
-          <form onSubmit={handleSubmit}>
-            <IonGrid>
-              <IonRow>
-                <IonCol sizeSm="6" offsetSm="3">
-                  <IonList lines="none">
-                    <IonItem>
-                      <IonInput
-                        type="email"
-                        label="Email"
-                        labelPlacement="floating"
-                        errorText={t('auth.email-invalid')}
-                        value={email}
-                        onIonInput={(e) => setEmail(e.detail.value ?? '')}
-                        required
-                      />
-                    </IonItem>
-                    <IonItem>
-                      <IonInput
-                        type="password"
-                        label={t('auth.password')}
-                        labelPlacement="floating"
-                        errorText={t('auth.password-invalid')}
-                        value={password}
-                        onIonInput={(e) => setPassword(e.detail.value ?? '')}
-                        required
-                        minlength={MIN_PASSWORD_LENGTH}
-                      />
-                    </IonItem>
-                  </IonList>
-                </IonCol>
-              </IonRow>
-              <IonRow>
-                <IonCol sizeMd="6" offsetMd="3">
-                  <IonButton
-                    type="submit"
-                    color="primary"
-                    expand="block"
-                    disabled={!isValid}
-                  >
-                    {t('auth.login')}
-                  </IonButton>
-                </IonCol>
-              </IonRow>
-              <IonRow>
-                <IonCol sizeMd="6" offsetMd="3" className="ion-text-center">
-                  <IonButton
-                    fill="clear"
-                    color="primary"
-                    mode="ios"
-                    routerLink="/auth/request-password-reset"
-                  >
-                    {t('auth.forgot-password')}
-                  </IonButton>
-                </IonCol>
-              </IonRow>
-            </IonGrid>
-          </form>
+          <IonGrid>
+            <IonRow>
+              <IonCol sizeSm="6" offsetSm="3">
+                <IonList lines="none">
+                  <IonItem>
+                    <IonInput
+                      type="email"
+                      label="Email"
+                      labelPlacement="floating"
+                      errorText={t('auth.email-invalid')}
+                      value={email}
+                      onIonInput={(e) => setEmail(e.detail.value ?? '')}
+                      required
+                    />
+                  </IonItem>
+                  <IonItem>
+                    <IonInput
+                      type="password"
+                      label={t('auth.password')}
+                      labelPlacement="floating"
+                      errorText={t('auth.password-invalid')}
+                      value={password}
+                      onIonInput={(e) => setPassword(e.detail.value ?? '')}
+                      required
+                      minlength={MIN_PASSWORD_LENGTH}
+                    />
+                  </IonItem>
+                </IonList>
+              </IonCol>
+            </IonRow>
+            <IonRow>
+              <IonCol sizeMd="6" offsetMd="3">
+                <IonButton
+                  color="primary"
+                  expand="block"
+                  onClick={handleLogin}
+                >
+                  {t('auth.login')}
+                </IonButton>
+              </IonCol>
+            </IonRow>
+            <IonRow>
+              <IonCol sizeMd="6" offsetMd="3" className="ion-text-center">
+                <IonButton
+                  fill="clear"
+                  color="primary"
+                  mode="ios"
+                  routerLink="/auth/request-password-reset"
+                >
+                  {t('auth.forgot-password')}
+                </IonButton>
+              </IonCol>
+            </IonRow>
+          </IonGrid>
         </div>
+
+        <IonLoading isOpen={isLoading} message={t('auth.logging-in')} />
+        <IonAlert
+          isOpen={!!errorMessage}
+          header={t('auth.login-error')}
+          message={errorMessage}
+          buttons={[t('common.close')]}
+          onDidDismiss={() => setErrorMessage('')}
+        />
       </IonContent>
     </IonPage>
   );

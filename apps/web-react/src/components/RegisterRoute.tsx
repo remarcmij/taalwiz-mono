@@ -1,9 +1,17 @@
-import { IonSpinner } from '@ionic/react';
+import { IonPage, IonSpinner } from '@ionic/react';
 import { useEffect, useState } from 'react';
-import { Redirect, Route, useLocation, type RouteProps } from 'react-router-dom';
+import { Redirect, useLocation } from 'react-router-dom';
 import { validateRegTokenRequest } from '../api/auth.api.ts';
 
-const RegisterRoute: React.FC<RouteProps> = (props) => {
+/**
+ * Inner guard component for the register route.
+ * Validates the registration token from query params before rendering the page.
+ * Used inside a plain <Route render={...}> in App.tsx.
+ */
+const RegisterRouteGuard: React.FC<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: React.ComponentType<any>;
+}> = ({ component: Component, ...rest }) => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const email = params.get('email') ?? '';
@@ -26,12 +34,14 @@ const RegisterRoute: React.FC<RouteProps> = (props) => {
 
   if (checking) {
     return (
-      <div
-        className="ion-text-center ion-padding"
-        style={{ marginTop: '40vh' }}
-      >
-        <IonSpinner />
-      </div>
+      <IonPage>
+        <div
+          className="ion-text-center ion-padding"
+          style={{ marginTop: '40vh' }}
+        >
+          <IonSpinner />
+        </div>
+      </IonPage>
     );
   }
 
@@ -39,7 +49,7 @@ const RegisterRoute: React.FC<RouteProps> = (props) => {
     return <Redirect to="/auth" />;
   }
 
-  return <Route {...props} />;
+  return <Component {...rest} />;
 };
 
-export default RegisterRoute;
+export default RegisterRouteGuard;

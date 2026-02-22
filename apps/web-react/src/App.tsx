@@ -3,13 +3,12 @@ import { IonReactRouter } from '@ionic/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import AdminRoute from './components/AdminRoute.tsx';
 import AppMenu from './components/AppMenu.tsx';
-import ProtectedRoute from './components/ProtectedRoute.tsx';
-import RegisterRoute from './components/RegisterRoute.tsx';
+import RegisterRouteGuard from './components/RegisterRoute.tsx';
 import UpdatePrompt from './components/UpdatePrompt.tsx';
 import { LOG_LEVEL } from './constants.ts';
-import { AuthProvider } from './context/AuthContext.tsx';
+import { AuthProvider, HOME_URL } from './context/AuthContext.tsx';
+import { useAuth } from './hooks/useAuth.ts';
 import { logger } from './lib/logger.ts';
 import AdminArticlePreviewPage from './pages/admin/AdminArticlePreviewPage.tsx';
 import AdminContentPage from './pages/admin/AdminContentPage.tsx';
@@ -40,9 +39,22 @@ const queryClient = new QueryClient({
 });
 
 const AppInner: React.FC = () => {
+  const { user, isAdmin } = useAuth();
+
   useEffect(() => {
     logger.setLevel(LOG_LEVEL);
   }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const protectedRender = (Component: React.ComponentType<any>) => (props: any) =>
+    user ? <Component {...props} /> : <Redirect to="/auth" />;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const adminRender = (Component: React.ComponentType<any>) => (props: any) => {
+    if (!user) return <Redirect to="/auth" />;
+    if (!isAdmin) return <Redirect to={HOME_URL} />;
+    return <Component {...props} />;
+  };
 
   return (
     <IonApp>
@@ -51,7 +63,13 @@ const AppInner: React.FC = () => {
         <IonRouterOutlet id="main-content">
           {/* Auth routes (public) */}
           <Route exact path="/auth" component={LoginPage} />
-          <RegisterRoute exact path="/auth/register" component={RegisterPage} />
+          <Route
+            exact
+            path="/auth/register"
+            render={() => (
+              <RegisterRouteGuard component={RegisterPage} />
+            )}
+          />
           <Route
             exact
             path="/auth/change-password"
@@ -69,52 +87,64 @@ const AppInner: React.FC = () => {
           />
 
           {/* Home routes (protected, with tabs) */}
-          <ProtectedRoute path="/home/tabs" component={HomePage} />
+          <Route path="/home/tabs" render={protectedRender(HomePage)} />
 
           {/* Flashcard (protected) */}
-          <ProtectedRoute
+          <Route
             exact
             path="/flashcard/:filename"
-            component={FlashcardPage}
+            render={protectedRender(FlashcardPage)}
           />
 
           {/* User pages (protected) */}
-          <ProtectedRoute
+          <Route
             exact
             path="/welcome/:lang"
-            component={WelcomePage}
+            render={protectedRender(WelcomePage)}
           />
-          <ProtectedRoute exact path="/about/:lang" component={AboutPage} />
-          <ProtectedRoute exact path="/contact" component={ContactPage} />
+          <Route
+            exact
+            path="/about/:lang"
+            render={protectedRender(AboutPage)}
+          />
+          <Route exact path="/contact" render={protectedRender(ContactPage)} />
 
           {/* Admin routes */}
-          <AdminRoute exact path="/admin" component={AdminPage} />
-          <AdminRoute exact path="/admin/users" component={AdminUsersPage} />
-          <AdminRoute
+          <Route exact path="/admin" render={adminRender(AdminPage)} />
+          <Route
+            exact
+            path="/admin/users"
+            render={adminRender(AdminUsersPage)}
+          />
+          <Route
             exact
             path="/admin/new-user"
-            component={AdminNewUserPage}
+            render={adminRender(AdminNewUserPage)}
           />
-          <AdminRoute
+          <Route
             exact
             path="/admin/content"
-            component={AdminContentPage}
+            render={adminRender(AdminContentPage)}
           />
-          <AdminRoute
+          <Route
             exact
             path="/admin/content/article/:filename"
-            component={AdminArticlePreviewPage}
+            render={adminRender(AdminArticlePreviewPage)}
           />
-          <AdminRoute
+          <Route
             exact
             path="/admin/content/:groupName"
-            component={AdminPublicationPage}
+            render={adminRender(AdminPublicationPage)}
           />
-          <AdminRoute exact path="/admin/upload" component={AdminUploadPage} />
-          <AdminRoute
+          <Route
+            exact
+            path="/admin/upload"
+            render={adminRender(AdminUploadPage)}
+          />
+          <Route
             exact
             path="/admin/system-settings"
-            component={AdminSystemSettingsPage}
+            render={adminRender(AdminSystemSettingsPage)}
           />
 
           {/* Fallback */}
