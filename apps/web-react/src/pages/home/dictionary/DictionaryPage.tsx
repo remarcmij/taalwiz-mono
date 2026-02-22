@@ -20,6 +20,7 @@ import {
 } from '@ionic/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 import LemmaCard from '../../../components/LemmaCard.tsx';
 import WordClickModal from '../../../components/WordClickModal.tsx';
 import SearchbarDropdown from '../../../components/SearchbarDropdown.tsx';
@@ -31,6 +32,7 @@ const MAX_RECENT_SEARCHES = 4;
 
 const DictionaryPage: React.FC = () => {
   const { t } = useTranslation();
+  const { lang: paramLang, word: paramWord } = useParams<{ lang?: string; word?: string }>();
   const { result, lookup, getSuggestions } = useDictionary();
   const { modalData, onClicked: handleWordClick, dismissModal: dismissWordModal } =
     useWordClickModal();
@@ -66,6 +68,13 @@ const DictionaryPage: React.FC = () => {
     },
     [lookup, addRecentSearch],
   );
+
+  // Trigger lookup from route params (e.g. navigating from word click modal)
+  useEffect(() => {
+    if (paramWord && paramLang) {
+      handleLookup(new WordLang(paramWord, paramLang));
+    }
+  }, [paramWord, paramLang]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleItemClicked = useCallback(
     (selectedWord: string, lang: string) => {
