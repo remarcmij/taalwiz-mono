@@ -55,6 +55,10 @@ ion-back-button {
 }
 
 /* Dictionary page */
+ion-searchbar {
+  max-width: 576px;
+  margin: auto;
+}
 .lemma-card {
   width: 100%;
   box-shadow: var(--box-shadow-md);
