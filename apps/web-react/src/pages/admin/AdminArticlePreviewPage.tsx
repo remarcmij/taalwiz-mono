@@ -72,18 +72,20 @@ const AdminArticlePreviewPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        {isLoading && (
-          <div className="ion-text-center ion-padding">
-            <IonSpinner />
-          </div>
-        )}
-        {article && (
-          <div
-            className={`ion-padding${isDeleted ? ' deleted-article' : ''}`}
-            style={isDeleted ? { textDecoration: 'line-through' } : undefined}
-            dangerouslySetInnerHTML={{ __html: article.htmlText }}
-          />
-        )}
+        <div className="content-container">
+          {isLoading && (
+            <div className="ion-text-center ion-padding">
+              <IonSpinner />
+            </div>
+          )}
+          {article && (
+            <div
+              className={`ion-padding${isDeleted ? ' deleted-article' : ''}`}
+              style={isDeleted ? { textDecoration: 'line-through' } : undefined}
+              dangerouslySetInnerHTML={{ __html: article.htmlText }}
+            />
+          )}
+        </div>
       </IonContent>
     </IonPage>
   );

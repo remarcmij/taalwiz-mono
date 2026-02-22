@@ -199,7 +199,8 @@ const AdminUploadPage: React.FC = () => {
         {isUploading && <IonProgressBar value={overallProgress} />}
       </IonHeader>
       <IonContent fullscreen>
-        <div className="ion-padding">
+        <div className="content-container">
+          <div className="ion-padding">
           {/* Dropzone */}
           <div
             {...getRootProps()}
@@ -313,6 +314,7 @@ const AdminUploadPage: React.FC = () => {
               ))}
             </IonGrid>
           )}
+          </div>
         </div>
       </IonContent>
     </IonPage>

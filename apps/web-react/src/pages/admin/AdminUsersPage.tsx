@@ -72,35 +72,37 @@ const AdminUsersPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        {isLoading && (
-          <div className="ion-text-center ion-padding">
-            <IonSpinner />
-          </div>
-        )}
-        <IonList>
-          {nonAdminUsers.map((user) => (
-            <IonItemSliding key={user.id}>
-              <IonItem>
-                <IonLabel>
-                  <h2>{user.email}</h2>
-                  <h3>{user.name}</h3>
-                  <p>
-                    Created: {formatDate(user.created)} | Last access:{' '}
-                    {formatDate(user.lastAccessed)}
-                  </p>
-                </IonLabel>
-              </IonItem>
-              <IonItemOptions side="end">
-                <IonItemOption
-                  color="danger"
-                  onClick={() => handleDelete(user.id, user.email)}
-                >
-                  <IonIcon slot="icon-only" icon={trashOutline} />
-                </IonItemOption>
-              </IonItemOptions>
-            </IonItemSliding>
-          ))}
-        </IonList>
+        <div className="content-container">
+          {isLoading && (
+            <div className="ion-text-center ion-padding">
+              <IonSpinner />
+            </div>
+          )}
+          <IonList>
+            {nonAdminUsers.map((user) => (
+              <IonItemSliding key={user.id}>
+                <IonItem>
+                  <IonLabel>
+                    <h2>{user.email}</h2>
+                    <h3>{user.name}</h3>
+                    <p>
+                      Created: {formatDate(user.created)} | Last access:{' '}
+                      {formatDate(user.lastAccessed)}
+                    </p>
+                  </IonLabel>
+                </IonItem>
+                <IonItemOptions side="end">
+                  <IonItemOption
+                    color="danger"
+                    onClick={() => handleDelete(user.id, user.email)}
+                  >
+                    <IonIcon slot="icon-only" icon={trashOutline} />
+                  </IonItemOption>
+                </IonItemOptions>
+              </IonItemSliding>
+            ))}
+          </IonList>
+        </div>
         <IonToast
           isOpen={!!toast}
           message={toast ?? ''}

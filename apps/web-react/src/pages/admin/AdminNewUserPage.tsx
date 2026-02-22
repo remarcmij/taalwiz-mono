@@ -77,37 +77,39 @@ const AdminNewUserPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        <form onSubmit={handleSubmit}>
-          <IonList>
-            <IonItem>
-              <IonInput
-                label="Email"
-                labelPlacement="stacked"
-                type="email"
-                required
-                value={email}
-                onIonInput={(e) => setEmail(e.detail.value ?? '')}
-                placeholder="user@example.com"
-              />
-            </IonItem>
-            <IonRadioGroup
-              value={lang}
-              onIonChange={(e) => setLang(e.detail.value as string)}
-            >
+        <div className="content-container">
+          <form onSubmit={handleSubmit}>
+            <IonList>
               <IonItem>
-                <IonRadio value="nl">Nederlands</IonRadio>
+                <IonInput
+                  label="Email"
+                  labelPlacement="stacked"
+                  type="email"
+                  required
+                  value={email}
+                  onIonInput={(e) => setEmail(e.detail.value ?? '')}
+                  placeholder="user@example.com"
+                />
               </IonItem>
-              <IonItem>
-                <IonRadio value="en">English</IonRadio>
-              </IonItem>
-            </IonRadioGroup>
-          </IonList>
-          <div className="ion-padding">
-            <IonButton expand="block" type="submit" disabled={!email}>
-              Send Invitation
-            </IonButton>
-          </div>
-        </form>
+              <IonRadioGroup
+                value={lang}
+                onIonChange={(e) => setLang(e.detail.value as string)}
+              >
+                <IonItem>
+                  <IonRadio value="nl">Nederlands</IonRadio>
+                </IonItem>
+                <IonItem>
+                  <IonRadio value="en">English</IonRadio>
+                </IonItem>
+              </IonRadioGroup>
+            </IonList>
+            <div className="ion-padding">
+              <IonButton expand="block" type="submit" disabled={!email}>
+                Send Invitation
+              </IonButton>
+            </div>
+          </form>
+        </div>
         <IonLoading isOpen={inviteUser.isPending} message="Sending..." />
         <IonToast
           isOpen={!!toast}

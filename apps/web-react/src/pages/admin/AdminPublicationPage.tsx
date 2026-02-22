@@ -170,45 +170,47 @@ const AdminPublicationPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        {isLoading && (
-          <div className="ion-text-center ion-padding">
-            <IonSpinner />
-          </div>
-        )}
-        <IonList>
-          <IonReorderGroup
-            disabled={!reorderEnabled}
-            onIonItemReorder={handleReorder}
-          >
-            {orderedItems.map((topic) => (
-              <IonItemSliding key={topic._id}>
-                <IonItem
-                  detail={!reorderEnabled}
-                  button={!reorderEnabled}
-                  routerLink={
-                    reorderEnabled
-                      ? undefined
-                      : `/admin/content/article/${topic.filename}`
-                  }
-                >
-                  <IonLabel>
-                    <h2>{topic.title}</h2>
-                    {topic.subtitle && <p>{topic.subtitle}</p>}
-                  </IonLabel>
-                  <IonReorder slot="end" />
-                </IonItem>
-                <IonItemOptions side="end">
-                  <IonItemOption
-                    color="danger"
-                    onClick={() => handleDeleteArticle(topic.filename)}
+        <div className="content-container">
+          {isLoading && (
+            <div className="ion-text-center ion-padding">
+              <IonSpinner />
+            </div>
+          )}
+          <IonList>
+            <IonReorderGroup
+              disabled={!reorderEnabled}
+              onIonItemReorder={handleReorder}
+            >
+              {orderedItems.map((topic) => (
+                <IonItemSliding key={topic._id}>
+                  <IonItem
+                    detail={!reorderEnabled}
+                    button={!reorderEnabled}
+                    routerLink={
+                      reorderEnabled
+                        ? undefined
+                        : `/admin/content/article/${topic.filename}`
+                    }
                   >
-                    Delete
-                  </IonItemOption>
-                </IonItemOptions>
-              </IonItemSliding>
-            ))}
-          </IonReorderGroup>
-        </IonList>
+                    <IonLabel>
+                      <h2>{topic.title}</h2>
+                      {topic.subtitle && <p>{topic.subtitle}</p>}
+                    </IonLabel>
+                    <IonReorder slot="end" />
+                  </IonItem>
+                  <IonItemOptions side="end">
+                    <IonItemOption
+                      color="danger"
+                      onClick={() => handleDeleteArticle(topic.filename)}
+                    >
+                      Delete
+                    </IonItemOption>
+                  </IonItemOptions>
+                </IonItemSliding>
+              ))}
+            </IonReorderGroup>
+          </IonList>
+        </div>
         <IonToast
           isOpen={!!toast}
           message={toast ?? ''}

@@ -59,19 +59,21 @@ const AdminPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        <IonList>
-          {adminItems.map((item) => (
-            <IonItem
-              key={item.href}
-              detail
-              button
-              routerLink={item.href}
-            >
-              <IonIcon slot="start" icon={item.icon} />
-              <IonLabel>{item.label}</IonLabel>
-            </IonItem>
-          ))}
-        </IonList>
+        <div className="content-container">
+          <IonList>
+            {adminItems.map((item) => (
+              <IonItem
+                key={item.href}
+                detail
+                button
+                routerLink={item.href}
+              >
+                <IonIcon slot="start" icon={item.icon} />
+                <IonLabel>{item.label}</IonLabel>
+              </IonItem>
+            ))}
+          </IonList>
+        </div>
       </IonContent>
     </IonPage>
   );

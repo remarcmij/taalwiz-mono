@@ -151,16 +151,18 @@ const AdminSystemSettingsPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        {isLoading && (
-          <div className="ion-text-center ion-padding">
-            <IonSpinner />
-          </div>
-        )}
-        <IonList>
-          {localSettings.map((setting, index) =>
-            renderSettingInput(setting, index),
+        <div className="content-container">
+          {isLoading && (
+            <div className="ion-text-center ion-padding">
+              <IonSpinner />
+            </div>
           )}
-        </IonList>
+          <IonList>
+            {localSettings.map((setting, index) =>
+              renderSettingInput(setting, index),
+            )}
+          </IonList>
+        </div>
       </IonContent>
     </IonPage>
   );

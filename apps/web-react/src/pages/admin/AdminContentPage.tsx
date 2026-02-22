@@ -114,37 +114,39 @@ const AdminContentPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        {isLoading && (
-          <div className="ion-text-center ion-padding">
-            <IonSpinner />
-          </div>
-        )}
-        <IonList>
-          <IonReorderGroup
-            disabled={!reorderEnabled}
-            onIonItemReorder={handleReorder}
-          >
-            {orderedItems.map((topic) => (
-              <IonItem
-                key={topic._id}
-                detail={!reorderEnabled}
-                button={!reorderEnabled}
-                routerLink={
-                  reorderEnabled
-                    ? undefined
-                    : `/admin/content/${topic.groupName}`
-                }
-              >
-                <IonLabel>
-                  <h2>{topic.title}</h2>
-                  {topic.author && <h3>{topic.author}</h3>}
-                  {topic.subtitle && <p>{topic.subtitle}</p>}
-                </IonLabel>
-                <IonReorder slot="end" />
-              </IonItem>
-            ))}
-          </IonReorderGroup>
-        </IonList>
+        <div className="content-container">
+          {isLoading && (
+            <div className="ion-text-center ion-padding">
+              <IonSpinner />
+            </div>
+          )}
+          <IonList>
+            <IonReorderGroup
+              disabled={!reorderEnabled}
+              onIonItemReorder={handleReorder}
+            >
+              {orderedItems.map((topic) => (
+                <IonItem
+                  key={topic._id}
+                  detail={!reorderEnabled}
+                  button={!reorderEnabled}
+                  routerLink={
+                    reorderEnabled
+                      ? undefined
+                      : `/admin/content/${topic.groupName}`
+                  }
+                >
+                  <IonLabel>
+                    <h2>{topic.title}</h2>
+                    {topic.author && <h3>{topic.author}</h3>}
+                    {topic.subtitle && <p>{topic.subtitle}</p>}
+                  </IonLabel>
+                  <IonReorder slot="end" />
+                </IonItem>
+              ))}
+            </IonReorderGroup>
+          </IonList>
+        </div>
       </IonContent>
     </IonPage>
   );
