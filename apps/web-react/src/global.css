@@ -79,18 +79,28 @@ ion-searchbar {
 }
 
 /* Searchbar dropdown */
+.dropdown-anchor {
+  position: relative;
+  width: 100%;
+}
+
 .dropdown-list {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   max-width: 576px;
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 1000;
+  background-color: #fff;
 }
 
 @media (min-width: 576px) {
   .dropdown-list {
     margin-top: 4px;
-    margin-left: auto;
-    margin-right: auto;
     border: none;
     border-radius: 2px;
-    background-color: #fff;
     box-shadow:
       0 1px 5px 0 rgba(0, 0, 0, 0.2),
       0 2px 2px 0 rgba(0, 0, 0, 0.14),
