@@ -51,15 +51,15 @@ const HomePage: React.FC = () => {
       <IonTabBar slot="bottom">
         <IonTabButton tab="content" href="/home/tabs/content">
           <IonIcon icon={libraryOutline} />
-          <IonLabel>{t('tabs.library')}</IonLabel>
+          <IonLabel>{t('common.library')}</IonLabel>
         </IonTabButton>
         <IonTabButton tab="dictionary" href="/home/tabs/dictionary">
           <IonIcon icon={bookOutline} />
-          <IonLabel>{t('tabs.dictionary')}</IonLabel>
+          <IonLabel>{t('common.dictionary')}</IonLabel>
         </IonTabButton>
         <IonTabButton tab="hashtags" href="/home/tabs/hashtags">
           <IonIcon icon={pricetagsOutline} />
-          <IonLabel>{t('tabs.hashtags')}</IonLabel>
+          <IonLabel>Hashtags</IonLabel>
         </IonTabButton>
       </IonTabBar>
     </IonTabs>

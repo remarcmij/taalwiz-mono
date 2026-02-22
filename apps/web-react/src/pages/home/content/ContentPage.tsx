@@ -39,7 +39,7 @@ const ContentPage: React.FC = () => {
       <IonHeader translucent>
         <IonToolbar>
           <IonMenuButton slot="start" menu="m1" />
-          <IonTitle>{t('tabs.library')}</IonTitle>
+          <IonTitle>{t('common.library')}</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
@@ -54,7 +54,7 @@ const ContentPage: React.FC = () => {
           )}
           {!isLoading && showNoData && (
             <div className="ion-text-center ion-padding">
-              <p>{t('content.no-data')}</p>
+              <p>{t('common.no-data')}</p>
             </div>
           )}
           <IonList>
