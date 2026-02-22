@@ -53,3 +53,52 @@ span.hashtag {
 ion-back-button {
   padding: 5px 10px 5px 5px;
 }
+
+/* Dictionary page */
+.lemma-card {
+  width: 100%;
+  box-shadow: var(--box-shadow-md);
+  margin: 8px;
+}
+
+.lemma-card ion-item {
+  --inner-padding-end: 0;
+}
+
+.lemma-button {
+  float: right;
+  text-transform: uppercase;
+}
+
+.dimmed {
+  opacity: 0.5;
+}
+
+/* Searchbar dropdown */
+.dropdown-list {
+  max-width: 576px;
+}
+
+@media (min-width: 576px) {
+  .dropdown-list {
+    margin-top: 4px;
+    margin-left: auto;
+    margin-right: auto;
+    border: none;
+    border-radius: 2px;
+    background-color: #fff;
+    box-shadow:
+      0 1px 5px 0 rgba(0, 0, 0, 0.2),
+      0 2px 2px 0 rgba(0, 0, 0, 0.14),
+      0 3px 1px -2px rgba(0, 0, 0, 0.12);
+  }
+}
+
+.foreign-text {
+  font-weight: bold;
+  color: var(--ion-color-primary);
+}
+
+.native-text {
+  color: inherit;
+}
