@@ -22,12 +22,14 @@ import {
 } from '@ionic/react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useHistory } from 'react-router-dom';
 import { useHashtagIndex } from '../../../api/hashtags.api.ts';
 import HashtagModal from '../../../components/HashtagModal.tsx';
 import { useMediaQuery } from '../../../hooks/useMediaQuery.ts';
 
 const HashtagsPage: React.FC = () => {
   const { t } = useTranslation();
+  const history = useHistory();
   const { data: hashtagGroups, refetch } = useHashtagIndex();
   const isDesktop = useMediaQuery('(min-width: 992px)');
   const [giveUpWaiting, setGiveUpWaiting] = useState(false);
@@ -47,10 +49,20 @@ const HashtagsPage: React.FC = () => {
     [refetch],
   );
 
+  const handleNavigate = useCallback(
+    (filename: string, id?: string) => {
+      dismissModal();
+      const url = `/home/tabs/content/article/${filename}${id ? `?id=${id}` : ''}`;
+      history.push(url);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [history],
+  );
+
   const [presentModal, dismissModal] = useIonModal(HashtagModal, {
     hashtagName: selectedHashtag,
     onDismiss: () => dismissModal(),
-    onNavigate: () => dismissModal(),
+    onNavigate: handleNavigate,
   });
 
   const openModal = useCallback(
