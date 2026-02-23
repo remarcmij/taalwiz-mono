@@ -13,6 +13,7 @@
     "JWT_SECRET",
     "MONGO_URL",
     "NODE_ENV",
+    "PROD",
     "PORT",
     "SITE_NAME",
     "SMTP_HOST",
