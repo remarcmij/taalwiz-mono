@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import AppMenu from './components/AppMenu.tsx';
+import ErrorBoundary from './components/ErrorBoundary.tsx';
 import RegisterRouteGuard from './components/RegisterRoute.tsx';
 import UpdatePrompt from './components/UpdatePrompt.tsx';
 import { LOG_LEVEL } from './constants.ts';
@@ -160,11 +161,13 @@ const AppInner: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppInner />
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <AppInner />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

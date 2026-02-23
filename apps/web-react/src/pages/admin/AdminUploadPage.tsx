@@ -18,7 +18,7 @@ import {
   checkmarkOutline,
   closeOutline,
 } from 'ionicons/icons';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useAuth } from '../../hooks/useAuth.ts';
 
@@ -63,6 +63,15 @@ const AdminUploadPage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [overallProgress, setOverallProgress] = useState(0);
   const xhrRefs = useRef<XMLHttpRequest[]>([]);
+
+  // Abort active uploads on unmount
+  useEffect(() => {
+    return () => {
+      for (const xhr of xhrRefs.current) {
+        xhr.abort();
+      }
+    };
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newItems: QueueItem[] = acceptedFiles.map((file) => ({

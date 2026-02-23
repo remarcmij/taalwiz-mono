@@ -36,13 +36,13 @@ export function formatFlashcard(
     return {
       prompt: { text: data.nativeText, lang: baseLang, isForeign: false },
       answer: { text: data.foreignText, lang: foreignLang, isForeign: true },
-      key: uniqueId(),
+      key: data.index,
     };
   } else {
     return {
       prompt: { text: data.foreignText, lang: foreignLang, isForeign: true },
       answer: { text: data.nativeText, lang: baseLang, isForeign: false },
-      key: uniqueId(),
+      key: data.index,
     };
   }
 }
@@ -158,12 +158,3 @@ function getUnorderedListFlashCardSection(lines: string[]): FlashcardSection {
 
   return { title, flashcards };
 }
-
-const uniqueId = (length = 16) => {
-  return parseInt(
-    Math.ceil(Math.random() * Date.now())
-      .toPrecision(length)
-      .toString()
-      .replace('.', ''),
-  );
-};

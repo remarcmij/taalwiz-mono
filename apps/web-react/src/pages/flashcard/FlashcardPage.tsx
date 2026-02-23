@@ -97,8 +97,9 @@ const FlashcardPage: React.FC = () => {
   const onSlideChange = useCallback(
     (swiper: SwiperType) => {
       setActiveIndex(swiper.activeIndex);
-      const total = swiper.slides.length - 1;
-      setProgress(total > 0 ? swiper.activeIndex / total : 0);
+      const cardIndex = Math.floor(swiper.activeIndex / 2);
+      const totalCards = flashcards.length;
+      setProgress(totalCards > 0 ? cardIndex / (totalCards - 1 || 1) : 0);
 
       // Auto-speak Indonesian text
       if (isSpeaking && flashcards.length > 0) {
@@ -201,87 +202,85 @@ const FlashcardPage: React.FC = () => {
                     : undefined
                 }
               >
-                {flashcards.map((flashcard) => (
-                  <>
-                    <SwiperSlide key={`${flashcard.key}-prompt`}>
-                      <div
-                        className="flashcard"
-                        style={{
-                          backgroundColor: '#ffa2ca',
-                          padding: '2rem',
-                          minHeight: '200px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          borderRadius: '8px',
-                        }}
+                {flashcards.flatMap((flashcard) => [
+                  <SwiperSlide key={`${flashcard.key}-prompt`}>
+                    <div
+                      className="flashcard"
+                      style={{
+                        backgroundColor: '#ffa2ca',
+                        padding: '2rem',
+                        minHeight: '200px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderRadius: '8px',
+                      }}
+                    >
+                      <IonText
+                        className={
+                          flashcardMode === 'foreignFirst'
+                            ? 'foreign-text'
+                            : undefined
+                        }
                       >
-                        <IonText
-                          className={
-                            flashcardMode === 'foreignFirst'
-                              ? 'foreign-text'
-                              : undefined
-                          }
-                        >
-                          <h2 className="ion-text-center">
-                            {flashcard.prompt.text}
-                          </h2>
-                        </IonText>
-                        <IonText
-                          style={{ opacity: 0.3 }}
-                          className={
-                            flashcardMode === 'nativeFirst'
-                              ? 'foreign-text'
-                              : undefined
-                          }
-                        >
-                          <h2 className="ion-text-center">&hellip;</h2>
-                        </IonText>
-                      </div>
-                    </SwiperSlide>
-                    <SwiperSlide key={`${flashcard.key}-answer`}>
-                      <div
-                        className="flashcard"
-                        style={{
-                          backgroundColor: '#ffa2ca',
-                          padding: '2rem',
-                          minHeight: '200px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          borderRadius: '8px',
-                        }}
+                        <h2 className="ion-text-center">
+                          {flashcard.prompt.text}
+                        </h2>
+                      </IonText>
+                      <IonText
+                        style={{ opacity: 0.3 }}
+                        className={
+                          flashcardMode === 'nativeFirst'
+                            ? 'foreign-text'
+                            : undefined
+                        }
                       >
-                        <IonText
-                          style={{ opacity: 0.3 }}
-                          className={
-                            flashcardMode === 'foreignFirst'
-                              ? 'foreign-text'
-                              : undefined
-                          }
-                        >
-                          <h2 className="ion-text-center">
-                            {flashcard.prompt.text}
-                          </h2>
-                        </IonText>
-                        <IonText
-                          color="dark"
-                          className={
-                            flashcardMode === 'nativeFirst'
-                              ? 'foreign-text'
-                              : undefined
-                          }
-                        >
-                          <h2 className="ion-text-center">
-                            {flashcard.answer.text}
-                          </h2>
-                        </IonText>
-                      </div>
-                    </SwiperSlide>
-                  </>
-                ))}
+                        <h2 className="ion-text-center">&hellip;</h2>
+                      </IonText>
+                    </div>
+                  </SwiperSlide>,
+                  <SwiperSlide key={`${flashcard.key}-answer`}>
+                    <div
+                      className="flashcard"
+                      style={{
+                        backgroundColor: '#ffa2ca',
+                        padding: '2rem',
+                        minHeight: '200px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderRadius: '8px',
+                      }}
+                    >
+                      <IonText
+                        style={{ opacity: 0.3 }}
+                        className={
+                          flashcardMode === 'foreignFirst'
+                            ? 'foreign-text'
+                            : undefined
+                        }
+                      >
+                        <h2 className="ion-text-center">
+                          {flashcard.prompt.text}
+                        </h2>
+                      </IonText>
+                      <IonText
+                        color="dark"
+                        className={
+                          flashcardMode === 'nativeFirst'
+                            ? 'foreign-text'
+                            : undefined
+                        }
+                      >
+                        <h2 className="ion-text-center">
+                          {flashcard.answer.text}
+                        </h2>
+                      </IonText>
+                    </div>
+                  </SwiperSlide>,
+                ])}
               </Swiper>
               <div style={{ padding: '8px 0' }}>
                 <IonProgressBar value={progress} />

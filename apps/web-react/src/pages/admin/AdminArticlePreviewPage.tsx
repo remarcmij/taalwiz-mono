@@ -49,6 +49,14 @@ const AdminArticlePreviewPage: React.FC = () => {
                   ],
                 });
               },
+              onError: () => {
+                setIsDeleted(false);
+                presentAlert({
+                  header: 'Error',
+                  message: 'Failed to delete. Please try again.',
+                  buttons: ['OK'],
+                });
+              },
             });
           },
         },

@@ -57,7 +57,10 @@ const AdminContentPage: React.FC = () => {
     return () => {
       if (dirtyRef.current) {
         const ids = orderedRef.current.map((item) => item._id);
-        updateSortIndices.mutate(ids);
+        updateSortIndices.mutate(ids, {
+          onError: (err) =>
+            console.error('Failed to save sort order:', err),
+        });
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

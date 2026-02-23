@@ -70,7 +70,10 @@ const AdminPublicationPage: React.FC = () => {
     return () => {
       if (dirtyRef.current) {
         const ids = orderedRef.current.map((item) => item._id);
-        updateSortIndices.mutate(ids);
+        updateSortIndices.mutate(ids, {
+          onError: (err) =>
+            console.error('Failed to save sort order:', err),
+        });
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,19 +99,14 @@ const AdminPublicationPage: React.FC = () => {
     });
   };
 
-  const handleDeleteAll = () => {
+  const handleDeleteAll = async () => {
     const filenames = orderedItems.map((item) => item.filename);
-    let completed = 0;
-    for (const filename of filenames) {
-      deleteTopic.mutate(filename, {
-        onSuccess: () => {
-          completed++;
-          if (completed === filenames.length) {
-            setOrderedItems([]);
-            setToast('All articles deleted.');
-          }
-        },
-      });
+    try {
+      await Promise.all(filenames.map((f) => deleteTopic.mutateAsync(f)));
+      setOrderedItems([]);
+      setToast('All articles deleted.');
+    } catch {
+      setToast('Some articles could not be deleted.');
     }
   };
 

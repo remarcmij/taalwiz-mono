@@ -50,7 +50,10 @@ const AdminSystemSettingsPage: React.FC = () => {
   useEffect(() => {
     return () => {
       if (!deepEqual(originalRef.current, localRef.current)) {
-        updateSettings.mutate(localRef.current);
+        updateSettings.mutate(localRef.current, {
+          onError: (err) =>
+            console.error('Failed to save settings:', err),
+        });
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,7 +62,7 @@ const AdminSystemSettingsPage: React.FC = () => {
   const updateField = (
     index: number,
     field: keyof ISystemSettings,
-    value: string | number | boolean | Date,
+    value: string | number | boolean,
   ) => {
     setLocalSettings((prev) =>
       prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)),
@@ -128,7 +131,7 @@ const AdminSystemSettingsPage: React.FC = () => {
               onIonChange={(e) => {
                 const val = e.detail.value;
                 if (typeof val === 'string') {
-                  updateField(index, 'dateVal', new Date(val));
+                  updateField(index, 'dateVal', new Date(val).toISOString());
                 }
               }}
             />

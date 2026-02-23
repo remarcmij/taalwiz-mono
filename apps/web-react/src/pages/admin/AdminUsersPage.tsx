@@ -53,6 +53,9 @@ const AdminUsersPage: React.FC = () => {
               onSuccess: () => {
                 setToast(`User ${email} deleted successfully.`);
               },
+              onError: () => {
+                setToast('Failed to delete. Please try again.');
+              },
             });
           },
         },
