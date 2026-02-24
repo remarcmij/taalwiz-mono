@@ -29,6 +29,7 @@ This file tracks the current state of the Angular → React conversion for futur
 - **Dark mode** — dropdown list, text colors, clicked word highlight all verified in dark scheme
 - **Error boundary** — `ErrorBoundary` class component wraps the app, shows "Something went wrong" with reload button on unhandled render errors
 - **ESLint** — `eslint-plugin-react-hooks` installed via shared `@repo/eslint-config/react` preset; lint passes with 0 warnings
+- **Unit tests** — Vitest + Testing Library, 100 tests across 12 files, all passing (see Unit Tests section below)
 
 ## Browser-Tested Features (Playwright, Feb 2026)
 
@@ -47,6 +48,29 @@ All tested against the live dev server (Vite port 5173 + API port 3000).
 | Admin Users — user list | Pass | All users listed with slide-to-delete |
 | Admin Upload — unmount cleanup | Pass | Navigate away triggers no console errors |
 | Admin System Settings | N/A | API endpoint returns 404 (not implemented server-side) |
+
+## Unit Tests (Vitest, Feb 2026)
+
+100 tests across 12 files. Run with `pnpm --filter web-react test` or `pnpm test` from root (via Turborepo).
+
+**Stack**: Vitest 4 + jsdom + @testing-library/react + @testing-library/jest-dom + @testing-library/user-event
+
+| Test File | Tests | Coverage |
+|---|---|---|
+| `src/lib/__tests__/flashcard.test.ts` | 17 | shuffle, hasFlashCards, formatFlashcard, extractFlashcards (single-line + unordered-list) |
+| `src/lib/__tests__/indonesian-stemmer.test.ts` | 13 | base cases, exemptions, suffix/prefix stripping, meng- variants, reduplication |
+| `src/lib/__tests__/markdown.test.ts` | 8 | tinyMarkdown (bold, italic, `__`/`_`, newlines), convertMarkdown (foreign fragment spans) |
+| `src/lib/__tests__/logger.test.ts` | 8 | setLevel/getLevel, isMinLevel, console method dispatch, silent when below threshold |
+| `src/api/__tests__/apiFetch.test.ts` | 10 | success, auth header, Content-Type auto-set, ApiError on non-ok, empty body |
+| `src/context/__tests__/AuthContext.test.tsx` | 12 | init from localStorage, login/register/logout, isAdmin, getAccessToken + refresh + expiry logout |
+| `src/hooks/__tests__/useAuth.test.tsx` | 3 | throws outside provider, returns context, all properties present |
+| `src/hooks/__tests__/useMediaQuery.test.ts` | 5 | initial match/no-match, change event, cleanup, re-subscribe on query change |
+| `src/hooks/__tests__/useSpeechSynthesizer.test.ts` | 8 | ready state, canSpeak, selectVoice, cancel, speakSingle, unavailable graceful handling |
+| `src/hooks/__tests__/useWordClickModal.test.ts` | 5 | initial null, onClicked sets modalData + CSS class, dismissModal clears, error removes highlight |
+| `src/hooks/__tests__/useDictionary.test.ts` | 6 | initial state, lookup result structure, pagination, error stop, getSuggestions |
+| `src/components/__tests__/ErrorBoundary.test.tsx` | 5 | renders children, error fallback UI, console.error, reload button |
+
+**Mocking strategy**: `vi.mock()` for module-level mocks (auth API, i18n, logger, dictionary API), `vi.stubGlobal()` for browser APIs (fetch, matchMedia, speechSynthesis), fresh `QueryClient` per test for React Query.
 
 ## Known Issues
 
@@ -116,3 +140,4 @@ Phases 1-13 are defined there. All functionality has been implemented. The 12-fi
 | `src/global.css` | All custom CSS (dictionary, dropdowns, dark mode) |
 | `src/lib/flashcard.ts` | Flashcard formatting with stable keys |
 | `src/lib/indonesian-stemmer.ts` | Word stemming for dictionary lookup |
+| `src/test/setup.ts` | Vitest setup — imports jest-dom matchers |
