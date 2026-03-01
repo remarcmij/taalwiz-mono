@@ -67,6 +67,38 @@ All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `ne
 - **Web**: Karma + Jasmine (test files: `*.spec.ts`)
 - **Dict Compiler & API Legacy**: Node.js built-in test runner with tsx (test files: `src/__tests__/**/*.test.ts`)
 
+## Security
+
+### XSS — `dangerouslySetInnerHTML`
+
+All HTML rendered via `dangerouslySetInnerHTML` **must** be wrapped in `sanitize()` from `apps/web-react/src/lib/sanitize.ts` (DOMPurify). Never add a new `dangerouslySetInnerHTML` site without it.
+
+```tsx
+import { sanitize } from '../lib/sanitize.ts';
+// ...
+dangerouslySetInnerHTML={{ __html: sanitize(html) }}
+```
+
+### XSS — Markdown helpers
+
+`tinyMarkdown()` and `convertMarkdown()` in `apps/web-react/src/lib/markdown.ts` HTML-escape their plain-text inputs before building HTML. If you modify these functions, preserve that escaping — do not pass pre-built HTML strings into `tinyMarkdown()` (use the internal `_applyMarkdown()` instead, as `convertMarkdown` does).
+
+### Auth tokens
+
+The refresh token is stored in `localStorage` (key `authData` in `AuthContext`). This is a known medium-severity risk documented in `apps/web-react/SECURITY.md`. Do not widen this surface — avoid storing additional sensitive values in `localStorage` or `sessionStorage`.
+
+### Content Security Policy
+
+A CSP is set on the Vite dev server in `vite.config.ts`. Production CSP must be enforced at the web server / CDN layer — it is **not** currently set there. When deploying, add equivalent headers. Do not loosen the existing CSP (`script-src 'self'`) without a documented reason.
+
+### File uploads (admin)
+
+The upload dropzone in `AdminUploadPage` is restricted to `.md` and `.json`. If new file types are needed, update both the `accept` prop on the dropzone **and** the server-side validation in `apps/api/src/content/content.service.ts`.
+
+### Full findings
+
+`apps/web-react/SECURITY.md` contains the complete audit with severity ratings and remaining open items.
+
 ## Conventions
 
 - ESM everywhere — use `import`/`export`, never CommonJS
