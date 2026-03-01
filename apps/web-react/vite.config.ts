@@ -65,9 +65,12 @@ export default defineConfig({
   ],
   server: {
     headers: {
+      // script-src requires 'unsafe-inline' in dev because @vitejs/plugin-react
+      // injects an inline <script type="module"> preamble for React Fast Refresh.
+      // Production CSP (without unsafe-inline) must be enforced at the server/CDN layer.
       'Content-Security-Policy': [
         "default-src 'self'",
-        "script-src 'self'",
+        "script-src 'self' 'unsafe-inline'",
         "style-src 'self' 'unsafe-inline'",
         "connect-src 'self'",
         "img-src 'self' data:",

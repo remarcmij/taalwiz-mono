@@ -103,7 +103,7 @@ The refresh token is stored in `localStorage` (key `authData` in `AuthContext`).
 
 ### Content Security Policy
 
-A CSP is set on the Vite dev server in `vite.config.ts`. Production CSP must be enforced at the web server / CDN layer — it is **not** currently set there. When deploying, add equivalent headers. Do not loosen the existing CSP (`script-src 'self'`) without a documented reason.
+A CSP is set on the Vite dev server in `vite.config.ts`. It includes `script-src 'unsafe-inline'` because `@vitejs/plugin-react` injects an inline preamble script for React Fast Refresh — this cannot be avoided in dev without nonce support. Production CSP must be enforced at the web server / CDN layer — it is **not** currently set there. When deploying, use a strict CSP without `'unsafe-inline'` for scripts (use nonces or hashes instead).
 
 ### File uploads (admin)
 
