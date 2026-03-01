@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Taalwiz is a TypeScript monorepo managed by **Turborepo** and **pnpm**. It contains a NestJS backend API, an Angular/Ionic hybrid web/mobile app, a dictionary compiler utility, and a legacy Express API (deprecated, no further development).
+Taalwiz is a TypeScript monorepo managed by **Turborepo** and **pnpm**. It contains a NestJS backend API, a React/Ionic web app (PWA), an Angular/Ionic hybrid web/mobile app, a dictionary compiler utility, and a legacy Express API (deprecated, no further development).
 
 ## Commands
 
@@ -30,6 +30,18 @@ pnpm --filter api run test -- user.service.spec.ts  # Single test file
 pnpm --filter api run test:e2e           # E2E tests (jest-e2e.json config)
 ```
 
+### React Web (`apps/web-react`)
+
+```bash
+pnpm --filter web-react run dev              # Dev server (Vite)
+pnpm --filter web-react run build            # Production build (tsc + vite build)
+pnpm --filter web-react run lint             # ESLint
+pnpm --filter web-react run check-types      # Type-check only
+pnpm --filter web-react run test             # Vitest (single run)
+pnpm --filter web-react run test:watch       # Vitest watch mode
+pnpm --filter web-react run test:coverage    # Vitest with coverage
+```
+
 ### Angular Web (`apps/web`)
 
 ```bash
@@ -51,19 +63,21 @@ pnpm --filter dict-compiler run test     # Node.js built-in test runner with tsx
 ### Monorepo Layout
 
 - **`apps/api`** — NestJS 11 backend (Express platform, MongoDB/Mongoose, JWT auth, Nodemailer with Handlebars templates, class-validator)
+- **`apps/web-react`** — React 19 + Ionic 8 + Vite PWA (primary web app, react-i18next for i18n, Vitest for tests)
 - **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n)
 - **`apps/dict-compiler`** — Standalone TypeScript utility for compiling dictionaries
 - **`apps/api-legacy`** — Deprecated Express 5 API (do not develop further)
-- **`packages/eslint-config`** — Shared ESLint configs with presets: `base`, `nest`, `angular`
+- **`packages/eslint-config`** — Shared ESLint configs with presets: `base`, `nest`, `angular`, `react`
 - **`packages/typescript-config`** — Shared `base.json` tsconfig (ESNext, NodeNext module, strict)
 
 ### Dependencies Between Packages
 
-All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `nest` preset, web uses `angular`, and dict-compiler uses `base`. TypeScript configs in apps extend or reference `@repo/typescript-config/base.json`.
+All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `nest` preset, web-react uses `react`, web uses `angular`, and dict-compiler uses `base`. TypeScript configs in apps extend or reference `@repo/typescript-config/base.json`.
 
 ### Testing Strategy
 
 - **API**: Jest (test files: `*.spec.ts` in `src/`)
+- **Web React**: Vitest + Testing Library (test files: `src/**/*.test.{ts,tsx}`)
 - **Web**: Karma + Jasmine (test files: `*.spec.ts`)
 - **Dict Compiler & API Legacy**: Node.js built-in test runner with tsx (test files: `src/__tests__/**/*.test.ts`)
 
