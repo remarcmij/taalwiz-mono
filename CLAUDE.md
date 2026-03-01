@@ -63,8 +63,8 @@ pnpm --filter dict-compiler run test     # Node.js built-in test runner with tsx
 ### Monorepo Layout
 
 - **`apps/api`** — NestJS 11 backend (Express platform, MongoDB/Mongoose, JWT auth, Nodemailer with Handlebars templates, class-validator)
-- **`apps/web-react`** — React 19 + Ionic 8 + Vite PWA (primary web app, react-i18next for i18n, Vitest for tests)
-- **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n)
+- **`apps/web-react`** — React 19 + Ionic 8 + Vite PWA (primary web app, react-i18next for i18n, Vitest for tests); converted from `apps/web` by Claude — the Angular version will be deprecated once this app reaches feature parity
+- **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); to be deprecated in favour of `apps/web-react`
 - **`apps/dict-compiler`** — Standalone TypeScript utility for compiling dictionaries
 - **`apps/api-legacy`** — Deprecated Express 5 API (do not develop further)
 - **`packages/eslint-config`** — Shared ESLint configs with presets: `base`, `nest`, `angular`, `react`
