@@ -128,6 +128,150 @@ CSP must be enforced at the **production web server / CDN layer** where nonce-ba
 
 **`src/pages/admin/AdminUploadPage.tsx`** — Added `accept: { 'text/markdown': ['.md'], 'application/json': ['.json'] }` to the `useDropzone` call, matching the file types the API accepts.
 
+---
+
+## Production nginx Configuration
+
+The Vite production build emits **no inline scripts** — only `<script type="module" src="...">` tags with content-hashed filenames. This means a strict `script-src 'self'` (without `'unsafe-inline'`) is safe in production.
+
+### Architecture
+
+```
+Browser → nginx (443) → /api/*   → NestJS :3000 (REST API)
+                      → /assets/* → NestJS :3000 (uploaded content)
+                      → /*        → dist/  (Vite build, SPA fallback)
+```
+
+### Step 1 — Shared security-headers snippet
+
+Create `/etc/nginx/snippets/taalwiz-headers.conf`:
+
+```nginx
+# Content Security Policy
+# script-src 'self' is safe in production — the Vite build emits no inline scripts.
+# style-src 'unsafe-inline' is required by Ionic's runtime styling.
+add_header Content-Security-Policy
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none';"
+    always;
+
+# Belt-and-suspenders clickjacking protection for older browsers
+add_header X-Frame-Options "DENY" always;
+
+# Prevent MIME-type sniffing
+add_header X-Content-Type-Options "nosniff" always;
+
+# Limit referrer information sent to third parties
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+# Restrict access to sensitive browser APIs
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+```
+
+> **Why a separate snippet?** nginx's `add_header` directives are **not inherited** by nested `location` blocks. Placing them in an include file lets you add them to every location with a single line.
+
+### Step 2 — Server block
+
+Create `/etc/nginx/sites-available/taalwiz` (adjust domain, paths, and port to match your setup):
+
+```nginx
+# Redirect HTTP → HTTPS
+server {
+    listen 80;
+    server_name example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name example.com;
+
+    # TLS — managed by Certbot or equivalent
+    ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    # Serve the Vite production build
+    root  /var/www/taalwiz/web-react/dist;
+    index index.html;
+
+    # --- NestJS API ---
+    location /api/ {
+        proxy_pass         http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        include snippets/taalwiz-headers.conf;
+    }
+
+    # --- Uploaded / API-served content assets ---
+    # The NestJS API serves its public/ folder under /assets/.
+    location /assets/ {
+        proxy_pass         http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        include snippets/taalwiz-headers.conf;
+    }
+
+    # --- Vite build artefacts (content-hashed, safe to cache forever) ---
+    # Matches /assets/index-AbCdEf12.js, /assets/index-XyZ.css, etc.
+    # Note: this location is matched before the /assets/ proxy above only
+    # if the file actually exists on disk — adjust ordering if needed.
+    location ~* ^/assets/.+\.[a-f0-9]{8}\.(js|css)$ {
+        expires    1y;
+        add_header Cache-Control "public, immutable" always;
+        include snippets/taalwiz-headers.conf;
+    }
+
+    # --- PWA service worker and workbox runtime ---
+    # Must never be cached long-term so updates propagate to clients promptly.
+    location ~* ^/(sw|workbox-.+)\.js$ {
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        include snippets/taalwiz-headers.conf;
+    }
+
+    # --- Web app manifest ---
+    location = /manifest.webmanifest {
+        add_header Cache-Control "no-cache" always;
+        include snippets/taalwiz-headers.conf;
+    }
+
+    # --- SPA fallback ---
+    # All other paths return index.html so client-side routing works on reload.
+    # index.html itself must not be cached (browsers would miss new deployments).
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+        include snippets/taalwiz-headers.conf;
+    }
+}
+```
+
+Enable the site and reload nginx:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/taalwiz /etc/nginx/sites-enabled/
+sudo nginx -t          # verify config
+sudo systemctl reload nginx
+```
+
+### Key points
+
+| Point | Detail |
+|---|---|
+| `script-src 'self'` | Safe in production — no inline scripts in Vite build output |
+| `style-src 'unsafe-inline'` | Required — Ionic applies styles via the `style` attribute at runtime |
+| SPA fallback | `try_files ... /index.html` is essential for deep-link reloads |
+| Service worker cache | `sw.js` and `workbox-*.js` must be `no-cache` so updates propagate |
+| Vite assets cache | Content-hashed filenames (`index-Ab12Cd34.js`) are safe to cache for 1 year |
+| `add_header` inheritance | Headers are **not** inherited by child `location` blocks — always `include snippets/taalwiz-headers.conf` in every location |
+| NestJS also serves `/assets/` | The API's `ServeStaticModule` exposes its `public/` folder under `/assets/` — nginx must proxy that path to NestJS, not serve it from `dist/` |
+
 ### Remaining open items
 
 | # | Issue | Severity | Status |
