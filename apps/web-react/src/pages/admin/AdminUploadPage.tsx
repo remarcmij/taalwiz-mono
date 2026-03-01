@@ -85,6 +85,10 @@ const AdminUploadPage: React.FC = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: true,
+    accept: {
+      'text/markdown': ['.md'],
+      'application/json': ['.json'],
+    },
   });
 
   const updateQueueItem = (

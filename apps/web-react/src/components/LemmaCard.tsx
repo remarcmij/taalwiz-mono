@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { convertMarkdown } from '../lib/markdown.ts';
+import { sanitize } from '../lib/sanitize.ts';
 import type { ILemma } from '../types/models.ts';
 
 interface LemmaCardProps {
@@ -25,7 +26,7 @@ const LemmaCard: React.FC<LemmaCardProps> = ({ lemmas, onClicked }) => {
           key={lemma._id}
           className="text-content"
           dangerouslySetInnerHTML={{
-            __html: convertMarkdown(lemma.text),
+            __html: sanitize(convertMarkdown(lemma.text)),
           }}
         />
       ))}

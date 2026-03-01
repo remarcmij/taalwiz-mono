@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { sanitize } from '../lib/sanitize.ts';
 
 interface ArticleBodyProps {
   htmlText: string;
@@ -27,7 +28,7 @@ const ArticleBody: React.FC<ArticleBodyProps> = ({ htmlText, onClicked }) => {
     <article
       ref={articleRef}
       className="text-content markdown-body ion-padding"
-      dangerouslySetInnerHTML={{ __html: htmlText }}
+      dangerouslySetInnerHTML={{ __html: sanitize(htmlText) }}
     />
   );
 };

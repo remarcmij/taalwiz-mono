@@ -64,6 +64,17 @@ export default defineConfig({
     }),
   ],
   server: {
+    headers: {
+      'Content-Security-Policy': [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "connect-src 'self'",
+        "img-src 'self' data:",
+        "font-src 'self'",
+        "frame-ancestors 'none'",
+      ].join('; '),
+    },
     port: 5173,
     proxy: {
       '/api': {

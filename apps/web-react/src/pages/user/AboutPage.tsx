@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { useArticle } from '../../api/content.api.ts';
 import BackButton from '../../components/BackButton.tsx';
+import { sanitize } from '../../lib/sanitize.ts';
 
 const AboutPage: React.FC = () => {
   const { t } = useTranslation();
@@ -31,7 +32,7 @@ const AboutPage: React.FC = () => {
           {article && (
             <article
               className="text-content markdown-body ion-padding"
-              dangerouslySetInnerHTML={{ __html: article.htmlText }}
+              dangerouslySetInnerHTML={{ __html: sanitize(article.htmlText) }}
             />
           )}
         </div>

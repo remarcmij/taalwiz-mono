@@ -16,6 +16,7 @@ import { useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { useArticle } from '../../api/content.api.ts';
 import { useDeleteTopic } from '../../api/admin.api.ts';
+import { sanitize } from '../../lib/sanitize.ts';
 
 const AdminArticlePreviewPage: React.FC = () => {
   const { filename } = useParams<{ filename: string }>();
@@ -90,7 +91,7 @@ const AdminArticlePreviewPage: React.FC = () => {
             <div
               className={`ion-padding${isDeleted ? ' deleted-article' : ''}`}
               style={isDeleted ? { textDecoration: 'line-through' } : undefined}
-              dangerouslySetInnerHTML={{ __html: article.htmlText }}
+              dangerouslySetInnerHTML={{ __html: sanitize(article.htmlText) }}
             />
           )}
         </div>

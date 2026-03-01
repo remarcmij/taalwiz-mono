@@ -12,6 +12,7 @@ import { homeOutline } from 'ionicons/icons';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { useArticle } from '../../api/content.api.ts';
+import { sanitize } from '../../lib/sanitize.ts';
 
 const WelcomePage: React.FC = () => {
   const { t } = useTranslation();
@@ -36,7 +37,7 @@ const WelcomePage: React.FC = () => {
             <>
               <article
                 className="text-content markdown-body ion-padding"
-                dangerouslySetInnerHTML={{ __html: article.htmlText }}
+                dangerouslySetInnerHTML={{ __html: sanitize(article.htmlText) }}
               />
               <div className="ion-text-center">
                 <IonButton routerLink="/home/tabs/content">

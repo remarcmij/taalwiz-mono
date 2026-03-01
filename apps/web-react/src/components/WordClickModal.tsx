@@ -13,6 +13,7 @@ import { playOutline, searchOutline, volumeHighOutline } from 'ionicons/icons';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { tinyMarkdown } from '../lib/markdown.ts';
+import { sanitize } from '../lib/sanitize.ts';
 import { useSpeechSynthesizer } from '../hooks/useSpeechSynthesizer.ts';
 import type { ILemma } from '../types/models.ts';
 
@@ -126,7 +127,7 @@ const WordClickModal: React.FC<WordClickModalProps> = ({
               <IonLabel>
                 <div
                   className="homonym"
-                  dangerouslySetInnerHTML={{ __html: html }}
+                  dangerouslySetInnerHTML={{ __html: sanitize(html) }}
                 />
               </IonLabel>
             </IonItem>

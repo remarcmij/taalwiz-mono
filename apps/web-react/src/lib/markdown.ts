@@ -1,5 +1,23 @@
 const WORD_REGEXP = /[-'()a-zA-Z\u00C0-\u00FF]{2,}/g;
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function _applyMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</span></strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</span></em>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    .replace(/_(.+?)_/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
 export function convertMarkdown(text: string): string {
   const foreignFragmentRegExp = /\*{1,2}.+?\*{1,2}/g;
   let buffer = '';
@@ -11,7 +29,7 @@ export function convertMarkdown(text: string): string {
   while (match) {
     fragment = match[0];
     endPos = foreignFragmentRegExp.lastIndex - fragment.length;
-    buffer = buffer.concat(text.substring(startPos, endPos));
+    buffer = buffer.concat(escapeHtml(text.substring(startPos, endPos)));
     startPos = foreignFragmentRegExp.lastIndex;
 
     let startPos2 = 0;
@@ -20,25 +38,20 @@ export function convertMarkdown(text: string): string {
     while (match2) {
       const term = match2[0];
       const endPos2 = WORD_REGEXP.lastIndex - term.length;
-      buffer = buffer.concat(fragment.substring(startPos2, endPos2));
+      buffer = buffer.concat(escapeHtml(fragment.substring(startPos2, endPos2)));
       startPos2 = WORD_REGEXP.lastIndex;
       buffer = buffer.concat(`<span>${match2[0]}</span>`);
       match2 = WORD_REGEXP.exec(fragment);
     }
-    buffer = buffer.concat(fragment.substring(startPos2));
+    buffer = buffer.concat(escapeHtml(fragment.substring(startPos2)));
     match = foreignFragmentRegExp.exec(text);
   }
 
-  buffer = buffer.concat(text.substring(startPos));
+  buffer = buffer.concat(escapeHtml(text.substring(startPos)));
 
-  return tinyMarkdown(buffer);
+  return _applyMarkdown(buffer);
 }
 
 export function tinyMarkdown(rawBody: string): string {
-  return rawBody
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</span></strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</span></em>')
-    .replace(/__(.+?)__/g, '<strong>$1</strong>')
-    .replace(/_(.+?)_/g, '<em>$1</em>')
-    .replace(/\n/g, '<br>');
+  return _applyMarkdown(escapeHtml(rawBody));
 }
