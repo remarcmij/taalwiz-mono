@@ -118,14 +118,11 @@ Issues 1, 3, and 4 were addressed. Issue 2 (refresh token in `localStorage`) was
 | `src/components/WordClickModal.tsx` | `sanitize(html)` |
 | `src/components/LemmaCard.tsx` | `sanitize(convertMarkdown(lemma.text))` |
 
-### Issue 3 — No Content Security Policy (Fixed for dev server)
+### Issue 3 — No Content Security Policy (Deferred)
 
-**`vite.config.ts`** — Added `server.headers` with a restrictive CSP:
-```
-default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';
-connect-src 'self'; img-src 'self' data:; font-src 'self'; frame-ancestors 'none'
-```
-Production CSP must be enforced at the web server / CDN layer.
+Adding a CSP to the Vite dev server was attempted but broke the app: `@vitejs/plugin-react` injects an inline `<script type="module">` preamble for React Fast Refresh that `script-src 'self'` blocks. Adding `'unsafe-inline'` to work around it negates most of the benefit. The dev server CSP was removed.
+
+CSP must be enforced at the **production web server / CDN layer** where nonce-based or hash-based policies can be applied without the HMR constraint.
 
 ### Issue 4 — Unrestricted File Upload (Fixed)
 
@@ -136,5 +133,6 @@ Production CSP must be enforced at the web server / CDN layer.
 | # | Issue | Severity | Status |
 |---|---|---|---|
 | 2 | Refresh token stored in `localStorage` | **Medium** | Open — requires API changes |
+| 3 | No Content Security Policy | **Medium** | Open — must be set at production server/CDN |
 | 5 | `getElementById` with URL-supplied value | **Informational** | No action needed |
 | 6 | Client-side admin guard is UI-only | **Informational** | No action needed |
