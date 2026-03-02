@@ -43,9 +43,9 @@ describe('IndonesianStemmer', () => {
 
   // --- Prefixes ---
 
-  it('strips di- prefix and generates me- variant', () => {
+  it('strips di- prefix', () => {
     const variations = stemmer.getWordVariations('dimakan');
-    expect(variations).toContain('memakan');
+    expect(variations).toContain('makan');
     // The stemmer replaces di- with me- prefix rather than stripping to root
     expect(variations).toContain('dimakan');
   });

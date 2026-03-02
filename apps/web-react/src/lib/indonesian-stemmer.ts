@@ -65,6 +65,7 @@ export class IndonesianStemmer {
         if (meWord !== matchWord) {
           this.getVariations(meWord, variations, mePrefixed);
         }
+        this.getVariations(matchWord, variations, mePrefixed);
       }
       // if word start with per- add mem prefix
       match = matchWord.match(/^per|pelajar/);
