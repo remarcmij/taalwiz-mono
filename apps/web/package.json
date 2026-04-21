@@ -5,6 +5,7 @@
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
+    "dev": "ng serve",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
@@ -50,6 +51,7 @@
     "@ionic/angular-toolkit": "^12.0.0",
     "@repo/eslint-config": "workspace:*",
     "@types/jasmine": "~5.1.0",
+    "baseline-browser-mapping": "^2.10.20",
     "eslint": "^9.39.1",
     "jasmine-core": "~5.1.0",
     "jasmine-spec-reporter": "~5.0.0",

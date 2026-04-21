@@ -492,6 +492,9 @@ importers:
       '@types/jasmine':
         specifier: ~5.1.0
         version: 5.1.12
+      baseline-browser-mapping:
+        specifier: ^2.10.20
+        version: 2.10.20
       eslint:
         specifier: ^9.39.1
         version: 9.39.1(jiti@1.21.7)
@@ -4639,8 +4642,9 @@ packages:
     resolution: {integrity: sha512-lGe34o6EHj9y3Kts9R4ZYs/Gr+6N7MCaMlIFA3F1R2O5/m7K06AxfSeO5530PEERE6/WyEg3lsuyw4GHlPZHog==}
     engines: {node: ^4.5.0 || >= 5.9}
 
-  baseline-browser-mapping@2.8.26:
-    resolution: {integrity: sha512-73lC1ugzwoaWCLJ1LvOgrR5xsMLTqSKIEoMHVtL9E/HNk0PXtTM76ZIm84856/SF7Nv8mPZxKoBsgpm0tR1u1Q==}
+  baseline-browser-mapping@2.10.20:
+    resolution: {integrity: sha512-1AaXxEPfXT+GvTBJFuy4yXVHWJBXa4OdbIebGN/wX5DlsIkU0+wzGnd2lOzokSk51d5LUmqjgBLRLlypLUqInQ==}
+    engines: {node: '>=6.0.0'}
     hasBin: true
 
   basic-auth@2.0.1:
@@ -15489,7 +15493,7 @@ snapshots:
 
   base64id@2.0.0: {}
 
-  baseline-browser-mapping@2.8.26: {}
+  baseline-browser-mapping@2.10.20: {}
 
   basic-auth@2.0.1:
     dependencies:
@@ -15588,7 +15592,7 @@ snapshots:
 
   browserslist@4.28.0:
     dependencies:
-      baseline-browser-mapping: 2.8.26
+      baseline-browser-mapping: 2.10.20
       caniuse-lite: 1.0.30001754
       electron-to-chromium: 1.5.250
       node-releases: 2.0.27
@@ -20925,15 +20929,6 @@ snapshots:
       terser: 5.43.1
       webpack: 5.100.2
 
-  terser-webpack-plugin@5.3.14(webpack@5.101.2):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      jest-worker: 27.5.1
-      schema-utils: 4.3.3
-      serialize-javascript: 6.0.2
-      terser: 5.43.1
-      webpack: 5.101.2
-
   terser@5.43.1:
     dependencies:
       '@jridgewell/source-map': 0.3.11
@@ -21086,7 +21081,7 @@ snapshots:
       semver: 7.7.3
       source-map: 0.7.6
       typescript: 5.9.3
-      webpack: 5.101.2
+      webpack: 5.101.2(esbuild@0.25.9)
 
   ts-node@10.9.2(@types/node@22.15.3)(typescript@5.9.3):
     dependencies:
@@ -21621,38 +21616,6 @@ snapshots:
       schema-utils: 4.3.3
       tapable: 2.3.0
       terser-webpack-plugin: 5.3.14(webpack@5.100.2)
-      watchpack: 2.4.4
-      webpack-sources: 3.3.3
-    transitivePeerDependencies:
-      - '@swc/core'
-      - esbuild
-      - uglify-js
-
-  webpack@5.101.2:
-    dependencies:
-      '@types/eslint-scope': 3.7.7
-      '@types/estree': 1.0.8
-      '@types/json-schema': 7.0.15
-      '@webassemblyjs/ast': 1.14.1
-      '@webassemblyjs/wasm-edit': 1.14.1
-      '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.15.0
-      acorn-import-phases: 1.0.4(acorn@8.15.0)
-      browserslist: 4.28.0
-      chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.18.3
-      es-module-lexer: 1.7.0
-      eslint-scope: 5.1.1
-      events: 3.3.0
-      glob-to-regexp: 0.4.1
-      graceful-fs: 4.2.11
-      json-parse-even-better-errors: 2.3.1
-      loader-runner: 4.3.1
-      mime-types: 2.1.35
-      neo-async: 2.6.2
-      schema-utils: 4.3.3
-      tapable: 2.3.0
-      terser-webpack-plugin: 5.3.14(webpack@5.101.2)
       watchpack: 2.4.4
       webpack-sources: 3.3.3
     transitivePeerDependencies:

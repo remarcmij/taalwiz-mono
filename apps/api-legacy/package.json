@@ -12,7 +12,7 @@
     "compile": "tsgo",
     "build": "npm run clean && npm run compile && npm run copy-assets",
     "start": "NODE_ENV=production node dist/index.js",
-    "dev": "nodemon --watch ./dist ./dist/index.js",
+    "start:dev": "nodemon --watch ./dist ./dist/index.js",
     "debug": "nodemon --inspect --watch ./dist ./dist/index.js",
     "watch": "tsc --watch"
   },

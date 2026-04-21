@@ -30,25 +30,25 @@ pnpm --filter api run test -- user.service.spec.ts  # Single test file
 pnpm --filter api run test:e2e           # E2E tests (jest-e2e.json config)
 ```
 
-### React Web (`apps/web-react`)
+### Angular Web (`apps/web`)
 
 ```bash
-pnpm --filter web-react run dev              # Dev server (Vite)
+pnpm --filter web run dev      # Dev server (ng serve, port 4200)
+pnpm --filter web run build    # Production build (ng build)
+pnpm --filter web run test     # Karma/Jasmine tests
+pnpm --filter web run lint     # Angular lint
+```
+
+### React Web (`apps/web-react`) — kept for reference, not actively used
+
+```bash
+pnpm --filter web-react run start            # Dev server (Vite, port 5173)
 pnpm --filter web-react run build            # Production build (tsc + vite build)
 pnpm --filter web-react run lint             # ESLint
 pnpm --filter web-react run check-types      # Type-check only
 pnpm --filter web-react run test             # Vitest (single run)
 pnpm --filter web-react run test:watch       # Vitest watch mode
 pnpm --filter web-react run test:coverage    # Vitest with coverage
-```
-
-### Angular Web (`apps/web`)
-
-```bash
-pnpm --filter web run start    # Dev server (ng serve)
-pnpm --filter web run build    # Production build (ng build)
-pnpm --filter web run test     # Karma/Jasmine tests
-pnpm --filter web run lint     # Angular lint
 ```
 
 ### Dict Compiler (`apps/dict-compiler`)
@@ -63,8 +63,8 @@ pnpm --filter dict-compiler run test     # Node.js built-in test runner with tsx
 ### Monorepo Layout
 
 - **`apps/api`** — NestJS 11 backend (Express platform, MongoDB/Mongoose, JWT auth, Nodemailer with Handlebars templates, class-validator)
-- **`apps/web-react`** — React 19 + Ionic 8 + Vite PWA (primary web app, react-i18next for i18n, Vitest for tests); converted from `apps/web` by Claude — the Angular version will be deprecated once this app reaches feature parity
-- **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); to be deprecated in favour of `apps/web-react`
+- **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); **primary web app**
+- **`apps/web-react`** — React 19 + Ionic 8 + Vite PWA (react-i18next for i18n, Vitest for tests); kept for reference but not actively used
 - **`apps/dict-compiler`** — Standalone TypeScript utility for compiling dictionaries
 - **`apps/api-legacy`** — Deprecated Express 5 API (do not develop further)
 - **`packages/eslint-config`** — Shared ESLint configs with presets: `base`, `nest`, `angular`, `react`
