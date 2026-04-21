@@ -17,11 +17,11 @@ async function main() {
 
   const filenames = await glob(globPattern);
 
-  const promises = filenames.map(async (inFile) => {
+  const promises = filenames.map((inFile) => {
     const stem = path.basename(inFile, '.md').toLowerCase();
     const outFile = path.join(__dirname, DEST_PATH, `${stem}.json`);
     const compiler = new Compiler(inFile, outFile);
-    await compiler.run();
+    return compiler.run();
   });
 
   await Promise.all(promises);

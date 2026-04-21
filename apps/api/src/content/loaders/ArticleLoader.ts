@@ -36,15 +36,21 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
 
   protected async parseContent(content: string, filename: string): Promise<Upload<ArticleDoc>> {
     let match = filename.match(/^(.+)\.(.+)\.md$/);
-    if (!match) {
+    if (!match || match.length < 3) {
       throw new Error(`ill-formed filename: ${filename}`);
     }
-    const groupName = match[1];
-    const chapter = match[2];
+    const group = match[1];
+    const name = match[2];
 
-    const frontMatter = content.split('---')[1];
+    const parts = content.split('---');
+    if (parts.length < 3) {
+      throw new Error('Content must include front matter enclosed in ---');
+    }
+
+    const frontMatter = parts[1];
+    const body = parts[2];
+
     const attributes = yaml.load(frontMatter) as FrontMatterAttributes;
-    const body = content.split('---')[2];
     let title = attributes.title;
 
     // If no title is provided, try to extract it from the content
@@ -61,7 +67,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
 
     // If no subtitle is provided, try to extract it from the content by
     // concatenating all h2 headers
-    if (!subtitle && chapter !== 'index') {
+    if (!subtitle && name !== 'index') {
       const h2RegExp = /^##\s+(.*)$/gm;
       subtitle = '';
       match = h2RegExp.exec(content);
@@ -76,11 +82,11 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     }
 
     const topic: TopicDoc = {
-      type: chapter === 'index' ? 'index' : 'article',
+      type: name === 'index' ? 'index' : 'article',
       filename: filename,
       foreignLang: attributes.foreignLang,
       baseLang: attributes.baseLang,
-      groupName: groupName,
+      groupName: group,
       sortIndex: parseInt(attributes.sortIndex ?? '0', 10),
       title: title,
       subtitle: subtitle,
@@ -96,7 +102,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       baseLang: attributes.baseLang ?? 'nl',
       filename: filename,
       foreignLang: attributes.foreignLang ?? 'en',
-      groupName: groupName,
+      groupName: group,
       title: topic.title ?? 'untitled',
       htmlText: '',
       mdText: body,

@@ -33,29 +33,41 @@ interface Lemma {
   words: Word[];
 }
 
+const fileNameRegExp = /[\\/]([a-z]+)\.([a-z]).md$/;
+
 export class Compiler {
   private parser: Parser | undefined;
+  private inFile: string;
+  private outFile: string;
 
-  constructor(
-    public inFile: string,
-    public outFile: string
-  ) {}
+  constructor(inFile: string, outFile: string) {
+    this.inFile = inFile;
+    this.outFile = outFile;
+  }
 
   async run(): Promise<void> {
-    if (this.inFile.endsWith('teeuw.md')) {
-      this.parser = new TeeuwParser();
-    } else if (this.inFile.endsWith('vandale.md')) {
-      this.parser = new VanDaleParser();
-    } else {
-      throw new Error(`Skipping unrecognized file: ${this.inFile}`);
-    }
-
-    const fileBase = path.basename(this.inFile, '.md').toLowerCase();
-    let order = (fileBase.charCodeAt(0) - 'a'.charCodeAt(0)) * CHAPTER_DISTANCE;
-
     let fsOut: WriteStream | null = null;
+    const inFileBaseName = path.basename(this.inFile);
 
     try {
+      const match = this.inFile.toLowerCase().match(fileNameRegExp);
+      if (!match || match.length < 3) {
+        throw new Error(`ill-formed filename: ${inFileBaseName}`);
+      }
+
+      const dictName = match[1];
+      const letter = match[2];
+
+      if (dictName.startsWith('teeuw')) {
+        this.parser = new TeeuwParser();
+      } else if (dictName.startsWith('vandale')) {
+        this.parser = new VanDaleParser();
+      } else {
+        throw new Error(`Skipping unrecognized file: ${inFileBaseName}`);
+      }
+
+      let order = (letter.charCodeAt(0) - 'a'.charCodeAt(0)) * CHAPTER_DISTANCE;
+
       const fsIn = fs.createReadStream(this.inFile);
       fsOut = fs.createWriteStream(this.outFile);
 
@@ -96,9 +108,13 @@ export class Compiler {
 
       fsOut.write(']}\n');
 
-      console.log(path.basename(this.inFile));
+      console.log(inFileBaseName);
     } catch (err: any) {
-      console.error(err);
+      if (err instanceof Error) {
+        console.error(`Error processing file '${inFileBaseName}': ${err.message}`);
+      } else {
+        console.error(`Unknown error processing file '${inFileBaseName}'`);
+      }
     } finally {
       if (fsOut) {
         fsOut.end();
