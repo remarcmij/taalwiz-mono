@@ -9,28 +9,26 @@
     "start": "node ./dist/index.js",
     "clean": "rimraf dist",
     "watch": "tsc --watch",
-    "build": "tsc",
+    "build": "tsgo",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "glob": "^11.0.3",
-    "mkdirp": "^3.0.1"
+    "glob": "^11.0.3"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
-    "@typescript/native-preview": "7.0.0-dev.20251112.1",
+    "@typescript/native-preview": "7.0.0-dev.20260423.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
     "rimraf": "^6.1.0",
-    "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "^6.0.3"
   }

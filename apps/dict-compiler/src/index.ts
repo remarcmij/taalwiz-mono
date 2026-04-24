@@ -1,6 +1,7 @@
 import { glob } from 'glob';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Compiler } from './compiler/Compiler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -8,6 +9,8 @@ const dictPath = path.join(__dirname, '../dict');
 const destPath = path.join(__dirname, '../json');
 
 async function main() {
+  fs.mkdirSync(destPath, { recursive: true });
+
   const globPattern = path.join(dictPath, '**/*.md').replace(/\\/g, '/');
 
   const startTime = process.hrtime();

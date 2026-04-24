@@ -134,6 +134,6 @@ build/
 .DS_Store
 .idea/
 
-json/*.json
+json/
 
 dict/

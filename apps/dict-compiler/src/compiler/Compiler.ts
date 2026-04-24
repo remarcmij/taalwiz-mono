@@ -1,7 +1,8 @@
 import { WriteStream } from 'fs';
 import fs from 'node:fs';
 import readline from 'node:readline';
-import path from 'path';
+import path from 'node:path';
+import { finished } from 'node:stream/promises';
 import { Parser, ParserResult } from './ParserBase.js';
 import TeeuwParser from './TeeuwParser.js';
 import VanDaleParser from './VanDaleParser.js';
@@ -115,6 +116,16 @@ export class Compiler {
       } else {
         console.error(`Unknown error processing file '${inFileBaseName}'`);
       }
+      if (fsOut) {
+        fsOut.end();
+        try {
+          await finished(fsOut);
+          fs.unlinkSync(this.outFile);
+        } catch (unlinkErr) {
+          console.error(`Could not delete malformed file ${this.outFile}: ${unlinkErr}`);
+        }
+        fsOut = null;
+      }
     } finally {
       if (fsOut) {
         fsOut.end();
@@ -135,9 +146,7 @@ export class Compiler {
         const lemma = this.buildLemma(result, order);
         lemmas.push(lemma);
       } catch (err: any) {
-        console.error(
-          `${path.basename(this.inFile)} [${lineIndex + 1}]: ${line}\nerror: ${err.message}`
-        );
+        throw new Error(`[${lineIndex + 1}] ${err.message}`);
       }
       order += 1;
     }
