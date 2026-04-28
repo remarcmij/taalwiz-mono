@@ -1,16 +1,16 @@
-import { Injectable, inject } from '@angular/core';
-import { ModalController } from '@ionic/angular/standalone';
-import { foreignLang } from '../../app.constants';
-import { DictionaryService } from '../../home/dictionary/dictionary.service';
-import { IndonesianStemmer } from '../../home/dictionary/indonesian-stemmer';
-import { WordLang } from '../../home/dictionary/word-lang.model';
-import { WordClickModalComponent } from './word-click-modal.component';
+import { Injectable, inject } from "@angular/core";
+import { ModalController } from "@ionic/angular/standalone";
+import { foreignLang } from "../../app.constants";
+import { DictionaryService } from "../../home/dictionary/dictionary.service";
+import { IndonesianStemmer } from "../../home/dictionary/indonesian-stemmer";
+import { WordLang } from "../../home/dictionary/word-lang.model";
+import { WordClickModalComponent } from "./word-click-modal.component";
 
 const removeAccents = (str: string) =>
-  str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class WordClickModalService {
   private readonly dictionaryService = inject(DictionaryService);
@@ -21,16 +21,17 @@ export class WordClickModalService {
     event.stopPropagation();
     const target = event.target as HTMLInputElement;
 
-    const sentence = target.parentElement?.textContent ?? '';
+    const sentence = target.parentElement?.textContent ?? "";
 
     const wordLang = this.getWordClickParams(target);
 
     if (wordLang) {
-      target.classList.add('clicked');
+      target.classList.add("clicked");
 
       this.fetchLemmas(removeAccents(wordLang.word), wordLang.lang).subscribe({
         next: (response) => {
           const { word, lang, lemmas } = response;
+          const bases = new Set(lemmas.map((lemma) => lemma.baseWord));
 
           this.modalCtrl
             .create({
@@ -41,15 +42,16 @@ export class WordClickModalService {
                 lang,
                 sentence: sentence.trim(),
                 lemmas,
+                bases: Array.from(bases),
               },
               initialBreakpoint: 0.25,
               breakpoints: [0, 0.25, 0.5],
-              handleBehavior: 'cycle',
+              handleBehavior: "cycle",
             })
             .then((modal) => {
               modal.present();
               modal.onDidDismiss().then(() => {
-                target.classList.remove('clicked');
+                target.classList.remove("clicked");
               });
             });
         },
@@ -64,7 +66,7 @@ export class WordClickModalService {
     const parser = new IndonesianStemmer();
     const variations = parser.getWordVariations(word);
     const searchRequest = {
-      word: variations.join(','),
+      word: variations.join(","),
       lang: lang,
       keyword: true,
     };
@@ -85,8 +87,8 @@ export class WordClickModalService {
     }
     term = term.trim().toLowerCase();
     return (
-      term.replace(/\(.*?\)/g, '').replace(/[()]/g, '') ||
-      term.replace(/[()]/g, '')
+      term.replace(/\(.*?\)/g, "").replace(/[()]/g, "") ||
+      term.replace(/[()]/g, "")
     );
   }
 }

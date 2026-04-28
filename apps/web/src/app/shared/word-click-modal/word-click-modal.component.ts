@@ -5,10 +5,10 @@ import {
   input,
   OnInit,
   signal,
-} from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Router } from '@angular/router';
-import { ModalController } from '@ionic/angular/standalone';
+} from "@angular/core";
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
+import { Router } from "@angular/router";
+import { ModalController } from "@ionic/angular/standalone";
 
 import {
   IonButton,
@@ -20,18 +20,18 @@ import {
   IonList,
   IonTitle,
   IonToolbar,
-} from '@ionic/angular/standalone';
-import { TranslatePipe } from '@ngx-translate/core';
-import { addIcons } from 'ionicons';
-import { playOutline, searchOutline, volumeHighOutline } from 'ionicons/icons';
-import { MarkdownService } from '../../home/content/markdown.service';
-import { DictionaryService } from '../../home/dictionary/dictionary.service';
-import { type ILemma } from '../../home/dictionary/lemma/lemma.model';
-import { WordLang } from '../../home/dictionary/word-lang.model';
-import { SpeechSynthesizerService } from '../../home/speech-synthesizer.service';
+} from "@ionic/angular/standalone";
+import { TranslatePipe } from "@ngx-translate/core";
+import { addIcons } from "ionicons";
+import { playOutline, searchOutline, volumeHighOutline } from "ionicons/icons";
+import { MarkdownService } from "../../home/content/markdown.service";
+import { DictionaryService } from "../../home/dictionary/dictionary.service";
+import { type ILemma } from "../../home/dictionary/lemma/lemma.model";
+import { WordLang } from "../../home/dictionary/word-lang.model";
+import { SpeechSynthesizerService } from "../../home/speech-synthesizer.service";
 
 @Component({
-  selector: 'app-word-click-modal',
+  selector: "app-word-click-modal",
   imports: [
     IonLabel,
     IonToolbar,
@@ -44,7 +44,7 @@ import { SpeechSynthesizerService } from '../../home/speech-synthesizer.service'
     IonItem,
     TranslatePipe,
   ],
-  templateUrl: './word-click-modal.component.html',
+  templateUrl: "./word-click-modal.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WordClickModalComponent implements OnInit {
@@ -60,13 +60,14 @@ export class WordClickModalComponent implements OnInit {
   lang = input.required<string>();
   sentence = input.required<string>();
   lemmas = input.required<ILemma[]>();
+  bases = input.required<string[]>();
   safeHomonyms = signal<SafeHtml[]>([]);
 
   ngOnInit() {
     // Group lemmas by homonym
     const homonymMap = new Map<string, ILemma[]>();
     for (const lemma of this.lemmas()) {
-      const key = lemma.baseWord + '.' + lemma.homonym;
+      const key = lemma.baseWord + "." + lemma.homonym;
       homonymMap.set(key, [...(homonymMap.get(key) ?? []), lemma]);
     }
 
@@ -82,10 +83,10 @@ export class WordClickModalComponent implements OnInit {
         }
         // Remove redundant keyword prefix
         const regexp = new RegExp(`\\*\\*${lemma.word}\\*\\*, *(\\d+)`);
-        return text.replace(regexp, '$1');
+        return text.replace(regexp, "$1");
       });
       const homonymText = this.#markdownService.tinyMarkdown(
-        texts.join(' ').replace(/;$/, '.')
+        texts.join(" ").replace(/;$/, "."),
       );
 
       const homonymHtml = this.#sanitizer.bypassSecurityTrustHtml(homonymText);
@@ -96,8 +97,8 @@ export class WordClickModalComponent implements OnInit {
   }
 
   dictionaryLookup() {
-    this.#modalCtrl.dismiss(null, 'close');
-    this.#router.navigate(['home/tabs/dictionary']);
+    this.#modalCtrl.dismiss(null, "close");
+    this.#router.navigate(["home/tabs/dictionary"]);
     this.#dictionaryService.lookup(new WordLang(this.word(), this.lang()));
   }
 
