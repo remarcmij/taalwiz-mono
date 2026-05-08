@@ -26,6 +26,7 @@ import {
   IonSearchbar,
   IonTitle,
   IonToolbar,
+  Platform,
 } from '@ionic/angular/standalone';
 
 import {
@@ -83,6 +84,7 @@ const MAX_RECENT_SEARCHES = 4;
 export class DictionaryPage implements OnDestroy {
   #dictionaryService = inject(DictionaryService);
   #wordClickModalService = inject(WordClickModalService);
+  #platform = inject(Platform);
 
   @ViewChild('searchbarInput', { read: ElementRef }) searchbar!: ElementRef;
   @ViewChild('content', { read: ElementRef }) content!: ElementRef<IonContent>;
@@ -149,7 +151,9 @@ export class DictionaryPage implements OnDestroy {
             this.onClear();
             this.#dictionaryService.lookupVariations(currentTerm);
           }
-          searchInputElement.blur();
+          if (this.#platform.is('mobile')) {
+            searchInputElement.blur();
+          }
         }
       });
   }
