@@ -29,7 +29,9 @@
     @if (recentSearches().length > 1) {
     <ion-breadcrumbs color="primary">
       @for(wordLang of recentSearches(); track wordLang.key) {
-      <ion-breadcrumb (click)="lookup(wordLang)">
+      <ion-breadcrumb
+        (click)="lookup(wordLang)"
+        [ngClass]="{'active-breadcrumb': wordLang.key === currentTarget()?.key}">
         {{ wordLang.word }}
       </ion-breadcrumb>
       }

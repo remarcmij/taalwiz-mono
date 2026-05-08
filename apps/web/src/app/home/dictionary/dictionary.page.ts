@@ -93,12 +93,14 @@ export class DictionaryPage implements OnDestroy {
   word = signal('');
   showSearches = signal(false);
   recentSearches = signal<WordLang[]>([]);
+  currentTarget = signal<WordLang | null>(null);
   // results = signal(new LookupResult());
 
   #destroy$ = new Subject<void>();
 
   results$ = this.#dictionaryService.lookupResult$.pipe(
     tap((results) => {
+      this.currentTarget.set(results.targetBase);
       if (results.bases.length > 0) {
         this.addRecentSearch(results.targetBase!);
         this.word.set('');
@@ -111,8 +113,10 @@ export class DictionaryPage implements OnDestroy {
 
   addRecentSearch(wordLang: WordLang) {
     this.recentSearches.update((values) => {
-      const newValues = values.filter((v) => v.key !== wordLang.key);
-      newValues.push(wordLang);
+      if (values.some((v) => v.key === wordLang.key)) {
+        return values;
+      }
+      const newValues = [...values, wordLang];
       if (newValues.length > MAX_RECENT_SEARCHES) {
         newValues.shift();
       }

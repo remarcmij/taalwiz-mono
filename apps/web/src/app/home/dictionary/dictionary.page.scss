@@ -21,6 +21,10 @@ ion-breadcrumb {
   cursor: pointer;
 }
 
+.active-breadcrumb {
+  font-weight: bold;
+}
+
 .lemma-button {
   float: right;
   text-transform: uppercase;
