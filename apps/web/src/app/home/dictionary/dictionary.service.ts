@@ -74,7 +74,6 @@ export class DictionaryService {
       this.execSearchRequest({
         word: searchWord ?? target.word,
         lang: target.lang,
-        keyword: searchWord !== undefined ? true : undefined,
         skip,
         limit: LIMIT,
       })
