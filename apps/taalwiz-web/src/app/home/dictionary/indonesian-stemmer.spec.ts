@@ -51,8 +51,14 @@ describe('IndonesianStemmer', () => {
     it('di- strips to base', () =>
       expect(variations('diambil')).toContain('ambil'));
 
-    it('di- generates meN- active variant', () =>
-      expect(variations('diambil')).toContain('mengambil'));
+    it('di- generates meN- active variant (before bare root)', () => {
+      const vars = variations('diambil');
+      const mengambilIndex = vars.indexOf('mengambil');
+      const ambilIndex = vars.indexOf('ambil');
+      expect(mengambilIndex).toBeGreaterThan(-1);
+      expect(ambilIndex).toBeGreaterThan(-1);
+      expect(mengambilIndex).toBeLessThan(ambilIndex);
+    });
 
     it('ter-', () => expect(variations('terima')).toContain('ima'));
 
