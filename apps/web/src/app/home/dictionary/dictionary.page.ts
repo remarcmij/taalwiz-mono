@@ -154,6 +154,12 @@ export class DictionaryPage implements OnDestroy {
       });
   }
 
+  ionViewDidEnter() {
+    const searchInputElement: HTMLInputElement =
+      this.searchbar.nativeElement.querySelector('.searchbar-input');
+    searchInputElement.focus();
+  }
+
   ngOnDestroy() {
     this.onClear();
     this.#destroy$.next();
