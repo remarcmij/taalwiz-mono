@@ -274,7 +274,25 @@ When a consonant is dropped during affixation (e.g., `p` in `memotong` from `pot
 
 ### Testing
 
-Manual verification can be done by checking that expected base forms appear in the variations array:
+Automated tests are located in `indonesian-stemmer.spec.ts` and cover 55 test cases organized into 12 describe blocks (word exemptions, suffix stripping, prefix stripping, meN- variants, peN- variants, circumfixes, reduplication, multi-affix words, deduplication, and documented examples from this document).
+
+#### Running the Tests
+
+Run the Karma/Jasmine test suite for the Angular app:
+
+```bash
+# One-time run (headless)
+pnpm --filter taalwiz-web run test -- --watch=false --browsers=ChromeHeadless
+
+# Or with watch mode for development
+pnpm --filter taalwiz-web run test
+```
+
+All 55 tests should pass. The test file uses a helper function `variations(word)` to generate stemmer output and validates the results with `.toEqual()` and `.toContain()` assertions.
+
+#### Manual Verification
+
+You can also verify the stemmer manually in the browser console:
 
 ```typescript
 const stemmer = new IndonesianStemmer();
