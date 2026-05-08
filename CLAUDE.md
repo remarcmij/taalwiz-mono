@@ -18,25 +18,25 @@ pnpm check-types    # Type-check all packages
 pnpm format         # Prettier format all .ts/.tsx/.md files
 ```
 
-### NestJS API (`apps/api`)
+### NestJS API (`apps/taalwiz-api`)
 
 ```bash
-pnpm --filter api run start:dev          # Dev server with watch
-pnpm --filter api run build              # Build via nest build
-pnpm --filter api run lint               # Lint with auto-fix
-pnpm --filter api run test               # Run all Jest tests
-pnpm --filter api run test -- --watch    # Watch mode
-pnpm --filter api run test -- user.service.spec.ts  # Single test file
-pnpm --filter api run test:e2e           # E2E tests (jest-e2e.json config)
+pnpm --filter taalwiz-api run start:dev          # Dev server with watch
+pnpm --filter taalwiz-api run build              # Build via nest build
+pnpm --filter taalwiz-api run lint               # Lint with auto-fix
+pnpm --filter taalwiz-api run test               # Run all Jest tests
+pnpm --filter taalwiz-api run test -- --watch    # Watch mode
+pnpm --filter taalwiz-api run test -- user.service.spec.ts  # Single test file
+pnpm --filter taalwiz-api run test:e2e           # E2E tests (jest-e2e.json config)
 ```
 
-### Angular Web (`apps/web`)
+### Angular Web (`apps/taalwiz-web`)
 
 ```bash
-pnpm --filter web run dev      # Dev server (ng serve, port 4200)
-pnpm --filter web run build    # Production build (ng build)
-pnpm --filter web run test     # Karma/Jasmine tests
-pnpm --filter web run lint     # Angular lint
+pnpm --filter taalwiz-web run dev      # Dev server (ng serve, port 4200)
+pnpm --filter taalwiz-web run build    # Production build (ng build)
+pnpm --filter taalwiz-web run test     # Karma/Jasmine tests
+pnpm --filter taalwiz-web run lint     # Angular lint
 ```
 
 ### React Web (`apps/web-react`) — kept for reference, not actively used
@@ -62,8 +62,8 @@ pnpm --filter dict-compiler run test     # Node.js built-in test runner with tsx
 
 ### Monorepo Layout
 
-- **`apps/api`** — NestJS 11 backend (Express platform, MongoDB/Mongoose, JWT auth, Nodemailer with Handlebars templates, class-validator)
-- **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); **primary web app**
+- **`apps/taalwiz-api`** — NestJS 11 backend (Express platform, MongoDB/Mongoose, JWT auth, Nodemailer with Handlebars templates, class-validator)
+- **`apps/taalwiz-web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); **primary web app**
 - **`apps/web-react`** — React 19 + Ionic 8 + Vite PWA (react-i18next for i18n, Vitest for tests); kept for reference but not actively used
 - **`apps/dict-compiler`** — Standalone TypeScript utility for compiling dictionaries
 - **`apps/api-legacy`** — Deprecated Express 5 API (do not develop further)
@@ -111,7 +111,7 @@ default-src 'self'; script-src 'self' 'nonce-{random}'; style-src 'self' 'unsafe
 
 ### File uploads (admin)
 
-The upload dropzone in `AdminUploadPage` is restricted to `.md` and `.json`. If new file types are needed, update both the `accept` prop on the dropzone **and** the server-side validation in `apps/api/src/content/content.service.ts`.
+The upload dropzone in `AdminUploadPage` is restricted to `.md` and `.json`. If new file types are needed, update both the `accept` prop on the dropzone **and** the server-side validation in `apps/taalwiz-api/src/content/content.service.ts`.
 
 ### Full findings
 

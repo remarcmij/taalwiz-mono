@@ -27,7 +27,7 @@ const env = EnvDto.getInstance();
       rootPath: path.join(__dirname, '..', 'public'),
     }),
     ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '../../web/www/browser'),
+      rootPath: path.join(__dirname, '../../taalwiz-web/www/browser'),
     }),
     MailerModule.forRoot({
       transport: {

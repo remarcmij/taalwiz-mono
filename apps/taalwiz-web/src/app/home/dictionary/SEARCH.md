@@ -489,7 +489,7 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 ## API Behavior Notes
 
-**File**: `apps/api/src/dictionary/dictionary.service.ts`
+**File**: `apps/taalwiz-api/src/dictionary/dictionary.service.ts`
 
 ### Comma-Separated Words
 
