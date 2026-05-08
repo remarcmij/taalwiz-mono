@@ -7,6 +7,7 @@ import { catchError, map, of, Subject, switchMap } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { type ILemma } from './lemma/lemma.model';
 import { WordLang } from './word-lang.model';
+import { IndonesianStemmer } from './indonesian-stemmer';
 
 interface SearchRequest {
   word: string;
@@ -45,7 +46,17 @@ export class DictionaryService {
   lookupResult$ = this.#lookupResult$.asObservable();
 
   lookup({ word, lang }: WordLang) {
-    this.searchDictionary(new WordLang(word, lang));
+    if (lang === 'id') {
+      this.lookupVariations(word);
+    } else {
+      this.searchDictionary(new WordLang(word, lang));
+    }
+  }
+
+  lookupVariations(word: string) {
+    const stemmer = new IndonesianStemmer();
+    const variations = stemmer.getWordVariations(word);
+    this.searchDictionary(new WordLang(word, 'id'), variations.join(','));
   }
 
   fetchSuggestions(term: string) {
@@ -58,15 +69,16 @@ export class DictionaryService {
     );
   }
 
-  searchDictionary(target: WordLang) {
+  searchDictionary(target: WordLang, searchWord?: string) {
     let skip = 0;
     const combinedResult = new LookupResult();
     combinedResult.targetBase = target;
 
     const doSearch = () => {
       this.execSearchRequest({
-        word: target.word,
+        word: searchWord ?? target.word,
         lang: target.lang,
+        keyword: searchWord !== undefined ? true : undefined,
         skip,
         limit: LIMIT,
       })
