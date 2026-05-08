@@ -567,7 +567,7 @@ The breadcrumb stores **the typed word** (e.g., "dibakar"), not the found base (
 
 ---
 
-## Future Improvements (from README.md)
+## Future Improvements
 
 1. **Expand word exemptions**: Some words don't follow standard patterns and are currently hardcoded
 2. **Smarter consonant restoration**: Current rules generate some phonetically implausible candidates
