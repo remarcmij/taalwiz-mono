@@ -282,7 +282,7 @@ Run the Karma/Jasmine test suite for the Angular app:
 
 ```bash
 # One-time run (headless)
-pnpm --filter taalwiz-web run test -- --watch=false --browsers=ChromeHeadless
+pnpm --filter taalwiz-web run test --watch=false --browsers=ChromeHeadless
 
 # Or with watch mode for development
 pnpm --filter taalwiz-web run test
