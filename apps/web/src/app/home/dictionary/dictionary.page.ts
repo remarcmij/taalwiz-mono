@@ -99,8 +99,12 @@ export class DictionaryPage implements OnDestroy {
 
   results$ = this.#dictionaryService.lookupResult$.pipe(
     tap((results) => {
-      this.word.set(results.targetBase!.word);
-      this.addRecentSearch(results.targetBase!);
+      if (results.bases.length > 0) {
+        this.addRecentSearch(results.targetBase!);
+        this.word.set('');
+      } else {
+        this.word.set(results.targetBase!.word);
+      }
       this.content?.nativeElement.scrollToTop();
     })
   );
