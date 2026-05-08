@@ -1,3 +1,4 @@
+/// <reference types="jasmine" />
 import { IndonesianStemmer } from './indonesian-stemmer';
 
 describe('IndonesianStemmer', () => {
