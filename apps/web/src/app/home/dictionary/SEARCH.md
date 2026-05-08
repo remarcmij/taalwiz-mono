@@ -97,38 +97,14 @@ When the user clicks a suggestion or presses Enter with suggestions available:
 
 **File**: `indonesian-stemmer.ts`
 
-### Purpose
+For comprehensive documentation on how the stemmer works, including variation generation strategy, affix patterns, implementation details, and edge cases, see `README.md` in this folder. That document provides:
 
-The stemmer generates all plausible base forms (variations) of an Indonesian word. This is necessary because the dictionary API indexes both root forms and many inflected forms directly — but not all morphological variants (particularly passive forms with `di-` prefix).
-
-### Variation Generation Strategy
-
-The stemmer uses a recursive approach to strip affixes:
-
-**Example: "dibakar" (passive: "was burned")**
-1. Add original: `["dibakar"]`
-2. Strip `di-` prefix (passive marker)
-   - Result: `"bakar"`
-   - Generate meN- active form: `"mem" + "bakar"` = `"membakar"` (since 'b' is labial)
-   - Recursively process: add `["membakar", "bakar"]` to variations
-3. For "membakar", strip `me-` prefix (variant of meN-)
-   - Result: `"bakar"`
-   - Already have it
-4. Final variations: `["dibakar", "membakar", "bakar"]`
-
-**Example: "air" (root noun: "water")**
-1. Add original: `["air"]`
-2. Check for affixes → none match
-3. Final variations: `["air"]`
-
-### Key Affixes Handled
-
-- **Prefixes**: `di-`, `ber-`, `me-/mem-/men-`, `ter-`, `pe-/pem-`, `ke-`, `se-`
-- **Suffixes**: `-nya`, `-ku`, `-mu`, `-kan`, `-an`, `-i`
-- **Circumfixes**: `ke-...-an`, `per-...-an`, `pe-...-an`
-- **Reduplication**: `anak-anak` → `anak`
-
-For full details, see `README.md` in this folder.
+- Detailed purpose and motivation
+- Variation generation strategy with examples
+- Complete affix reference (prefixes, suffixes, circumfixes)
+- Implementation details and recursive algorithm
+- Testing approach
+- Known limitations and future improvements
 
 ### Why Order Matters
 

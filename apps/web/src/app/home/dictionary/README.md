@@ -10,36 +10,60 @@ The dictionary module provides word lookup functionality with morphological supp
 
 Indonesian uses a rich system of prefixes, suffixes, and circumfixes to modify root words. The dictionary API indexes various word forms directly (e.g., it has entries for both `membaca` and `baca`), but not all morphological variants are indexed—particularly passive forms with `di-` prefix.
 
-The stemmer **increases the likelihood of finding a match** by generating alternative forms of a search query. Since the API searches for ANY of the provided variations, having more candidates improves coverage:
+The stemmer **increases the likelihood of finding a match** by generating alternative forms of a search query. This is essential for user experience:
 
-- **Forms the API will find directly**: `membaca`, `makanan`, `berbicara` (active/affixed forms are often indexed)
-- **Forms the API may not find**: `diambil` (passive), some nominalized forms
-- **Solution**: Generate both the original form AND base alternatives so at least one matches
+- When a user searches for an **inflected word** like `dibakar` (passive: "was burned"), the stemmer generates variations including `membakar` (active form, more likely indexed)
+- The API searches these variations in order and **stops at the first match**, returning full results for that matched form
+- Without stemming, `dibakar` would return zero results, forcing the user to guess the base form manually
 
 **Key Design Principle**: Generate a set of plausible variations rather than a single canonical root. Extra candidates (false positives) just create additional API searches; missing the actual match (false negative) is the real problem.
 
+**API Search Behavior**: The variations are sent comma-separated (e.g., `word="dibakar,membakar,bakar"`). The API splits on commas and tries each in order, returning full results for the first variant that matches. Remaining variations are not searched.
+
 ### How It Works
 
-The stemmer recursively strips affixes from a word, building a set of variations. All variations are sent to the API as a comma-separated list. **The API searches variations sequentially and stops at the first match** — remaining variations are ignored.
+The stemmer recursively strips affixes from a word, building a set of variations. The variations are ordered strategically to maximize match likelihood:
 
-This means:
-1. The order of variations matters
-2. If an earlier variation matches a dictionary entry, the search succeeds immediately
-3. Later variations only get searched if earlier ones don't match
+1. **Original form first**: The input word as-is (might be indexed directly)
+2. **Active/common forms next**: Generated active voice or common inflections (more likely indexed)
+3. **Base/rare forms last**: Stripped roots and uncommon variants (fallback only)
 
-Examples: 
+All variations are sent to the API as a comma-separated list. **The API searches variations sequentially and stops at the first match** — remaining variations are ignored.
+
+**Examples of variation ordering**:
+
 - User types `diambil` (passive: "was taken")
-- Stemmer generates: `[diambil, mengambil, ambil]`
-- API searches in order:
-  - `diambil` → not found (passive forms rarely indexed)
-  - `mengambil` → found! ✓ (stops searching)
-  - `ambil` → not searched (match already found)
+- Stemmer generates: `["diambil", "mengambil", "ambil"]`
+  - `diambil`: original (rarely indexed)
+  - `mengambil`: active voice form (commonly indexed) ← **API finds this first**
+  - `ambil`: bare root (fallback)
+- Result: API finds `mengambil` and returns all its entries
 
 - User types `membaca` (active: "to read")
-- Stemmer generates: `[membaca, baca]`
-- API searches:
-  - `membaca` → found! ✓ (stops searching)
-  - `baca` → not searched (match already found)
+- Stemmer generates: `["membaca", "baca"]`
+  - `membaca`: common form, indexed directly ← **API finds this**
+  - `baca`: bare root (not needed)
+- Result: API finds `membaca` and returns all its entries
+
+### Variation Generation Strategy
+
+The stemmer uses a recursive approach to strip affixes:
+
+1. Start with the original word
+2. Check and strip each affix pattern (prefixes, suffixes, circumfixes) in priority order
+3. For each strip, recursively process the remainder
+4. When consonants are dropped during affixation, generate both the stripped form AND a restored form
+
+**Example: `"kebaikan"` (abstract noun: "goodness")**
+1. Strip `ke-...-an` circumfix → `"baik"` (root)
+2. Recursively process `"baik"` (no more affixes)
+3. Final variations: `["kebaikan", "baik"]`
+
+**Example: `"memotong"` (to cut)**
+1. Strip `me-` prefix (variant of meN-) → `"motong"` (p was dropped during affixation)
+2. Try restoring dropped consonant → `"potong"` (valid restored form)
+3. Recursively process both `"motong"` and `"potong"`
+4. Final variations: `["memotong", "potong", "motong"]`
 
 ### Affixes Handled
 
