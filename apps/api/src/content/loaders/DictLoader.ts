@@ -59,7 +59,7 @@ class DictLoader extends BaseLoader<DictDataJson> {
   protected parseContent(content: string, filename: string): Upload<DictDataJson> {
     const payload = JSON.parse(content) as DictDataJson;
 
-    const match = filename.match(/^[a-z]_(.+)\.json/);
+    const match = filename.match(/^(.+)\.[a-z]\.json/);
     if (!match) {
       throw new Error(`ill-formed filename: ${filename}`);
     }

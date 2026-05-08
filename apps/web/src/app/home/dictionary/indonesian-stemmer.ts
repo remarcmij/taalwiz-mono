@@ -12,8 +12,7 @@ const WordExemptions: string[] = [
 export class IndonesianStemmer {
   getWordVariations(word: string): string[] {
     const variations: Set<string> = new Set();
-    const mePrefixed = false;
-    this.getVariations(word, variations, mePrefixed);
+    this.getVariations(word, variations, false);
     return [...variations];
   }
 
@@ -22,7 +21,6 @@ export class IndonesianStemmer {
     variations: Set<string>,
     mePrefixed: boolean,
   ) {
-    // let match: RegExpMatchArray;
     let meWord: string;
 
     variations.add(word);
@@ -31,120 +29,221 @@ export class IndonesianStemmer {
       return;
     }
 
-    // strip suffix
+    // strip -nya suffix (possessive/definiteness marker)
     let match = word.match(/^(.{2,})nya$/);
     if (match) {
-      word = match[1];
       this.getVariations(match[1], variations, mePrefixed);
     }
 
-    // strip ku and mu suffix
+    // strip -ku, -kau, -mu suffixes (personal clitics)
     match = word.match(/^(.{2,})(?:ku|kau|mu)$/);
     if (match) {
       this.getVariations(match[1], variations, mePrefixed);
     }
 
-    // strip mu prefix
+    // strip mu- prefix
     match = word.match(/^mu(.{2,})$/);
     if (match) {
       this.getVariations(match[1], variations, mePrefixed);
     }
 
-    // strip ku and kau prefix
+    // strip ku- and kau- prefixes
     match = word.match(/^(?:ku|kau)(.{2,})$/);
     if (match) {
       this.getVariations(match[1], variations, mePrefixed);
     }
 
-    // strip di prefix and replace with me prefix
-    match = word.match(/^(?:di)(.{2,})$/);
+    // strip di- prefix and generate me- variants
+    match = word.match(/^di(.{2,})$/);
     if (match && !mePrefixed) {
       const matchWord = match[1];
-      if (!mePrefixed) {
-        meWord = this.prefixWithMeng(matchWord);
-        mePrefixed = true;
-        if (meWord !== matchWord) {
-          this.getVariations(meWord, variations, mePrefixed);
-        }
+      meWord = this.prefixWithMeng(matchWord);
+      if (meWord !== matchWord) {
+        this.getVariations(meWord, variations, true);
       }
-      // if word start with per- add mem prefix
-      match = matchWord.match(/^per|pelajar/);
-      if (match && !mePrefixed) {
-        mePrefixed = true;
-        this.getVariations('mem' + matchWord, variations, mePrefixed);
+      // also add the bare root
+      this.getVariations(matchWord, variations, true);
+
+      // if word starts with per- or pelajar, add mem- prefix
+      if (matchWord.match(/^(?:per|pelajar)/)) {
+        this.getVariations('mem' + matchWord, variations, true);
       }
     }
 
-    // strip suffix
+    // strip -kah, -lah, -tah, -pun particles
     match = word.match(/^(.{2,})(?:[klt]ah|pun)$/);
     if (match) {
       this.getVariations(match[1], variations, mePrefixed);
     }
 
-    // ter strip prefix
-    match = word.match(/^(?:ter)(.{2,})$/);
+    // strip ter- prefix
+    match = word.match(/^ter(.{2,})$/);
     if (match) {
       this.getVariations(match[1], variations, mePrefixed);
     }
 
-    // if word ends with '-kan' or '-i' and doesn't start with m, add meng prefix
-    match = word.match(/^[^m].{2,}(kan|i)$/);
-    if (match && !mePrefixed) {
-      meWord = this.prefixWithMeng(word);
-      mePrefixed = true;
-      if (meWord !== word) {
-        this.getVariations(meWord, variations, mePrefixed);
+    // strip ber- prefix
+    match = word.match(/^ber(.{2,})$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
+    // strip se- prefix
+    match = word.match(/^se(.{2,})$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
+    // strip -an suffix (nominalizing)
+    match = word.match(/^(.{3,})an$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
+    // strip ke- prefix
+    match = word.match(/^ke(.{2,})$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
+    // strip ke-...-an circumfix
+    match = word.match(/^ke(.{2,})an$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
+    // strip per-...-an circumfix
+    match = word.match(/^per(.{2,})an$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
+    // strip pe-...-an circumfix
+    match = word.match(/^pe(.{2,})an$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
+    // strip meN- prefix (me-, meng-, mem-, men-, meny-)
+    const meNVariations = this.stripMeN(word);
+    if (meNVariations) {
+      for (const stripped of meNVariations) {
+        this.getVariations(stripped, variations, mePrefixed);
       }
     }
 
-    // se strip prefix
-    match = word.match(/^(?:se)(.{2,})$/);
-    if (match) {
-      this.getVariations(match[1], variations, mePrefixed);
+    // strip peN- prefix (pe-, peng-, pem-, pen-, peny-)
+    const peNVariations = this.stripPeN(word);
+    if (peNVariations) {
+      for (const stripped of peNVariations) {
+        this.getVariations(stripped, variations, mePrefixed);
+      }
     }
 
-    // if word starts with 'per-' add mem prefix
-    match = word.match(/^per|pelajar/);
+    // if word ends with -kan or -i and doesn't start with m, add meng prefix
+    match = word.match(/^[^m].{2,}(?:kan|i)$/);
     if (match && !mePrefixed) {
-      mePrefixed = true;
-      this.getVariations('mem' + word, variations, mePrefixed);
+      meWord = this.prefixWithMeng(word);
+      if (meWord !== word) {
+        this.getVariations(meWord, variations, true);
+      }
     }
 
-    // strip reduplication
-    match = word.match(/^(.{2,})(?:-.{2,})$/);
+    // strip reduplication (e.g., anak-anak → anak)
+    match = word.match(/^(.{2,})-.{2,}$/);
     if (match) {
       this.getVariations(match[1], variations, mePrefixed);
     }
   }
 
+  private stripMeN(word: string): string[] | null {
+    const results: string[] = [];
+
+    if (word.startsWith('meng')) {
+      const rest = word.substring(4);
+      results.push(rest);
+      if (rest && !/^[aeiouagh]/.test(rest)) {
+        results.push('k' + rest);
+      }
+    } else if (word.startsWith('meny')) {
+      const rest = word.substring(4);
+      results.push(rest);
+      results.push('s' + rest);
+    } else if (word.startsWith('mem')) {
+      const rest = word.substring(3);
+      results.push(rest);
+      if (rest && !/^[bf]/.test(rest)) {
+        results.push('p' + rest);
+      }
+    } else if (word.startsWith('men')) {
+      const rest = word.substring(3);
+      results.push(rest);
+      if (rest && !/^[dcjz]/.test(rest) && !rest.startsWith('sy')) {
+        results.push('t' + rest);
+      }
+    } else if (word.startsWith('me')) {
+      results.push(word.substring(2));
+    }
+
+    return results.length > 0 ? results : null;
+  }
+
+  private stripPeN(word: string): string[] | null {
+    const results: string[] = [];
+
+    if (word.startsWith('peng')) {
+      const rest = word.substring(4);
+      results.push(rest);
+      if (rest && !/^[aeiouagh]/.test(rest)) {
+        results.push('k' + rest);
+      }
+    } else if (word.startsWith('peny')) {
+      const rest = word.substring(4);
+      results.push(rest);
+      results.push('s' + rest);
+    } else if (word.startsWith('pem')) {
+      const rest = word.substring(3);
+      results.push(rest);
+      if (rest && !/^[bf]/.test(rest)) {
+        results.push('p' + rest);
+      }
+    } else if (word.startsWith('pen')) {
+      const rest = word.substring(3);
+      results.push(rest);
+      if (rest && !/^[dcjz]/.test(rest) && !rest.startsWith('sy')) {
+        results.push('t' + rest);
+      }
+    } else if (word.startsWith('pe')) {
+      results.push(word.substring(2));
+    }
+
+    return results.length > 0 ? results : null;
+  }
+
   private prefixWithMeng(word: string): string {
     if (word.match(/^[aeiou]/)) {
-      word = 'meng' + word;
+      return 'meng' + word;
     } else if (word.match(/^[bf]/)) {
-      word = 'mem' + word;
+      return 'mem' + word;
     } else if (word.match(/^p/)) {
-      // initial 'p' is lost
-      if (!word.match(/^per|pelajar/)) {
-        word = word.substring(1);
+      if (!word.match(/^(?:per|pelajar)/)) {
+        return 'mem' + word.substring(1);
       }
-      word = 'mem' + word;
+      return 'mem' + word;
     } else if (word.match(/^(?:d|t|c|j|sy|z)/)) {
       if (word.match(/^t/)) {
-        // initial 't' is lost
-        word = word.substring(1);
+        return 'men' + word.substring(1);
       }
-      word = 'men' + word;
+      return 'men' + word;
     } else if (word.match(/^s/)) {
-      // initial 's' is lost
-      word = 'meny' + word.substring(1);
-    } else if (word.match(/^(?:g|h|k|kh)/)) {
+      return 'meny' + word.substring(1);
+    } else if (word.match(/^(?:g|h|kh)/)) {
       if (word.match(/^k[^h]/)) {
-        // initial 'k' is lost
-        word = word.substring(1);
+        return 'meng' + word.substring(1);
       }
-      word = 'meng' + word;
+      return 'meng' + word;
     } else if (word.match(/^(?:l|r|m|n|ny|ng|w|y)/)) {
-      word = 'me' + word;
+      return 'me' + word;
     }
     return word;
   }
