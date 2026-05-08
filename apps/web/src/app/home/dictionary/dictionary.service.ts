@@ -46,7 +46,11 @@ export class DictionaryService {
   lookupResult$ = this.#lookupResult$.asObservable();
 
   lookup({ word, lang }: WordLang) {
-    this.searchDictionary(new WordLang(word, lang));
+    if (lang === 'id') {
+      this.lookupVariations(word);
+    } else {
+      this.searchDictionary(new WordLang(word, lang));
+    }
   }
 
   lookupVariations(word: string) {

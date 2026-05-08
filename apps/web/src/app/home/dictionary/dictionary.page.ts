@@ -100,23 +100,9 @@ export class DictionaryPage implements OnDestroy {
 
   results$ = this.#dictionaryService.lookupResult$.pipe(
     tap((results) => {
-      let primaryBase = results.bases[0] ?? null;
-      if (primaryBase && results.bases.length > 1) {
-        primaryBase = results.bases.reduce((maxBase, base) => {
-          const count = (results.lemmas[base.key] || []).length;
-          const maxCount = (results.lemmas[maxBase.key] || []).length;
-          return count > maxCount ? base : maxBase;
-        });
-      }
-      if (primaryBase) {
-        const lemmasForBase = results.lemmas[primaryBase.key] || [];
-        if (lemmasForBase.length > 0 && lemmasForBase[0].word !== primaryBase.word) {
-          primaryBase = new WordLang(lemmasForBase[0].word, primaryBase.lang);
-        }
-      }
-      this.currentTarget.set(primaryBase);
+      this.currentTarget.set(results.targetBase);
       if (results.bases.length > 0) {
-        this.addRecentSearch(primaryBase!);
+        this.addRecentSearch(results.targetBase!);
         this.word.set('');
       } else {
         this.word.set(results.targetBase!.word);
