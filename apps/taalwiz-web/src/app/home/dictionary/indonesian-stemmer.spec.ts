@@ -48,9 +48,6 @@ describe('IndonesianStemmer', () => {
 
     it('mu-', () => expect(variations('muambil')).toContain('ambil'));
 
-    it('di- strips to base', () =>
-      expect(variations('diambil')).toContain('ambil'));
-
     it('di- generates meN- active variant (before bare root)', () => {
       const vars = variations('diambil');
       const mengambilIndex = vars.indexOf('mengambil');
