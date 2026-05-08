@@ -183,9 +183,14 @@ describe('IndonesianStemmer', () => {
     it('mengambil should include ambil', () =>
       expect(variations('mengambil')).toContain('ambil'));
 
-    it('diambil should include ambil and mengambil', () => {
-      expect(variations('diambil')).toContain('ambil');
-      expect(variations('diambil')).toContain('mengambil');
+    it('diambil should include ambil and mengambil (in correct order)', () => {
+      const vars = variations('diambil');
+      const mengambilIndex = vars.indexOf('mengambil');
+      const ambilIndex = vars.indexOf('ambil');
+      expect(mengambilIndex).toBeGreaterThan(-1);
+      expect(ambilIndex).toBeGreaterThan(-1);
+      // mengambil (active) should come before ambil (bare root) for API efficiency
+      expect(mengambilIndex).toBeLessThan(ambilIndex);
     });
 
     it('makanan should include makan', () =>
