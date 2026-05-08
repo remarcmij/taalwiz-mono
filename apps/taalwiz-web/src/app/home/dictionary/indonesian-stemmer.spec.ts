@@ -144,13 +144,23 @@ describe('IndonesianStemmer', () => {
   });
 
   describe('complex multi-affix words', () => {
-    it('dibakar: di- prefix + base', () => {
-      expect(variations('dibakar')).toContain('bakar');
-      expect(variations('dibakar')).toContain('membakar');
+    it('dibakar: di- prefix + base (membakar before bakar)', () => {
+      const vars = variations('dibakar');
+      const membakarIndex = vars.indexOf('membakar');
+      const bakarIndex = vars.indexOf('bakar');
+      expect(membakarIndex).toBeGreaterThan(-1);
+      expect(bakarIndex).toBeGreaterThan(-1);
+      // Active form before bare root for API efficiency
+      expect(membakarIndex).toBeLessThan(bakarIndex);
     });
 
-    it('mengambilnya: meN- prefix + -nya suffix', () =>
-      expect(variations('mengambilnya')).toContain('ambil'));
+    it('mengambilnya: meN- prefix + -nya suffix (original first)', () => {
+      const vars = variations('mengambilnya');
+      const origIndex = vars.indexOf('mengambilnya');
+      const ambilIndex = vars.indexOf('ambil');
+      expect(origIndex).toBe(0); // Original should be first
+      expect(ambilIndex).toBeGreaterThan(origIndex);
+    });
 
     it('berbicara: ber- prefix', () =>
       expect(variations('berbicara')).toContain('bicara'));
@@ -183,11 +193,21 @@ describe('IndonesianStemmer', () => {
   });
 
   describe('documented test cases from SEARCH.md', () => {
-    it('membaca should include baca', () =>
-      expect(variations('membaca')).toContain('baca'));
+    it('membaca should include baca (original first)', () => {
+      const vars = variations('membaca');
+      const origIndex = vars.indexOf('membaca');
+      const bacaIndex = vars.indexOf('baca');
+      expect(origIndex).toBe(0); // Original form first (might be indexed directly)
+      expect(bacaIndex).toBeGreaterThan(origIndex);
+    });
 
-    it('mengambil should include ambil', () =>
-      expect(variations('mengambil')).toContain('ambil'));
+    it('mengambil should include ambil (original first)', () => {
+      const vars = variations('mengambil');
+      const origIndex = vars.indexOf('mengambil');
+      const ambilIndex = vars.indexOf('ambil');
+      expect(origIndex).toBe(0); // Original form first
+      expect(ambilIndex).toBeGreaterThan(origIndex);
+    });
 
     it('diambil should include ambil and mengambil (in correct order)', () => {
       const vars = variations('diambil');
@@ -199,19 +219,44 @@ describe('IndonesianStemmer', () => {
       expect(mengambilIndex).toBeLessThan(ambilIndex);
     });
 
-    it('makanan should include makan', () =>
-      expect(variations('makanan')).toContain('makan'));
+    it('makanan should include makan (original first)', () => {
+      const vars = variations('makanan');
+      const origIndex = vars.indexOf('makanan');
+      const makanIndex = vars.indexOf('makan');
+      expect(origIndex).toBe(0);
+      expect(makanIndex).toBeGreaterThan(origIndex);
+    });
 
-    it('berbicara should include bicara', () =>
-      expect(variations('berbicara')).toContain('bicara'));
+    it('berbicara should include bicara (original first)', () => {
+      const vars = variations('berbicara');
+      const origIndex = vars.indexOf('berbicara');
+      const bicaraIndex = vars.indexOf('bicara');
+      expect(origIndex).toBe(0);
+      expect(bicaraIndex).toBeGreaterThan(origIndex);
+    });
 
-    it('kebaikan should include baik', () =>
-      expect(variations('kebaikan')).toContain('baik'));
+    it('kebaikan should include baik (original first)', () => {
+      const vars = variations('kebaikan');
+      const origIndex = vars.indexOf('kebaikan');
+      const balikIndex = vars.indexOf('baik');
+      expect(origIndex).toBe(0);
+      expect(balikIndex).toBeGreaterThan(origIndex);
+    });
 
-    it('perjalanan should include jalan', () =>
-      expect(variations('perjalanan')).toContain('jalan'));
+    it('perjalanan should include jalan (original first)', () => {
+      const vars = variations('perjalanan');
+      const origIndex = vars.indexOf('perjalanan');
+      const jalanIndex = vars.indexOf('jalan');
+      expect(origIndex).toBe(0);
+      expect(jalanIndex).toBeGreaterThan(origIndex);
+    });
 
-    it('penulis should include tulis', () =>
-      expect(variations('penulis')).toContain('tulis'));
+    it('penulis should include tulis (original first)', () => {
+      const vars = variations('penulis');
+      const origIndex = vars.indexOf('penulis');
+      const tulisIndex = vars.indexOf('tulis');
+      expect(origIndex).toBe(0);
+      expect(tulisIndex).toBeGreaterThan(origIndex);
+    });
   });
 });
