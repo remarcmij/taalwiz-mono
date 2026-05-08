@@ -15,15 +15,15 @@ The search feature allows users to find dictionary entries for Indonesian and Du
 ### Auto-focus on Entry
 
 When the user navigates to the dictionary page:
-1. **`ionViewDidEnter()` lifecycle hook** (line 169): Queries the searchbar input element and calls `.focus()` to auto-focus the field
+1. **`ionViewDidEnter()` lifecycle hook**: Queries the searchbar input element and calls `.focus()` to auto-focus the field
 2. The user can immediately start typing without clicking the field
 
 ### Focus Retention After Search
 
 After a successful search (on desktop only):
 1. Focus is maintained in the search field so the user can type the next search immediately
-2. **Mobile exception**: The blur is conditional on `this.#platform.is('mobile')` (line 162) — on desktop, the searchbar stays focused; on mobile, the keyboard is dismissed after Enter
-3. This is implemented in the `ionViewWillEnter()` keyup handler (lines 155–165)
+2. **Mobile exception**: The blur is conditional on `this.#platform.is('mobile')` — on desktop, the searchbar stays focused; on mobile, the keyboard is dismissed after Enter
+3. This is implemented in the `ionViewWillEnter()` keyup handler in the keyup event subscription
 
 ### Clear on Success, Preserve on Failure
 
@@ -39,15 +39,15 @@ After search results are returned:
 
 ### Suggestion Fetching
 
-1. **`ionViewWillEnter()` setup** (line 138): A `fromEvent` listener is attached to the searchbar's input element for keyup events
-2. **Debounce** (line 139): A 250ms debounce ensures API calls are not made on every keystroke
-3. **Switch to suggestions** (line 144): After debouncing, `getSuggestions(term)` is called via `switchMap`
+1. **`ionViewWillEnter()` setup**: A `fromEvent` listener is attached to the searchbar's input element for keyup events
+2. **Debounce**: A 250ms debounce ensures API calls are not made on every keystroke
+3. **Switch to suggestions**: After debouncing, `getSuggestions(term)` is called via `switchMap`
 4. **Result**: `suggestions` signal is updated, and the dropdown is shown if matches are found
 
 ### Suggestion Selection
 
 When the user clicks a suggestion or presses Enter with suggestions available:
-1. `onItemClicked(suggestion)` is called (line 190)
+1. `onItemClicked(suggestion)` is called
 2. `this.#dictionaryService.lookup(suggestion)` is called, routing to the service
 
 ---
@@ -61,7 +61,7 @@ When the user clicks a suggestion or presses Enter with suggestions available:
 1. User types → autocomplete finds match (e.g., "air")
 2. User clicks suggestion or presses Enter with suggestions available
 3. `lookup({word: 'air', lang: 'id'})` is called
-4. Since `lang === 'id'`, it routes to `lookupVariations('air')` (line 49)
+4. Since `lang === 'id'`, it routes to `lookupVariations('air')` in the service
 5. Stemmer generates variations: `["air"]` (already a base form, no affixes to strip)
 6. API is called: `word="air"`, `lang="id"`, no keyword flag
 7. API splits on commas (only one term) and searches for exact match `{word: "air", lang: "id"}`
@@ -71,7 +71,7 @@ When the user clicks a suggestion or presses Enter with suggestions available:
 
 1. User types "dibakar" (or other word) → no suggestions match
 2. User presses Enter
-3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `lookupVariations(currentTerm)` (line 160)
+3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `lookupVariations(currentTerm)`
 4. Stemmer generates variations: `["dibakar", "membakar", "bakar"]`
    - "dibakar" = original (passive: "was burned")
    - "membakar" = active voice form (meN- + bakar, where 'b' initial → mem-)
@@ -180,7 +180,7 @@ If the API returns 10 lemmas all with `baseWord: "membakar"` and `baseLang: "id"
 
 ### Display in Template
 
-**`dictionary.page.html` (lines 41–62)**: For each base in `results.bases`, display:
+For each base in `results.bases`, the template displays:
 1. **Card header** (only for first base, `isFirst`): Shows the base word as the main heading
 2. **Card content**: Renders `app-lemma` component with all lemmas for that base
 3. **Button**: Shows the base word again (allows clicking to re-search that base)
@@ -193,15 +193,15 @@ If the API returns 10 lemmas all with `baseWord: "membakar"` and `baseLang: "id"
 
 ### Storage
 
-The `recentSearches` signal stores an array of `WordLang` objects. When a successful search completes:
+The `recentSearches` signal stores an array of `WordLang` objects. When a successful search completes in the `results$` observable tap:
 
-1. In `results$` tap (line 105): `this.addRecentSearch(results.targetBase!)`
+1. `this.addRecentSearch(results.targetBase!)` is called
 2. `results.targetBase` is the **typed word** (not the found base)
    - Example: User types "dibakar" → stored as "dibakar" (even though results are for "membakar")
 
 ### Insertion Order Preservation
 
-The `addRecentSearch()` method (lines 114–125) implements insertion-order preservation:
+The `addRecentSearch()` method implements insertion-order preservation:
 
 ```typescript
 addRecentSearch(wordLang: WordLang) {
@@ -244,7 +244,7 @@ The breadcrumb word that matches the currently displayed results is shown in bol
 [ngClass]="{'active-breadcrumb': wordLang.key === currentTarget()?.key}"
 ```
 
-The `currentTarget` signal is set in `results$` tap (line 103):
+The `currentTarget` signal is set in the `results$` observable tap:
 ```typescript
 this.currentTarget.set(results.targetBase);
 ```
@@ -257,7 +257,7 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 ### Scenario: User types "dibakar" and presses Enter (no autocomplete match)
 
-1. **Keystroke detection**: `ionViewWillEnter()` keyup listener fires, debounces, finds no suggestions
+1. **Keystroke detection**: The `ionViewWillEnter()` keyup listener fires, debounces, finds no suggestions
 2. **Enter handling**: `lookupVariations('dibakar')` is called
 3. **Stemming**: Generates `["dibakar", "membakar", "bakar"]`
 4. **API call**: `GET /api/v1/dictionary/find/dibakar,membakar,bakar/id`
@@ -288,7 +288,7 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 ## API Behavior Notes
 
-**File reference**: `/Volumes/Crucial2TB/xdev/node/taalwiz-mono/apps/api/src/dictionary/dictionary.service.ts`
+**File**: `apps/api/src/dictionary/dictionary.service.ts`
 
 ### Comma-Separated Words
 
