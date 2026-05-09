@@ -2,7 +2,6 @@ import { Injectable, inject } from "@angular/core";
 import { ModalController } from "@ionic/angular/standalone";
 import { foreignLang } from "../../app.constants";
 import { DictionaryService } from "../../home/dictionary/dictionary.service";
-import { IndonesianStemmer } from "../../home/dictionary/indonesian-stemmer";
 import { WordLang } from "../../home/dictionary/word-lang.model";
 import { WordClickModalComponent } from "./word-click-modal.component";
 
@@ -63,10 +62,8 @@ export class WordClickModalService {
   }
 
   fetchLemmas(word: string, lang: string) {
-    const parser = new IndonesianStemmer();
-    const variations = parser.getWordVariations(word);
     const searchRequest = {
-      word: variations.join(","),
+      word: word,
       lang: lang,
       keyword: true,
     };

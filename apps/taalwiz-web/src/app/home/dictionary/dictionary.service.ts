@@ -7,7 +7,6 @@ import { catchError, map, of, Subject, switchMap } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { type ILemma } from './lemma/lemma.model';
 import { WordLang } from './word-lang.model';
-import { IndonesianStemmer } from './indonesian-stemmer';
 
 interface SearchRequest {
   word: string;
@@ -46,17 +45,7 @@ export class DictionaryService {
   lookupResult$ = this.#lookupResult$.asObservable();
 
   lookup({ word, lang }: WordLang) {
-    if (lang === 'id') {
-      this.lookupVariations(word);
-    } else {
-      this.searchDictionary(new WordLang(word, lang));
-    }
-  }
-
-  lookupVariations(word: string) {
-    const stemmer = new IndonesianStemmer();
-    const variations = stemmer.getWordVariations(word);
-    this.searchDictionary(new WordLang(word, 'id'), variations.join(','));
+    this.searchDictionary(new WordLang(word, lang));
   }
 
   fetchSuggestions(term: string) {
@@ -133,7 +122,7 @@ export class DictionaryService {
 
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
-        const url = `/api/v1/dictionary/find/${encodeURIComponent(
+        const url = `/api/v1/dictionary/find2/${encodeURIComponent(
           word
         )}/${encodeURIComponent(lang)}`;
         return this.#http.get<LookupResponse>(url, {

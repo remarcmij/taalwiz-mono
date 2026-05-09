@@ -157,7 +157,7 @@ export class DictionaryPage implements OnDestroy {
             this.onItemClicked(suggestions[0]);
           } else if (currentTerm) {
             this.onClear();
-            this.#dictionaryService.lookupVariations(currentTerm);
+            this.#dictionaryService.lookup(new WordLang(currentTerm, 'id'));
           }
           if (this.#platform.is('mobile')) {
             searchInputElement.blur();
