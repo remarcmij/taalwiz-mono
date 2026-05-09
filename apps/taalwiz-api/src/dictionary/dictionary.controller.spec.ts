@@ -39,4 +39,13 @@ describe('DictionaryController', () => {
       expect(result).toEqual(mockResult);
     });
   });
+
+  describe('findAutoCompletions', () => {
+    it('should delegate to dictionaryService.findAutoCompletions', async () => {
+      const term = 'membaca';
+      const result = await controller.findAutoCompletions(term);
+      expect(service.findAutoCompletions).toHaveBeenCalledWith(term);
+      expect(result).toEqual([]);
+    });
+  });
 });

@@ -63,7 +63,6 @@ export class DictionaryService {
     return { word: paramsDto.word, lang: paramsDto.lang, lemmas: [], haveMore: false };
   }
 
-  // TODO allow for word variants like in findWord
   async findAutoCompletions(term: string) {
     if (term.length === 0 || !validTermRegex.test(term)) {
       return [];
@@ -74,18 +73,21 @@ export class DictionaryService {
     if (cachedResult) {
       this.logger.debug(`Cache hit for '${term}'`);
       return cachedResult;
-    } else {
-      const completions: AutoCompletionDoc[] = await AutoCompletions.find({
-        word: { $regex: '^' + term, $options: 'i' },
-      })
-        .sort('word')
-        .limit(10)
-        .lean();
-
-      await this.cacheManager.set(term, completions);
-      this.logger.debug(`Cache store for '${term}'`);
-      return completions;
     }
+
+    const stemmer = new IndonesianStemmer();
+    const variations = stemmer.getWordVariations(term);
+
+    const completions: AutoCompletionDoc[] = await AutoCompletions.find({
+      $or: variations.map((v) => ({ word: { $regex: '^' + v, $options: 'i' } })),
+    })
+      .sort('word')
+      .limit(10)
+      .lean();
+
+    await this.cacheManager.set(term, completions);
+    this.logger.debug(`Cache store for '${term}'`);
+    return completions;
   }
 
   private async findWordHelper(
