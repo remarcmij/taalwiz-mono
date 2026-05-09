@@ -122,7 +122,7 @@ export class DictionaryService {
 
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
-        const url = `/api/v1/dictionary/find2/${encodeURIComponent(
+        const url = `/api/v1/dictionary/find/${encodeURIComponent(
           word
         )}/${encodeURIComponent(lang)}`;
         return this.#http.get<LookupResponse>(url, {

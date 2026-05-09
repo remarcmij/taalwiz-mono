@@ -41,36 +41,9 @@ export class DictionaryService {
     paramsDto: FindWordParamsDto,
     queryDto: FindWordQueryDto,
   ): Promise<FindWordResult> {
-    const words = paramsDto.word.split(',');
-
-    for (const word of words) {
-      const lemmas = await this.findWordHelper(
-        word,
-        paramsDto.lang,
-        queryDto.keyword,
-        queryDto.skip,
-        queryDto.limit,
-      );
-      const haveMore = queryDto.limit ? lemmas.length === queryDto.limit : false;
-
-      if (lemmas.length) {
-        return { word, lang: paramsDto.lang, lemmas, haveMore };
-      }
-    }
-
-    return { word: paramsDto.word, lang: paramsDto.lang, lemmas: [], haveMore: false };
-  }
-
-  async findWordWithStemming(
-    paramsDto: FindWordParamsDto,
-    queryDto: FindWordQueryDto,
-  ): Promise<FindWordResult> {
-    if (paramsDto.lang === 'nl') {
-      return this.findWord(paramsDto, queryDto);
-    }
-
-    const stemmer = new IndonesianStemmer();
-    const words = stemmer.getWordVariations(paramsDto.word);
+    const words = paramsDto.lang === 'nl'
+      ? paramsDto.word.split(',')
+      : new IndonesianStemmer().getWordVariations(paramsDto.word);
 
     for (const word of words) {
       const lemmas = await this.findWordHelper(
