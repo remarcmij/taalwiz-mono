@@ -138,9 +138,15 @@ export class DictionaryPage implements OnDestroy {
       .pipe(
         tap((event) => (keyupKey = event.key)),
         map((event) => (event.target as HTMLInputElement).value),
-        debounceTime(250),
         switchMap((term) =>
-          term ? this.getSuggestions(term) : of<WordLang[]>([])
+          keyupKey === 'Enter'
+            ? of(this.suggestions())
+            : of(term).pipe(
+                debounceTime(250),
+                switchMap((t) =>
+                  t ? this.getSuggestions(t) : of<WordLang[]>([])
+                )
+              )
         ),
         tap((suggestions) => {
           this.showSearches.set(suggestions.length > 0);
