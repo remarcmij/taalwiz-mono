@@ -33,13 +33,13 @@ import {
   Observable,
   Subject,
   catchError,
-  debounceTime,
   fromEvent,
   map,
   of,
   switchMap,
   takeUntil,
   tap,
+  timer,
 } from 'rxjs';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -141,10 +141,9 @@ export class DictionaryPage implements OnDestroy {
         switchMap((term) =>
           keyupKey === 'Enter'
             ? of(this.suggestions())
-            : of(term).pipe(
-                debounceTime(250),
-                switchMap((t) =>
-                  t ? this.getSuggestions(t) : of<WordLang[]>([])
+            : timer(250).pipe(
+                switchMap(() =>
+                  term ? this.getSuggestions(term) : of<WordLang[]>([])
                 )
               )
         ),
