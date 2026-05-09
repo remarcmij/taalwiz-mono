@@ -3,16 +3,12 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'node:path';
-import { fileURLToPath } from 'url';
 import { AuthModule } from './auth/auth.module.js';
 import { ContentModule } from './content/content.module.js';
 import { DictionaryModule } from './dictionary/dictionary.module.js';
 import { HashtagModule } from './hashtag/hashtag.module.js';
 import { UsersModule } from './users/users.module.js';
 import { EnvDto } from './util/env.dto.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const env = EnvDto.getInstance();
 
@@ -24,10 +20,15 @@ const env = EnvDto.getInstance();
     ContentModule,
     HashtagModule,
     ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '..', 'public'),
+      rootPath: path.join(import.meta.dirname, '../..', 'public/assets'),
+      serveRoot: '/assets',
     }),
     ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '../../taalwiz-web/www/browser'),
+      rootPath: path.join(
+        import.meta.dirname,
+        '../../..',
+        'taalwiz-web/www/browser',
+      ),
     }),
     MailerModule.forRoot({
       transport: {
@@ -43,7 +44,7 @@ const env = EnvDto.getInstance();
         from: `"${env.siteName}" <${env.smtpUser}>`,
       },
       template: {
-        dir: path.join(__dirname, '..', 'templates'),
+        dir: path.join(import.meta.dirname, '..', 'templates'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
