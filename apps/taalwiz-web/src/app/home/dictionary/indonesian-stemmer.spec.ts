@@ -38,6 +38,10 @@ describe('IndonesianStemmer', () => {
 
     it('-pun', () => expect(variations('siapapun')).toContain('siapa'));
 
+    it('-kan', () => expect(variations('bukakan')).toContain('buka'));
+
+    it('-i', () => expect(variations('ajari')).toContain('ajar'));
+
     it('-an', () => expect(variations('makanan')).toContain('makan'));
   });
 
@@ -55,6 +59,15 @@ describe('IndonesianStemmer', () => {
       expect(mengambilIndex).toBeGreaterThan(-1);
       expect(ambilIndex).toBeGreaterThan(-1);
       expect(mengambilIndex).toBeLessThan(ambilIndex);
+    });
+
+    it('di- with k-initial root: dikritik generates mengritik', () => {
+      const vars = variations('dikritik');
+      const mengritikIndex = vars.indexOf('mengritik');
+      const kritikIndex = vars.indexOf('kritik');
+      expect(mengritikIndex).toBeGreaterThan(-1);
+      expect(kritikIndex).toBeGreaterThan(-1);
+      expect(mengritikIndex).toBeLessThan(kritikIndex);
     });
 
     it('ter-', () => expect(variations('terima')).toContain('ima'));

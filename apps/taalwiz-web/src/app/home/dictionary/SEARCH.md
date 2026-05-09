@@ -274,7 +274,7 @@ When a consonant is dropped during affixation (e.g., `p` in `memotong` from `pot
 
 ### Testing
 
-Automated tests are located in `indonesian-stemmer.spec.ts` and cover 55 test cases organized into 12 describe blocks (word exemptions, suffix stripping, prefix stripping, meN- variants, peN- variants, circumfixes, reduplication, multi-affix words, deduplication, and documented examples from this document).
+Automated tests are located in `indonesian-stemmer.spec.ts` and cover 57 test cases organized into 12 describe blocks (word exemptions, suffix stripping, prefix stripping, meN- variants, peN- variants, circumfixes, reduplication, multi-affix words, deduplication, and documented examples from this document).
 
 #### Running the Tests
 
@@ -288,7 +288,7 @@ pnpm --filter taalwiz-web run test --watch=false --browsers=ChromeHeadless
 pnpm --filter taalwiz-web run test
 ```
 
-All 55 tests should pass. The test file uses a helper function `variations(word)` to generate stemmer output and validates the results with `.toEqual()` and `.toContain()` assertions.
+All 57 tests should pass. The test file uses a helper function `variations(word)` to generate stemmer output and validates the results with `.toEqual()` and `.toContain()` assertions.
 
 #### Manual Verification
 
@@ -343,7 +343,7 @@ Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, 
 
 - **Expand word exemptions list based on user feedback** — Common words that don't follow standard morphological patterns (e.g., `aku`, `ilmu`, `bukan`) are currently hardcoded; this list can grow as users encounter words that stem incorrectly or unnecessarily.
 
-- **Add more sophisticated consonant restoration heuristics** — The current restoration rules are conservative approximations. For example, `meng-` always generates `k`+rest for consonant-initial roots, but this produces phonetically implausible candidates like `kambil` (from `mengambil`) or `kecek` (from `mengecek`) — `k` is only dropped when the root itself begins with `k`. Since the API silently ignores non-matching variants at negligible cost, this over-generation is tolerable today. More precise heuristics would reduce noise and improve the likelihood that valid restored forms appear earlier in the variation list (which matters because the API stops at the first match). Examples: (i) tighter consonant-dropping guards — only restore `k` when the remaining letters could plausibly form a root starting with `k` (i.e., exclude `g/h/ng/ny` which are never preceded by dropped `k`), and (ii) minimum base-form length — filter out very short stripped forms (< 4 chars) that are almost never valid roots.
+- **Add more sophisticated consonant restoration heuristics** — The current restoration rules use a guard `/^[aeiouagh]/` on the stripped remainder (`rest`) to decide whether to attempt `k`-restoration for `meng-` prefixes. This correctly blocks restoration for vowel-initial rests (e.g., `mengambil` → `rest='ambil'` → no `kambil` generated), and allows it for consonant-initial rests (e.g., `mengritik` → `rest='ritik'` → `kritik` is generated). More sophisticated heuristics could improve precision by: (i) tighter consonant-dropping guards to exclude cases like `mengkritik` (malformed input), and (ii) minimum base-form length filters to exclude very short stripped forms (< 4 chars) that are almost never valid roots.
 
 - **Integrate a proper Indonesian morphological analyzer if performance becomes critical** — "Performance" here means **match quality** (recall/precision), not execution speed. The rule-based approach may miss unusual but valid base forms that a full analyzer would identify, or fail to generate the canonical form the dictionary indexes. Known options: **Nazief–Adriani** (1996, the classic Indonesian stemming algorithm) or **ECS (Enhanced Confix Stripping)**, the basis of the **`@sastrawi/sastrawi`** npm package (JavaScript port of the Sastrawi PHP stemmer). Sastrawi validates against a ~29,000-word root dictionary and returns a single canonical root. The trigger would be observable lookup failures on correctly-spelled Indonesian words that the current stemmer fails to resolve.
 

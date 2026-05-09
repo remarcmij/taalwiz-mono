@@ -7,6 +7,8 @@ const WordExemptions: string[] = [
   'dia',
   'bukan',
   'ini',
+  'nyanyi',
+  'ngaji',
 ];
 
 export class IndonesianStemmer {
@@ -63,11 +65,6 @@ export class IndonesianStemmer {
       }
       // also add the bare root
       this.getVariations(matchWord, variations, true);
-
-      // if word starts with per- or pelajar, add mem- prefix
-      if (matchWord.match(/^(?:per|pelajar)/)) {
-        this.getVariations('mem' + matchWord, variations, true);
-      }
     }
 
     // strip -kah, -lah, -tah, -pun particles
@@ -90,6 +87,18 @@ export class IndonesianStemmer {
 
     // strip se- prefix
     match = word.match(/^se(.{2,})$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
+    // strip -kan suffix (causative/benefactive)
+    match = word.match(/^(.{2,})kan$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
+    // strip -i suffix (locative/repetitive)
+    match = word.match(/^(.{2,})i$/);
     if (match) {
       this.getVariations(match[1], variations, mePrefixed);
     }
@@ -237,7 +246,7 @@ export class IndonesianStemmer {
       return 'men' + word;
     } else if (word.match(/^s/)) {
       return 'meny' + word.substring(1);
-    } else if (word.match(/^(?:g|h|kh)/)) {
+    } else if (word.match(/^(?:g|h|kh|k)/)) {
       if (word.match(/^k[^h]/)) {
         return 'meng' + word.substring(1);
       }
