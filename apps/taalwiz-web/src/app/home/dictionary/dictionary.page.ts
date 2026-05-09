@@ -134,12 +134,10 @@ export class DictionaryPage implements OnDestroy {
       this.searchbar.nativeElement.querySelector('.searchbar-input');
 
     let keyupKey = '';
-    let currentTerm = '';
     fromEvent<KeyboardEvent>(searchInputElement, 'keyup')
       .pipe(
         tap((event) => (keyupKey = event.key)),
         map((event) => (event.target as HTMLInputElement).value),
-        tap((term) => (currentTerm = term)),
         debounceTime(250),
         switchMap((term) =>
           term ? this.getSuggestions(term) : of<WordLang[]>([])
@@ -155,9 +153,6 @@ export class DictionaryPage implements OnDestroy {
         if (keyupKey === 'Enter') {
           if (suggestions.length > 0) {
             this.onItemClicked(suggestions[0]);
-          } else if (currentTerm) {
-            this.onClear();
-            this.#dictionaryService.lookup(new WordLang(currentTerm, 'id'));
           }
           if (this.#platform.is('mobile')) {
             searchInputElement.blur();
