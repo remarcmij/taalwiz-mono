@@ -13,6 +13,11 @@ export class DictionaryController {
     return this.dictionaryService.findWord(paramsDto, queryDto);
   }
 
+  @Get('find2/:word/:lang')
+  findWordWithStemming(@Param() paramsDto: FindWordParamsDto, @Query() queryDto: FindWordQueryDto) {
+    return this.dictionaryService.findWordWithStemming(paramsDto, queryDto);
+  }
+
   @Get('autocomplete/:term')
   async findAutoCompletions(@Param('term') term: string) {
     return await this.dictionaryService.findAutoCompletions(term);
