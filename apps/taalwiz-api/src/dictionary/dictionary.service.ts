@@ -78,16 +78,24 @@ export class DictionaryService {
     const stemmer = new IndonesianStemmer();
     const variations = stemmer.getWordVariations(term);
 
-    const completions: AutoCompletionDoc[] = await AutoCompletions.find({
-      $or: variations.map((v) => ({ word: { $regex: '^' + v, $options: 'i' } })),
-    })
-      .sort('word')
-      .limit(10)
-      .lean();
+    for (const variation of variations) {
+      const completions: AutoCompletionDoc[] = await AutoCompletions.find({
+        word: { $regex: '^' + variation, $options: 'i' },
+      })
+        .sort('word')
+        .limit(10)
+        .lean();
 
-    await this.cacheManager.set(term, completions);
+      if (completions.length) {
+        await this.cacheManager.set(term, completions);
+        this.logger.debug(`Cache store for '${term}'`);
+        return completions;
+      }
+    }
+
+    await this.cacheManager.set(term, []);
     this.logger.debug(`Cache store for '${term}'`);
-    return completions;
+    return [];
   }
 
   private async findWordHelper(
