@@ -71,6 +71,8 @@ class DictLoader extends BaseLoader<DictDataJson> {
         filename: filename,
         type: 'dict',
         groupName,
+        title: groupName.charAt(0).toUpperCase() + groupName.slice(1),
+        baseLang: payload.baseLang,
       },
       payload,
     };
