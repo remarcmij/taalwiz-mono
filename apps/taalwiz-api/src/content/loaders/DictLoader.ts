@@ -34,7 +34,11 @@ class DictLoader extends BaseLoader<DictDataJson> {
 
     const languages = await Lemma.distinct('lang');
     const promises = languages.map(async (lang) => {
-      const words = await Lemma.distinct('word', { lang });
+      // NOTE: Do not use Lemma.distinct('word') here. On very large collections,
+      // MongoDB distinct() can silently drop values (observed with "korek").
+      // Using find().lean() + a JS Set is slower but reliable.
+      const lemmas = await Lemma.find({ lang }).select('word').lean();
+      const words = [...new Set(lemmas.map((l) => l.word))];
       return { lang, words };
     });
     const results = await Promise.all(promises);
