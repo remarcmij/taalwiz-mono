@@ -70,8 +70,13 @@ export class ContentService {
   }
 
   async deleteTopic(filename: string) {
-    const result = await Topic.deleteOne({ filename }).exec();
-    return { deletedCount: result.deletedCount || 0 };
+    const topic = await Topic.findOne({ filename }).exec();
+    if (!topic) {
+      return { deletedCount: 0 };
+    }
+    const loader = topic.type === 'dict' ? this.dictLoader : this.articleLoader;
+    await loader.removeTopic(topic);
+    return { deletedCount: 1 };
   }
 
   async updateSortIndices(ids: string[]) {
