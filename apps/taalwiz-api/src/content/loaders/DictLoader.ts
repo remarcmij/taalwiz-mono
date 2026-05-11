@@ -9,21 +9,17 @@ const REBUILD_DELAY = 10000; // 10 secs
 
 interface DictDataJson {
   baseLang: string;
-  lemmas: [
-    {
-      text: string;
-      base: string;
-      homonym: number;
-      words: [
-        {
-          word: string;
-          lang: string;
-          keyword: number;
-          order: number;
-        },
-      ];
-    },
-  ];
+  lemmas: Array<{
+    text: string;
+    base: string;
+    homonym: number;
+    words: Array<{
+      word: string;
+      lang: string;
+      keyword: number;
+      order: number;
+    }>;
+  }>;
 }
 
 class DictLoader extends BaseLoader<DictDataJson> {
@@ -42,7 +38,6 @@ class DictLoader extends BaseLoader<DictDataJson> {
       return { lang, words };
     });
     const results = await Promise.all(promises);
-    // search.clearAutoCompleteCache();
 
     const bulk = AutoComplete.collection.initializeUnorderedBulkOp();
 
@@ -63,7 +58,7 @@ class DictLoader extends BaseLoader<DictDataJson> {
   protected parseContent(content: string, filename: string): Upload<DictDataJson> {
     const payload = JSON.parse(content) as DictDataJson;
 
-    const match = filename.match(/^(.+)\.[a-z]\.json/);
+    const match = filename.match(/^(.+)\.[a-z]\.json$/);
     if (!match) {
       throw new Error(`ill-formed filename: ${filename}`);
     }
@@ -86,6 +81,7 @@ class DictLoader extends BaseLoader<DictDataJson> {
     const bulk = Lemma.collection.initializeUnorderedBulkOp();
     const { lemmas, baseLang } = data.payload;
 
+    let insertCount = 0;
     for (const lemmaDef of lemmas) {
       for (const wordDef of lemmaDef.words) {
         bulk.insert({
@@ -100,15 +96,21 @@ class DictLoader extends BaseLoader<DictDataJson> {
           groupName: data.topic.groupName,
           _topic: topic._id,
         });
+        insertCount++;
       }
+    }
+
+    if (insertCount === 0) {
+      return;
     }
 
     await bulk.execute();
     DictLoader.debouncedRebuildWordCollection();
   }
 
-  protected async removeData(topic: TopicDoc): Promise<any> {
+  protected async removeData(topic: TopicDoc): Promise<void> {
     await Lemma.deleteMany({ _topic: topic._id }).exec();
+    DictLoader.debouncedRebuildWordCollection();
   }
 }
 
