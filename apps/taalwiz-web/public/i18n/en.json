@@ -27,9 +27,7 @@
   "content": {
     "single-hashtag": "This hashtag does not occur elsewhere."
   },
-  "flashcards": {
-    "swipe": "Swipe to advance through flashcards"
-  },
+
   "user": {
     "welcome": "Welcome",
     "contact": "Contact TaalWiz",

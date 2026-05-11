@@ -5,15 +5,7 @@
     </ion-buttons>
     @if (article()) {
     <ion-title>{{ article().title }}</ion-title>
-    @if(hasFlashcards()) {
-    <ion-buttons slot="end">
-      <ion-button
-        [routerLink]="['/flashcard', article().filename]"
-        title="Flashcards">
-        <ion-icon slot="icon-only" name="school-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    } }
+    }
   </ion-toolbar>
 </ion-header>
 

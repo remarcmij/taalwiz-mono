@@ -19,9 +19,6 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 
-import { addIcons } from 'ionicons';
-import { schoolOutline } from 'ionicons/icons';
-
 import { type IArticle } from '../../../../home/content/publication/article/article.model';
 import { AdminService } from '../../../admin.service';
 
@@ -89,7 +86,5 @@ export class ArticlePage implements OnInit {
     });
   }
 
-  constructor() {
-    addIcons({ schoolOutline });
-  }
+
 }

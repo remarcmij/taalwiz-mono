@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './auth/admin.guard';
 import { authGuard } from './auth/auth.guard';
-import { articleResolver } from './home/content/publication/article/article.resolver';
 
 export const APP_ROUTES: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -14,13 +13,7 @@ export const APP_ROUTES: Routes = [
     loadChildren: () => import('./home/home.routes').then((r) => r.HOME_ROUTES),
     canActivate: [authGuard],
   },
-  {
-    path: 'flashcard/:filename',
-    loadComponent: () =>
-      import('./flashcard/flashcard.page').then((p) => p.FlashcardPage),
-    canActivate: [authGuard],
-    resolve: { article: articleResolver },
-  },
+
   {
     path: 'welcome/:lang',
     loadComponent: () =>
