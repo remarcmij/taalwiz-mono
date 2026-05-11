@@ -62,6 +62,8 @@
     "password-change-error": "Password Change Error",
     "password-change-success": "Password changed successfully.",
     "password-change-failed": "Could not change your password, please try again later.",
+    "password-change-wrong-current": "Your current password is incorrect.",
+    "demo-account-no-password-change": "Demo accounts cannot change their password.",
     "password-reset": "Reset Password",
     "password-reset-success": "Password reset successfully. You can now login with your new password.",
     "password-reset-error": "Password Reset Error",

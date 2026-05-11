@@ -29,7 +29,12 @@ import { first, switchMap, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { homeUrl } from '../../home/home.routes';
-import { MIN_PASSWORD_LENGTH } from '../../server/shared/shared';
+import {
+  AUTH_FAILED,
+  DEMO_ACCOUNT,
+  EMAIL_NOT_FOUND,
+  MIN_PASSWORD_LENGTH,
+} from '../../server/shared/shared';
 import { BackButtonComponent } from '../../shared/back-button/back-button.component';
 import { LoggerService } from '../../shared/logger.service';
 import { AuthService } from '../auth.service';
@@ -121,10 +126,24 @@ export class ChangePasswordPage {
         error: (errResp) => {
           console.error('ChangePasswordPage', errResp);
           this.#logger.error('ChangePasswordPage', errResp.error.message);
+          let messageKey: string;
+          switch (errResp.error.message) {
+            case AUTH_FAILED:
+              messageKey = 'auth.password-change-wrong-current';
+              break;
+            case DEMO_ACCOUNT:
+              messageKey = 'auth.demo-account-no-password-change';
+              break;
+            case EMAIL_NOT_FOUND:
+              messageKey = 'auth.email-not-found';
+              break;
+            default:
+              messageKey = 'auth.password-change-failed';
+          }
           this.#alertCtrl
             .create({
               header: this.#translate.instant('auth.password-change-error'),
-              message: this.#translate.instant('auth.password-change-failed'),
+              message: this.#translate.instant(messageKey),
               buttons: [this.#translate.instant('common.close')],
             })
             .then((alertEl) => alertEl.present());
