@@ -28,6 +28,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
+import { EMAIL_NOT_FOUND } from '../../server/shared/shared';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -86,7 +87,7 @@ export class RequestPasswordResetPage {
           this.isToastOpen.set(true);
         },
         error: (errResp) => {
-          if (errResp.error.message === 'EMAIL_NOT_FOUND') {
+          if (errResp.error.message === EMAIL_NOT_FOUND) {
             this.showAlert(this.#translate.instant('auth.email-not-found'));
           } else {
             this.showAlert(
