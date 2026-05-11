@@ -217,10 +217,11 @@ export class UsersService {
         this.jwtService.verify(token, { secret: env.jwtSecret }),
       );
     } catch (err) {
-      this.logger.error('Invalid password reset token');
       if (err instanceof Error && err.name === 'TokenExpiredError') {
+        this.logger.error('Password reset token expired');
         throw new ForbiddenException('TOKEN_EXPIRED');
       }
+      this.logger.error('Invalid password reset token');
       throw new ForbiddenException('TOKEN_INVALID');
     }
 
