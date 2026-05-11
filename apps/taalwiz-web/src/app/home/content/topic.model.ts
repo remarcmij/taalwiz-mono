@@ -10,7 +10,7 @@ export interface ITopic {
   hash: string;
   isbn: string;
   lastModified: number;
-  published: string;
+  publicationYear: number;
   publication: string;
   publisher: string;
   sortIndex: number;

@@ -10,7 +10,7 @@ const TopicSchema = new Schema({
   groupName: { type: String, required: true },
   isbn: String,
   lastModified: { type: Number, default: Date.now() },
-  published: String,
+  publicationYear: Number,
   publisher: String,
   sha: String,
   sortIndex: { type: Number, default: 0 },
