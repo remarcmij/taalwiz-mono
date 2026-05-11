@@ -13,4 +13,5 @@ export const NO_USER = 'NO_USER';
 export const NO_TOKEN = 'NO_TOKEN';
 export const USER_NOT_FOUND = 'USER_NOT_FOUND';
 export const TOKEN_INVALID = 'TOKEN_INVALID';
+export const TOKEN_EXPIRED = 'TOKEN_EXPIRED';
 export const OK = 'OK';

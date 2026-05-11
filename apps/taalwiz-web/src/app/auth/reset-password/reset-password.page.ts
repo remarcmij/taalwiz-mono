@@ -27,7 +27,11 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
-import { MIN_PASSWORD_LENGTH } from '../../server/shared/shared';
+import {
+  MIN_PASSWORD_LENGTH,
+  TOKEN_EXPIRED,
+  TOKEN_INVALID,
+} from '../../server/shared/shared';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -112,14 +116,27 @@ export class ResetPasswordPage {
           this.#router.navigateByUrl('/auth', { replaceUrl: true });
         },
         error: (errResp) => {
-          this.#alertCtrl
-            .create({
-              header: 'Error',
-              message: errResp.error.message,
-              buttons: ['Okay'],
-            })
-            .then((alertEl) => alertEl.present());
+          switch (errResp.error.message) {
+            case TOKEN_EXPIRED:
+              this.showAlert(this.#translate.instant('auth.reset-link-expired'));
+              break;
+            case TOKEN_INVALID:
+              this.showAlert(this.#translate.instant('auth.reset-link-invalid'));
+              break;
+            default:
+              this.showAlert(this.#translate.instant('auth.password-reset-failed'));
+          }
         },
       });
+  }
+
+  private showAlert(message: string) {
+    this.#alertCtrl
+      .create({
+        header: this.#translate.instant('auth.password-reset-error'),
+        message,
+        buttons: [this.#translate.instant('common.close')],
+      })
+      .then((alertEl) => alertEl.present());
   }
 }

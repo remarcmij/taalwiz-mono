@@ -64,6 +64,10 @@
     "password-change-failed": "Could not change your password, please try again later.",
     "password-reset": "Reset Password",
     "password-reset-success": "Password reset successfully. You can now login with your new password.",
+    "password-reset-error": "Password Reset Error",
+    "password-reset-failed": "Could not reset your password, please try again later.",
+    "reset-link-expired": "This password reset link has expired. Please request a new one.",
+    "reset-link-invalid": "This password reset link is invalid. Please request a new one from the most recent email.",
     "resetting-password": "Resetting Password...",
     "password-reset-request-sent": "Password reset request sent. Please check your email for further instructions.",
 
