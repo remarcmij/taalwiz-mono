@@ -24,10 +24,10 @@ pnpm format         # Prettier format all .ts/.tsx/.md files
 pnpm --filter taalwiz-api run start:dev          # Dev server with watch
 pnpm --filter taalwiz-api run build              # Build via nest build
 pnpm --filter taalwiz-api run lint               # Lint with auto-fix
-pnpm --filter taalwiz-api run test               # Run all Jest tests
-pnpm --filter taalwiz-api run test -- --watch    # Watch mode
-pnpm --filter taalwiz-api run test -- user.service.spec.ts  # Single test file
-pnpm --filter taalwiz-api run test:e2e           # E2E tests (jest-e2e.json config)
+pnpm --filter taalwiz-api run test               # Run all Vitest tests
+pnpm --filter taalwiz-api run test:watch         # Watch mode
+pnpm --filter taalwiz-api run test user.service.spec.ts     # Single test file
+pnpm --filter taalwiz-api run test:e2e           # E2E tests (test/vitest.config.ts)
 ```
 
 ### Angular Web (`apps/taalwiz-web`)
@@ -62,7 +62,7 @@ All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `ne
 
 ### Testing Strategy
 
-- **API**: Jest (test files: `*.spec.ts` in `src/`)
+- **API**: Vitest with globals (test files: `*.spec.ts` in `src/`)
 - **Web**: Karma + Jasmine (test files: `*.spec.ts`)
 - **Dict Compiler**: Node.js built-in test runner with tsx (test files: `src/__tests__/**/*.test.ts`)
 

@@ -8,7 +8,7 @@ const UserSchema = new Schema({
   email: { type: String, lowercase: true, required: true, unique: true },
   password: { type: String, required: true },
   roles: { type: [String], default: ['user'], enum: ['user', 'admin', 'demo'] },
-  lang: { type: String, default: 'nl' },
+  lang: { type: String, default: 'nl', enum: ['en', 'nl'] },
   created: { type: Date, default: Date.now },
   lastAccessed: { type: Date, default: Date.now },
 });
