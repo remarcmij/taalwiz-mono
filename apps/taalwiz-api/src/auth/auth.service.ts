@@ -3,10 +3,15 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import type { Language, Role } from '../users/models/user.model.js';
 import { UsersService } from '../users/users.service.js';
 import { EnvDto } from '../util/env.dto.js';
 import { UserSeedDto } from './dto/user-seed.dto.js';
 import { seedUsers } from './seed/users.seed.js';
+import type {
+  AuthResponse,
+  RefreshTokenResponse,
+} from './types/auth-response.interface.js';
 import { JwtPayload, JwtPayloadSchema } from './types/jwtpayload.interface.js';
 
 const env = EnvDto.getInstance();
@@ -49,7 +54,7 @@ export class AuthService {
     })();
   }
 
-  async signIn(email: string, password: string): Promise<any> {
+  async signIn(email: string, password: string): Promise<AuthResponse> {
     const user = await this.usersService.findOne(email);
 
     if (!user) {
@@ -70,14 +75,14 @@ export class AuthService {
       id: user._id!.toString(),
       email: user.email,
       name: user.name,
-      lang: user.lang,
-      roles: user.roles,
+      lang: user.lang as Language,
+      roles: user.roles as Role[],
       refreshToken: token,
       refreshExp: exp,
     };
   }
 
-  async refreshToken(refreshToken: string): Promise<any> {
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
     let decoded: JwtPayload;
     try {
       decoded = JwtPayloadSchema.parse(

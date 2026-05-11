@@ -8,9 +8,10 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
+import type { AuthResponse } from '../auth/types/auth-response.interface.js';
 import { JwtPayload, JwtPayloadSchema } from '../auth/types/jwtpayload.interface.js';
 import { EnvDto } from '../util/env.dto.js';
-import User, { UserDoc } from './models/user.model.js';
+import User, { Language, Role, UserDoc } from './models/user.model.js';
 
 const env = EnvDto.getInstance();
 
@@ -101,7 +102,12 @@ export class UsersService {
     });
   }
 
-  async registerNewUser(email: string, password: string, name: string, token: string) {
+  async registerNewUser(
+    email: string,
+    password: string,
+    name: string,
+    token: string,
+  ): Promise<AuthResponse> {
     let decoded: JwtPayload;
 
     try {
@@ -149,11 +155,11 @@ export class UsersService {
     });
 
     return {
-      id: user._id,
+      id: user._id!.toString(),
       email: user.email,
       name: user.name,
-      roles: user.roles,
-      lang: user.lang,
+      roles: user.roles as Role[],
+      lang: user.lang as Language,
       refreshToken,
       refreshExp: exp,
     };

@@ -149,7 +149,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     }
   }
 
-  protected async removeData(topic: TopicDoc): Promise<any> {
+  protected async removeData(topic: TopicDoc): Promise<void> {
     await Article.deleteOne({ _topic: topic._id }).exec();
     await Hashtag.deleteMany({ _topic: topic._id }).exec();
   }
