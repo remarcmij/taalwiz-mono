@@ -1,21 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Response } from 'express';
 import EventEmitter from 'node:events';
-import { TaskQueue } from '../util/TaskQueue.js';
 import ArticleLoader from './loaders/ArticleLoader.js';
 import { Loader } from './loaders/BaseLoader.js';
 import DictLoader from './loaders/DictLoader.js';
 import Article from './models/article.model.js';
 import Topic from './models/topic.model.js';
 
-const CONCURRENCY = 2;
-
 @Injectable()
 export class ContentService {
   public readonly uploadEventEmitter = new EventEmitter();
   private readonly articleLoader = new ArticleLoader();
   private readonly dictLoader = new DictLoader();
-  private readonly taskQueue = new TaskQueue<void>(CONCURRENCY);
+  private uploadChain: Promise<void> = Promise.resolve();
   private readonly logger = new Logger(ContentService.name);
 
   async findIndexTopics() {
@@ -49,7 +46,7 @@ export class ContentService {
 
     this.uploadEventEmitter.emit('upload', file.originalname);
 
-    this.taskQueue.pushTask(async () => {
+    this.uploadChain = this.uploadChain.then(async () => {
       try {
         await loader.importUpload(data, file.originalname);
         this.logger.log(`file '${file.originalname}' uploaded successfully`);
