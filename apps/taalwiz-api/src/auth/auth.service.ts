@@ -11,9 +11,7 @@ import { JwtPayload, JwtPayloadSchema } from './types/jwtpayload.interface.js';
 
 const env = EnvDto.getInstance();
 
-// const ACCESS_TOKEN_EXPIRATION = 60 * 60; // 1 hour
-// TODO revert to 1 hour expiration after testing
-const ACCESS_TOKEN_EXPIRATION = 60 * 60 * 24; // 1 day
+const ACCESS_TOKEN_EXPIRATION = 60 * 60; // 1 hour
 
 @Injectable()
 export class AuthService {
