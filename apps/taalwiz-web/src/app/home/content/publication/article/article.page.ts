@@ -1,23 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   inject,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import {
-  IonButton,
   IonButtons,
   IonContent,
   IonHeader,
-  IonIcon,
   IonTitle,
   IonToolbar,
   ModalController,
 } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { schoolOutline } from 'ionicons/icons';
 import { filter, first, map } from 'rxjs';
 
 import { BackButtonComponent } from '../../../../shared/back-button/back-button.component';
@@ -33,11 +28,7 @@ import { IArticle } from './article.model';
     IonToolbar,
     IonButtons,
     IonTitle,
-    IonButtons,
-    IonButton,
-    IonIcon,
     IonContent,
-    RouterLink,
     ArticleBodyComponent,
     BackButtonComponent,
   ],
@@ -53,16 +44,6 @@ export class ArticlePage {
   #article$ = this.#route.data.pipe<IArticle>(map(({ article }) => article));
 
   article = toSignal(this.#article$, { initialValue: {} as IArticle });
-
-  hasFlashcards = computed(
-    () => this.article().htmlText.indexOf(`<!-- flashcard -->`) !== -1
-  );
-
-  constructor() {
-    addIcons({
-      schoolOutline,
-    });
-  }
 
   ionViewDidEnter() {
     this.#route.queryParamMap
