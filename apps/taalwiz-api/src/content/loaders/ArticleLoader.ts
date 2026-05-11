@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import yaml from 'js-yaml';
+import { z } from 'zod';
 
 import { Logger } from '@nestjs/common';
 import { convertMarkdown } from '../../util/markup.js';
@@ -8,21 +9,23 @@ import Hashtag, { ExtractedHashtag, HashtagDoc } from '../models/hashtag.model.j
 import Topic, { TopicDoc } from '../models/topic.model.js';
 import BaseLoader, { Upload } from './BaseLoader.js';
 
-interface FrontMatterAttributes {
-  author?: string;
-  baseLang?: string;
-  chapter?: string;
-  copyright?: string;
-  foreignLang?: string;
-  groupName?: string;
-  isbn?: string;
-  published?: string;
-  publisher?: string;
-  sortIndex?: string;
-  subtitle?: string;
-  targetLang?: string;
-  title?: string;
-}
+const FrontMatterSchema = z.object({
+  author: z.string().optional(),
+  baseLang: z.string().optional(),
+  chapter: z.string().optional(),
+  copyright: z.string().optional(),
+  foreignLang: z.string().optional(),
+  groupName: z.string().optional(),
+  isbn: z.string().optional(),
+  published: z.string().optional(),
+  publisher: z.string().optional(),
+  sortIndex: z.string().optional(),
+  subtitle: z.string().optional(),
+  targetLang: z.string().optional(),
+  title: z.string().optional(),
+});
+
+type FrontMatterAttributes = z.infer<typeof FrontMatterSchema>;
 
 interface ExtractHashtagResult {
   body: string;
@@ -50,7 +53,14 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     const frontMatter = parts[1];
     const body = parts[2];
 
-    const attributes = yaml.load(frontMatter) as FrontMatterAttributes;
+    const rawAttributes: unknown = yaml.load(frontMatter);
+    const result = FrontMatterSchema.safeParse(rawAttributes ?? {});
+    if (!result.success) {
+      throw new Error(
+        `invalid front matter in ${filename}: ${z.prettifyError(result.error)}`,
+      );
+    }
+    const attributes: FrontMatterAttributes = result.data;
     let title = attributes.title;
 
     // If no title is provided, try to extract it from the content
