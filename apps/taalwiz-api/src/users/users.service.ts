@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
-import { JwtPayload } from '../auth/types/jwtpayload.interface.js';
+import { JwtPayload, JwtPayloadSchema } from '../auth/types/jwtpayload.interface.js';
 import { EnvDto } from '../util/env.dto.js';
 import User, { UserDoc } from './models/user.model.js';
 
@@ -105,7 +105,9 @@ export class UsersService {
     let decoded: JwtPayload;
 
     try {
-      decoded = this.jwtService.verify(token, { secret: env.jwtSecret });
+      decoded = JwtPayloadSchema.parse(
+        this.jwtService.verify(token, { secret: env.jwtSecret }),
+      );
     } catch (_) {
       this.logger.error('Invalid registration token');
       throw new ForbiddenException('TOKEN_INVALID');
@@ -208,7 +210,9 @@ export class UsersService {
   }
 
   async resetPassword(newPassword: string, token: string) {
-    const decoded: JwtPayload = this.jwtService.verify(token, { secret: env.jwtSecret });
+    const decoded: JwtPayload = JwtPayloadSchema.parse(
+      this.jwtService.verify(token, { secret: env.jwtSecret }),
+    );
 
     const user = await User.findById(decoded.sub).exec();
     if (!user) {

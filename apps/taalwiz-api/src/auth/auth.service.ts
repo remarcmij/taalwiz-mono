@@ -7,7 +7,7 @@ import { UsersService } from '../users/users.service.js';
 import { EnvDto } from '../util/env.dto.js';
 import { UserSeedDto } from './dto/user-seed.dto.js';
 import { seedUsers } from './seed/users.seed.js';
-import { JwtPayload } from './types/jwtpayload.interface.js';
+import { JwtPayload, JwtPayloadSchema } from './types/jwtpayload.interface.js';
 
 const env = EnvDto.getInstance();
 
@@ -82,9 +82,11 @@ export class AuthService {
   async refreshToken(refreshToken: string): Promise<any> {
     let decoded: JwtPayload;
     try {
-      decoded = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
-        secret: env.jwtRefreshSecret,
-      });
+      decoded = JwtPayloadSchema.parse(
+        await this.jwtService.verifyAsync(refreshToken, {
+          secret: env.jwtRefreshSecret,
+        }),
+      );
     } catch (err) {
       if (err instanceof Error) {
         this.logger.error(`Verification error: ${err.message}`);
@@ -121,7 +123,9 @@ export class AuthService {
     let decoded: JwtPayload;
 
     try {
-      decoded = this.jwtService.verify<JwtPayload>(token, { secret: env.jwtSecret });
+      decoded = JwtPayloadSchema.parse(
+        this.jwtService.verify(token, { secret: env.jwtSecret }),
+      );
     } catch (_) {
       this.logger.error('Invalid registration token');
       throw new UnauthorizedException();

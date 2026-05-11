@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core/services/index.js';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
-import type { JwtPayload } from '../types/jwtpayload.interface.js';
+import { JwtPayloadSchema } from '../types/jwtpayload.interface.js';
 import { EnvDto } from '../../util/env.dto.js';
 
 const env = EnvDto.getInstance();
@@ -30,9 +30,9 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException();
     }
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(token, {
-        secret: env.jwtSecret,
-      });
+      const payload = JwtPayloadSchema.parse(
+        await this.jwtService.verifyAsync(token, { secret: env.jwtSecret }),
+      );
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request['user'] = payload;
