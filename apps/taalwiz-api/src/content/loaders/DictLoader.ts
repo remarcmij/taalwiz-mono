@@ -1,11 +1,17 @@
 import { Logger } from '@nestjs/common';
 import debounce from 'lodash.debounce';
+import { z } from 'zod';
 import AutoComplete from '../../dictionary/models/completions.model.js';
 import Lemma from '../../dictionary/models/lemma.model.js';
 import type { TopicDoc } from '../models/topic.model.js';
 import BaseLoader, { Upload } from './BaseLoader.js';
 
 const REBUILD_DELAY = 10000; // 10 secs
+
+const DictDataTopLevelSchema = z.object({
+  baseLang: z.string().min(1),
+  lemmas: z.array(z.unknown()),
+});
 
 interface DictDataJson {
   baseLang: string;
@@ -56,7 +62,12 @@ class DictLoader extends BaseLoader<DictDataJson> {
   }, REBUILD_DELAY) as () => void;
 
   protected parseContent(content: string, filename: string): Upload<DictDataJson> {
-    const payload = JSON.parse(content) as DictDataJson;
+    const raw: unknown = JSON.parse(content);
+    const result = DictDataTopLevelSchema.safeParse(raw);
+    if (!result.success) {
+      throw new Error(`invalid dict JSON in ${filename}: ${z.prettifyError(result.error)}`);
+    }
+    const payload = raw as DictDataJson;
 
     const match = filename.match(/^(.+)\.[a-z]\.json$/);
     if (!match) {
