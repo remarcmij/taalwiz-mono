@@ -210,9 +210,19 @@ export class UsersService {
   }
 
   async resetPassword(newPassword: string, token: string) {
-    const decoded: JwtPayload = JwtPayloadSchema.parse(
-      this.jwtService.verify(token, { secret: env.jwtSecret }),
-    );
+    let decoded: JwtPayload;
+
+    try {
+      decoded = JwtPayloadSchema.parse(
+        this.jwtService.verify(token, { secret: env.jwtSecret }),
+      );
+    } catch (err) {
+      this.logger.error('Invalid password reset token');
+      if (err instanceof Error && err.name === 'TokenExpiredError') {
+        throw new ForbiddenException('TOKEN_EXPIRED');
+      }
+      throw new ForbiddenException('TOKEN_INVALID');
+    }
 
     const user = await User.findById(decoded.sub).exec();
     if (!user) {
