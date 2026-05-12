@@ -56,7 +56,8 @@ export class HashtagModalComponent implements OnInit {
 
   onClick(hashtag: IHashtag) {
     this.#modalCtrl.dismiss(null, 'close');
-    this.#router.navigate(['/home/tabs/content/article', hashtag.filename], {
+    // Strip .md so the URL has no file extension (see publication.page.html).
+    this.#router.navigate(['/home/tabs/content/article', hashtag.filename.replace('.md', '')], {
       queryParams: { id: hashtag.id },
       // replaceUrl: true,
     });
