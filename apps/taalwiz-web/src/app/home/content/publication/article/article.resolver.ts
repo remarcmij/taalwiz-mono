@@ -11,5 +11,6 @@ export const articleResolver: ResolveFn<IArticle | null> = (
   route: ActivatedRouteSnapshot,
   _state: RouterStateSnapshot
 ) => {
-  return inject(ContentService).fetchArticle(route.paramMap.get('filename')!);
+  // Restore .md extension stripped from the URL (see publication.page.html).
+  return inject(ContentService).fetchArticle(route.paramMap.get('filename')! + '.md');
 };

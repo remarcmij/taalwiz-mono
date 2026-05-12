@@ -108,12 +108,14 @@ export class PublicationPage {
 
   navigateToArticle(topic: ITopic) {
     if (!this.isReorderMode()) {
+      // Strip .md so the URL has no file extension; dev-server historyApiFallback skips
+      // extension-like paths and serves 404 instead of index.html on live reload.
       this.#router.navigate([
         '/',
         'admin',
         'content',
         'article',
-        topic.filename,
+        topic.filename.replace('.md', ''),
       ]);
     }
   }

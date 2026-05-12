@@ -11,10 +11,12 @@
   <div class="content-container">
     <ion-list>
       @for (topic of topics(); track topic._id) {
+      <!-- Strip .md so the URL has no file extension; dev-server historyApiFallback skips
+           extension-like paths and serves 404 instead of index.html on live reload. -->
       <ion-item
         detail
         button
-        [routerLink]="['/', 'home', 'tabs',  'content', 'article', topic.filename]">
+        [routerLink]="['/', 'home', 'tabs',  'content', 'article', topic.filename.replace('.md', '')]">
         <ion-label>
           <h2>{{ topic.title }}</h2>
           <p>{{ topic.subtitle }}</p>
