@@ -1,10 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
-} from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+} from "@angular/core";
+import { toSignal } from "@angular/core/rxjs-interop";
+import { ActivatedRoute } from "@angular/router";
 import {
   IonButtons,
   IonContent,
@@ -12,17 +13,18 @@ import {
   IonTitle,
   IonToolbar,
   ModalController,
-} from '@ionic/angular/standalone';
-import { filter, first, map } from 'rxjs';
+} from "@ionic/angular/standalone";
+import { filter, first, map } from "rxjs";
 
-import { BackButtonComponent } from '../../../../shared/back-button/back-button.component';
-import { WordClickModalService } from '../../../../shared/word-click-modal/word-click-modal.service';
-import { HashtagModalComponent } from '../../hashtags/hashtag-modal/hashtag-modal.component';
-import { ArticleBodyComponent } from './article-body/article-body.component';
-import { IArticle } from './article.model';
+import { BackButtonComponent } from "../../../../shared/back-button/back-button.component";
+import { WordClickModalService } from "../../../../shared/word-click-modal/word-click-modal.service";
+import { HashtagModalComponent } from "../../hashtags/hashtag-modal/hashtag-modal.component";
+import { ArticleBodyComponent } from "./article-body/article-body.component";
+import { IArticle } from "./article.model";
+import { extractHeadings, type IHeading } from "./extract-headings.util";
 
 @Component({
-  selector: 'app-article',
+  selector: "app-article",
   imports: [
     IonHeader,
     IonToolbar,
@@ -32,8 +34,8 @@ import { IArticle } from './article.model';
     ArticleBodyComponent,
     BackButtonComponent,
   ],
-  templateUrl: './article.page.html',
-  styleUrls: ['./article.page.scss'],
+  templateUrl: "./article.page.html",
+  styleUrls: ["./article.page.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticlePage {
@@ -44,21 +46,25 @@ export class ArticlePage {
   #article$ = this.#route.data.pipe<IArticle>(map(({ article }) => article));
 
   article = toSignal(this.#article$, { initialValue: {} as IArticle });
+  headings = computed<IHeading[]>(() =>
+    extractHeadings(this.article().htmlText),
+  );
 
   ionViewDidEnter() {
+    console.log({ headings: this.headings() });
     this.#route.queryParamMap
       .pipe(
         first(),
-        map((queryParamMap) => queryParamMap.get('id')),
+        map((queryParamMap) => queryParamMap.get("id")),
         filter((hashtagId) => !!hashtagId),
         map((hashtagId) => document.querySelector(`#_${hashtagId}_`)),
-        filter((spanEl) => !!spanEl)
+        filter((spanEl) => !!spanEl),
       )
       .subscribe((spanEl) => {
         spanEl.scrollIntoView({
-          block: 'start',
-          inline: 'start',
-          behavior: 'instant',
+          block: "start",
+          inline: "start",
+          behavior: "instant",
         });
       });
   }
@@ -68,7 +74,7 @@ export class ArticlePage {
       return;
     }
 
-    if (event.target.classList.contains('hashtag')) {
+    if (event.target.classList.contains("hashtag")) {
       const hashtagName = event.target.textContent?.substring(1);
       if (hashtagName) {
         this.openHashtagModal(hashtagName);
