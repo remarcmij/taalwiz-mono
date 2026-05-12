@@ -6,7 +6,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { NavigationEnd, NavigationStart, Router, RouterLink } from '@angular/router';
 
 import { App, AppState } from '@capacitor/app';
 import { Preferences } from '@capacitor/preferences';
@@ -128,6 +128,18 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     App.addListener('appStateChange', this.checkAuthOnResume.bind(this));
+
+    // Blur the focused element when navigation starts so that Ionic can safely
+    // apply aria-hidden to the outgoing page without triggering a browser
+    // accessibility warning about aria-hidden ancestors of focused elements.
+    this.#router.events
+      .pipe(
+        takeUntil(this.#destroy$),
+        filter((event) => event instanceof NavigationStart)
+      )
+      .subscribe(() => {
+        (document.activeElement as HTMLElement)?.blur();
+      });
 
     // Save last url to preferences so that we can land on the same url
     // after a restart.
