@@ -10,10 +10,14 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
+  IonMenuButton,
   IonTitle,
   IonToolbar,
   ModalController,
 } from "@ionic/angular/standalone";
+import { addIcons } from "ionicons";
+import { listOutline } from "ionicons/icons";
 import { filter, first, map } from "rxjs";
 
 import { BackButtonComponent } from "../../../../shared/back-button/back-button.component";
@@ -22,6 +26,7 @@ import { HashtagModalComponent } from "../../hashtags/hashtag-modal/hashtag-moda
 import { ArticleBodyComponent } from "./article-body/article-body.component";
 import { IArticle } from "./article.model";
 import { extractHeadings, type IHeading } from "./extract-headings.util";
+import { TocService } from "./toc.service";
 
 @Component({
   selector: "app-article",
@@ -31,6 +36,8 @@ import { extractHeadings, type IHeading } from "./extract-headings.util";
     IonButtons,
     IonTitle,
     IonContent,
+    IonIcon,
+    IonMenuButton,
     ArticleBodyComponent,
     BackButtonComponent,
   ],
@@ -42,6 +49,11 @@ export class ArticlePage {
   #route = inject(ActivatedRoute);
   #modalCtrl = inject(ModalController);
   #wordClickModalService = inject(WordClickModalService);
+  #tocService = inject(TocService);
+
+  constructor() {
+    addIcons({ listOutline });
+  }
 
   #article$ = this.#route.data.pipe<IArticle>(map(({ article }) => article));
 
@@ -50,8 +62,15 @@ export class ArticlePage {
     extractHeadings(this.article().htmlText),
   );
 
+  ionViewWillEnter() {
+    this.#tocService.headings.set(this.headings());
+  }
+
+  ionViewWillLeave() {
+    this.#tocService.headings.set([]);
+  }
+
   ionViewDidEnter() {
-    console.log({ headings: this.headings() });
     this.#route.queryParamMap
       .pipe(
         first(),

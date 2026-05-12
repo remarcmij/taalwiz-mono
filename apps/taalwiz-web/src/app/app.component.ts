@@ -38,10 +38,12 @@ import {
   IonRouterOutlet,
   IonTitle,
   IonToolbar,
+  MenuController,
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from './auth/auth.service';
 import { User } from './auth/user.model';
+import { TocService } from './home/content/publication/article/toc.service';
 import { SpeechSynthesizerService } from './home/speech-synthesizer.service';
 import { LoggerService } from './shared/logger.service';
 import { PromptUpdateService } from './sw-update/prompt-update.service';
@@ -49,6 +51,7 @@ import { PromptUpdateService } from './sw-update/prompt-update.service';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
+  styleUrl: 'app.component.scss',
   imports: [
     IonApp,
     IonMenu,
@@ -71,13 +74,19 @@ import { PromptUpdateService } from './sw-update/prompt-update.service';
 export class AppComponent implements OnInit, OnDestroy {
   #router = inject(Router);
   #authService = inject(AuthService);
+  #menuCtrl = inject(MenuController);
   #speechService = inject(SpeechSynthesizerService);
   #logger = inject(LoggerService);
   #translate = inject(TranslateService);
 
-  // Inject the PromptUpdateService - this will trigger the service to start
+  // Injected for its side effect only: Angular constructing the singleton starts
+  // the service worker update detection. The field is intentionally never read.
+  // ESLint is suppressed below; TypeScript diagnostic 6133 ("declared but its
+  // value is never read") will still appear — that is expected and harmless.
   // eslint-disable-next-line no-unused-private-class-members
   #updateService = inject(PromptUpdateService);
+
+  protected tocService = inject(TocService);
 
   currentUser = signal<User | null>(null);
   #destroy$ = new Subject<void>();
@@ -139,6 +148,11 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.#destroy$.next();
     this.#destroy$.complete();
+  }
+
+  async onTocClick(headingId: string) {
+    await this.#menuCtrl.close('toc-menu');
+    document.getElementById(headingId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   reload() {

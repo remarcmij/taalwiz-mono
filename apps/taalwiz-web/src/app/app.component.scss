@@ -1,0 +1,19 @@
+ion-menu.toc-menu {
+  ion-item {
+    --min-height: 38px;
+    --inner-padding-top: 2px;
+    --inner-padding-bottom: 2px;
+
+    &.toc-level-1 ion-label {
+      font-weight: 600;
+    }
+
+    &.toc-level-2 ion-label {
+      font-size: 0.9rem;
+    }
+
+    &.toc-level-3 ion-label {
+      font-size: 0.85rem;
+    }
+  }
+}

@@ -6,6 +6,13 @@
     @if (article()) {
     <ion-title>{{ article().title }}</ion-title>
     }
+    @if (headings().length > 0) {
+    <ion-buttons slot="end">
+      <ion-menu-button menu="toc-menu" auto-hide="false">
+        <ion-icon name="list-outline"></ion-icon>
+      </ion-menu-button>
+    </ion-buttons>
+    }
   </ion-toolbar>
 </ion-header>
 

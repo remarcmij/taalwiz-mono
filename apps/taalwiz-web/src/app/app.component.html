@@ -72,5 +72,26 @@
     </ion-content>
   </ion-menu>
 
+  <ion-menu class="toc-menu" side="end" menuId="toc-menu" contentId="main-content">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Contents</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list lines="none">
+        @for (heading of tocService.headings(); track heading.id) {
+        <ion-item
+          button
+          [class]="'toc-level-' + heading.level"
+          [style.--padding-start]="(heading.level - 1) * 12 + 12 + 'px'"
+          (click)="onTocClick(heading.id)">
+          <ion-label>{{ heading.text }}</ion-label>
+        </ion-item>
+        }
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
   <ion-router-outlet id="main-content"></ion-router-outlet>
 </ion-app>
