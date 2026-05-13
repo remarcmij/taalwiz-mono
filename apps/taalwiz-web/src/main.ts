@@ -1,5 +1,6 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
+  APP_INITIALIZER,
   enableProdMode,
   importProvidersFrom,
   isDevMode,
@@ -17,8 +18,9 @@ import {
   IonicRouteStrategy,
   provideIonicAngular,
 } from '@ionic/angular/standalone';
-import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import { firstValueFrom } from 'rxjs';
 
 import { authInterceptor } from './app/auth/auth.interceptor';
 import { AppComponent } from './app/app.component';
@@ -43,8 +45,14 @@ bootstrapApplication(AppComponent, {
     provideTranslateService({
       lang: 'nl',
       fallbackLang: 'en',
-      loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
+      loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json', useHttpBackend: true }),
     }),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (translate: TranslateService) => () => firstValueFrom(translate.use('nl')),
+      deps: [TranslateService],
+      multi: true,
+    },
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(APP_ROUTES, withPreloading(PreloadAllModules)),
     provideIonicAngular({ useSetInputAPI: true }),

@@ -1,5 +1,31 @@
 # Changes — taalwiz-web
 
+## 2026-05-13 — Fix i18n not rendering in zoneless mode
+
+### Problem
+
+In Angular's zoneless change detection mode (no Zone.js), translation keys were rendered as raw strings (e.g. `common.app-name`) instead of translated text. The translation file (`nl.json`) loaded successfully (HTTP 200), but components did not re-render after translations became available.
+
+Two root causes:
+
+1. **No `APP_INITIALIZER` to preload translations.** With Zone.js, `TranslatePipe.markForCheck()` implicitly triggered change detection via Zone.js's async patching. Without Zone.js, `markForCheck()` from an RxJS subscription does not reliably wake the Angular scheduler, so the initial render showed raw keys and no re-render followed.
+
+2. **Circular DI dependency via `authInterceptor`.** `TranslateHttpLoader` used the full `HttpClient` (with interceptors). The `authInterceptor` calls `inject(AuthService)` synchronously during subscription setup. `AuthService` injects `TranslateService`, which was already being constructed — causing `NG0200: Circular dependency detected for AuthService`.
+
+### Changes
+
+- **`useHttpBackend: true`** on `provideTranslateHttpLoader` — translation file requests now go directly to `HttpBackend`, bypassing all HTTP interceptors. This breaks the circular dependency and is semantically correct (translation files are public static assets that need no auth).
+
+- **`APP_INITIALIZER`** — blocks the Angular bootstrap until `nl.json` is loaded. The first render then has translations available synchronously, so no async CD cycle is needed.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/main.ts` | Add `useHttpBackend: true`, add `APP_INITIALIZER` to preload translations |
+
+---
+
 ## 2026-05-13 — Fix two unhandled Observable errors
 
 ### Problem
