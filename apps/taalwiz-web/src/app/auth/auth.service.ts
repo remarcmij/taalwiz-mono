@@ -270,6 +270,11 @@ export class AuthService implements OnDestroy {
     this.#user$.next(null);
     this.#tokenData$.next(null);
     Preferences.remove({ key: 'authData' });
+    this.router.navigateByUrl('/auth');
+  }
+
+  invalidateToken(): void {
+    this.#tokenData$.next(null);
   }
 
   private setUserData(userData: AuthResponseData) {

@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
   enableProdMode,
   importProvidersFrom,
@@ -20,6 +20,7 @@ import {
 import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
+import { authInterceptor } from './app/auth/auth.interceptor';
 import { AppComponent } from './app/app.component';
 import { APP_ROUTES } from './app/app.routes';
 import { environment } from './environments/environment';
@@ -44,7 +45,7 @@ bootstrapApplication(AppComponent, {
       fallbackLang: 'en',
       loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
     }),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(APP_ROUTES, withPreloading(PreloadAllModules)),
     provideIonicAngular({ useSetInputAPI: true }),
     provideZonelessChangeDetection(),

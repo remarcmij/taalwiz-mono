@@ -55,7 +55,7 @@ export class WordClickModalService {
             });
         },
         error: () => {
-          // Do nothing on error
+          target.classList.remove('clicked');
         },
       });
     }
