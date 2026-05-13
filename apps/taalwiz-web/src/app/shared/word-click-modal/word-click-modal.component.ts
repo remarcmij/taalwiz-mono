@@ -109,11 +109,13 @@ export class WordClickModalComponent implements OnInit {
   speakWord() {
     this.#speechService
       .speakSingle(this.clickedWord(), this.lang())
-      .subscribe();
+      .subscribe({ error: () => {} });
   }
 
   speakSentence() {
-    this.#speechService.speakSingle(this.sentence(), this.lang()).subscribe();
+    this.#speechService
+      .speakSingle(this.sentence(), this.lang())
+      .subscribe({ error: () => {} });
   }
 
   constructor() {

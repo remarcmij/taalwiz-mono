@@ -29,6 +29,10 @@ export class AdminService {
           return of([]);
         }
         return this.#http.get<User[]>('/api/v1/users', { headers });
+      }),
+      catchError((error) => {
+        this.#apiErrorAlertService.showError(error);
+        return of([]);
       })
     );
   }

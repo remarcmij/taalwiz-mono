@@ -1,5 +1,30 @@
 # Changes — taalwiz-web
 
+## 2026-05-13 — Fix two unhandled Observable errors
+
+### Problem
+
+Two places in the codebase subscribed to Observables that can emit errors without providing an error handler, causing unhandled exceptions.
+
+1. `AdminService.getUsers()` had no `catchError` operator, so any HTTP failure propagated to the subscriber in `UsersPage.ionViewWillEnter()`, which also had no error handler. The admin user list would silently remain empty with no feedback.
+
+2. `WordClickModalComponent.speakWord()` and `speakSentence()` subscribed to `SpeechSynthesizerService.speakSingle()` without error handlers. The speech service emits `observer.error()` on Web Speech API failures, so those errors surfaced as unhandled exceptions. The error was already logged internally by the service, so no additional UI feedback was needed.
+
+### Changes
+
+- **`AdminService.getUsers()`** — Added `catchError` that calls `ApiErrorAlertService.showError()` and returns `of([])`, matching the pattern used by `getSettings()`.
+
+- **`WordClickModalComponent`** — Added `{ error: () => {} }` handlers to both `speakWord()` and `speakSentence()` subscriptions to suppress the unhandled exception. The speech service already logs the error internally.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/admin/admin.service.ts` | Add `catchError` to `getUsers()` |
+| `src/app/shared/word-click-modal/word-click-modal.component.ts` | Add error handlers to `speakWord()` and `speakSentence()` |
+
+---
+
 ## 2026-05-13 — Reactive 401 handling with automatic token refresh
 
 ### Problem
