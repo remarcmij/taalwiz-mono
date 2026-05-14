@@ -178,35 +178,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   async onTocClick(headingId: string) {
     await this.#menuCtrl.close('toc-menu');
-
-    const el = document.getElementById(headingId);
-    if (!el) return;
-
-    const ionContent = document.querySelector('#main-content ion-content') as HTMLIonContentElement | null;
-    if (!ionContent) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-
-    const scrollEl = await ionContent.getScrollElement();
-    const startY = scrollEl.scrollTop;
-
-    // Let the browser calculate the exact target position, then animate there manually.
-    el.scrollIntoView({ behavior: 'instant', block: 'start' });
-    const targetY = scrollEl.scrollTop;
-    scrollEl.scrollTop = startY;
-
-    if (startY === targetY) return;
-
-    const duration = 200;
-    const startTime = performance.now();
-    const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
-    const step = (now: number) => {
-      const progress = Math.min((now - startTime) / duration, 1);
-      scrollEl.scrollTop = startY + (targetY - startY) * easeInOut(progress);
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
+    document.getElementById(headingId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   reload() {
