@@ -100,12 +100,13 @@ export class DictStoreService {
     return results.sort((a, b) => a.homonym - b.homonym);
   }
 
-  async findByPrefix(
-    prefix: string,
+  async findWordsStartingWith(
+    startString: string,
     lang: string,
     limit: number,
   ): Promise<{ word: string; lang: string }[]> {
-    const range = IDBKeyRange.bound(prefix, prefix + '￿');
+    // U+FFFF is the highest BMP code point and never assigned — anything starting with startString sorts before startString+U+FFFF
+    const range = IDBKeyRange.bound(startString, startString + '￿');
     const index = this.#db!.transaction('lemmas', 'readonly').store.index('by-word');
     const seen = new Set<string>();
     const results: { word: string; lang: string }[] = [];

@@ -49,12 +49,12 @@ export class DictionaryService {
   }
 
   async #fetchSuggestionsAsync(term: string): Promise<WordLang[]> {
-    const prefixes = new IndonesianStemmer().getWordVariations(term);
+    const variations = new IndonesianStemmer().getWordVariations(term);
     const seen = new Set<string>();
     const results: WordLang[] = [];
 
-    for (const prefix of prefixes) {
-      const hits = await this.#dictStore.findByPrefix(prefix, 'id', 10);
+    for (const variation of variations) {
+      const hits = await this.#dictStore.findWordsStartingWith(variation, 'id', 10);
       for (const hit of hits) {
         const key = hit.word + '|' + hit.lang;
         if (!seen.has(key)) {
