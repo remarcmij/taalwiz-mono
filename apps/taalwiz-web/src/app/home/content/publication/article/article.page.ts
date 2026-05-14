@@ -18,7 +18,7 @@ import {
 } from "@ionic/angular/standalone";
 import { addIcons } from "ionicons";
 import { listOutline } from "ionicons/icons";
-import { filter, first, map } from "rxjs";
+import { map } from "rxjs";
 
 import { BackButtonComponent } from "../../../../shared/back-button/back-button.component";
 import { WordClickModalService } from "../../../../shared/word-click-modal/word-click-modal.service";
@@ -71,21 +71,11 @@ export class ArticlePage {
   }
 
   ionViewDidEnter() {
-    this.#route.queryParamMap
-      .pipe(
-        first(),
-        map((queryParamMap) => queryParamMap.get("id")),
-        filter((hashtagId) => !!hashtagId),
-        map((hashtagId) => document.querySelector(`#_${hashtagId}_`)),
-        filter((spanEl) => !!spanEl),
-      )
-      .subscribe((spanEl) => {
-        spanEl.scrollIntoView({
-          block: "start",
-          inline: "start",
-          behavior: "instant",
-        });
-      });
+    const hashtagId = this.#tocService.scrollToId();
+    if (!hashtagId) return;
+    this.#tocService.scrollToId.set(null);
+    const spanEl = document.querySelector(`#_${hashtagId}_`);
+    spanEl?.scrollIntoView({ block: 'start', inline: 'start', behavior: 'instant' });
   }
 
   onClicked(event: MouseEvent) {

@@ -20,6 +20,7 @@ import {
 
 import { Observable } from 'rxjs';
 
+import { TocService } from '../../publication/article/toc.service';
 import { type IArticle } from '../../publication/article/article.model';
 import { type IHashtag } from '../hashtag.model';
 import { HashtagsService } from '../hashtags.service';
@@ -44,6 +45,7 @@ export class HashtagModalComponent implements OnInit {
   #router = inject(Router);
   #modalCtrl = inject(ModalController);
   #hashTagService = inject(HashtagsService);
+  #tocService = inject(TocService);
 
   hashtagName = input.required<string>();
   article = input<IArticle | null>(null);
@@ -56,10 +58,8 @@ export class HashtagModalComponent implements OnInit {
 
   onClick(hashtag: IHashtag) {
     this.#modalCtrl.dismiss(null, 'close');
+    this.#tocService.scrollToId.set(hashtag.id);
     // Strip .md so the URL has no file extension (see publication.page.html).
-    this.#router.navigate(['/home/tabs/content/article', hashtag.filename.replace('.md', '')], {
-      queryParams: { id: hashtag.id },
-      // replaceUrl: true,
-    });
+    this.#router.navigate(['/home/tabs/content/article', hashtag.filename.replace('.md', '')]);
   }
 }
