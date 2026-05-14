@@ -23,10 +23,6 @@ the API for dictionary lookups.
 | `src/dictionary/models/lemma.model.ts` | Mongoose model no longer needed |
 | `src/dictionary/models/completions.model.ts` | Mongoose model no longer needed |
 
-### Post-deploy cleanup
-
-Drop the MongoDB `lemmas` and `words` collections once this is verified in production.
-
 ---
 
 ## 2026-05-14 — Ignore uploaded dict files in Git
