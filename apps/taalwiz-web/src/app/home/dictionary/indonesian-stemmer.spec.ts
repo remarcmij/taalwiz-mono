@@ -1,4 +1,4 @@
-import { IndonesianStemmer } from './indonesian-stemmer.js';
+import { IndonesianStemmer } from './indonesian-stemmer';
 
 describe('IndonesianStemmer', () => {
   let stemmer: IndonesianStemmer;
