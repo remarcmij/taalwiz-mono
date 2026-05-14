@@ -184,15 +184,29 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const ionContent = document.querySelector('#main-content ion-content') as HTMLIonContentElement | null;
     if (!ionContent) {
-      el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
     const scrollEl = await ionContent.getScrollElement();
-    const contentRect = scrollEl.getBoundingClientRect();
-    const elRect = el.getBoundingClientRect();
-    const targetY = scrollEl.scrollTop + elRect.top - contentRect.top;
-    await ionContent.scrollToPoint(0, targetY, 200);
+    const startY = scrollEl.scrollTop;
+
+    // Let the browser calculate the exact target position, then animate there manually.
+    el.scrollIntoView({ behavior: 'instant', block: 'start' });
+    const targetY = scrollEl.scrollTop;
+    scrollEl.scrollTop = startY;
+
+    if (startY === targetY) return;
+
+    const duration = 200;
+    const startTime = performance.now();
+    const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
+    const step = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      scrollEl.scrollTop = startY + (targetY - startY) * easeInOut(progress);
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
 
   reload() {
