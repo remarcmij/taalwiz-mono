@@ -36,6 +36,13 @@
     "contact-sent": "Uw bericht is verzonden. Bedankt voor uw feedback.",
     "contact-failed": "Er is een fout opgetreden bij het verzenden van uw bericht. Probeer het later nog eens."
   },
+  "dictionary": {
+    "sync-downloading": "Woordenboek downloaden voor offline gebruik…",
+    "sync-offline": "Offline — gecached woordenboek wordt gebruikt.",
+    "sync-error": "Synchronisatie mislukt. Wordt opnieuw geprobeerd bij volgende sessie.",
+    "sync-wait": "Woordenboek downloaden…",
+    "sync-done": "Woordenboek gereed voor offline gebruik."
+  },
   "admin": {
     "admin-tasks": "Beheerderstaken"
   },

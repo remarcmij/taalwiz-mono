@@ -36,6 +36,13 @@
     "contact-sent": "Your message was sent successfully. Thank you for your feedback.",
     "contact-failed": "Could not send your message, please try again later."
   },
+  "dictionary": {
+    "sync-downloading": "Downloading dictionary for offline use…",
+    "sync-offline": "Offline — using cached dictionary.",
+    "sync-error": "Dictionary sync failed. Will retry next session.",
+    "sync-wait": "Downloading dictionary…",
+    "sync-done": "Dictionary ready for offline use."
+  },
   "admin": {
     "admin-tasks": "Administative Tasks"
   },

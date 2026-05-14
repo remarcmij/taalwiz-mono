@@ -1,5 +1,5 @@
 export interface ILemma {
-  _id: string;
+  _id?: string;
   word: string;
   lang: string;
   baseWord: string;

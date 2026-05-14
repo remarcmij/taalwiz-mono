@@ -1,3 +1,13 @@
+.sync-banner {
+  font-size: 0.8rem;
+  padding: 4px 16px;
+  color: var(--ion-color-medium);
+}
+
+.sync-error {
+  color: var(--ion-color-danger);
+}
+
 .searchbar {
   max-width: 576px;
   margin: auto;

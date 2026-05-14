@@ -23,6 +23,7 @@ import {
   IonItem,
   IonList,
   IonMenuButton,
+  IonProgressBar,
   IonSearchbar,
   IonTitle,
   IonToolbar,
@@ -42,8 +43,11 @@ import {
   timer,
 } from 'rxjs';
 
+import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
+import { DictStoreService } from './dict-store.service';
+import { DictSyncService, SyncStatus } from './dict-sync.service';
 import { DictionaryService } from './dictionary.service';
 import { LemmaComponent } from './lemma/lemma.component';
 import { SearchbarDropdownComponent } from './searchbar/searchbar-dropdown/searchbar-dropdown.component';
@@ -64,6 +68,7 @@ const MAX_RECENT_SEARCHES = 4;
     IonButtons,
     IonMenuButton,
     IonTitle,
+    IonProgressBar,
     IonSearchbar,
     IonContent,
     IonBreadcrumbs,
@@ -85,6 +90,12 @@ export class DictionaryPage implements OnDestroy {
   #dictionaryService = inject(DictionaryService);
   #wordClickModalService = inject(WordClickModalService);
   #platform = inject(Platform);
+  #dictStore = inject(DictStoreService);
+
+  protected syncStatus = toSignal(inject(DictSyncService).status$, {
+    initialValue: 'idle' as SyncStatus,
+  });
+  protected dictIsEmpty = signal(true);
 
   @ViewChild('searchbarInput', { read: ElementRef }) searchbar!: ElementRef;
   @ViewChild('content', { read: ElementRef }) content!: ElementRef<IonContent>;
@@ -129,6 +140,8 @@ export class DictionaryPage implements OnDestroy {
   }
 
   ionViewWillEnter() {
+    this.#dictStore.count().then((n) => this.dictIsEmpty.set(n === 0));
+
     // Ref: https://github.com/ionic-team/ionic-framework/issues/7223
     const searchInputElement: HTMLInputElement =
       this.searchbar.nativeElement.querySelector('.searchbar-input');

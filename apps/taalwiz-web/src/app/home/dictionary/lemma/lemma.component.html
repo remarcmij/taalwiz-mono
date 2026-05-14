@@ -1,4 +1,4 @@
-@for (lemma of lemmas(); let idx = $index; track lemma._id) {
+@for (lemma of lemmas(); let idx = $index; track idx) {
   <div
     class="noselect markdown-body text-content"
     [innerHTML]="convertMarkdown(lemma.text)"

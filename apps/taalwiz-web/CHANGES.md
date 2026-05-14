@@ -1,5 +1,142 @@
 # Changes — taalwiz-web
 
+## 2026-05-14 — Bug fixes and toast notification found during offline-dictionary testing
+
+### Problem
+
+Three bugs were found while testing the offline dictionary feature:
+
+1. **`DictSyncService`** set `status$` to `'offline'` on any non-200 manifest response,
+   including a 404. A 404 means no dict files have been uploaded yet — not that the device
+   is offline. This caused a misleading "Offline" banner on a fresh install before the first
+   admin upload.
+
+2. **`DictionaryService.fetchSuggestions`** used `authService.user().lang` as the
+   dictionary search language. `user.lang` is the UI language (`'nl'`/`'en'`), never `'id'`,
+   so the Indonesian stemmer was never invoked and `findByPrefix` searched for Dutch words
+   starting with the typed term — returning nothing for Indonesian input.
+
+3. **`DictionaryService.searchLocal`** returned a `LookupResult` from `makeLookupResult()`
+   without setting `targetBase`. `reorderLookupResult` then threw `Cannot read properties
+   of null (reading 'key')` when the user clicked a suggestion.
+
+### Changes
+
+- **`DictSyncService`** — `syncIfNeeded()` now distinguishes a 404 (no dict uploaded yet →
+  `'done'`) from other non-ok responses (server error → `'error'`). Genuine network
+  failures (fetch throws) remain `'offline'`.
+
+- **`DictionaryService.fetchSuggestions`** — Removed `user.lang` from the local search
+  path. The Indonesian stemmer is now always applied and `findByPrefix` always searches
+  `lang: 'id'`, matching the behaviour of the existing API `findAutoCompletions` endpoint.
+
+- **`DictionaryService.searchLocal`** — Sets `targetBase` on the result returned by
+  `makeLookupResult()` before returning, matching the pattern already used by `searchViaApi`.
+
+- **`AppComponent`** — Subscribes to `DictSyncService.status$` with `pairwise()` and shows
+  a toast ("Dictionary ready for offline use") when the status transitions from `'syncing'`
+  to `'done'`. The toast fires app-wide so the admin sees it after uploading new files even
+  if they are not on the dictionary page at the time.
+
+- **`public/i18n/en.json` + `nl.json`** — Added `dictionary.sync-done` translation key.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/dictionary/dict-sync.service.ts` | 404 → `'done'`; non-404 non-ok → `'error'` |
+| `src/app/home/dictionary/dictionary.service.ts` | Always use Indonesian stemmer + `lang: 'id'` for autocomplete; set `targetBase` in `searchLocal` |
+| `src/app/app.component.ts` | Toast on `'syncing' → 'done'` transition |
+| `public/i18n/en.json` | Add `dictionary.sync-done` |
+| `public/i18n/nl.json` | Add `dictionary.sync-done` |
+
+---
+
+## 2026-05-14 — Offline dictionary via IndexedDB (feature branch: feat/offline-dictionary)
+
+### Summary
+
+The dictionary feature previously required a live network connection for every lookup and
+autocomplete request. This change makes the dictionary available offline after the first
+authenticated session by downloading compiled dictionary data into IndexedDB on the device.
+
+### How it works
+
+On first authenticated launch `DictSyncService` fetches `/assets/dict-manifest.json` (a
+lightweight JSON file listing all compiled dictionary files and a version string). If the
+stored version differs — or if IndexedDB is empty — it downloads all listed JSON files in
+parallel, transforms each from the compiled `{baseLang, lemmas[]}` format into flat
+`ILemma` records, and stores them in IndexedDB. On subsequent launches only the version
+string is checked; data is re-downloaded only when the admin has uploaded new dictionary
+files. The API lookup and autocomplete endpoints remain as a fallback for the initial sync
+window when IndexedDB is still empty.
+
+### Changes
+
+- **`DictStoreService`** (new) — IndexedDB wrapper using the `idb` package. Object stores:
+  `lemmas` (auto-increment keys, indexed on `[word, lang]` and `word`) and `meta` (stores
+  the current version string). Provides `open`, `replaceAll`, `findByWordAndLang`,
+  `findByPrefix`, and `count`.
+
+- **`DictSyncService`** (new) — Fetches the manifest and dict files using plain `fetch()`
+  (no auth headers needed — assets are public). Exposes a `status$: BehaviorSubject`
+  (`idle | syncing | done | offline | error`) consumed by the dictionary page UI.
+
+- **`indonesian-stemmer.ts`** (new) — Verbatim copy of the API's stemmer for client-side
+  use. Both copies carry a comment reminding maintainers to keep them in sync.
+
+- **`DictionaryService`** — Lookup and autocomplete now check `DictStoreService.count()`
+  first and serve results from IndexedDB when data is present. Falls back to the API only
+  when the store is empty. The existing pagination loop is preserved in the API path.
+
+- **`DictionaryPage`** — Injects `DictSyncService` and shows a sync status banner in the
+  header: a progress bar during the initial download, an "offline" note when the network
+  is unavailable, and an error note on sync failure. The search input is disabled (with a
+  descriptive placeholder) during the very first sync when the store is still empty.
+
+- **`ILemma.model.ts`** — `_id` made optional (was `string`, now `string | undefined`).
+  IndexedDB records have no MongoDB ObjectId; API responses still carry one.
+
+- **`lemma.component.html`** — Changed `@for` tracking from `lemma._id` to `$index`.
+
+- **`searchbar-dropdown.component.html`** — Changed `@for` tracking from `suggestion._id`
+  to `suggestion.key` (always-present computed property on `WordLang`).
+
+- **`auth.guard.ts`** — Calls `dictSync.init()` (fire-and-forget) after authentication
+  succeeds, covering both fresh login and auto-login.
+
+- **`app.component.ts`** — Calls `dictSync.syncIfNeeded()` on Capacitor app resume so the
+  dictionary re-syncs if the admin uploaded new files while the app was backgrounded.
+
+- **`ngsw-config.json`** — Added `excludeFiles` to the `assets` SW cache group to prevent
+  the service worker from double-caching `dict-manifest.json` and the dict JSON files
+  (IndexedDB is the single source of truth for dictionary data).
+
+- **`public/i18n/en.json` + `nl.json`** — Added `dictionary.*` translation keys for the
+  sync status banner messages.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/dictionary/dict-store.service.ts` | New |
+| `src/app/home/dictionary/dict-sync.service.ts` | New |
+| `src/app/home/dictionary/indonesian-stemmer.ts` | New (copy of API stemmer) |
+| `src/app/home/dictionary/dictionary.service.ts` | Local-first lookup and autocomplete |
+| `src/app/home/dictionary/dictionary.page.ts` | Inject sync services; `dictIsEmpty` signal; `ionViewWillEnter` count check |
+| `src/app/home/dictionary/dictionary.page.html` | Sync status banner; conditional searchbar disabled/placeholder |
+| `src/app/home/dictionary/dictionary.page.scss` | `.sync-banner`, `.sync-error` styles |
+| `src/app/home/dictionary/lemma/lemma.model.ts` | `_id` made optional |
+| `src/app/home/dictionary/lemma/lemma.component.html` | `track $index` instead of `track lemma._id` |
+| `src/app/home/dictionary/searchbar/searchbar-dropdown/searchbar-dropdown.component.html` | `track suggestion.key` instead of `track suggestion._id` |
+| `src/app/auth/auth.guard.ts` | Call `dictSync.init()` on auth success |
+| `src/app/app.component.ts` | Call `dictSync.syncIfNeeded()` on app resume |
+| `ngsw-config.json` | Exclude dict files from SW asset cache |
+| `public/i18n/en.json` | Add `dictionary.*` sync status keys |
+| `public/i18n/nl.json` | Mirror Dutch translations |
+
+---
+
 ## 2026-05-13 — Fix i18n not rendering in zoneless mode
 
 ### Problem

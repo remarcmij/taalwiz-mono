@@ -1,128 +1,57 @@
-import { Logger } from '@nestjs/common';
-import debounce from 'lodash.debounce';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { z } from 'zod';
-import AutoComplete from '../../dictionary/models/completions.model.js';
-import Lemma from '../../dictionary/models/lemma.model.js';
 import type { TopicDoc } from '../models/topic.model.js';
 import BaseLoader, { Upload } from './BaseLoader.js';
-
-const REBUILD_DELAY = 10000; // 10 secs
+import { PUBLIC_ASSETS_DIR, writeDictManifest } from './manifest-writer.js';
 
 const DictDataTopLevelSchema = z.object({
   baseLang: z.string().min(1),
   lemmas: z.array(z.unknown()),
 });
 
-interface DictDataJson {
+interface DictFileMeta {
   baseLang: string;
-  lemmas: Array<{
-    text: string;
-    base: string;
-    homonym: number;
-    words: Array<{
-      word: string;
-      lang: string;
-      keyword: number;
-      order: number;
-    }>;
-  }>;
+  rawContent: string;
 }
 
-class DictLoader extends BaseLoader<DictDataJson> {
-  static debouncedRebuildWordCollection = debounce(async () => {
-    const logger = new Logger(DictLoader.name);
-
-    await AutoComplete.deleteMany({});
-
-    const languages = await Lemma.distinct('lang');
-    const promises = languages.map(async (lang) => {
-      // NOTE: Do not use Lemma.distinct('word') here. On very large collections,
-      // MongoDB distinct() can silently drop values (observed with "korek").
-      // Using find().lean() + a JS Set is slower but reliable.
-      const lemmas = await Lemma.find({ lang }).select('word').lean();
-      const words = [...new Set(lemmas.map((l) => l.word))];
-      return { lang, words };
-    });
-    const results = await Promise.all(promises);
-
-    const bulk = AutoComplete.collection.initializeUnorderedBulkOp();
-
-    for (const result of results) {
-      for (const word of result.words) {
-        bulk.insert({ word, lang: result.lang });
-      }
-    }
-
-    try {
-      await bulk.execute();
-      logger.log('Auto-complete collection rebuilt');
-    } catch (error) {
-      logger.error(`auto-complete collection bulk insert error: ${(error as Error).message}`);
-    }
-  }, REBUILD_DELAY) as () => void;
-
-  protected parseContent(content: string, filename: string): Upload<DictDataJson> {
+class DictFileLoader extends BaseLoader<DictFileMeta> {
+  protected parseContent(content: string, filename: string): Upload<DictFileMeta> {
     const raw: unknown = JSON.parse(content);
     const result = DictDataTopLevelSchema.safeParse(raw);
     if (!result.success) {
       throw new Error(`invalid dict JSON in ${filename}: ${z.prettifyError(result.error)}`);
     }
-    const payload = raw as DictDataJson;
 
     const match = filename.match(/^(.+)\.[a-z]\.json$/);
     if (!match) {
       throw new Error(`ill-formed filename: ${filename}`);
     }
-
     const groupName = match[1];
 
     return {
       topic: {
-        filename: filename,
+        filename,
         type: 'dict',
         groupName,
         title: groupName.charAt(0).toUpperCase() + groupName.slice(1),
-        baseLang: payload.baseLang,
+        baseLang: result.data.baseLang,
       },
-      payload,
+      payload: { baseLang: result.data.baseLang, rawContent: content },
     };
   }
 
-  protected async createData(topic: TopicDoc, data: Upload<DictDataJson>): Promise<void> {
-    const bulk = Lemma.collection.initializeUnorderedBulkOp();
-    const { lemmas, baseLang } = data.payload;
-
-    let insertCount = 0;
-    for (const lemmaDef of lemmas) {
-      for (const wordDef of lemmaDef.words) {
-        bulk.insert({
-          text: lemmaDef.text,
-          word: wordDef.word,
-          lang: wordDef.lang,
-          keyword: wordDef.keyword !== 0,
-          baseWord: lemmaDef.base,
-          baseLang: baseLang,
-          order: wordDef.order,
-          homonym: lemmaDef.homonym,
-          groupName: data.topic.groupName,
-          _topic: topic._id,
-        });
-        insertCount++;
-      }
-    }
-
-    if (insertCount === 0) {
-      return;
-    }
-
-    await bulk.execute();
-    DictLoader.debouncedRebuildWordCollection();
+  protected async createData(_topic: TopicDoc, data: Upload<DictFileMeta>): Promise<void> {
+    const filename = data.topic.filename as string;
+    await fs.writeFile(path.join(PUBLIC_ASSETS_DIR, filename), data.payload.rawContent, 'utf8');
+    await writeDictManifest();
   }
 
   protected async removeData(topic: TopicDoc): Promise<void> {
-    await Lemma.deleteMany({ _topic: topic._id }).exec();
-    DictLoader.debouncedRebuildWordCollection();
+    const filename = topic.filename as string;
+    await fs.rm(path.join(PUBLIC_ASSETS_DIR, filename), { force: true });
+    await writeDictManifest();
   }
 }
 
-export default DictLoader;
+export default DictFileLoader;

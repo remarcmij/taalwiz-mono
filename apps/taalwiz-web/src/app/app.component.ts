@@ -21,7 +21,7 @@ import {
   shieldHalfOutline,
 } from 'ionicons/icons';
 
-import { filter, first, Subject, takeUntil } from 'rxjs';
+import { filter, first, pairwise, Subject, takeUntil } from 'rxjs';
 import { environment } from '../environments/environment';
 
 import {
@@ -39,9 +39,11 @@ import {
   IonTitle,
   IonToolbar,
   MenuController,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from './auth/auth.service';
+import { DictSyncService } from './home/dictionary/dict-sync.service';
 import { User } from './auth/user.model';
 import { TocService } from './home/content/publication/article/toc.service';
 import { SpeechSynthesizerService } from './home/speech-synthesizer.service';
@@ -74,7 +76,9 @@ import { PromptUpdateService } from './sw-update/prompt-update.service';
 export class AppComponent implements OnInit, OnDestroy {
   #router = inject(Router);
   #authService = inject(AuthService);
+  #dictSync = inject(DictSyncService);
   #menuCtrl = inject(MenuController);
+  #toastCtrl = inject(ToastController);
   #speechService = inject(SpeechSynthesizerService);
   #logger = inject(LoggerService);
   #translate = inject(TranslateService);
@@ -127,6 +131,16 @@ export class AppComponent implements OnInit, OnDestroy {
       this.#logger.error('AppComponent', 'speech synthesis is NOT available');
     }
 
+    this.#dictSync.status$
+      .pipe(
+        pairwise(),
+        filter(([prev, curr]) => prev === 'syncing' && curr === 'done'),
+        takeUntil(this.#destroy$)
+      )
+      .subscribe(() => {
+        void this.#showSyncDoneToast();
+      });
+
     App.addListener('appStateChange', this.checkAuthOnResume.bind(this));
 
     // Blur the focused element when navigation starts so that Ionic can safely
@@ -171,6 +185,15 @@ export class AppComponent implements OnInit, OnDestroy {
     document.location.reload();
   }
 
+  async #showSyncDoneToast() {
+    const toast = await this.#toastCtrl.create({
+      message: this.#translate.instant('dictionary.sync-done'),
+      duration: 3000,
+      position: 'bottom',
+    });
+    await toast.present();
+  }
+
   private checkAuthOnResume(state: AppState) {
     if (state.isActive) {
       this.#authService
@@ -179,6 +202,8 @@ export class AppComponent implements OnInit, OnDestroy {
         .subscribe((success) => {
           if (!success) {
             this.onLogout();
+          } else {
+            void this.#dictSync.syncIfNeeded();
           }
         });
     }

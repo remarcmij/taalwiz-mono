@@ -1,4 +1,4 @@
-// Kept in sync with apps/taalwiz-web/src/app/home/dictionary/indonesian-stemmer.ts — update both together.
+// Kept in sync with apps/taalwiz-api/src/util/indonesian-stemmer.ts — update both together.
 const WordExemptions: string[] = [
   'aku',
   'ilmu',
