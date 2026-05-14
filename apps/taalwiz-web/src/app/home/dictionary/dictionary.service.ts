@@ -49,11 +49,11 @@ export class DictionaryService {
   }
 
   async #fetchSuggestionsAsync(term: string): Promise<WordLang[]> {
-    const variations = new IndonesianStemmer().getWordVariations(term);
+    const idVariations = new IndonesianStemmer().getWordVariations(term);
     const seen = new Set<string>();
     const results: WordLang[] = [];
 
-    for (const variation of variations) {
+    for (const variation of idVariations) {
       const hits = await this.#dictStore.findWordsStartingWith(variation, 'id', 10);
       for (const hit of hits) {
         const key = hit.word + '|' + hit.lang;
@@ -64,6 +64,21 @@ export class DictionaryService {
         if (results.length >= 10) break;
       }
       if (results.length >= 10) break;
+    }
+
+    if (results.length < 10) {
+      const nlHits = await this.#dictStore.findWordsStartingWith(
+        term.toLowerCase(),
+        'nl',
+        10 - results.length,
+      );
+      for (const hit of nlHits) {
+        const key = hit.word + '|' + hit.lang;
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push(new WordLang(hit.word, hit.lang));
+        }
+      }
     }
 
     return results;
