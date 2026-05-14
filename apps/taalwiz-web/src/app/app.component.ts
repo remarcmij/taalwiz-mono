@@ -178,7 +178,21 @@ export class AppComponent implements OnInit, OnDestroy {
 
   async onTocClick(headingId: string) {
     await this.#menuCtrl.close('toc-menu');
-    document.getElementById(headingId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const el = document.getElementById(headingId);
+    if (!el) return;
+
+    const ionContent = document.querySelector('#main-content ion-content') as HTMLIonContentElement | null;
+    if (!ionContent) {
+      el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      return;
+    }
+
+    const scrollEl = await ionContent.getScrollElement();
+    const contentRect = scrollEl.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const targetY = scrollEl.scrollTop + elRect.top - contentRect.top;
+    await ionContent.scrollToPoint(0, targetY, 200);
   }
 
   reload() {
