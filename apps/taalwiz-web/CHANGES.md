@@ -1,5 +1,24 @@
 # Changes — taalwiz-web
 
+## 2026-05-14 — Remove MongoDB API fallback from DictionaryService
+
+Dictionary lookups are now IndexedDB-only. All three lookup paths (`searchDictionary`,
+`fetchSuggestions`, `fetchWordLemmas`) no longer fall back to the NestJS API when
+IndexedDB is empty. `searchViaApi`, `execSearchRequest`, and `handleError` have been
+removed along with their dependencies (`HttpClient`, `AuthService`, `AlertController`,
+`TranslateService`).
+
+If the local store is empty (dict sync not yet complete), searches return empty results
+silently — the sync-status banner already informs the user that the dictionary is loading.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/dictionary/dictionary.service.ts` | Removed MongoDB fallback; IndexedDB-only |
+
+---
+
 ## 2026-05-14 — Bug fixes and toast notification found during offline-dictionary testing
 
 ### Problem

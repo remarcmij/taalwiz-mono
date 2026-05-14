@@ -1,22 +1,10 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { AlertController } from '@ionic/angular/standalone';
-import { TranslateService } from '@ngx-translate/core';
-import { catchError, from, map, Observable, of, Subject, switchMap } from 'rxjs';
+import { from, Observable, Subject } from 'rxjs';
 
-import { AuthService } from '../../auth/auth.service';
 import { DictStoreService } from './dict-store.service';
 import { IndonesianStemmer } from './indonesian-stemmer';
 import { type ILemma } from './lemma/lemma.model';
 import { WordLang } from './word-lang.model';
-
-interface SearchRequest {
-  word: string;
-  lang: string;
-  keyword?: boolean;
-  skip?: number;
-  limit?: number;
-}
 
 class LookupResult {
   targetBase: WordLang | null = null;
@@ -32,16 +20,10 @@ interface LookupResponse {
   haveMore: boolean;
 }
 
-const LIMIT = 50;
-
 @Injectable({
   providedIn: 'root',
 })
 export class DictionaryService {
-  #http = inject(HttpClient);
-  #authService = inject(AuthService);
-  #alertCtrl = inject(AlertController);
-  #translate = inject(TranslateService);
   #dictStore = inject(DictStoreService);
 
   #lookupResult$ = new Subject<LookupResult>();
@@ -52,66 +34,42 @@ export class DictionaryService {
   }
 
   fetchSuggestions(term: string): Observable<WordLang[]> {
-    return from(this.#dictStore.count()).pipe(
-      switchMap(async (count) => {
-        if (count > 0) {
-          const prefixes = new IndonesianStemmer().getWordVariations(term);
-
-          const seen = new Set<string>();
-          const results: WordLang[] = [];
-
-          for (const prefix of prefixes) {
-            const hits = await this.#dictStore.findByPrefix(prefix, 'id', 10);
-            for (const hit of hits) {
-              const key = hit.word + '|' + hit.lang;
-              if (!seen.has(key)) {
-                seen.add(key);
-                results.push(new WordLang(hit.word, hit.lang));
-              }
-              if (results.length >= 10) break;
-            }
-            if (results.length >= 10) break;
-          }
-
-          return results;
-        }
-        return null;
-      }),
-      switchMap((results) => {
-        if (results !== null) return of(results);
-        return this.#authService.getRequestHeaders().pipe(
-          switchMap((headers) =>
-            this.#http.get<WordLang[]>(`/api/v1/dictionary/autocomplete/${term}`, {
-              headers,
-            })
-          )
-        );
-      })
-    );
+    return from(this.#fetchSuggestionsAsync(term));
   }
 
   searchDictionary(target: WordLang, searchWord?: string) {
-    from(this.#dictStore.count())
-      .pipe(
-        switchMap(async (count) => {
-          if (count > 0) {
-            const result = await this.searchLocal(target, searchWord);
-            reorderLookupResult(result);
-            return result;
-          }
-          return null;
-        })
-      )
-      .subscribe((result) => {
-        if (result !== null) {
-          this.#lookupResult$.next(result);
-        } else {
-          this.searchViaApi(target, searchWord);
-        }
-      });
+    from(this.#searchLocal(target, searchWord)).subscribe((result) => {
+      reorderLookupResult(result);
+      this.#lookupResult$.next(result);
+    });
   }
 
-  private async searchLocal(target: WordLang, searchWord?: string): Promise<LookupResult> {
+  fetchWordLemmas(word: string, lang: string): Observable<LookupResponse> {
+    return from(this.#fetchWordLemmasAsync(word, lang));
+  }
+
+  async #fetchSuggestionsAsync(term: string): Promise<WordLang[]> {
+    const prefixes = new IndonesianStemmer().getWordVariations(term);
+    const seen = new Set<string>();
+    const results: WordLang[] = [];
+
+    for (const prefix of prefixes) {
+      const hits = await this.#dictStore.findByPrefix(prefix, 'id', 10);
+      for (const hit of hits) {
+        const key = hit.word + '|' + hit.lang;
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push(new WordLang(hit.word, hit.lang));
+        }
+        if (results.length >= 10) break;
+      }
+      if (results.length >= 10) break;
+    }
+
+    return results;
+  }
+
+  async #searchLocal(target: WordLang, searchWord?: string): Promise<LookupResult> {
     const result = new LookupResult();
     result.targetBase = target;
 
@@ -133,104 +91,18 @@ export class DictionaryService {
     return result;
   }
 
-  private searchViaApi(target: WordLang, searchWord?: string) {
-    let skip = 0;
-    const combinedResult = new LookupResult();
-    combinedResult.targetBase = target;
-
-    const doSearch = () => {
-      this.execSearchRequest({
-        word: searchWord ?? target.word,
-        lang: target.lang,
-        skip,
-        limit: LIMIT,
-      })
-        .pipe(
-          map((data) => makeLookupResult(data)),
-          map((nextResult) => mergeLookupResult(combinedResult, nextResult)),
-          catchError(() => {
-            this.handleError();
-            combinedResult.haveMore = false;
-            return of(combinedResult);
-          })
-        )
-        .subscribe((results) => {
-          reorderLookupResult(results);
-          this.#lookupResult$.next(results);
-          if (results.haveMore) {
-            skip += LIMIT;
-            doSearch();
-          }
-        });
-    };
-
-    doSearch();
-  }
-
-  private handleError() {
-    this.#alertCtrl
-      .create({
-        header: this.#translate.instant('common.search-alert-header'),
-        message: this.#translate.instant('common.search-alert-message'),
-        buttons: [this.#translate.instant('common.close')],
-      })
-      .then((alertEl) => {
-        alertEl.present();
-      });
-  }
-
-  fetchWordLemmas(word: string, lang: string): Observable<LookupResponse> {
-    return from(this.#dictStore.count()).pipe(
-      switchMap(async (count): Promise<LookupResponse | null> => {
-        if (count > 0) {
-          const variations =
-            lang === 'nl'
-              ? word.split(',').map((w) => w.trim())
-              : new IndonesianStemmer().getWordVariations(word);
-          for (const w of variations) {
-            const lemmas = await this.#dictStore.findByWordAndLang(w, lang);
-            if (lemmas.length > 0) {
-              return { word: w, lang, lemmas, haveMore: false };
-            }
-          }
-          return { word, lang, lemmas: [], haveMore: false };
-        }
-        return null;
-      }),
-      switchMap((result) => {
-        if (result !== null) return of(result);
-        return this.execSearchRequest({ word, lang, keyword: true });
-      })
-    );
-  }
-
-  execSearchRequest(searchRequest: SearchRequest) {
-    const { word, lang, keyword, skip, limit } = searchRequest;
-    let params = new HttpParams();
-
-    if (keyword !== undefined) {
-      params = params.set('keyword', keyword ? '1' : '0');
+  async #fetchWordLemmasAsync(word: string, lang: string): Promise<LookupResponse> {
+    const variations =
+      lang === 'nl'
+        ? word.split(',').map((w) => w.trim())
+        : new IndonesianStemmer().getWordVariations(word);
+    for (const w of variations) {
+      const lemmas = await this.#dictStore.findByWordAndLang(w, lang);
+      if (lemmas.length > 0) {
+        return { word: w, lang, lemmas, haveMore: false };
+      }
     }
-
-    if (typeof skip === 'number') {
-      params = params.set('skip', String(skip));
-    }
-
-    if (typeof limit === 'number') {
-      params = params.set('limit', String(limit));
-    }
-
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        const url = `/api/v1/dictionary/find/${encodeURIComponent(
-          word
-        )}/${encodeURIComponent(lang)}`;
-        return this.#http.get<LookupResponse>(url, {
-          headers,
-          params,
-        });
-      })
-    );
+    return { word, lang, lemmas: [], haveMore: false };
   }
 }
 
@@ -252,26 +124,6 @@ function makeLookupResult(response: LookupResponse) {
   return newResult;
 }
 
-function mergeLookupResult(combinedResult: LookupResult, nextResult: LookupResult) {
-  combinedResult.haveMore = nextResult.haveMore;
-
-  nextResult.bases.forEach((base) => {
-    const { key } = base;
-
-    const newLemmas = nextResult.lemmas[key];
-    const prevLemmas = combinedResult.lemmas[key];
-    if (!prevLemmas) {
-      combinedResult.lemmas[key] = newLemmas;
-      combinedResult.bases.push(base);
-    } else {
-      combinedResult.lemmas[key] = prevLemmas.concat(newLemmas);
-    }
-  });
-
-  return combinedResult;
-}
-
-// Ensure the target base is the first one in the list
 function reorderLookupResult(result: LookupResult) {
   const headBase = result.bases.find((base) => base.key === result.targetBase!.key);
   if (headBase) {

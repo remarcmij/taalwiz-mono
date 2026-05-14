@@ -5,7 +5,6 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'node:path';
 import { AuthModule } from './auth/auth.module.js';
 import { ContentModule } from './content/content.module.js';
-import { DictionaryModule } from './dictionary/dictionary.module.js';
 import { HashtagModule } from './hashtag/hashtag.module.js';
 import { UsersModule } from './users/users.module.js';
 import { EnvDto } from './util/env.dto.js';
@@ -14,7 +13,6 @@ const env = EnvDto.getInstance();
 
 @Module({
   imports: [
-    DictionaryModule,
     AuthModule,
     UsersModule,
     ContentModule,

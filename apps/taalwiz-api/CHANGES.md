@@ -1,5 +1,34 @@
 # Changes — taalwiz-api
 
+## 2026-05-14 — Remove MongoDB dictionary endpoints
+
+The `DictionaryModule` has been deleted entirely. This includes the `/api/v1/dictionary/find`
+and `/api/v1/dictionary/autocomplete` endpoints, the `DictionaryService`, `DictionaryController`,
+the `Lemma` and `AutoCompletions` Mongoose models, and all associated DTOs.
+
+Dictionary data is now served exclusively as static JSON assets via `ServeStaticModule`. The
+Angular client reads from IndexedDB (populated at startup from those assets) and never calls
+the API for dictionary lookups.
+
+### Files removed
+
+| File | Reason |
+|------|--------|
+| `src/dictionary/dictionary.controller.ts` | Endpoints no longer needed |
+| `src/dictionary/dictionary.controller.spec.ts` | Controller deleted |
+| `src/dictionary/dictionary.service.ts` | MongoDB queries removed |
+| `src/dictionary/dictionary.module.ts` | Module deleted |
+| `src/dictionary/dto/find-word-params.dto.ts` | DTO no longer needed |
+| `src/dictionary/dto/find-word-query.dto.ts` | DTO no longer needed |
+| `src/dictionary/models/lemma.model.ts` | Mongoose model no longer needed |
+| `src/dictionary/models/completions.model.ts` | Mongoose model no longer needed |
+
+### Post-deploy cleanup
+
+Drop the MongoDB `lemmas` and `words` collections once this is verified in production.
+
+---
+
 ## 2026-05-14 — Ignore uploaded dict files in Git
 
 Added `.gitignore` entries for `public/assets/dict-manifest.json` and
