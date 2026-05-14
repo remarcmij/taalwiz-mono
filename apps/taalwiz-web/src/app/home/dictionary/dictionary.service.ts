@@ -179,6 +179,31 @@ export class DictionaryService {
       });
   }
 
+  fetchWordLemmas(word: string, lang: string): Observable<LookupResponse> {
+    return from(this.#dictStore.count()).pipe(
+      switchMap(async (count): Promise<LookupResponse | null> => {
+        if (count > 0) {
+          const variations =
+            lang === 'nl'
+              ? word.split(',').map((w) => w.trim())
+              : new IndonesianStemmer().getWordVariations(word);
+          for (const w of variations) {
+            const lemmas = await this.#dictStore.findByWordAndLang(w, lang);
+            if (lemmas.length > 0) {
+              return { word: w, lang, lemmas, haveMore: false };
+            }
+          }
+          return { word, lang, lemmas: [], haveMore: false };
+        }
+        return null;
+      }),
+      switchMap((result) => {
+        if (result !== null) return of(result);
+        return this.execSearchRequest({ word, lang, keyword: true });
+      })
+    );
+  }
+
   execSearchRequest(searchRequest: SearchRequest) {
     const { word, lang, keyword, skip, limit } = searchRequest;
     let params = new HttpParams();

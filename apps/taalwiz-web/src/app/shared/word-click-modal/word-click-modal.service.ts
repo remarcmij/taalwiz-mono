@@ -62,13 +62,7 @@ export class WordClickModalService {
   }
 
   fetchLemmas(word: string, lang: string) {
-    const searchRequest = {
-      word: word,
-      lang: lang,
-      keyword: true,
-    };
-
-    return this.dictionaryService.execSearchRequest(searchRequest);
+    return this.dictionaryService.fetchWordLemmas(word, lang);
   }
 
   getWordClickParams(target: HTMLElement): WordLang | null {
