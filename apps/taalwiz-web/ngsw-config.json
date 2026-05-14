@@ -33,6 +33,16 @@
   ],
   "dataGroups": [
     {
+      "name": "content-api",
+      "urls": ["/api/v1/content/**"],
+      "cacheConfig": {
+        "maxSize": 200,
+        "maxAge": "14d",
+        "timeout": "3s",
+        "strategy": "freshness"
+      }
+    },
+    {
       "name": "publication-images",
       "urls": ["/assets/images/*.(jpg|png)"],
       "cacheConfig": {
