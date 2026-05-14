@@ -50,6 +50,7 @@ export function transformDict(data: CompiledDict): ILemma[] {
       records.push({
         word: wordDef.word,
         lang: wordDef.lang,
+        keyword: wordDef.keyword,
         baseWord: lemma.base,
         baseLang: data.baseLang,
         text: lemma.text,
@@ -91,13 +92,15 @@ export class DictStoreService {
     await tx.done;
   }
 
-  async findByWordAndLang(word: string, lang: string): Promise<ILemma[]> {
+  async findByWordAndLang(word: string, lang: string, keywordOnly = false): Promise<ILemma[]> {
     const results = await this.#db!.getAllFromIndex(
       'lemmas',
       'by-word-lang',
       IDBKeyRange.only([word, lang]),
     );
-    return results.sort((a, b) => a.homonym - b.homonym);
+    return results
+      .filter((lemma) => !keywordOnly || (lemma.keyword ?? 1) === 1)
+      .sort((a, b) => a.homonym - b.homonym);
   }
 
   async findWordsStartingWith(
