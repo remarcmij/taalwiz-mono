@@ -32,7 +32,7 @@ graph TD
 
     subgraph Features ["Lazy-loaded features"]
         auth["auth/\n(login, register, password)"]
-        home["home/\n(tabs: content | dictionary | hashtags)"]
+        home["home/\n(tabs: content | dictionary | hashtags | bookmarks)"]
         admin["admin/\n(users, content, upload, settings)"]
         user["user/\n(welcome, contact, about)"]
     end
@@ -81,6 +81,11 @@ src/app/
 ├── home/                     # Main tabbed feature
 │   ├── home.page.ts          # Tab container
 │   ├── speech-synthesizer.service.ts
+│   ├── bookmarks/            # My Words sub-feature
+│   │   ├── bookmark.service.ts
+│   │   ├── bookmarks.page.ts
+│   │   ├── bookmarks.page.html
+│   │   └── bookmarks.page.scss
 │   ├── content/              # Content sub-feature
 │   │   ├── content.service.ts
 │   │   ├── markdown.service.ts
@@ -92,8 +97,10 @@ src/app/
 │       ├── dictionary.service.ts
 │       ├── dict-sync.service.ts
 │       ├── dict-store.service.ts
+│       ├── search-history.service.ts
 │       ├── indonesian-stemmer.ts
 │       ├── word-lang.model.ts
+│       ├── history-modal/
 │       ├── searchbar/
 │       └── lemma/
 │
@@ -146,6 +153,7 @@ flowchart TD
     tabs --> dict_tab["/home/tabs/dictionary"]
     dict_tab --> lemma["/home/tabs/dictionary/:word/:lang"]
     tabs --> hashtags_tab["/home/tabs/hashtags"]
+    tabs --> bookmarks_tab["/home/tabs/bookmarks"]
 
     admin_r["/admin\n(adminGuard)"]
     admin_r --> users["/admin/users"]
@@ -179,7 +187,7 @@ Login, registration (invite-only with token), and password-reset flows. `AuthSer
 
 ### 4.2 Home (tabs)
 
-Three peer tabs sharing the same Ionic tab bar:
+Four peer tabs sharing the same Ionic tab bar:
 
 ```mermaid
 graph LR
@@ -187,6 +195,7 @@ graph LR
     HomePage --> Content["Content tab\n/content"]
     HomePage --> Dictionary["Dictionary tab\n/dictionary"]
     HomePage --> Hashtags["Hashtags tab\n/hashtags"]
+    HomePage --> Bookmarks["My Words tab\n/bookmarks"]
 
     Content --> Publication["Publication list\n(per groupName)"]
     Publication --> Article["Article page\n(markdown → HTML)"]
@@ -197,6 +206,9 @@ graph LR
     Searchbar --> Lemma["Lemma page\n(definitions)"]
 
     Hashtags --> HashtagList["Hashtag list\n(cross-publication index)"]
+
+    Bookmarks --> ChipBar["List chip bar\n(BookmarkService.lists)"]
+    Bookmarks --> WordList["Saved words\n(swipe to remove)"]
 ```
 
 **Article flow:** `ArticleResolver` pre-fetches the article. `MarkdownService` converts `mdText` to HTML, wrapping foreign-language spans. Headings are extracted by `extract-headings.util.ts` and stored in `TocService`. Clicking a word opens `WordClickModalComponent` via `WordClickModalService`, which calls `DictionaryService` for lemma lookup.
@@ -228,6 +240,13 @@ graph TD
 
     TocService -->|signal| headings
     TocService -->|signal| scrollToId
+
+    BookmarkService -->|signal| lists["lists\nBookmarkList[] with counts"]
+    BookmarkService -->|signal| currentListId
+    BookmarkService -->|signal| bookmarks["bookmarks\nBookmarkEntry[] for current list"]
+    BookmarkService -->|signal| bookmarkedKeys["bookmarkedKeys\nSet&lt;string&gt; for O(1) lookup"]
+
+    SearchHistoryService -->|signal| history["history\nHistoryEntry[] newest-first"]
 ```
 
 `AuthService` exposes `user()` — a signal derived from `user$` via `toSignal()`. `AppComponent.currentUser` is a direct alias to this signal; there is no separate local copy. Components use `OnPush` change detection; zoneless change detection is enabled app-wide.
@@ -239,9 +258,11 @@ graph TD
 | Service | Location | Responsibility |
 |---|---|---|
 | `AuthService` | `auth/` | JWT + refresh-token management, login/logout, auto-login (Capacitor Preferences) |
+| `BookmarkService` | `home/bookmarks/` | Named list management; bookmark add/remove with optimistic UI; cross-device current-list sync via `UserPreferences` API |
 | `DictSyncService` | `home/dictionary/` | Fetch manifest, download & compile dict bundles, write to IndexedDB |
 | `DictStoreService` | `home/dictionary/` | IndexedDB CRUD wrapper (`taalwiz-dict` DB) |
 | `DictionaryService` | `home/dictionary/` | Lookup with Indonesian stemmer, manage `lookupResult$` |
+| `SearchHistoryService` | `home/dictionary/` | Persist search history (up to 50 entries) via Capacitor Preferences; deduplication on add |
 | `ContentService` | `home/content/` | Fetch publications & articles from API, in-memory cache |
 | `MarkdownService` | `home/content/` | Markdown → HTML with foreign-language span injection |
 | `TocService` | `home/content/…/article/` | Extract headings, scroll-to signal |
@@ -421,6 +442,25 @@ classDiagram
         +number sortIndex
     }
 
+    class BookmarkEntry {
+        +string word
+        +string lang
+        +string listId
+        +string savedAt
+    }
+
+    class BookmarkList {
+        +string id
+        +string name
+        +number count
+    }
+
+    class UserPreferences {
+        +string currentBookmarkListId
+    }
+
     IArticle --> ITopic : belongs to
     ILemma --> ILemma : baseWord reference
+    BookmarkEntry --> BookmarkList : belongs to
+    UserPreferences --> BookmarkList : currentList
 ```

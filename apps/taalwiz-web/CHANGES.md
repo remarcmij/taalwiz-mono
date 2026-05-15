@@ -1,12 +1,35 @@
 # Changes — taalwiz-web
 
+## 2026-05-15 — Named bookmark lists
+
+Multiple named word lists per user. The "My Words" tab gains a chip bar for switching between lists; a toolbar "+" button creates new lists; a pencil icon renames; an × icon deletes (with a confirmation dialog showing the word count). All bookmarks are saved to the currently selected list.
+
+### Changes
+
+- **`BookmarkService`** — Extended with `lists` (all lists with counts), `currentListId`, and `currentList` computed signals. `#initLists()` fetches lists from the API on login, with server-side preference winning over the local device preference for the selected list. `setCurrentList`, `createList`, `deleteList`, and `renameList` manage list state with optimistic UI updates and API rollback on error. Cross-device list selection is synced via `GET/PATCH /api/v1/user-preferences`. Local device preference is stored in Capacitor Preferences (key `bookmarkCurrentListId`) and cleared on logout.
+
+- **`BookmarksPage`** — Second `ion-toolbar` hosts a horizontal chip bar. The active chip is colored `primary`; inactive chips are `medium`. Each chip has a pencil icon (rename) and × icon (delete) that call `$event.stopPropagation()` to avoid switching the selection. Alert inputs receive focus automatically after the Ionic animation completes (`document.querySelector('ion-alert input')?.focus()`). Three content states: no lists / no bookmarks in current list / word list.
+
+- **`public/i18n/en.json` + `nl.json`** — Added `common.ok`; added `bookmarks.no-lists`, `bookmarks.create-list`, `bookmarks.list-name-placeholder`, `bookmarks.delete-list-title`, `bookmarks.delete-list-message`, `bookmarks.delete-empty-list-message`, `bookmarks.rename-list-title`.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/bookmarks/bookmark.service.ts` | `lists`/`currentListId` signals; list CRUD; cross-device sync via UserPreferences |
+| `src/app/home/bookmarks/bookmarks.page.ts` | `AlertController`; `openCreateListAlert`, `confirmDeleteList`, `openRenameListAlert` |
+| `src/app/home/bookmarks/bookmarks.page.html` | Chip bar toolbar; three content states |
+| `src/app/home/bookmarks/bookmarks.page.scss` | `.chip-bar` styles |
+| `public/i18n/en.json` | New list management i18n keys |
+| `public/i18n/nl.json` | Dutch equivalents |
+
+---
+
 ## 2026-05-15 — Word bookmarks ("My Words")
 
 ### Summary
 
 Users can now save dictionary words for later review. A bookmark icon appears on each dictionary lemma card and in the word-click modal. A new "My Words" tab lists all saved words; tapping one navigates to the dictionary and runs the lookup. Bookmarks are stored server-side (MongoDB) so they persist across devices and sessions.
-
-The bookmark schema includes a `listName` field (currently always `'default'`) to support multiple named word lists in a future enhancement without requiring a schema migration.
 
 ### Changes
 

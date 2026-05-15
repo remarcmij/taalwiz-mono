@@ -1,12 +1,58 @@
 # Changes — taalwiz-api
 
+## 2026-05-15 — Named bookmark lists + UserPreferences
+
+Extended the bookmarks feature to support multiple named lists per user. Added server-side `UserPreferences` to persist the user's selected list across devices.
+
+### Schema changes
+
+- **`BookmarkList`** (new collection) — `userId` (ObjectId ref User), `name` (string), `createdAt`. Compound unique index on `{ userId, name }`. `findAllLists` auto-seeds a "Favorites" list for users with no lists.
+- **`Bookmark`** (modified) — Replaced `listName: String` with `listId: { type: ObjectId, ref: 'BookmarkList', required: true }`. Unique index updated to `{ userId, listId, word, lang }`.
+- **`UserPreferences`** (new collection) — `userId` (unique ObjectId), `currentBookmarkListId` (nullable ObjectId). Syncs the active list selection across devices.
+
+### Endpoints
+
+All endpoints are JWT-protected via the global auth guard.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/bookmarks/lists` | List all bookmark lists with word counts; auto-creates "Favorites" if none exist |
+| `POST` | `/api/v1/bookmarks/lists` | Create a list `{ name }`; returns `{ id, name, count }` |
+| `DELETE` | `/api/v1/bookmarks/lists/:id` | Delete a list and cascade-delete its bookmarks (204) |
+| `PATCH` | `/api/v1/bookmarks/lists/:id` | Rename a list `{ name }` (204) |
+| `GET` | `/api/v1/bookmarks?listId=<id>` | List bookmarks in the specified list, sorted by `savedAt` desc |
+| `POST` | `/api/v1/bookmarks` | Add bookmark `{ word, lang, listId }`; upsert (no-op on duplicate) |
+| `DELETE` | `/api/v1/bookmarks?word=&lang=&listId=<id>` | Remove a bookmark |
+| `GET` | `/api/v1/user-preferences` | Get `{ currentBookmarkListId }` |
+| `PATCH` | `/api/v1/user-preferences` | Set `{ currentBookmarkListId }` (204) |
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/bookmarks/models/bookmark-list.model.ts` | New — `BookmarkList` Mongoose schema |
+| `src/bookmarks/models/bookmark.model.ts` | Replace `listName` string with `listId` ObjectId FK; update unique index |
+| `src/bookmarks/dto/create-bookmark-list.dto.ts` | New |
+| `src/bookmarks/dto/rename-bookmark-list.dto.ts` | New |
+| `src/bookmarks/dto/create-bookmark.dto.ts` | Replace `list?` with `listId` |
+| `src/bookmarks/bookmarks.service.ts` | Add list CRUD + count aggregation; `findAll/add/remove` use `listId` |
+| `src/bookmarks/bookmarks.controller.ts` | Add list routes declared before bookmark routes |
+| `src/user-preferences/models/user-preferences.model.ts` | New |
+| `src/user-preferences/dto/update-user-preferences.dto.ts` | New |
+| `src/user-preferences/user-preferences.service.ts` | New |
+| `src/user-preferences/user-preferences.controller.ts` | New |
+| `src/user-preferences/user-preferences.module.ts` | New |
+| `src/app.module.ts` | Register `UserPreferencesModule` |
+
+---
+
 ## 2026-05-15 — Word bookmarks API
 
 New `bookmarks` module providing per-user bookmark storage backed by MongoDB.
 
 ### Schema
 
-`BookmarkSchema` stores `userId` (ObjectId ref User), `listName` (string, default `'default'`), `word`, `lang`, and `savedAt`. A compound unique index on `{ userId, listName, word, lang }` prevents duplicates. The `listName` field is a forward-compatibility hook for multiple named word lists; the current implementation always uses `'default'`.
+`BookmarkSchema` stores `userId` (ObjectId ref User), `listId` (ObjectId ref BookmarkList), `word`, `lang`, and `savedAt`. A compound unique index on `{ userId, listId, word, lang }` prevents duplicates.
 
 ### Endpoints
 
@@ -14,9 +60,9 @@ All endpoints are JWT-protected via the global auth guard. The current user's ID
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/v1/bookmarks?list=default` | List all bookmarks for the current user in the named list, sorted by `savedAt` desc |
-| `POST` | `/api/v1/bookmarks` | Add a bookmark `{ word, lang, list? }`; upsert (no-op on duplicate) |
-| `DELETE` | `/api/v1/bookmarks?word=&lang=&list=default` | Remove a bookmark; query params used to avoid URL-encoding issues with non-ASCII words |
+| `GET` | `/api/v1/bookmarks?listId=<id>` | List all bookmarks for the current user in the specified list |
+| `POST` | `/api/v1/bookmarks` | Add a bookmark `{ word, lang, listId }`; upsert (no-op on duplicate) |
+| `DELETE` | `/api/v1/bookmarks?word=&lang=&listId=<id>` | Remove a bookmark; query params used to avoid URL-encoding issues with non-ASCII words |
 
 ### Files
 

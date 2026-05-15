@@ -1,5 +1,43 @@
 # Taalwiz API
 
+## API Endpoints
+
+All user-facing endpoints are under `/api/v1/` and require a valid JWT (`Authorization: Bearer <token>`), enforced by the global auth guard. Admin endpoints are under `/api/admin/`.
+
+### Auth (`/api/v1/auth/`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/auth/login` | Login; returns access + refresh tokens |
+| `POST` | `/api/v1/auth/refresh` | Exchange refresh token for new access token |
+| `POST` | `/api/v1/auth/logout` | Invalidate refresh token |
+
+### Bookmark Lists (`/api/v1/bookmarks/lists`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/bookmarks/lists` | List all lists with word counts; auto-creates "Favorites" for new users |
+| `POST` | `/api/v1/bookmarks/lists` | Create list `{ name }`; returns `{ id, name, count }` |
+| `DELETE` | `/api/v1/bookmarks/lists/:id` | Delete list and all its bookmarks (204) |
+| `PATCH` | `/api/v1/bookmarks/lists/:id` | Rename list `{ name }` (204) |
+
+### Bookmarks (`/api/v1/bookmarks`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/bookmarks?listId=<id>` | List bookmarks in the specified list, sorted by `savedAt` desc |
+| `POST` | `/api/v1/bookmarks` | Add bookmark `{ word, lang, listId }`; upsert (no-op on duplicate) |
+| `DELETE` | `/api/v1/bookmarks?word=&lang=&listId=<id>` | Remove a bookmark |
+
+### User Preferences (`/api/v1/user-preferences`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/user-preferences` | Get `{ currentBookmarkListId }` |
+| `PATCH` | `/api/v1/user-preferences` | Set `{ currentBookmarkListId }` (204) |
+
+---
+
 ## Content File Uploads
 
 ### Articles
