@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'dictionary.history' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="clearHistory()" [disabled]="history().length === 0">
+        {{ 'dictionary.clear-history' | translate }}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (history().length === 0) {
+    <p class="empty-state">{{ 'dictionary.history-empty' | translate }}</p>
+  } @else {
+    <ion-list lines="full">
+      @for (entry of history(); track entry.word + ':' + entry.lang) {
+        <ion-item button (click)="select(entry)">
+          <ion-label>{{ entry.word }}</ion-label>
+          <ion-note slot="end">{{ relativeTime(entry.searchedAt) }}</ion-note>
+          <ion-badge slot="end" color="medium">{{ entry.lang }}</ion-badge>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>

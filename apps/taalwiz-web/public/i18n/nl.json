@@ -41,7 +41,10 @@
     "sync-offline": "Offline — gecached woordenboek wordt gebruikt.",
     "sync-error": "Synchronisatie mislukt. Wordt opnieuw geprobeerd bij volgende sessie.",
     "sync-wait": "Woordenboek downloaden…",
-    "sync-done": "Woordenboek gereed voor offline gebruik."
+    "sync-done": "Woordenboek gereed voor offline gebruik.",
+    "history": "Geschiedenis",
+    "history-empty": "Geen recente zoekopdrachten",
+    "clear-history": "Geschiedenis wissen"
   },
   "admin": {
     "admin-tasks": "Beheerderstaken"

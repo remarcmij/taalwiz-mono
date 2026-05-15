@@ -41,7 +41,10 @@
     "sync-offline": "Offline — using cached dictionary.",
     "sync-error": "Dictionary sync failed. Will retry next session.",
     "sync-wait": "Downloading dictionary…",
-    "sync-done": "Dictionary ready for offline use."
+    "sync-done": "Dictionary ready for offline use.",
+    "history": "History",
+    "history-empty": "No recent searches",
+    "clear-history": "Clear history"
   },
   "admin": {
     "admin-tasks": "Administative Tasks"

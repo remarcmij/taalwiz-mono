@@ -5,6 +5,7 @@ import {
   ElementRef,
   OnDestroy,
   ViewChild,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -27,6 +28,7 @@ import {
   IonSearchbar,
   IonTitle,
   IonToolbar,
+  ModalController,
   Platform,
 } from '@ionic/angular/standalone';
 
@@ -50,7 +52,9 @@ import { WordClickModalService } from '../../shared/word-click-modal/word-click-
 import { DictStoreService } from './dict-store.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
 import { DictionaryService } from './dictionary.service';
+import { HistoryModalComponent } from './history-modal/history-modal.component';
 import { LemmaComponent } from './lemma/lemma.component';
+import { SearchHistoryService } from './search-history.service';
 import { SearchbarDropdownComponent } from './searchbar/searchbar-dropdown/searchbar-dropdown.component';
 import { WordLang } from './word-lang.model';
 
@@ -90,6 +94,8 @@ const MAX_RECENT_SEARCHES = 4;
 export class DictionaryPage implements OnDestroy {
   #dictionaryService = inject(DictionaryService);
   #wordClickModalService = inject(WordClickModalService);
+  #historyService = inject(SearchHistoryService);
+  #modalCtrl = inject(ModalController);
   #platform = inject(Platform);
   #dictStore = inject(DictStoreService);
 
@@ -104,9 +110,19 @@ export class DictionaryPage implements OnDestroy {
   suggestions = signal<WordLang[]>([]);
   word = signal('');
   showSearches = signal(false);
-  recentSearches = signal<WordLang[]>([]);
   currentTarget = signal<WordLang | null>(null);
-  // results = signal(new LookupResult());
+
+  recentSearches = computed(() =>
+    this.#historyService
+      .history()
+      .slice(0, MAX_RECENT_SEARCHES)
+      .reverse()
+      .map((e) => new WordLang(e.word, e.lang)),
+  );
+
+  hasMoreHistory = computed(
+    () => this.#historyService.history().length > MAX_RECENT_SEARCHES,
+  );
 
   #destroy$ = new Subject<void>();
 
@@ -124,21 +140,26 @@ export class DictionaryPage implements OnDestroy {
     })
   );
 
-  addRecentSearch(wordLang: WordLang) {
-    this.recentSearches.update((values) => {
-      if (values.some((v) => v.key === wordLang.key)) {
-        return values;
-      }
-      const newValues = [...values, wordLang];
-      if (newValues.length > MAX_RECENT_SEARCHES) {
-        newValues.shift();
-      }
-      return newValues;
-    });
+  addRecentSearch(wordLang: WordLang): void {
+    this.#historyService.add(wordLang.word, wordLang.lang);
   }
 
-  lookup(target: WordLang) {
+  lookup(target: WordLang): void {
     this.#dictionaryService.lookup(target);
+  }
+
+  async openHistory(): Promise<void> {
+    const modal = await this.#modalCtrl.create({
+      component: HistoryModalComponent,
+      breakpoints: [0, 0.5, 1],
+      initialBreakpoint: 0.5,
+      handleBehavior: 'cycle',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<WordLang>();
+    if (role === 'select' && data) {
+      this.lookup(data);
+    }
   }
 
   ionViewWillEnter() {
