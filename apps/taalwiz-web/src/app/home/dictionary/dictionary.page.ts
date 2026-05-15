@@ -34,6 +34,7 @@ import {
   Observable,
   Subject,
   catchError,
+  filter,
   fromEvent,
   map,
   of,
@@ -110,6 +111,7 @@ export class DictionaryPage implements OnDestroy {
   #destroy$ = new Subject<void>();
 
   results$ = this.#dictionaryService.lookupResult$.pipe(
+    filter(Boolean),
     tap((results) => {
       this.currentTarget.set(results.targetBase);
       if (results.bases.length > 0) {

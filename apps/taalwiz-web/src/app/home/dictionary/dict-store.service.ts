@@ -66,6 +66,7 @@ export class DictStoreService {
   #db: IDBPDatabase<DictDB> | null = null;
 
   async open(): Promise<void> {
+    if (this.#db) return;
     this.#db = await openDB<DictDB>('taalwiz-dict', 1, {
       upgrade(db) {
         const lemmaStore = db.createObjectStore('lemmas', { autoIncrement: true });

@@ -22,6 +22,7 @@ export class DictSyncService {
   }
 
   async syncIfNeeded(): Promise<void> {
+    if (this.status$.value === 'syncing') return;
     if (!navigator.onLine) {
       this.status$.next('offline');
       return;

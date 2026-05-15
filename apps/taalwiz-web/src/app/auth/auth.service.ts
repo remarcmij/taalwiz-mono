@@ -130,18 +130,14 @@ export class AuthService implements OnDestroy {
     );
   }
 
-  getRequestHeaders({ json } = { json: false }) {
-    let headers = new HttpHeaders();
-    if (json) {
-      headers = headers.set('Content-Type', 'application/json');
-    }
+  getRequestHeaders() {
     return this.token.pipe(
       first(),
       switchMap((token) => {
         if (!token) {
           throw new Error('No access token available');
         }
-        headers = headers.set('Authorization', 'Bearer ' + token);
+        const headers = new HttpHeaders({ Authorization: 'Bearer ' + token });
         return of(headers);
       }),
       catchError((error) => {
@@ -151,25 +147,10 @@ export class AuthService implements OnDestroy {
           error
         );
         this.logout();
-        return of(headers);
+        return of(new HttpHeaders());
       })
     );
   }
-
-  requestHeaders$ = this.token.pipe(
-    first(),
-    switchMap((token) => {
-      if (!token) {
-        throw new Error('No access token available');
-      }
-      const headers = new HttpHeaders({ Authorization: 'Bearer ' + token });
-      return of(headers);
-    }),
-    catchError(() => {
-      this.logout();
-      return of(null);
-    })
-  );
 
   autoLogin() {
     let lastUrl = homeUrl;

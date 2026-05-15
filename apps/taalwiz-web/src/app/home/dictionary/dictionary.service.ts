@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { from, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, from, Observable } from 'rxjs';
 
 import { DictStoreService } from './dict-store.service';
 import { IndonesianStemmer } from './indonesian-stemmer';
@@ -26,7 +26,7 @@ interface LookupResponse {
 export class DictionaryService {
   #dictStore = inject(DictStoreService);
 
-  #lookupResult$ = new Subject<LookupResult>();
+  #lookupResult$ = new BehaviorSubject<LookupResult | null>(null);
   lookupResult$ = this.#lookupResult$.asObservable();
 
   lookup({ word, lang }: WordLang) {

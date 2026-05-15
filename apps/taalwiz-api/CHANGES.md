@@ -1,5 +1,24 @@
 # Changes — taalwiz-api
 
+## 2026-05-15 — Add server-side HTML sanitization to Markdown pipeline
+
+### Problem
+
+`convertMarkdown()` passed `marked` output directly to callers without sanitization. Admin-uploaded `.md` files could contain raw HTML (Markdown allows it), which `marked` would pass through verbatim. A malicious or compromised admin account could inject `<script>` tags, event handlers, or `javascript:` URLs that would be stored in the database and served to all users.
+
+### Changes
+
+- **`src/util/markup.ts`** — Added `sanitize-html` as the final step in `convertMarkdown()`. After `marked.parse()` and the `<table class='table'>` replacement, the HTML is passed through `sanitizeHtml()` with a tight allowlist. Permitted tags cover everything the pipeline legitimately produces: standard Markdown block and inline elements, `<span>` with `id`/`class` (foreign-word and hashtag spans), heading `id` attributes (for TOC), `<table class="table">`, links, and images. All other tags, attributes, event handlers, and non-http(s)/mailto URL schemes are stripped.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/util/markup.ts` | Add `sanitize-html` post-processing step |
+| `package.json` | Add `sanitize-html` dependency |
+
+---
+
 ## 2026-05-14 — Remove MongoDB dictionary endpoints
 
 The `DictionaryModule` has been deleted entirely. This includes the `/api/v1/dictionary/find`

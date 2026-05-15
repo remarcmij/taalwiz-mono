@@ -4,7 +4,6 @@ import {
   inject,
   OnDestroy,
   OnInit,
-  signal,
 } from "@angular/core";
 import {
   NavigationEnd,
@@ -49,7 +48,6 @@ import {
 import { TranslatePipe, TranslateService } from "@ngx-translate/core";
 import { AuthService } from "./auth/auth.service";
 import { DictSyncService } from "./home/dictionary/dict-sync.service";
-import { User } from "./auth/user.model";
 import { TocService } from "./home/content/publication/article/toc.service";
 import { SpeechSynthesizerService } from "./home/speech-synthesizer.service";
 import { LoggerService } from "./shared/logger.service";
@@ -97,7 +95,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   protected tocService = inject(TocService);
 
-  currentUser = signal<User | null>(null);
+  readonly currentUser = this.#authService.user;
   #destroy$ = new Subject<void>();
 
   constructor() {
@@ -115,20 +113,15 @@ export class AppComponent implements OnInit, OnDestroy {
     const logLevel = environment.production ? "info" : "silly";
     this.#logger.setLevel(logLevel);
 
-    this.#translate.use("nl").subscribe(() => {
-      // Previous subscribe is needed to ensure the language is set before
-      // the user is checked and redirected to the login page if needed.
-      this.#authService.user$
-        .pipe(takeUntil(this.#destroy$))
-        .subscribe((user) => {
-          // At app start we may come here twice, once with user null and once
-          // with the user set due to auto-resume.
-          if (!user && this.currentUser() !== user) {
-            this.#router.navigateByUrl("/auth");
-          }
-          this.currentUser.set(user);
-        });
-    });
+    this.#authService.user$
+      .pipe(
+        pairwise(),
+        filter(([prev, curr]) => prev !== null && curr === null),
+        takeUntil(this.#destroy$),
+      )
+      .subscribe(() => {
+        this.#router.navigateByUrl("/auth");
+      });
 
     if (this.#speechService.isSynthesisSupported()) {
       this.#logger.debug("AppComponent", "speech synthesis is available");

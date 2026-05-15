@@ -42,8 +42,8 @@ export class MarkdownService {
 
   tinyMarkdown(rawBody: string): string {
     return rawBody
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</span></strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</span></em>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/__(.+?)__/g, '<strong>$1</strong>')
       .replace(/_(.+?)_/g, '<em>$1</em>')
       .replace(/\n/g, '<br>');

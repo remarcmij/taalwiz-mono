@@ -41,7 +41,7 @@ export class ContentService {
   }
 
   private fetchTopics(url: string): Observable<ITopic[]> {
-    return this.#authService.requestHeaders$.pipe(
+    return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
         if (!headers) {
           return of([]);

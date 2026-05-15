@@ -1,5 +1,47 @@
 # Changes — taalwiz-web
 
+## 2026-05-15 — Architecture review fixes
+
+Seven issues identified during an architectural review, addressed in a single pass.
+
+### Changes
+
+- **`markdown.service.ts`** — Removed spurious `</span>` tags from the `**bold**` and `*italic*` replacement strings in `tinyMarkdown()`. Every bold or italic word was emitting malformed markup.
+
+- **`dict-store.service.ts`** — `open()` is now idempotent: returns immediately if the IndexedDB connection already exists, preventing duplicate connections when `init()` is called from multiple entry points (auth guard and app resume).
+
+- **`dict-sync.service.ts`** — `syncIfNeeded()` now returns immediately if `status$` is already `'syncing'`, preventing a second parallel sync (and a concurrent `replaceAll` on the same transaction) when called from auth guard and app resume in quick succession.
+
+- **`auth.service.ts`** — Removed the `requestHeaders$` observable property and the never-used `json` parameter from `getRequestHeaders()`. There is now one unified way to obtain a Bearer-token header.
+
+- **`content.service.ts`** — `fetchTopics` updated to use `getRequestHeaders()` (was the sole caller of the now-removed `requestHeaders$`).
+
+- **`app.component.ts`** — Removed the redundant `translate.use('nl')` call in `ngOnInit`. The `APP_INITIALIZER` in `main.ts` already guarantees Dutch translations are loaded before bootstrap, so this extra async wrapper served no purpose. The `user$` subscription is now placed directly in `ngOnInit`.
+
+- **`dictionary.service.ts`** — `#lookupResult$` changed from `Subject` to `BehaviorSubject<LookupResult | null>(null)`. A plain `Subject` meant that results fired from `WordClickModalComponent.dictionaryLookup()` (which navigates then immediately calls `lookup()`) could be lost if `DictionaryPage` had not yet rendered and subscribed.
+
+- **`dictionary.page.ts`** — Added `filter(Boolean)` to `results$` to skip the null initial value emitted by the new `BehaviorSubject`.
+
+- **`app.component.ts`** — `currentUser` is now a direct alias to `authService.user` (the signal already maintained by `AuthService`) rather than an independent signal kept in sync by a subscription. The logout-redirect logic is replaced by a `pairwise()` pipe that explicitly detects the logged-in → logged-out transition. Removed unused `signal` and `User` imports.
+
+- **`indonesian-stemmer.ts`** — Removed stale comment claiming a server-side copy of the stemmer exists. The API copy was removed in a previous session; only the client-side copy remains.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/content/markdown.service.ts` | Fix spurious `</span>` in bold/italic replacements |
+| `src/app/home/dictionary/dict-store.service.ts` | Guard `open()` against duplicate calls |
+| `src/app/home/dictionary/dict-sync.service.ts` | Guard `syncIfNeeded()` against concurrent syncs |
+| `src/app/auth/auth.service.ts` | Remove `requestHeaders$`; simplify `getRequestHeaders()` |
+| `src/app/home/content/content.service.ts` | Use `getRequestHeaders()` in `fetchTopics` |
+| `src/app/app.component.ts` | Remove redundant `translate.use('nl')`; alias `currentUser` to `authService.user`; `pairwise()` logout redirect |
+| `src/app/home/dictionary/dictionary.service.ts` | `lookupResult$`: `Subject` → `BehaviorSubject<LookupResult \| null>` |
+| `src/app/home/dictionary/dictionary.page.ts` | Add `filter(Boolean)` to `results$` |
+| `src/app/home/dictionary/indonesian-stemmer.ts` | Remove stale "keep in sync with API" comment |
+
+---
+
 ## 2026-05-14 — Remove MongoDB API fallback from DictionaryService
 
 Dictionary lookups are now IndexedDB-only. All three lookup paths (`searchDictionary`,
