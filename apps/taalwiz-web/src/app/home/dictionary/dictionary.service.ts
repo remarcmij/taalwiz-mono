@@ -111,10 +111,12 @@ export class DictionaryService {
       lang === 'nl'
         ? word.split(',').map((w) => w.trim())
         : new IndonesianStemmer().getWordVariations(word);
-    for (const w of variations) {
-      const lemmas = await this.#dictStore.findByWordAndLang(w, lang, true);
-      if (lemmas.length > 0) {
-        return { word: w, lang, lemmas, haveMore: false };
+    for (const keywordOnly of [true, false]) {
+      for (const w of variations) {
+        const lemmas = await this.#dictStore.findByWordAndLang(w, lang, keywordOnly);
+        if (lemmas.length > 0) {
+          return { word: w, lang, lemmas, haveMore: false };
+        }
       }
     }
     return { word, lang, lemmas: [], haveMore: false };
