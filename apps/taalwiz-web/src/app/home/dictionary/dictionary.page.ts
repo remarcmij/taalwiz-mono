@@ -9,6 +9,8 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { addIcons } from 'ionicons';
+import { bookmark, bookmarkOutline } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import {
   IonBreadcrumb,
@@ -21,6 +23,7 @@ import {
   IonCardTitle,
   IonContent,
   IonHeader,
+  IonIcon,
   IonItem,
   IonList,
   IonMenuButton,
@@ -48,6 +51,7 @@ import {
 
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
+import { BookmarkService } from '../bookmarks/bookmark.service';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
 import { DictStoreService } from './dict-store.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
@@ -85,6 +89,7 @@ const MAX_RECENT_SEARCHES = 4;
     IonCardTitle,
     IonCardContent,
     IonButton,
+    IonIcon,
     TranslatePipe,
   ],
   templateUrl: './dictionary.page.html',
@@ -98,6 +103,11 @@ export class DictionaryPage implements OnDestroy {
   #modalCtrl = inject(ModalController);
   #platform = inject(Platform);
   #dictStore = inject(DictStoreService);
+  protected bookmarkService = inject(BookmarkService);
+
+  constructor() {
+    addIcons({ bookmark, bookmarkOutline });
+  }
 
   protected syncStatus = toSignal(inject(DictSyncService).status$, {
     initialValue: 'idle' as SyncStatus,

@@ -52,6 +52,18 @@ export const HOME_ROUTES: Routes = [
         ],
       },
       {
+        path: 'bookmarks',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./bookmarks/bookmarks.page').then(
+                (p) => p.BookmarksPage,
+              ),
+          },
+        ],
+      },
+      {
         path: '',
         redirectTo: homeUrl,
         pathMatch: 'full',

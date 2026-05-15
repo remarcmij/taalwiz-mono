@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   OnInit,
@@ -23,7 +24,8 @@ import {
 } from "@ionic/angular/standalone";
 import { TranslatePipe } from "@ngx-translate/core";
 import { addIcons } from "ionicons";
-import { playOutline, searchOutline, volumeHighOutline } from "ionicons/icons";
+import { bookmark, bookmarkOutline, playOutline, searchOutline, volumeHighOutline } from "ionicons/icons";
+import { BookmarkService } from "../../home/bookmarks/bookmark.service";
 import { MarkdownService } from "../../home/content/markdown.service";
 import { DictionaryService } from "../../home/dictionary/dictionary.service";
 import { type ILemma } from "../../home/dictionary/lemma/lemma.model";
@@ -55,6 +57,8 @@ export class WordClickModalComponent implements OnInit {
   #markdownService = inject(MarkdownService);
   #speechService = inject(SpeechSynthesizerService);
 
+  protected bookmarkService = inject(BookmarkService);
+
   clickedWord = input.required<string>();
   word = input.required<string>();
   lang = input.required<string>();
@@ -62,6 +66,10 @@ export class WordClickModalComponent implements OnInit {
   lemmas = input.required<ILemma[]>();
   bases = input.required<string[]>();
   safeHomonyms = signal<SafeHtml[]>([]);
+
+  protected isBookmarked = computed(() =>
+    this.bookmarkService.isBookmarked(this.word(), this.lang()),
+  );
 
   ngOnInit() {
     // Group lemmas by homonym
@@ -119,6 +127,6 @@ export class WordClickModalComponent implements OnInit {
   }
 
   constructor() {
-    addIcons({ playOutline, volumeHighOutline, searchOutline });
+    addIcons({ bookmark, bookmarkOutline, playOutline, volumeHighOutline, searchOutline });
   }
 }

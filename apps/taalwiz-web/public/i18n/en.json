@@ -17,7 +17,9 @@
     "server-error": "Server Error",
     "no-data": "No data available",
     "retry": "Retry",
-    "reload": "Reload"
+    "reload": "Reload",
+    "bookmarks": "My Words",
+    "remove": "Remove"
   },
   "update": {
     "update-available": "Update Available",
@@ -45,6 +47,9 @@
     "history": "History",
     "history-empty": "No recent searches",
     "clear-history": "Clear history"
+  },
+  "bookmarks": {
+    "empty": "No saved words yet. Tap the bookmark icon while viewing a dictionary entry."
   },
   "admin": {
     "admin-tasks": "Administative Tasks"

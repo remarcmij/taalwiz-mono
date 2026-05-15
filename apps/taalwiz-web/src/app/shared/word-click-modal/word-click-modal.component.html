@@ -31,6 +31,15 @@
           ></ion-icon>
         </ion-button>
       }
+      @if (bookmarkService.isEnabled()) {
+        <ion-button (click)="bookmarkService.toggle(word(), lang())">
+          <ion-icon
+            slot="icon-only"
+            [name]="isBookmarked() ? 'bookmark' : 'bookmark-outline'"
+            aria-label="bookmark"
+          ></ion-icon>
+        </ion-button>
+      }
       <ion-button (click)="dictionaryLookup()">
         <ion-icon
           slot="icon-only"

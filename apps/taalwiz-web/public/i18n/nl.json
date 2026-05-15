@@ -17,7 +17,9 @@
     "server-error": "Serverfout",
     "no-data": "Geen gegevens beschikbaar",
     "retry": "Opnieuw proberen",
-    "reload": "Opnieuw laden"
+    "reload": "Opnieuw laden",
+    "bookmarks": "Mijn Woorden",
+    "remove": "Verwijderen"
   },
   "update": {
     "update-available": "Update beschikbaar",
@@ -45,6 +47,9 @@
     "history": "Geschiedenis",
     "history-empty": "Geen recente zoekopdrachten",
     "clear-history": "Geschiedenis wissen"
+  },
+  "bookmarks": {
+    "empty": "Nog geen opgeslagen woorden. Tik op het bladwijzerpictogram bij een woordenboekresultaat."
   },
   "admin": {
     "admin-tasks": "Beheerderstaken"

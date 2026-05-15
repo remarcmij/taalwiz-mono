@@ -1,5 +1,79 @@
 # Changes — taalwiz-web
 
+## 2026-05-15 — Word bookmarks ("My Words")
+
+### Summary
+
+Users can now save dictionary words for later review. A bookmark icon appears on each dictionary lemma card and in the word-click modal. A new "My Words" tab lists all saved words; tapping one navigates to the dictionary and runs the lookup. Bookmarks are stored server-side (MongoDB) so they persist across devices and sessions.
+
+The bookmark schema includes a `listName` field (currently always `'default'`) to support multiple named word lists in a future enhancement without requiring a schema migration.
+
+### Changes
+
+- **`BookmarkService`** (new) — `providedIn: 'root'` service that maintains two reactive signals: `bookmarks` (full list, newest-first) and `bookmarkedKeys` (a `Set<string>` for O(1) `isBookmarked()` checks). Loads from the API on login, clears on logout. Adds and removes are optimistic: the signals update immediately and are rolled back if the API call fails. `isEnabled` computed signal gates UI to logged-in users only.
+
+- **`BookmarksPage`** (new) — "My Words" tab with an `ion-list` of saved words. Each row shows the word, a relative-time note, and a language badge. Tap to navigate to the Dictionary tab and run a full lookup. Swipe left to reveal a "Remove" action.
+
+- **`dictionary.page.ts` / `.html`** — Injects `BookmarkService`; bookmark toggle icon added to the lemma card header (`isFirst` card only). Icon is `bookmark` when saved, `bookmark-outline` when not. `$event.stopPropagation()` prevents the click from bubbling to `ion-content (click)="onClear()"`.
+
+- **`word-click-modal.component.ts` / `.html`** — Injects `BookmarkService`; bookmark toggle icon added to the modal toolbar (before the dictionary-lookup search icon). `isBookmarked` is a `computed` signal so the icon reacts instantly.
+
+- **`home.page.html` / `home.routes.ts`** — New "My Words" tab button (`bookmark-outline` icon); new lazy-loaded route `home/tabs/bookmarks`.
+
+- **`public/i18n/en.json` + `nl.json`** — Added `common.bookmarks`, `common.remove`, `bookmarks.empty`.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/bookmarks/bookmark.service.ts` | New |
+| `src/app/home/bookmarks/bookmarks.page.ts` | New |
+| `src/app/home/bookmarks/bookmarks.page.html` | New |
+| `src/app/home/bookmarks/bookmarks.page.scss` | New |
+| `src/app/home/dictionary/dictionary.page.ts` | Inject `BookmarkService`; add `IonIcon` + `addIcons`; constructor |
+| `src/app/home/dictionary/dictionary.page.html` | Bookmark toggle in lemma card header |
+| `src/app/shared/word-click-modal/word-click-modal.component.ts` | Inject `BookmarkService`; `isBookmarked` computed; `addIcons` |
+| `src/app/shared/word-click-modal/word-click-modal.component.html` | Bookmark toggle button in toolbar |
+| `src/app/home/home.page.ts` | Add `bookmarkOutline` to `addIcons` |
+| `src/app/home/home.page.html` | Add My Words tab button |
+| `src/app/home/home.routes.ts` | Add `bookmarks` child route |
+| `public/i18n/en.json` | Add `common.bookmarks`, `common.remove`, `bookmarks.empty` |
+| `public/i18n/nl.json` | Mirror Dutch translations |
+
+---
+
+## 2026-05-15 — Persistent search history
+
+### Summary
+
+The dictionary page previously tracked up to 4 recent searches as an in-memory signal that reset on every navigation. This change persists the full history (up to 50 entries) using `@capacitor/preferences` so it survives navigation and app restarts. The breadcrumb strip remains as the quick-access view (newest 4). A `···` breadcrumb appears when there is more history, opening a bottom-sheet modal with the full list.
+
+### Changes
+
+- **`SearchHistoryService`** (new) — `providedIn: 'root'` service wrapping `@capacitor/preferences` (key: `taalwiz.search-history`). Exposes a `history` signal (array of `HistoryEntry`, newest-first). Deduplication on `add()`: an existing entry for the same `word+lang` is removed before prepending the new one, so re-searched words rise to the top. Signal starts at `[]` and self-populates on first async tick via `void this.#loadFromPreferences()` in the constructor — the same pattern used in `AuthService`.
+
+- **`HistoryModalComponent`** (new) — Ionic bottom-sheet modal (`breakpoints: [0, 0.5, 1]`, `initialBreakpoint: 0.5`). Shows the full history as a list: word, relative-time note, language badge. Tap an entry to dismiss the modal and trigger a dictionary lookup. "Clear" button wipes the history in place without closing the modal.
+
+- **`DictionaryPage`** — `recentSearches` is now a `computed` signal derived from `SearchHistoryService.history()` (oldest-first display order). `hasMoreHistory` computed drives the `···` breadcrumb. `addRecentSearch()` delegates to the service. `openHistory()` creates and presents `HistoryModalComponent`; on dismiss with `role === 'select'` it calls `lookup()`.
+
+- **`dictionary.page.html`** — Added `$event.stopPropagation()` to breadcrumb click handlers (prevents bubbling to `ion-content`'s `onClear`). Added `···` breadcrumb shown only when `hasMoreHistory()`.
+
+- **`public/i18n/en.json` + `nl.json`** — Added `dictionary.history`, `dictionary.history-empty`, `dictionary.clear-history`.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/dictionary/search-history.service.ts` | New |
+| `src/app/home/dictionary/history-modal/history-modal.component.ts` | New |
+| `src/app/home/dictionary/history-modal/history-modal.component.html` | New |
+| `src/app/home/dictionary/dictionary.page.ts` | Use `SearchHistoryService`; `recentSearches` + `hasMoreHistory` computed; `openHistory()` |
+| `src/app/home/dictionary/dictionary.page.html` | `stopPropagation` on breadcrumbs; `···` overflow breadcrumb |
+| `public/i18n/en.json` | Add `dictionary.history*` keys |
+| `public/i18n/nl.json` | Mirror Dutch translations |
+
+---
+
 ## 2026-05-15 — Fix autocomplete index to filter by language natively
 
 ### Problem

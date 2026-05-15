@@ -8,7 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { libraryOutline, navigateOutline, searchOutline } from 'ionicons/icons';
+import { bookmarkOutline, libraryOutline, navigateOutline, searchOutline } from 'ionicons/icons';
 
 import { TranslatePipe } from '@ngx-translate/core';
 
@@ -20,6 +20,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 })
 export class HomePage {
   constructor() {
-    addIcons({ libraryOutline, searchOutline, navigateOutline });
+    addIcons({ libraryOutline, searchOutline, navigateOutline, bookmarkOutline });
   }
 }

@@ -1,5 +1,36 @@
 # Changes — taalwiz-api
 
+## 2026-05-15 — Word bookmarks API
+
+New `bookmarks` module providing per-user bookmark storage backed by MongoDB.
+
+### Schema
+
+`BookmarkSchema` stores `userId` (ObjectId ref User), `listName` (string, default `'default'`), `word`, `lang`, and `savedAt`. A compound unique index on `{ userId, listName, word, lang }` prevents duplicates. The `listName` field is a forward-compatibility hook for multiple named word lists; the current implementation always uses `'default'`.
+
+### Endpoints
+
+All endpoints are JWT-protected via the global auth guard. The current user's ID is extracted from the JWT payload attached to `request['user']` by `AuthGuard`.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/bookmarks?list=default` | List all bookmarks for the current user in the named list, sorted by `savedAt` desc |
+| `POST` | `/api/v1/bookmarks` | Add a bookmark `{ word, lang, list? }`; upsert (no-op on duplicate) |
+| `DELETE` | `/api/v1/bookmarks?word=&lang=&list=default` | Remove a bookmark; query params used to avoid URL-encoding issues with non-ASCII words |
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/bookmarks/models/bookmark.model.ts` | New — Mongoose schema + `BookmarkDoc` type |
+| `src/bookmarks/dto/create-bookmark.dto.ts` | New — class-validator DTO |
+| `src/bookmarks/bookmarks.service.ts` | New — `findAll`, `add` (upsert), `remove` |
+| `src/bookmarks/bookmarks.controller.ts` | New — REST endpoints |
+| `src/bookmarks/bookmarks.module.ts` | New — NestJS module |
+| `src/app.module.ts` | Register `BookmarksModule` |
+
+---
+
 ## 2026-05-15 — Add server-side HTML sanitization to Markdown pipeline
 
 ### Problem
