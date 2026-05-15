@@ -15,6 +15,7 @@ interface DictDB {
     key: number;
     indexes: {
       'by-word-lang': [string, string];
+      'by-lang-word': [string, string];
       'by-word': string;
     };
   };
@@ -67,13 +68,21 @@ export class DictStoreService {
 
   async open(): Promise<void> {
     if (this.#db) return;
-    this.#db = await openDB<DictDB>('taalwiz-dict', 1, {
-      upgrade(db) {
-        const lemmaStore = db.createObjectStore('lemmas', { autoIncrement: true });
-        lemmaStore.createIndex('by-word-lang', ['word', 'lang'], { unique: false });
-        lemmaStore.createIndex('by-word', 'word', { unique: false });
-
-        db.createObjectStore('meta', { keyPath: 'key' });
+    this.#db = await openDB<DictDB>('taalwiz-dict', 2, {
+      upgrade(db, oldVersion, _newVersion, transaction) {
+        if (oldVersion < 1) {
+          const lemmaStore = db.createObjectStore('lemmas', { autoIncrement: true });
+          lemmaStore.createIndex('by-word-lang', ['word', 'lang'], { unique: false });
+          lemmaStore.createIndex('by-word', 'word', { unique: false });
+          db.createObjectStore('meta', { keyPath: 'key' });
+        }
+        if (oldVersion < 2) {
+          // by-lang-word enables efficient prefix search scoped to a single language.
+          // [word, lang] ordering (by-word-lang) cannot do this: compound-key range
+          // comparisons stop at the first element, so upper-bounding on word+U+FFFF
+          // leaks entries from other languages whose word sorts before that sentinel.
+          transaction.objectStore('lemmas').createIndex('by-lang-word', ['lang', 'word'], { unique: false });
+        }
       },
     });
   }
@@ -109,21 +118,19 @@ export class DictStoreService {
     lang: string,
     limit: number,
   ): Promise<{ word: string; lang: string }[]> {
-    // U+FFFF is the highest BMP code point and never assigned — anything starting with startString sorts before startString+U+FFFF
-    const range = IDBKeyRange.bound(startString, startString + '￿');
-    const index = this.#db!.transaction('lemmas', 'readonly').store.index('by-word');
+    // [lang, word] ordering lets the range pin lang as the primary key and bound
+    // word by prefix — IndexedDB never visits entries from other languages.
+    const range = IDBKeyRange.bound([lang, startString], [lang, startString + '￿']);
+    const index = this.#db!.transaction('lemmas', 'readonly').store.index('by-lang-word');
     const seen = new Set<string>();
     const results: { word: string; lang: string }[] = [];
 
     let cursor = await index.openCursor(range);
     while (cursor && results.length < limit) {
-      const { word, lang: recordLang } = cursor.value;
-      if (recordLang === lang) {
-        const key = word + '|' + lang;
-        if (!seen.has(key)) {
-          seen.add(key);
-          results.push({ word, lang });
-        }
+      const { word } = cursor.value;
+      if (!seen.has(word)) {
+        seen.add(word);
+        results.push({ word, lang });
       }
       cursor = await cursor.continue();
     }

@@ -1,5 +1,23 @@
 # Changes — taalwiz-web
 
+## 2026-05-15 — Fix autocomplete index to filter by language natively
+
+### Problem
+
+`DictStoreService.findWordsStartingWith` used the `by-word` single-key index and filtered by language in JavaScript. Beyond the inefficiency, a previous attempt to use the `by-word-lang` composite index (`['word', 'lang']`) with a compound range also failed: IDBKeyRange tuple comparison stops at the first element that differs, so words from other languages whose word portion falls inside the prefix range would leak through.
+
+### Changes
+
+- **`dict-store.service.ts`** — Added a `by-lang-word` index (`['lang', 'word']`). With language as the primary sort key, `IDBKeyRange.bound([lang, startString], [lang, startString + '￿'])` pins the language exactly and only bounds the word by prefix — IndexedDB never visits entries from other languages. DB version bumped to 2; the migration adds the new index to existing data without touching the lemma records (no re-upload required).
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/dictionary/dict-store.service.ts` | Add `by-lang-word` index; bump DB to v2; use new index in `findWordsStartingWith` |
+
+---
+
 ## 2026-05-15 — Architecture review fixes
 
 Seven issues identified during an architectural review, addressed in a single pass.
