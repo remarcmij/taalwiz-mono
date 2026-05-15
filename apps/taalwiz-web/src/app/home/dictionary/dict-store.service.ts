@@ -69,20 +69,14 @@ export class DictStoreService {
   async open(): Promise<void> {
     if (this.#db) return;
     this.#db = await openDB<DictDB>('taalwiz-dict', 2, {
-      upgrade(db, oldVersion, _newVersion, transaction) {
-        if (oldVersion < 1) {
-          const lemmaStore = db.createObjectStore('lemmas', { autoIncrement: true });
-          lemmaStore.createIndex('by-word-lang', ['word', 'lang'], { unique: false });
-          lemmaStore.createIndex('by-word', 'word', { unique: false });
-          db.createObjectStore('meta', { keyPath: 'key' });
-        }
-        if (oldVersion < 2) {
-          // by-lang-word enables efficient prefix search scoped to a single language.
-          // [word, lang] ordering (by-word-lang) cannot do this: compound-key range
-          // comparisons stop at the first element, so upper-bounding on word+U+FFFF
-          // leaks entries from other languages whose word sorts before that sentinel.
-          transaction.objectStore('lemmas').createIndex('by-lang-word', ['lang', 'word'], { unique: false });
-        }
+      upgrade(db) {
+        const lemmaStore = db.createObjectStore('lemmas', { autoIncrement: true });
+        lemmaStore.createIndex('by-word-lang', ['word', 'lang'], { unique: false });
+        lemmaStore.createIndex('by-word', 'word', { unique: false });
+        // [lang, word] ordering pins language as primary key so IDBKeyRange prefix
+        // queries are natively language-scoped (used by findWordsStartingWith).
+        lemmaStore.createIndex('by-lang-word', ['lang', 'word'], { unique: false });
+        db.createObjectStore('meta', { keyPath: 'key' });
       },
     });
   }

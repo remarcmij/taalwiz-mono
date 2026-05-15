@@ -8,7 +8,7 @@
 
 ### Changes
 
-- **`dict-store.service.ts`** — Added a `by-lang-word` index (`['lang', 'word']`). With language as the primary sort key, `IDBKeyRange.bound([lang, startString], [lang, startString + '￿'])` pins the language exactly and only bounds the word by prefix — IndexedDB never visits entries from other languages. DB version bumped to 2; the migration adds the new index to existing data without touching the lemma records (no re-upload required).
+- **`dict-store.service.ts`** — Added a `by-lang-word` index (`['lang', 'word']`). With language as the primary sort key, `IDBKeyRange.bound([lang, startString], [lang, startString + '￿'])` pins the language exactly and only bounds the word by prefix — IndexedDB never visits entries from other languages. DB version bumped to 2.
 
 ### Files
 
