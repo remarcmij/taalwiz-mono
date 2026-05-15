@@ -1,5 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { SrsService } from '../srs/srs.service.js';
 import Bookmark, { BookmarkDoc } from './models/bookmark.model.js';
 import BookmarkList from './models/bookmark-list.model.js';
 
@@ -11,6 +12,8 @@ export interface BookmarkListInfo {
 
 @Injectable()
 export class BookmarksService {
+  constructor(private readonly srsService: SrsService) {}
+
   async findAllLists(userId: string): Promise<BookmarkListInfo[]> {
     const userObjectId = new Types.ObjectId(userId);
     let lists = await BookmarkList.find({ userId: userObjectId }).sort({ createdAt: 1 }).exec();
@@ -46,6 +49,7 @@ export class BookmarksService {
     const userObjectId = new Types.ObjectId(userId);
     await BookmarkList.deleteOne({ _id: listObjectId, userId: userObjectId }).exec();
     await Bookmark.deleteMany({ userId: userObjectId, listId: listObjectId }).exec();
+    await this.srsService.deleteCardsByList(userId, listId);
   }
 
   async renameList(userId: string, listId: string, newName: string): Promise<void> {
@@ -76,6 +80,7 @@ export class BookmarksService {
       { $setOnInsert: { savedAt: new Date() } },
       { upsert: true, new: true },
     ).exec();
+    await this.srsService.createCard(userId, word, lang, listId);
   }
 
   async remove(userId: string, word: string, lang: string, listId: string): Promise<void> {
@@ -85,5 +90,6 @@ export class BookmarksService {
       word,
       lang,
     }).exec();
+    await this.srsService.deleteCard(userId, word, lang, listId);
   }
 }

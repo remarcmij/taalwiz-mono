@@ -9,6 +9,7 @@ import { ContentModule } from './content/content.module.js';
 import { HashtagModule } from './hashtag/hashtag.module.js';
 import { UsersModule } from './users/users.module.js';
 import { UserPreferencesModule } from './user-preferences/user-preferences.module.js';
+import { SrsModule } from './srs/srs.module.js';
 import { EnvDto } from './util/env.dto.js';
 
 const env = EnvDto.getInstance();
@@ -17,6 +18,7 @@ const env = EnvDto.getInstance();
   imports: [
     AuthModule,
     BookmarksModule,
+    SrsModule,
     UsersModule,
     UserPreferencesModule,
     ContentModule,

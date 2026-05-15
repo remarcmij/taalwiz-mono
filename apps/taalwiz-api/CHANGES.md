@@ -1,5 +1,49 @@
 # Changes — taalwiz-api
 
+## 2026-05-15 — SRS flashcard backend
+
+New `SrsModule` providing spaced-repetition card state for bookmarked words. SRS cards are stored in a dedicated `srs_cards` MongoDB collection keyed on `{ userId, listId, word, lang }`. Cards are created automatically when a bookmark is added and deleted when the bookmark (or its list) is removed.
+
+### Algorithm
+
+Simplified SM-2 with three ratings:
+
+| Rating | Interval | Ease Δ |
+|--------|----------|--------|
+| Again  | reset to 1 day | −0.20 (floor 1.3) |
+| Good   | 1 → 6 → `round(interval × ease)` days | — |
+| Easy   | 4 → 10 → `round(interval × ease × 1.3)` days | +0.15 (cap 4.0) |
+
+The core calculation is in the exported pure function `applySm2()` (unit-tested in `srs.service.spec.ts`).
+
+### Schema
+
+**`SrsCard`** — `userId`, `listId`, `word`, `lang`, `interval` (days, default 1), `easeFactor` (default 2.5), `dueDate` (default now), `reps` (default 0), `lapses` (default 0). Unique index on `{ userId, listId, word, lang }`.
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/srs/due?listId=<id>` | Cards due today for the specified list |
+| `GET` | `/api/v1/srs/stats` | `{ listId, due, new, total }[]` — one entry per list with cards |
+| `POST` | `/api/v1/srs/review` | Submit `{ word, lang, listId, rating }`; returns `{ dueDate }` |
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/srs/models/srs-card.model.ts` | New — Mongoose schema |
+| `src/srs/dto/review-srs-card.dto.ts` | New — class-validator DTO |
+| `src/srs/srs.service.ts` | New — SM-2 logic (`applySm2`), DB ops |
+| `src/srs/srs.service.spec.ts` | New — 13 unit tests for `applySm2` |
+| `src/srs/srs.controller.ts` | New — REST endpoints |
+| `src/srs/srs.module.ts` | New — NestJS module (exported `SrsService`) |
+| `src/bookmarks/bookmarks.service.ts` | Inject `SrsService`; cascade create/delete on bookmark add/remove/list-delete |
+| `src/bookmarks/bookmarks.module.ts` | Import `SrsModule` |
+| `src/app.module.ts` | Register `SrsModule` |
+
+---
+
 ## 2026-05-15 — Named bookmark lists + UserPreferences
 
 Extended the bookmarks feature to support multiple named lists per user. Added server-side `UserPreferences` to persist the user's selected list across devices.

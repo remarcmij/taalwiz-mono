@@ -5,6 +5,16 @@
     </ion-buttons>
     <ion-title>{{ 'common.bookmarks' | translate }}</ion-title>
     <ion-buttons slot="end">
+      @if (bookmarkService.lists().length > 0) {
+        <ion-button class="study-btn" (click)="openStudyModal()">
+          <div class="icon-with-badge">
+            <ion-icon name="school-outline"></ion-icon>
+            @if (dueForCurrentList() > 0) {
+              <ion-badge color="danger">{{ dueForCurrentList() }}</ion-badge>
+            }
+          </div>
+        </ion-button>
+      }
       <ion-button (click)="openCreateListAlert()">
         <ion-icon slot="icon-only" name="add-outline"></ion-icon>
       </ion-button>

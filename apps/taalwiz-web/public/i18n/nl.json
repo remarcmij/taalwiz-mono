@@ -59,6 +59,20 @@
     "delete-empty-list-message": "De lijst '{{name}}' verwijderen?",
     "rename-list-title": "Lijst hernoemen"
   },
+  "study": {
+    "title": "Studeren",
+    "select-list": "Kies een lijst om te studeren",
+    "start": "Starten",
+    "no-cards-due": "Geen kaarten meer voor vandaag — goed gedaan!",
+    "show-answer": "Tik om het antwoord te tonen",
+    "again": "Opnieuw",
+    "good": "Goed",
+    "easy": "Makkelijk",
+    "session-complete": "Sessie voltooid",
+    "cards-reviewed": "{{count}} kaarten geoefend",
+    "due-count": "{{count}} te doen",
+    "no-definition": "Geen definitie gevonden"
+  },
   "admin": {
     "admin-tasks": "Beheerderstaken"
   },

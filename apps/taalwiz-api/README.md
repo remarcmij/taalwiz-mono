@@ -36,6 +36,14 @@ All user-facing endpoints are under `/api/v1/` and require a valid JWT (`Authori
 | `GET` | `/api/v1/user-preferences` | Get `{ currentBookmarkListId }` |
 | `PATCH` | `/api/v1/user-preferences` | Set `{ currentBookmarkListId }` (204) |
 
+### SRS Flashcards (`/api/v1/srs`)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/srs/due?listId=<id>` | Cards due for review today in the specified list |
+| `GET` | `/api/v1/srs/stats` | Per-list counts `{ listId, due, new, total }[]` for all lists |
+| `POST` | `/api/v1/srs/review` | Submit rating `{ word, lang, listId, rating: 'again'\|'good'\|'easy' }`; returns `{ dueDate }` |
+
 ---
 
 ## Content File Uploads

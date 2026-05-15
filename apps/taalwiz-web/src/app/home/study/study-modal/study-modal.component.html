@@ -1,0 +1,107 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>{{ 'study.title' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  @if (screen() === 'card') {
+    <ion-progress-bar [value]="progress()"></ion-progress-bar>
+  }
+</ion-header>
+
+<ion-content [fullscreen]="true">
+
+  @switch (screen()) {
+
+    @case ('picker') {
+      <div class="picker-container">
+        <p class="picker-label">{{ 'study.select-list' | translate }}</p>
+        <ion-radio-group [value]="selectedListId()" (ionChange)="selectList($any($event).detail.value)">
+          <ion-list>
+            @for (entry of listsWithStats(); track entry.list.id) {
+              <ion-item>
+                <ion-radio slot="start" [value]="entry.list.id"></ion-radio>
+                <ion-label>{{ entry.list.name }}</ion-label>
+                <ion-badge slot="end" [color]="entry.due > 0 ? 'primary' : 'medium'">
+                  {{ 'study.due-count' | translate: { count: entry.due } }}
+                </ion-badge>
+              </ion-item>
+            }
+          </ion-list>
+        </ion-radio-group>
+        <ion-button expand="block" class="start-button" (click)="startSession()">
+          {{ 'study.start' | translate }}
+        </ion-button>
+      </div>
+    }
+
+    @case ('loading') {
+      <div class="center-state">
+        <ion-progress-bar type="indeterminate"></ion-progress-bar>
+      </div>
+    }
+
+    @case ('no-due') {
+      <div class="center-state">
+        <p>{{ 'study.no-cards-due' | translate }}</p>
+        <ion-button fill="outline" (click)="close()">{{ 'common.close' | translate }}</ion-button>
+      </div>
+    }
+
+    @case ('card') {
+      @let card = currentCard()!;
+      <div class="card-container">
+        <p class="card-progress">{{ reviewedCount() + 1 }} / {{ queue().length + reviewedCount() }}</p>
+
+        <div class="flashcard" [class.flipped]="flipped()" (click)="flipCard()">
+          @if (!flipped()) {
+            <div class="card-face card-front">
+              <p class="card-word">{{ card.word }}</p>
+              <ion-badge color="medium">{{ card.lang }}</ion-badge>
+              <p class="tap-hint">{{ 'study.show-answer' | translate }}</p>
+              <p class="key-hint">Space</p>
+            </div>
+          } @else {
+            <div class="card-face card-back">
+              @if (baseWordNote()) {
+                <p class="base-word-note">→ {{ baseWordNote() }}</p>
+              }
+              @if (definition()) {
+                <p class="definition markdown-body text-content" [innerHTML]="definitionHtml()"></p>
+              } @else {
+                <p class="no-definition">{{ 'study.no-definition' | translate }}</p>
+              }
+            </div>
+          }
+        </div>
+
+        @if (flipped()) {
+          <div class="rating-buttons">
+            <ion-button color="danger" fill="outline" (click)="rate('again')">
+              {{ 'study.again' | translate }}<span class="key-hint">1</span>
+            </ion-button>
+            <ion-button color="success" fill="outline" (click)="rate('good')">
+              {{ 'study.good' | translate }}<span class="key-hint">2</span>
+            </ion-button>
+            <ion-button color="primary" fill="outline" (click)="rate('easy')">
+              {{ 'study.easy' | translate }}<span class="key-hint">3</span>
+            </ion-button>
+          </div>
+        }
+      </div>
+    }
+
+    @case ('complete') {
+      <div class="center-state">
+        <h2>{{ 'study.session-complete' | translate }}</h2>
+        <p>{{ 'study.cards-reviewed' | translate: { count: reviewedCount() } }}</p>
+        <ion-button (click)="close()">{{ 'common.close' | translate }}</ion-button>
+      </div>
+    }
+
+  }
+
+</ion-content>

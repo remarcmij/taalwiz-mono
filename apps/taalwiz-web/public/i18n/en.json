@@ -59,6 +59,20 @@
     "delete-empty-list-message": "Delete the list '{{name}}'?",
     "rename-list-title": "Rename List"
   },
+  "study": {
+    "title": "Study",
+    "select-list": "Select a list to study",
+    "start": "Start",
+    "no-cards-due": "No cards due — well done!",
+    "show-answer": "Tap to reveal",
+    "again": "Again",
+    "good": "Good",
+    "easy": "Easy",
+    "session-complete": "Session complete",
+    "cards-reviewed": "{{count}} cards reviewed",
+    "due-count": "{{count}} due",
+    "no-definition": "No definition found"
+  },
   "admin": {
     "admin-tasks": "Administative Tasks"
   },

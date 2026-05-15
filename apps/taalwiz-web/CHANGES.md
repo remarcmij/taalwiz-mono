@@ -1,5 +1,43 @@
 # Changes — taalwiz-web
 
+## 2026-05-15 — SRS flashcard study mode
+
+New study mode for bookmarked words using spaced-repetition (simplified SM-2). A school icon button in the "My Words" toolbar opens a full-screen modal for a study session.
+
+### UX flow
+
+1. **List picker** — defaults to the currently selected bookmark list; shows each list with its due-today count. User can switch lists before starting.
+2. **Flashcard** — card front shows the word and language. Tap (or press **Space**) to flip.
+3. **Card back** — shows the primary definition from the local IndexedDB dictionary (`DictionaryService.fetchWordLemmas`), rendered through `MarkdownService.convertMarkdown()` (same pipeline as the dictionary page). If `baseWord` differs from the bookmarked form, a subtitle shows the canonical headword.
+4. **Rating** — three buttons: **Again** / **Good** / **Easy** (keyboard: **1** / **2** / **3**). Keyboard hints shown on each button.
+5. **Completion** — summary screen showing how many cards were reviewed.
+
+### Changes
+
+- **`StudyService`** (new) — `providedIn: 'root'`. Maintains a reactive `stats` signal (per-list due/new/total counts, loaded on auth and after a session). Provides `getDueCards(listId)` and `submitReview(word, lang, listId, rating)` observables.
+
+- **`StudyModalComponent`** (new) — Full-screen standalone modal. Signal-based state machine (`screen: 'picker' | 'loading' | 'card' | 'no-due' | 'complete'`). Definitions fetched lazily on flip via `DictionaryService.fetchWordLemmas`. `@HostListener('document:keydown')` handles Space (flip) and 1/2/3 (rate) shortcuts.
+
+- **`BookmarksPage`** — Study button added to the toolbar (school icon, `school-outline`). Shows a notification badge with the due count for the currently selected list when > 0. `ion-button::part(native)` set to `overflow: visible` so the badge is not clipped.
+
+- **`public/i18n/en.json` + `nl.json`** — Added `study.*` keys: `title`, `select-list`, `start`, `no-cards-due`, `show-answer`, `again`, `good`, `easy`, `session-complete`, `cards-reviewed`, `due-count`, `no-definition`.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/study/study.service.ts` | New |
+| `src/app/home/study/study-modal/study-modal.component.ts` | New |
+| `src/app/home/study/study-modal/study-modal.component.html` | New |
+| `src/app/home/study/study-modal/study-modal.component.scss` | New |
+| `src/app/home/bookmarks/bookmarks.page.ts` | Inject `StudyService` + `ModalController`; add `openStudyModal()`, `dueForCurrentList` computed |
+| `src/app/home/bookmarks/bookmarks.page.html` | Study button with notification badge |
+| `src/app/home/bookmarks/bookmarks.page.scss` | `.icon-with-badge` overlay styles; `study-btn::part(native)` overflow fix |
+| `public/i18n/en.json` | Add `study.*` keys |
+| `public/i18n/nl.json` | Dutch equivalents |
+
+---
+
 ## 2026-05-15 — Named bookmark lists
 
 Multiple named word lists per user. The "My Words" tab gains a chip bar for switching between lists; a toolbar "+" button creates new lists; a pencil icon renames; an × icon deletes (with a confirmation dialog showing the word count). All bookmarks are saved to the currently selected list.

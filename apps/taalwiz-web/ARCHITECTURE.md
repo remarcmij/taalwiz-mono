@@ -86,6 +86,12 @@ src/app/
 │   │   ├── bookmarks.page.ts
 │   │   ├── bookmarks.page.html
 │   │   └── bookmarks.page.scss
+│   ├── study/                # SRS flashcard sub-feature
+│   │   ├── study.service.ts
+│   │   └── study-modal/
+│   │       ├── study-modal.component.ts
+│   │       ├── study-modal.component.html
+│   │       └── study-modal.component.scss
 │   ├── content/              # Content sub-feature
 │   │   ├── content.service.ts
 │   │   ├── markdown.service.ts
@@ -209,6 +215,10 @@ graph LR
 
     Bookmarks --> ChipBar["List chip bar\n(BookmarkService.lists)"]
     Bookmarks --> WordList["Saved words\n(swipe to remove)"]
+    Bookmarks --> StudyBtn["Study button\n(due-count badge)"]
+    StudyBtn --> StudyModal["StudyModal\n(list picker → flashcard → rating)"]
+    StudyModal --> DictSvc["DictionaryService\n(fetchWordLemmas for card back)"]
+    StudyModal --> StudySvc["StudyService\n(SRS API calls)"]
 ```
 
 **Article flow:** `ArticleResolver` pre-fetches the article. `MarkdownService` converts `mdText` to HTML, wrapping foreign-language spans. Headings are extracted by `extract-headings.util.ts` and stored in `TocService`. Clicking a word opens `WordClickModalComponent` via `WordClickModalService`, which calls `DictionaryService` for lemma lookup.
@@ -246,6 +256,8 @@ graph TD
     BookmarkService -->|signal| bookmarks["bookmarks\nBookmarkEntry[] for current list"]
     BookmarkService -->|signal| bookmarkedKeys["bookmarkedKeys\nSet&lt;string&gt; for O(1) lookup"]
 
+    StudyService -->|signal| stats["stats\nSrsStatsEntry[] per-list due/new/total"]
+
     SearchHistoryService -->|signal| history["history\nHistoryEntry[] newest-first"]
 ```
 
@@ -259,6 +271,7 @@ graph TD
 |---|---|---|
 | `AuthService` | `auth/` | JWT + refresh-token management, login/logout, auto-login (Capacitor Preferences) |
 | `BookmarkService` | `home/bookmarks/` | Named list management; bookmark add/remove with optimistic UI; cross-device current-list sync via `UserPreferences` API |
+| `StudyService` | `home/study/` | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)` and `submitReview()` observables for the SRS API |
 | `DictSyncService` | `home/dictionary/` | Fetch manifest, download & compile dict bundles, write to IndexedDB |
 | `DictStoreService` | `home/dictionary/` | IndexedDB CRUD wrapper (`taalwiz-dict` DB) |
 | `DictionaryService` | `home/dictionary/` | Lookup with Indonesian stemmer, manage `lookupResult$` |
@@ -459,8 +472,21 @@ classDiagram
         +string currentBookmarkListId
     }
 
+    class SrsCard {
+        +string word
+        +string lang
+        +string listId
+        +number interval
+        +number easeFactor
+        +string dueDate
+        +number reps
+        +number lapses
+    }
+
     IArticle --> ITopic : belongs to
     ILemma --> ILemma : baseWord reference
     BookmarkEntry --> BookmarkList : belongs to
     UserPreferences --> BookmarkList : currentList
+    SrsCard --> BookmarkList : belongs to
+    SrsCard --> BookmarkEntry : mirrors
 ```

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   AlertController,
@@ -19,12 +19,15 @@ import {
   IonNote,
   IonTitle,
   IonToolbar,
+  ModalController,
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
-import { addOutline, closeOutline, pencilOutline } from 'ionicons/icons';
+import { addOutline, closeOutline, pencilOutline, schoolOutline } from 'ionicons/icons';
 import { DictionaryService } from '../dictionary/dictionary.service';
 import { WordLang } from '../dictionary/word-lang.model';
+import { StudyModalComponent } from '../study/study-modal/study-modal.component';
+import { StudyService } from '../study/study.service';
 import { BookmarkEntry, BookmarkList, BookmarkService } from './bookmark.service';
 
 @Component({
@@ -55,13 +58,21 @@ import { BookmarkEntry, BookmarkList, BookmarkService } from './bookmark.service
 })
 export class BookmarksPage {
   protected bookmarkService = inject(BookmarkService);
+  #studyService = inject(StudyService);
   #dictionaryService = inject(DictionaryService);
   #router = inject(Router);
   #alertCtrl = inject(AlertController);
+  #modalCtrl = inject(ModalController);
   #translate = inject(TranslateService);
 
+  protected dueForCurrentList = computed(() => {
+    const listId = this.bookmarkService.currentListId();
+    if (!listId) return 0;
+    return this.#studyService.stats().find((s: { listId: string; due: number }) => s.listId === listId)?.due ?? 0;
+  });
+
   constructor() {
-    addIcons({ addOutline, closeOutline, pencilOutline });
+    addIcons({ addOutline, closeOutline, pencilOutline, schoolOutline });
   }
 
   lookup(entry: BookmarkEntry): void {
@@ -78,6 +89,16 @@ export class BookmarksPage {
     if (diffH < 24) return `${diffH}h`;
     const diffD = Math.floor(diffH / 24);
     return `${diffD}d`;
+  }
+
+  async openStudyModal(): Promise<void> {
+    const listId = this.bookmarkService.currentListId();
+    if (!listId) return;
+    const modal = await this.#modalCtrl.create({
+      component: StudyModalComponent,
+      componentProps: { defaultListId: listId },
+    });
+    await modal.present();
   }
 
   async openCreateListAlert(): Promise<void> {
