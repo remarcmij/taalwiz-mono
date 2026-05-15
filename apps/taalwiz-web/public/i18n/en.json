@@ -19,7 +19,8 @@
     "retry": "Retry",
     "reload": "Reload",
     "bookmarks": "My Words",
-    "remove": "Remove"
+    "remove": "Remove",
+    "ok": "OK"
   },
   "update": {
     "update-available": "Update Available",
@@ -49,7 +50,14 @@
     "clear-history": "Clear history"
   },
   "bookmarks": {
-    "empty": "No saved words yet. Tap the bookmark icon while viewing a dictionary entry."
+    "empty": "No saved words yet. Tap the bookmark icon while viewing a dictionary entry.",
+    "no-lists": "Create a list to start saving words.",
+    "create-list": "Create List",
+    "list-name-placeholder": "List name",
+    "delete-list-title": "Delete List",
+    "delete-list-message": "Delete '{{name}}' and all {{count}} saved words?",
+    "delete-empty-list-message": "Delete the list '{{name}}'?",
+    "rename-list-title": "Rename List"
   },
   "admin": {
     "admin-tasks": "Administative Tasks"

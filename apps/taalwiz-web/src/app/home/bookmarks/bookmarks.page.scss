@@ -3,3 +3,19 @@
   color: var(--ion-color-medium);
   padding: 2rem 1rem;
 }
+
+.chip-bar {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --min-height: auto;
+  padding-block: 6px;
+
+  ion-chip {
+    margin: 0 4px 0 0;
+    cursor: pointer;
+
+    ion-icon:first-of-type {
+      margin-left: 6px;
+    }
+  }
+}

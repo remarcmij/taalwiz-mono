@@ -19,7 +19,8 @@
     "retry": "Opnieuw proberen",
     "reload": "Opnieuw laden",
     "bookmarks": "Mijn Woorden",
-    "remove": "Verwijderen"
+    "remove": "Verwijderen",
+    "ok": "OK"
   },
   "update": {
     "update-available": "Update beschikbaar",
@@ -49,7 +50,14 @@
     "clear-history": "Geschiedenis wissen"
   },
   "bookmarks": {
-    "empty": "Nog geen opgeslagen woorden. Tik op het bladwijzerpictogram bij een woordenboekresultaat."
+    "empty": "Nog geen opgeslagen woorden. Tik op het bladwijzerpictogram bij een woordenboekresultaat.",
+    "no-lists": "Maak een lijst aan om woorden op te slaan.",
+    "create-list": "Lijst aanmaken",
+    "list-name-placeholder": "Lijstnaam",
+    "delete-list-title": "Lijst verwijderen",
+    "delete-list-message": "'{{name}}' en alle {{count}} opgeslagen woorden verwijderen?",
+    "delete-empty-list-message": "De lijst '{{name}}' verwijderen?",
+    "rename-list-title": "Lijst hernoemen"
   },
   "admin": {
     "admin-tasks": "Beheerderstaken"

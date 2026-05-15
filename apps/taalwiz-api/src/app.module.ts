@@ -8,6 +8,7 @@ import { BookmarksModule } from './bookmarks/bookmarks.module.js';
 import { ContentModule } from './content/content.module.js';
 import { HashtagModule } from './hashtag/hashtag.module.js';
 import { UsersModule } from './users/users.module.js';
+import { UserPreferencesModule } from './user-preferences/user-preferences.module.js';
 import { EnvDto } from './util/env.dto.js';
 
 const env = EnvDto.getInstance();
@@ -17,6 +18,7 @@ const env = EnvDto.getInstance();
     AuthModule,
     BookmarksModule,
     UsersModule,
+    UserPreferencesModule,
     ContentModule,
     HashtagModule,
     ServeStaticModule.forRoot({

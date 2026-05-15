@@ -4,11 +4,34 @@
       <ion-menu-button menu="m1"></ion-menu-button>
     </ion-buttons>
     <ion-title>{{ 'common.bookmarks' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openCreateListAlert()">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
+  @if (bookmarkService.lists().length > 0) {
+    <ion-toolbar class="chip-bar">
+      @for (list of bookmarkService.lists(); track list.id) {
+        <ion-chip
+          [color]="list.id === bookmarkService.currentListId() ? 'primary' : 'medium'"
+          (click)="bookmarkService.setCurrentList(list.id)">
+          <ion-label>{{ list.name }}</ion-label>
+          <ion-icon name="pencil-outline" (click)="$event.stopPropagation(); openRenameListAlert(list)"></ion-icon>
+          <ion-icon name="close-outline" (click)="$event.stopPropagation(); confirmDeleteList(list)"></ion-icon>
+        </ion-chip>
+      }
+    </ion-toolbar>
+  }
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  @if (bookmarkService.bookmarks().length === 0) {
+  @if (bookmarkService.lists().length === 0) {
+    <div class="empty-state">
+      <p>{{ 'bookmarks.no-lists' | translate }}</p>
+      <ion-button (click)="openCreateListAlert()">{{ 'bookmarks.create-list' | translate }}</ion-button>
+    </div>
+  } @else if (bookmarkService.bookmarks().length === 0) {
     <p class="empty-state">{{ 'bookmarks.empty' | translate }}</p>
   } @else {
     <ion-list lines="full">

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { IsString, MinLength } from 'class-validator';
 
 export class CreateBookmarkDto {
   @IsString()
@@ -10,6 +10,6 @@ export class CreateBookmarkDto {
   lang = '';
 
   @IsString()
-  @IsOptional()
-  list?: string;
+  @MinLength(1)
+  listId = '';
 }
