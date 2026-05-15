@@ -64,17 +64,6 @@
           @if (isFirst) {
           <ion-card-header>
             <ion-card-title>{{ base.word }}</ion-card-title>
-            @if (bookmarkService.isEnabled()) {
-              <ion-button
-                fill="clear"
-                class="bookmark-button"
-                (click)="bookmarkService.toggle(base.word, base.lang); $event.stopPropagation()">
-                <ion-icon
-                  slot="icon-only"
-                  [name]="bookmarkService.isBookmarked(base.word, base.lang) ? 'bookmark' : 'bookmark-outline'">
-                </ion-icon>
-              </ion-button>
-            }
           </ion-card-header>
           }
           <ion-card-content>

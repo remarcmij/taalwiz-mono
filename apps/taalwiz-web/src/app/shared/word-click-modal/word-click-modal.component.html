@@ -7,11 +7,9 @@
   </div>
 } @else {
   <ion-toolbar>
-    <ion-title>
-      <ion-label>
-        <span class="clicked-word">{{ bases().join(", ") }}</span>
-      </ion-label>
-    </ion-title>
+    <ion-label slot="start" class="ion-padding-start clicked-word">
+      {{ bases().join(", ") }}
+    </ion-label>
     <ion-buttons slot="end">
       @if (canSpeak()) {
         @if (sentence() !== clickedWord()) {

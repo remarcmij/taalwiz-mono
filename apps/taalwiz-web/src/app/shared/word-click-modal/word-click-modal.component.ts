@@ -19,7 +19,6 @@ import {
   IonItem,
   IonLabel,
   IonList,
-  IonTitle,
   IonToolbar,
 } from "@ionic/angular/standalone";
 import { TranslatePipe } from "@ngx-translate/core";
@@ -37,7 +36,6 @@ import { SpeechSynthesizerService } from "../../home/speech-synthesizer.service"
   imports: [
     IonLabel,
     IonToolbar,
-    IonTitle,
     IonButtons,
     IonButton,
     IonIcon,
