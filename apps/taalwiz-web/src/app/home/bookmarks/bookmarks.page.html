@@ -36,29 +36,31 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  @if (bookmarkService.lists().length === 0) {
-    <div class="empty-state">
-      <p>{{ 'bookmarks.no-lists' | translate }}</p>
-      <ion-button (click)="openCreateListAlert()">{{ 'bookmarks.create-list' | translate }}</ion-button>
-    </div>
-  } @else if (bookmarkService.bookmarks().length === 0) {
-    <p class="empty-state">{{ 'bookmarks.empty' | translate }}</p>
-  } @else {
-    <ion-list lines="full">
-      @for (entry of bookmarkService.bookmarks(); track entry.word + ':' + entry.lang) {
-        <ion-item-sliding>
-          <ion-item button (click)="lookup(entry)">
-            <ion-label>{{ entry.word }}</ion-label>
-            <ion-note slot="end">{{ relativeTime(entry.savedAt) }}</ion-note>
-            <ion-badge slot="end" color="medium">{{ entry.lang }}</ion-badge>
-          </ion-item>
-          <ion-item-options side="end">
-            <ion-item-option color="danger" (click)="bookmarkService.toggle(entry.word, entry.lang)">
-              {{ 'common.remove' | translate }}
-            </ion-item-option>
-          </ion-item-options>
-        </ion-item-sliding>
-      }
-    </ion-list>
-  }
+  <div class="content-container">
+    @if (bookmarkService.lists().length === 0) {
+      <div class="empty-state">
+        <p>{{ 'bookmarks.no-lists' | translate }}</p>
+        <ion-button (click)="openCreateListAlert()">{{ 'bookmarks.create-list' | translate }}</ion-button>
+      </div>
+    } @else if (bookmarkService.bookmarks().length === 0) {
+      <p class="empty-state">{{ 'bookmarks.empty' | translate }}</p>
+    } @else {
+      <ion-list lines="full">
+        @for (entry of bookmarkService.bookmarks(); track entry.word + ':' + entry.lang) {
+          <ion-item-sliding>
+            <ion-item button (click)="lookup(entry)">
+              <ion-label>{{ entry.word }}</ion-label>
+              <ion-note slot="end">{{ relativeTime(entry.savedAt) }}</ion-note>
+              <ion-badge slot="end" color="medium">{{ entry.lang }}</ion-badge>
+            </ion-item>
+            <ion-item-options side="end">
+              <ion-item-option color="danger" (click)="bookmarkService.toggle(entry.word, entry.lang)">
+                {{ 'common.remove' | translate }}
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        }
+      </ion-list>
+    }
+  </div>
 </ion-content>
