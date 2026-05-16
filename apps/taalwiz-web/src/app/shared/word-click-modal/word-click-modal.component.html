@@ -8,7 +8,7 @@
 } @else {
   <ion-toolbar>
     <ion-label slot="start" class="ion-padding-start clicked-word">
-      {{ bases().join(", ") }}
+      {{ titleLabel() }}
     </ion-label>
     <ion-buttons slot="end">
       @if (canSpeak()) {
@@ -30,7 +30,7 @@
         </ion-button>
       }
       @if (vocabularyService.isEnabled()) {
-        <ion-button (click)="vocabularyService.toggle(word(), lang())">
+        <ion-button (click)="vocabularyService.toggle(clickedWord(), lang())">
           <ion-icon
             slot="icon-only"
             [name]="isBookmarked() ? 'bookmark' : 'bookmark-outline'"

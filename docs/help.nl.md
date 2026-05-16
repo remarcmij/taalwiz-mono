@@ -17,7 +17,7 @@ De Bibliotheek is je startpunt voor het lezen. Er wordt een lijst met boeken get
 
 Lange hoofdstukken hebben een __Inhoudsopgave__ in het rechterzijmenu; tik op een kop om direct naar dat gedeelte te springen.
 
-Tijdens het lezen kun je op een gemarkeerd woord tikken om het in het woordenboek op te zoeken zonder het hoofdstuk te verlaten.
+Tijdens het lezen kun je op een gemarkeerd woord tikken om het woorddetailvenster te openen. De titelbalk toont het woord zoals het in de tekst staat; als de woordenboekbasisvorm afwijkt, worden beide getoond met een pijl (bijv. _dibakar → membakar_).
 
 ---
 
@@ -51,7 +51,7 @@ Je kunt zo veel woordenlijsten aanmaken als je wilt — bijvoorbeeld één per h
 
 Woorden kunnen op twee manieren aan een lijst worden toegevoegd:
 
-- Vanuit het __Woordenboek__ of een __artikel__: tik op een woord en kies vervolgens _Aan woordenschat toevoegen_ in het woorddetailvenster.
+- Vanuit een __artikel__: tik op een gemarkeerd woord en tik vervolgens op het bladwijzerpictogram in het woorddetailvenster. Het woord wordt opgeslagen in de vorm zoals het in de tekst staat (bijv. _dibakar_, niet de basisvorm _membakar_).
 - Rechtstreeks in het tabblad Woordenschat: tik op de __+__-knop in een lijst en typ het woord handmatig.
 
 Elk item heeft een __achterkant__-veld waar je je eigen definitie, voorbeeldzin of vertaalaantekening kunt schrijven. Tik op een item om het te bewerken.

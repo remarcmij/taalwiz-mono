@@ -140,7 +140,7 @@ export class StudyModalComponent implements OnInit {
     } else {
       const result = await firstValueFrom(this.#dictionaryService.fetchWordLemmas(card.term, card.lang));
       const firstLemma = result.lemmas[0];
-      this.definition.set(firstLemma?.text ?? '');
+      this.definition.set(firstLemma?.text.replace(/[;,]\s*$/, '') ?? '');
       this.baseWordNote.set(result.word !== card.term ? result.word : null);
     }
     this.flipped.set(true);

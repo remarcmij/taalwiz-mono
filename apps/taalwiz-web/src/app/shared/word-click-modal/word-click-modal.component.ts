@@ -66,8 +66,15 @@ export class WordClickModalComponent implements OnInit {
   safeHomonyms = signal<SafeHtml[]>([]);
 
   protected isBookmarked = computed(() =>
-    this.vocabularyService.isBookmarked(this.word(), this.lang()),
+    this.vocabularyService.isBookmarked(this.clickedWord(), this.lang()),
   );
+
+  protected titleLabel = computed(() => {
+    const bases = this.bases();
+    const clicked = this.clickedWord();
+    const basesStr = bases.join(", ");
+    return bases.includes(clicked) ? basesStr : `${clicked} → ${basesStr}`;
+  });
 
   ngOnInit() {
     // Group lemmas by homonym

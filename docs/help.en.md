@@ -17,7 +17,7 @@ The Library is your starting point for reading. It shows a list of books; tap a 
 
 Long chapters have a __Table of Contents__ in the right-hand side menu; tap any heading to jump directly to that section.
 
-While reading, you can tap any highlighted word to look it up in the dictionary without leaving the chapter.
+While reading, you can tap any highlighted word to open the word detail panel. The panel title shows the word as it appears in the text; if the dictionary base form differs, both are shown with an arrow (e.g. _dibakar → membakar_).
 
 ---
 
@@ -51,7 +51,7 @@ You can create as many vocabulary lists as you like — for example one per chap
 
 Words can be added to a list in two ways:
 
-- From the __Dictionary__ or an __article__: tap a word, then choose _Add to vocabulary_ in the word detail panel.
+- From an __article__: tap a highlighted word, then tap the bookmark icon in the word detail panel. The word is saved in the form it appeared in the text (e.g. _dibakar_, not the base form _membakar_).
 - Directly in the Vocabulary tab: tap the __+__ button inside a list and type the word manually.
 
 Each entry has a __back__ field where you can write your own definition, example sentence, or translation note. Tap an entry to edit it.

@@ -1,5 +1,23 @@
 # Changes — taalwiz-web
 
+## 2026-05-16 — Word-click modal: show clicked form, save clicked form, strip trailing punctuation from flashcard back
+
+Three small UX fixes to the word-click workflow:
+
+- **Title bar** now shows the clicked word alongside the dictionary base form when they differ (e.g. *dibakar → membakar*). When the clicked form already equals the base form, only the base form is shown — no arrow.
+- **Bookmarked term** is now the word as it appeared in the text (the clicked form), not the stemmed dictionary-lookup key. This preserves the inflected form the user actually encountered (e.g. *dibakar* is saved rather than *bakar*).
+- **Flashcard back text**: a trailing `;` or `,` is stripped from the first lemma definition when it is used as the card back (i.e. when no custom flip-side value has been stored).
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/shared/word-click-modal/word-click-modal.component.ts` | `isBookmarked` and `toggle` use `clickedWord()`; add `titleLabel` computed |
+| `src/app/shared/word-click-modal/word-click-modal.component.html` | Toolbar label → `titleLabel()`; bookmark toggle → `clickedWord()` |
+| `src/app/home/study/study-modal/study-modal.component.ts` | Strip trailing `;` / `,` from lemma text used as card back |
+
+---
+
 ## 2026-05-16 — Fix System Settings Save/Cancel buttons not appearing
 
 The Save/Cancel buttons in the System Settings toolbar were conditionally rendered via `@if (isDirty())`, but `isDirty` is a `computed` signal that never re-evaluated after edits because `[(ngModel)]` mutates setting objects in place without notifying the signal. Added `onSettingChange()` which calls `settings.update(s => [...s])` (a new array reference containing the already-mutated objects), triggering the computed to re-evaluate and reveal the buttons. Also corrected the `deleteTopic` API URL from `/api/admin/topics/:filename` to `/api/v1/content/:filename`, and the settings URLs from `/api/admin/settings` to `/api/v1/admin/settings`, aligning all admin service calls with the API's `api/v1` global prefix.
