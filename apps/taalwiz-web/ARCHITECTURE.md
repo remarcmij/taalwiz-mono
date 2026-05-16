@@ -127,6 +127,8 @@ src/app/
 │
 ├── about/
 │
+├── help/                     # Help page (markdown, always Dutch)
+│
 ├── shared/                   # Non-feature utilities
 │   ├── logger.service.ts
 │   ├── api-error-alert.service.ts
@@ -175,6 +177,7 @@ flowchart TD
     welcome["/welcome/:lang\n(authGuard)"]
     about["/about/:lang\n(authGuard)"]
     contact["/contact\n(authGuard)"]
+    help["/help\n(authGuard)"]
 
     wildcard["**"] -->|redirect| auth_r
 ```

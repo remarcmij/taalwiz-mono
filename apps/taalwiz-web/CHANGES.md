@@ -1,5 +1,74 @@
 # Changes — taalwiz-web
 
+## 2026-05-16 — Vocabulary and flashcard UX polish
+
+Small targeted refinements across the vocabulary list, vocabulary entry form, and study flashcard.
+
+- **Vocabulary list** — removed the `lang` badge from each row (always `id`, adds no information). Tapping an entry that has a flip-side value now opens the edit modal instead of navigating to the dictionary; entries without a flip side still navigate to the dictionary as before.
+- **Vocabulary entry form** — Term and Flip side labels now include `(id)` and `(nl)` in plain text to remind users of the direction convention.
+- **Flashcard front** — Removed the Space keyboard-hint graphic (looked like a broken button on mobile; Space shortcut still works). Removed the `lang` badge (same reason as vocabulary list). Card word font size now scales down for medium-length terms (> 15 chars → 1.4 rem) and long terms (> 30 chars → 1.1 rem) so phrases fit comfortably.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/vocabulary/vocabulary.page.ts` | `lookup()` opens edit modal when `entry.back` is set |
+| `src/app/home/vocabulary/vocabulary.page.html` | Remove lang badge from list rows |
+| `src/app/home/vocabulary/vocabulary-entry-modal/vocabulary-entry-modal.component.html` | Add `(id)` / `(nl)` hints to label text |
+| `src/app/home/study/study-modal/study-modal.component.html` | Remove lang badge and Space hint from card front |
+| `src/app/home/study/study-modal/study-modal.component.scss` | `.card-word--medium` and `.card-word--long` modifier classes |
+
+---
+
+## 2026-05-16 — UX improvements: help page, settings save/cancel, CSV feedback, SRS hint, accessibility
+
+Six improvements identified in an independent UX review.
+
+### Help page
+
+A **Help** item is now in the left sidebar (between Contact and Reload). It opens a new `/help` route that renders `help.md` from `ContentService` — same pipeline as the About page, always Dutch, no language suffix. The `help.md` content itself is uploaded via the admin upload UI.
+
+### System Settings — explicit Save/Cancel
+
+Settings no longer auto-save on component destroy. Save and Cancel buttons appear in the toolbar whenever there are unsaved changes (`isDirty` computed signal). Cancel resets to the last saved state; Save calls the API and resets the baseline on success.
+
+### CSV import — invalid line feedback
+
+A warning note appears below the CSV textarea when one or more non-blank, non-comment lines cannot be parsed (empty term). The count is a `computed` signal derived from the difference between raw non-empty lines and successfully parsed entries.
+
+### SRS rating hint
+
+A one-time dismissible hint appears above the rating buttons explaining that the rating determines when the card reappears. Once dismissed the preference is stored via `@capacitor/preferences` (key `study.ratingHintDismissed`) and the hint never shows again.
+
+### Accessibility
+
+- Search suggestions dropdown: `role="listbox"` on the list, `role="option"` and `aria-selected="false"` on each item.
+- Dictionary sync status banners wrapped in `<div aria-live="polite" aria-atomic="true">`.
+- Flashcard card div: `role="button"` and `[attr.aria-label]` (set when unflipped, null when flipped).
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/help/help.page.ts` | New — mirrors `about.page.ts`; fetches `help.md` |
+| `src/app/help/help.page.html` | New — mirrors `about.page.html` |
+| `src/app/app.routes.ts` | Add `/help` route (`authGuard`) |
+| `src/app/app.component.html` | Add Help sidebar menu item |
+| `src/app/app.component.ts` | Add `helpCircleOutline` to `addIcons()` |
+| `src/app/admin/system-settings/system-settings.page.ts` | Remove `ngOnDestroy` auto-save; add `isDirty`, `save()`, `cancel()` |
+| `src/app/admin/system-settings/system-settings.page.html` | Save/Cancel buttons in toolbar |
+| `src/app/home/vocabulary/vocabulary-entry-modal/vocabulary-entry-modal.component.ts` | Add `invalidLineCount` computed signal |
+| `src/app/home/vocabulary/vocabulary-entry-modal/vocabulary-entry-modal.component.html` | Warning note for invalid CSV lines |
+| `src/app/home/study/study-modal/study-modal.component.ts` | `showRatingHint` signal; `dismissRatingHint()`; `Preferences` check in `ngOnInit` |
+| `src/app/home/study/study-modal/study-modal.component.html` | Rating hint; `role="button"` + `aria-label` on flashcard |
+| `src/app/home/study/study-modal/study-modal.component.scss` | `.rating-hint` style |
+| `src/app/home/dictionary/searchbar/searchbar-dropdown/searchbar-dropdown.component.html` | ARIA listbox/option semantics |
+| `src/app/home/dictionary/dictionary.page.html` | `aria-live` wrapper on sync banners |
+| `public/i18n/en.json` | Add `common.help`, `vocabulary.import-invalid-lines`, `study.rating-hint` |
+| `public/i18n/nl.json` | Dutch equivalents |
+
+---
+
 ## 2026-05-16 — Vocabulary entry management (add, edit back, bulk CSV import)
 
 New ways to populate the vocabulary list beyond the word-click modal bookmark icon. Entries can now be added one at a time, bulk-imported via CSV, or edited (flip-side only) directly from the Vocabulary tab. Desktop users get inline edit/delete icon buttons; mobile users get a left-swipe edit action. The SRS badge count now stays in sync after every add or remove.
