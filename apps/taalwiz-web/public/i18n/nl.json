@@ -18,7 +18,7 @@
     "no-data": "Geen gegevens beschikbaar",
     "retry": "Opnieuw proberen",
     "reload": "Opnieuw laden",
-    "bookmarks": "Mijn Woorden",
+    "bookmarks": "Woordenschat",
     "remove": "Verwijderen",
     "ok": "OK"
   },
@@ -50,12 +50,12 @@
     "clear-history": "Geschiedenis wissen"
   },
   "bookmarks": {
-    "empty": "Nog geen opgeslagen woorden. Tik op het bladwijzerpictogram bij een woordenboekresultaat.",
-    "no-lists": "Maak een lijst aan om woorden op te slaan.",
+    "empty": "Nog geen items in uw woordenschat. Tik op het bladwijzerpictogram bij een woordenboekresultaat.",
+    "no-lists": "Maak een lijst aan om uw woordenschat op te bouwen.",
     "create-list": "Lijst aanmaken",
     "list-name-placeholder": "Lijstnaam",
     "delete-list-title": "Lijst verwijderen",
-    "delete-list-message": "'{{name}}' en alle {{count}} opgeslagen woorden verwijderen?",
+    "delete-list-message": "'{{name}}' en alle {{count}} items verwijderen?",
     "delete-empty-list-message": "De lijst '{{name}}' verwijderen?",
     "rename-list-title": "Lijst hernoemen"
   },

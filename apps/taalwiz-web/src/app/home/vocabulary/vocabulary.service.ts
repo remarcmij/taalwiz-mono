@@ -4,31 +4,32 @@ import { Preferences } from '@capacitor/preferences';
 import { EMPTY, catchError, firstValueFrom, of, switchMap, take } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 
-export interface BookmarkEntry {
-  word: string;
+export interface VocabularyEntry {
+  term: string;
   lang: string;
   listId: string;
+  back?: string;
   savedAt: string;
 }
 
-export interface BookmarkList {
+export interface VocabularyList {
   id: string;
   name: string;
   count: number;
 }
 
-const PREFS_KEY = 'bookmarkCurrentListId';
+const PREFS_KEY = 'vocabularyCurrentListId';
 
 @Injectable({
   providedIn: 'root',
 })
-export class BookmarkService {
+export class VocabularyService {
   #http = inject(HttpClient);
   #authService = inject(AuthService);
 
-  readonly bookmarks = signal<BookmarkEntry[]>([]);
+  readonly bookmarks = signal<VocabularyEntry[]>([]);
   readonly bookmarkedKeys = signal<Set<string>>(new Set());
-  readonly lists = signal<BookmarkList[]>([]);
+  readonly lists = signal<VocabularyList[]>([]);
   readonly currentListId = signal<string | null>(null);
   readonly currentList = computed(() => this.lists().find((l) => l.id === this.currentListId()) ?? null);
   readonly isEnabled = computed(() => !!this.#authService.user() && this.currentListId() !== null);
@@ -47,27 +48,27 @@ export class BookmarkService {
     });
   }
 
-  isBookmarked(word: string, lang: string): boolean {
-    return this.bookmarkedKeys().has(`${word}:${lang}`);
+  isBookmarked(term: string, lang: string): boolean {
+    return this.bookmarkedKeys().has(`${term}:${lang}`);
   }
 
-  toggle(word: string, lang: string): void {
+  toggle(term: string, lang: string): void {
     if (!this.currentListId()) return;
-    this.isBookmarked(word, lang) ? this.#remove(word, lang) : this.#add(word, lang);
+    this.isBookmarked(term, lang) ? this.#remove(term, lang) : this.#add(term, lang);
   }
 
   setCurrentList(id: string): void {
     this.currentListId.set(id);
     void Preferences.set({ key: PREFS_KEY, value: id });
     this.#syncServerPrefs(id);
-    this.#loadBookmarks(id);
+    this.#loadItems(id);
   }
 
   createList(name: string): void {
     this.#authService.getRequestHeaders().pipe(
       switchMap((headers) =>
         headers.get('Authorization')
-          ? this.#http.post<BookmarkList>('/api/v1/bookmarks/lists', { name }, { headers })
+          ? this.#http.post<VocabularyList>('/api/v1/vocabulary/lists', { name }, { headers })
           : EMPTY,
       ),
       catchError(() => EMPTY),
@@ -91,7 +92,7 @@ export class BookmarkService {
       this.currentListId.set(next);
       if (next) {
         void Preferences.set({ key: PREFS_KEY, value: next });
-        this.#loadBookmarks(next);
+        this.#loadItems(next);
       } else {
         void Preferences.remove({ key: PREFS_KEY });
         this.bookmarks.set([]);
@@ -102,7 +103,7 @@ export class BookmarkService {
     this.#authService.getRequestHeaders().pipe(
       switchMap((headers) =>
         headers.get('Authorization')
-          ? this.#http.delete(`/api/v1/bookmarks/lists/${id}`, { headers })
+          ? this.#http.delete(`/api/v1/vocabulary/lists/${id}`, { headers })
           : EMPTY,
       ),
       catchError(() => {
@@ -120,7 +121,7 @@ export class BookmarkService {
     this.#authService.getRequestHeaders().pipe(
       switchMap((headers) =>
         headers.get('Authorization')
-          ? this.#http.patch(`/api/v1/bookmarks/lists/${id}`, { name: newName }, { headers })
+          ? this.#http.patch(`/api/v1/vocabulary/lists/${id}`, { name: newName }, { headers })
           : EMPTY,
       ),
       catchError(() => {
@@ -152,7 +153,7 @@ export class BookmarkService {
 
     if (resolved) {
       void Preferences.set({ key: PREFS_KEY, value: resolved });
-      this.#loadBookmarks(resolved);
+      this.#loadItems(resolved);
     }
   }
 
@@ -161,18 +162,18 @@ export class BookmarkService {
     if (!headers.get('Authorization')) return null;
     return firstValueFrom(
       this.#http
-        .get<{ currentBookmarkListId: string | null }>('/api/v1/user-preferences', { headers })
+        .get<{ currentVocabularyListId: string | null }>('/api/v1/user-preferences', { headers })
         .pipe(
-          catchError(() => of({ currentBookmarkListId: null })),
+          catchError(() => of({ currentVocabularyListId: null })),
         ),
-    ).then((p) => p.currentBookmarkListId);
+    ).then((p) => p.currentVocabularyListId);
   }
 
   #syncServerPrefs(listId: string): void {
     this.#authService.getRequestHeaders().pipe(
       switchMap((headers) =>
         headers.get('Authorization')
-          ? this.#http.patch('/api/v1/user-preferences', { currentBookmarkListId: listId }, { headers })
+          ? this.#http.patch('/api/v1/user-preferences', { currentVocabularyListId: listId }, { headers })
           : EMPTY,
       ),
       catchError(() => EMPTY),
@@ -180,35 +181,35 @@ export class BookmarkService {
     ).subscribe();
   }
 
-  async #fetchLists(): Promise<BookmarkList[]> {
+  async #fetchLists(): Promise<VocabularyList[]> {
     const headers = await firstValueFrom(this.#authService.getRequestHeaders());
     if (!headers.get('Authorization')) return [];
     return firstValueFrom(
-      this.#http.get<BookmarkList[]>('/api/v1/bookmarks/lists', { headers }).pipe(
+      this.#http.get<VocabularyList[]>('/api/v1/vocabulary/lists', { headers }).pipe(
         catchError(() => of([])),
       ),
     );
   }
 
-  #loadBookmarks(listId: string): void {
+  #loadItems(listId: string): void {
     this.#authService.getRequestHeaders().pipe(
       switchMap((headers) =>
         headers.get('Authorization')
-          ? this.#http.get<BookmarkEntry[]>('/api/v1/bookmarks', { headers, params: { listId } })
+          ? this.#http.get<VocabularyEntry[]>('/api/v1/vocabulary', { headers, params: { listId } })
           : EMPTY,
       ),
       catchError(() => EMPTY),
       take(1),
     ).subscribe((entries) => {
       this.bookmarks.set(entries);
-      this.bookmarkedKeys.set(new Set(entries.map((e) => `${e.word}:${e.lang}`)));
+      this.bookmarkedKeys.set(new Set(entries.map((e) => `${e.term}:${e.lang}`)));
     });
   }
 
-  #add(word: string, lang: string): void {
+  #add(term: string, lang: string): void {
     const listId = this.currentListId()!;
-    const key = `${word}:${lang}`;
-    const entry: BookmarkEntry = { word, lang, listId, savedAt: new Date().toISOString() };
+    const key = `${term}:${lang}`;
+    const entry: VocabularyEntry = { term, lang, listId, savedAt: new Date().toISOString() };
     const listsSnapshot = this.lists();
 
     this.bookmarkedKeys.update((s) => new Set([...s, key]));
@@ -218,12 +219,12 @@ export class BookmarkService {
     this.#authService.getRequestHeaders().pipe(
       switchMap((headers) =>
         headers.get('Authorization')
-          ? this.#http.post('/api/v1/bookmarks', { word, lang, listId }, { headers })
+          ? this.#http.post('/api/v1/vocabulary', { term, lang, listId }, { headers })
           : EMPTY,
       ),
       catchError(() => {
         this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
-        this.bookmarks.update((bs) => bs.filter((b) => !(b.word === word && b.lang === lang)));
+        this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
         this.lists.set(listsSnapshot);
         return EMPTY;
       }),
@@ -231,20 +232,20 @@ export class BookmarkService {
     ).subscribe();
   }
 
-  #remove(word: string, lang: string): void {
+  #remove(term: string, lang: string): void {
     const listId = this.currentListId()!;
-    const key = `${word}:${lang}`;
+    const key = `${term}:${lang}`;
     const bookmarksSnapshot = this.bookmarks();
     const listsSnapshot = this.lists();
 
     this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
-    this.bookmarks.update((bs) => bs.filter((b) => !(b.word === word && b.lang === lang)));
+    this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
     this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: Math.max(0, l.count - 1) } : l)));
 
     this.#authService.getRequestHeaders().pipe(
       switchMap((headers) =>
         headers.get('Authorization')
-          ? this.#http.delete('/api/v1/bookmarks', { headers, params: { word, lang, listId } })
+          ? this.#http.delete('/api/v1/vocabulary', { headers, params: { term, lang, listId } })
           : EMPTY,
       ),
       catchError(() => {

@@ -13,34 +13,34 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtPayload } from '../auth/types/jwtpayload.interface.js';
-import { BookmarkListInfo, BookmarksService } from './bookmarks.service.js';
-import { CreateBookmarkDto } from './dto/create-bookmark.dto.js';
-import { CreateBookmarkListDto } from './dto/create-bookmark-list.dto.js';
-import { RenameBookmarkListDto } from './dto/rename-bookmark-list.dto.js';
+import { VocabularyListInfo, VocabularyService } from './vocabulary.service.js';
+import { CreateVocabularyItemDto } from './dto/create-vocabulary-item.dto.js';
+import { CreateVocabularyListDto } from './dto/create-vocabulary-list.dto.js';
+import { RenameVocabularyListDto } from './dto/rename-vocabulary-list.dto.js';
 
-@Controller('bookmarks')
-export class BookmarksController {
-  constructor(private readonly bookmarksService: BookmarksService) {}
+@Controller('vocabulary')
+export class VocabularyController {
+  constructor(private readonly vocabularyService: VocabularyService) {}
 
   // --- List management routes (must come before the bare GET/POST/DELETE) ---
 
   @Get('lists')
-  async getLists(@Req() req: Request): Promise<BookmarkListInfo[]> {
+  async getLists(@Req() req: Request): Promise<VocabularyListInfo[]> {
     const userId = (req['user'] as JwtPayload).sub;
-    return this.bookmarksService.findAllLists(userId);
+    return this.vocabularyService.findAllLists(userId);
   }
 
   @Post('lists')
-  async createList(@Req() req: Request, @Body() dto: CreateBookmarkListDto): Promise<BookmarkListInfo> {
+  async createList(@Req() req: Request, @Body() dto: CreateVocabularyListDto): Promise<VocabularyListInfo> {
     const userId = (req['user'] as JwtPayload).sub;
-    return this.bookmarksService.createList(userId, dto.name);
+    return this.vocabularyService.createList(userId, dto.name);
   }
 
   @Delete('lists/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteList(@Req() req: Request, @Param('id') id: string): Promise<void> {
     const userId = (req['user'] as JwtPayload).sub;
-    await this.bookmarksService.deleteList(userId, id);
+    await this.vocabularyService.deleteList(userId, id);
   }
 
   @Patch('lists/:id')
@@ -48,36 +48,36 @@ export class BookmarksController {
   async renameList(
     @Req() req: Request,
     @Param('id') id: string,
-    @Body() dto: RenameBookmarkListDto,
+    @Body() dto: RenameVocabularyListDto,
   ): Promise<void> {
     const userId = (req['user'] as JwtPayload).sub;
-    await this.bookmarksService.renameList(userId, id, dto.name);
+    await this.vocabularyService.renameList(userId, id, dto.name);
   }
 
-  // --- Bookmark CRUD routes ---
+  // --- Vocabulary item CRUD routes ---
 
   @Get()
   async list(@Req() req: Request, @Query('listId') listId: string) {
     const userId = (req['user'] as JwtPayload).sub;
-    return this.bookmarksService.findAll(userId, listId);
+    return this.vocabularyService.findAll(userId, listId);
   }
 
   @Post()
   @HttpCode(HttpStatus.NO_CONTENT)
-  async add(@Req() req: Request, @Body() dto: CreateBookmarkDto) {
+  async add(@Req() req: Request, @Body() dto: CreateVocabularyItemDto) {
     const userId = (req['user'] as JwtPayload).sub;
-    await this.bookmarksService.add(userId, dto.word, dto.lang, dto.listId);
+    await this.vocabularyService.add(userId, dto.term, dto.lang, dto.listId, dto.back);
   }
 
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
     @Req() req: Request,
-    @Query('word') word: string,
+    @Query('term') term: string,
     @Query('lang') lang: string,
     @Query('listId') listId: string,
   ) {
     const userId = (req['user'] as JwtPayload).sub;
-    await this.bookmarksService.remove(userId, word, lang, listId);
+    await this.vocabularyService.remove(userId, term, lang, listId);
   }
 }

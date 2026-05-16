@@ -1,9 +1,9 @@
 import { IsIn, IsString, MinLength } from 'class-validator';
 
-export class ReviewSrsCardDto {
+export class SrsReviewDto {
   @IsString()
   @MinLength(1)
-  word = '';
+  term = '';
 
   @IsString()
   @MinLength(1)

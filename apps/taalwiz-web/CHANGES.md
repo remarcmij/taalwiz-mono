@@ -1,5 +1,49 @@
 # Changes — taalwiz-web
 
+## 2026-05-16 — Rename bookmarks → vocabulary; word → term; optional `back` field
+
+UI label "My Words" / "Mijn Woorden" renamed to **"Vocabulary"** / **"Woordenschat"** in both locale files. Code and file names updated throughout to match.
+
+### Renames
+
+| Old | New |
+|-----|-----|
+| `home/bookmarks/` | `home/vocabulary/` |
+| `bookmark.service.ts` → `BookmarkService`, `BookmarkEntry`, `BookmarkList` | `vocabulary.service.ts` → `VocabularyService`, `VocabularyEntry`, `VocabularyList` |
+| `bookmarks.page.ts` → `BookmarksPage` | `vocabulary.page.ts` → `VocabularyPage` |
+| `SrsCard` interface (study.service.ts) | `SrsItem` |
+| API URLs `/api/v1/bookmarks/*` | `/api/v1/vocabulary/*` |
+| Capacitor Preferences key `bookmarkCurrentListId` | `vocabularyCurrentListId` |
+| User Preferences field `currentBookmarkListId` | `currentVocabularyListId` |
+
+### Data model changes
+
+- `VocabularyEntry.word` → `term` (supports words, phrases, sentences).
+- `VocabularyEntry.back?` (new optional field) — when present, the study modal displays it directly on card flip instead of doing a dictionary lookup.
+
+### i18n changes
+
+- `common.bookmarks`: "My Words" → "Vocabulary" / "Woordenschat"
+- `bookmarks.empty`, `bookmarks.no-lists`, `bookmarks.delete-list-message` updated to use vocabulary terminology.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/vocabulary/vocabulary.service.ts` | Renamed + all types updated; API URLs updated; Capacitor Preferences key updated |
+| `src/app/home/vocabulary/vocabulary.page.ts` | Renamed; class `VocabularyPage`; `vocabularyService` property |
+| `src/app/home/vocabulary/vocabulary.page.html` | Renamed; `vocabularyService` references |
+| `src/app/home/vocabulary/vocabulary.page.scss` | Renamed |
+| `src/app/home/study/study.service.ts` | `SrsItem` interface (was `SrsCard`); `term` field (was `word`); `back?` field |
+| `src/app/home/study/study-modal/study-modal.component.ts` | `VocabularyService`; `SrsItem`; `vocabularyService` property; `card.back` shortcut on flip |
+| `src/app/shared/word-click-modal/word-click-modal.component.ts` | `VocabularyService`; `vocabularyService` property |
+| `src/app/shared/word-click-modal/word-click-modal.component.html` | `vocabularyService` references |
+| `src/app/home/home.routes.ts` | Import `VocabularyPage` from `vocabulary/vocabulary.page` |
+| `public/i18n/en.json` | Vocabulary UI strings |
+| `public/i18n/nl.json` | Vocabulary UI strings (Dutch) |
+
+---
+
 ## 2026-05-15 — SRS flashcard study mode
 
 New study mode for bookmarked words using spaced-repetition (simplified SM-2). A school icon button in the "My Words" toolbar opens a full-screen modal for a study session.

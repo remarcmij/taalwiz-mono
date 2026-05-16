@@ -1,5 +1,50 @@
 # Changes — taalwiz-api
 
+## 2026-05-16 — Rename bookmarks → vocabulary; word → term; add optional `back` field
+
+Comprehensive rename to align code and data schema with the "Vocabulary" UI term. The `bookmarks` module is now `vocabulary`; Mongoose models and MongoDB collections reflect the new naming. The `word` field on both `VocabularyItem` and `SrsRecord` is renamed to `term` so the feature can hold phrases and sentences, not just single words. An optional `back` field is added to `VocabularyItem`; when present it is served in the `GET /api/v1/srs/due` response so the study modal can display it directly without a dictionary lookup.
+
+### Schema changes
+
+- **`VocabularyItem`** (was `Bookmark`) — `term` (was `word`), `lang`, `listId`, `back?` (new, optional flip-side content), `savedAt`. Unique index on `{ userId, listId, term, lang }`.
+- **`VocabularyList`** (was `BookmarkList`) — unchanged structure; new Mongoose model name updates the MongoDB collection.
+- **`SrsRecord`** (was `SrsCard`) — `term` (was `word`), plus all existing scheduling fields. Unique index on `{ userId, listId, term, lang }`.
+- **`UserPreferences`** — field `currentBookmarkListId` renamed to `currentVocabularyListId`.
+
+### API changes
+
+- All `/api/v1/bookmarks/*` routes moved to `/api/v1/vocabulary/*`.
+- POST body field `word` → `term` throughout; optional `back` added to vocabulary item POST.
+- DELETE query param `word=` → `term=`.
+- SRS review body field `word` → `term`.
+- `GET /api/v1/srs/due` response now includes `back` when the corresponding `VocabularyItem` has one set (server-side join).
+- User preferences field `currentBookmarkListId` → `currentVocabularyListId`.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/vocabulary/` (was `src/bookmarks/`) | Folder renamed |
+| `src/vocabulary/models/vocabulary-item.model.ts` | Renamed from `bookmark.model.ts`; model `VocabularyItem`; `term` (was `word`); added `back?` |
+| `src/vocabulary/models/vocabulary-list.model.ts` | Renamed from `bookmark-list.model.ts`; model `VocabularyList` |
+| `src/vocabulary/dto/create-vocabulary-item.dto.ts` | Renamed; class `CreateVocabularyItemDto`; added `back?` |
+| `src/vocabulary/dto/create-vocabulary-list.dto.ts` | Renamed; class `CreateVocabularyListDto` |
+| `src/vocabulary/dto/rename-vocabulary-list.dto.ts` | Renamed; class `RenameVocabularyListDto` |
+| `src/vocabulary/vocabulary.service.ts` | Renamed; class `VocabularyService`; `VocabularyListInfo` |
+| `src/vocabulary/vocabulary.controller.ts` | Renamed; class `VocabularyController`; route `vocabulary` |
+| `src/vocabulary/vocabulary.module.ts` | Renamed; class `VocabularyModule` |
+| `src/srs/models/srs-record.model.ts` | Renamed from `srs-card.model.ts`; model `SrsRecord`; `term` |
+| `src/srs/dto/srs-review.dto.ts` | Renamed from `review-srs-card.dto.ts`; class `SrsReviewDto` |
+| `src/srs/srs.service.ts` | `SrsRecord` model; `VocabularyItem` import; `SrsItemInfo` interface; `getDueCards` joins `VocabularyItem` to populate `back` |
+| `src/srs/srs.controller.ts` | `SrsReviewDto`; `SrsItemInfo` |
+| `src/user-preferences/models/user-preferences.model.ts` | Field `currentVocabularyListId` (was `currentBookmarkListId`) |
+| `src/user-preferences/dto/update-user-preferences.dto.ts` | Field renamed |
+| `src/user-preferences/user-preferences.service.ts` | Field renamed |
+| `src/user-preferences/user-preferences.controller.ts` | Field renamed |
+| `src/app.module.ts` | `VocabularyModule` (was `BookmarksModule`) |
+
+---
+
 ## 2026-05-15 — SRS flashcard backend
 
 New `SrsModule` providing spaced-repetition card state for bookmarked words. SRS cards are stored in a dedicated `srs_cards` MongoDB collection keyed on `{ userId, listId, word, lang }`. Cards are created automatically when a bookmark is added and deleted when the bookmark (or its list) is removed.

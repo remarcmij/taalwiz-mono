@@ -24,7 +24,7 @@ import {
 import { TranslatePipe } from "@ngx-translate/core";
 import { addIcons } from "ionicons";
 import { bookmark, bookmarkOutline, playOutline, searchOutline, volumeHighOutline } from "ionicons/icons";
-import { BookmarkService } from "../../home/bookmarks/bookmark.service";
+import { VocabularyService } from "../../home/vocabulary/vocabulary.service";
 import { MarkdownService } from "../../home/content/markdown.service";
 import { DictionaryService } from "../../home/dictionary/dictionary.service";
 import { type ILemma } from "../../home/dictionary/lemma/lemma.model";
@@ -55,7 +55,7 @@ export class WordClickModalComponent implements OnInit {
   #markdownService = inject(MarkdownService);
   #speechService = inject(SpeechSynthesizerService);
 
-  protected bookmarkService = inject(BookmarkService);
+  protected vocabularyService = inject(VocabularyService);
 
   clickedWord = input.required<string>();
   word = input.required<string>();
@@ -66,7 +66,7 @@ export class WordClickModalComponent implements OnInit {
   safeHomonyms = signal<SafeHtml[]>([]);
 
   protected isBookmarked = computed(() =>
-    this.bookmarkService.isBookmarked(this.word(), this.lang()),
+    this.vocabularyService.isBookmarked(this.word(), this.lang()),
   );
 
   ngOnInit() {

@@ -28,7 +28,7 @@ import { DictionaryService } from '../dictionary/dictionary.service';
 import { WordLang } from '../dictionary/word-lang.model';
 import { StudyModalComponent } from '../study/study-modal/study-modal.component';
 import { StudyService } from '../study/study.service';
-import { BookmarkEntry, BookmarkList, BookmarkService } from './bookmark.service';
+import { VocabularyEntry, VocabularyList, VocabularyService } from './vocabulary.service';
 
 @Component({
   selector: 'app-bookmarks',
@@ -52,12 +52,12 @@ import { BookmarkEntry, BookmarkList, BookmarkService } from './bookmark.service
     IonIcon,
     TranslatePipe,
   ],
-  templateUrl: './bookmarks.page.html',
-  styleUrls: ['./bookmarks.page.scss'],
+  templateUrl: './vocabulary.page.html',
+  styleUrls: ['./vocabulary.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BookmarksPage {
-  protected bookmarkService = inject(BookmarkService);
+export class VocabularyPage {
+  protected vocabularyService = inject(VocabularyService);
   #studyService = inject(StudyService);
   #dictionaryService = inject(DictionaryService);
   #router = inject(Router);
@@ -66,7 +66,7 @@ export class BookmarksPage {
   #translate = inject(TranslateService);
 
   protected dueForCurrentList = computed(() => {
-    const listId = this.bookmarkService.currentListId();
+    const listId = this.vocabularyService.currentListId();
     if (!listId) return 0;
     return this.#studyService.stats().find((s: { listId: string; due: number }) => s.listId === listId)?.due ?? 0;
   });
@@ -75,9 +75,9 @@ export class BookmarksPage {
     addIcons({ addOutline, closeOutline, pencilOutline, schoolOutline });
   }
 
-  lookup(entry: BookmarkEntry): void {
+  lookup(entry: VocabularyEntry): void {
     this.#router.navigate(['home/tabs/dictionary']);
-    this.#dictionaryService.lookup(new WordLang(entry.word, entry.lang));
+    this.#dictionaryService.lookup(new WordLang(entry.term, entry.lang));
   }
 
   relativeTime(isoString: string): string {
@@ -92,7 +92,7 @@ export class BookmarksPage {
   }
 
   async openStudyModal(): Promise<void> {
-    const listId = this.bookmarkService.currentListId();
+    const listId = this.vocabularyService.currentListId();
     if (!listId) return;
     const modal = await this.#modalCtrl.create({
       component: StudyModalComponent,
@@ -118,7 +118,7 @@ export class BookmarksPage {
           handler: (data: { name: string }) => {
             const name = data.name?.trim();
             if (!name) return false;
-            this.bookmarkService.createList(name);
+            this.vocabularyService.createList(name);
             return true;
           },
         },
@@ -128,7 +128,7 @@ export class BookmarksPage {
     (document.querySelector('ion-alert input') as HTMLInputElement | null)?.focus();
   }
 
-  async confirmDeleteList(list: BookmarkList): Promise<void> {
+  async confirmDeleteList(list: VocabularyList): Promise<void> {
     const message =
       list.count > 0
         ? this.#translate.instant('bookmarks.delete-list-message', { name: list.name, count: list.count })
@@ -142,14 +142,14 @@ export class BookmarksPage {
         {
           text: this.#translate.instant('common.remove'),
           role: 'destructive',
-          handler: () => this.bookmarkService.deleteList(list.id),
+          handler: () => this.vocabularyService.deleteList(list.id),
         },
       ],
     });
     await alert.present();
   }
 
-  async openRenameListAlert(list: BookmarkList): Promise<void> {
+  async openRenameListAlert(list: VocabularyList): Promise<void> {
     const alert = await this.#alertCtrl.create({
       header: this.#translate.instant('bookmarks.rename-list-title'),
       inputs: [
@@ -167,7 +167,7 @@ export class BookmarksPage {
           handler: (data: { name: string }) => {
             const name = data.name?.trim();
             if (!name || name === list.name) return false;
-            this.bookmarkService.renameList(list.id, name);
+            this.vocabularyService.renameList(list.id, name);
             return true;
           },
         },

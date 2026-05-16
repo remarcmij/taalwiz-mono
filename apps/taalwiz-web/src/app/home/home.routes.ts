@@ -57,8 +57,8 @@ export const HOME_ROUTES: Routes = [
           {
             path: '',
             loadComponent: () =>
-              import('./bookmarks/bookmarks.page').then(
-                (p) => p.BookmarksPage,
+              import('./vocabulary/vocabulary.page').then(
+                (p) => p.VocabularyPage,
               ),
           },
         ],

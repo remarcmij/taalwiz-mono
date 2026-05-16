@@ -22,8 +22,8 @@ import { closeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
 import { MarkdownService } from '../../content/markdown.service';
 import { DictionaryService } from '../../dictionary/dictionary.service';
-import { BookmarkService } from '../../bookmarks/bookmark.service';
-import { SrsCard, SrsRating, StudyService } from '../study.service';
+import { VocabularyService } from '../../vocabulary/vocabulary.service';
+import { SrsItem, SrsRating, StudyService } from '../study.service';
 
 type Screen = 'picker' | 'loading' | 'card' | 'no-due' | 'complete';
 
@@ -57,11 +57,11 @@ export class StudyModalComponent implements OnInit {
   #studyService = inject(StudyService);
   #dictionaryService = inject(DictionaryService);
   #markdownService = inject(MarkdownService);
-  protected bookmarkService = inject(BookmarkService);
+  protected vocabularyService = inject(VocabularyService);
 
   readonly screen = signal<Screen>('picker');
   readonly selectedListId = signal<string>('');
-  readonly queue = signal<SrsCard[]>([]);
+  readonly queue = signal<SrsItem[]>([]);
   readonly currentIndex = signal<number>(0);
   readonly flipped = signal<boolean>(false);
   readonly definition = signal<string>('');
@@ -77,7 +77,7 @@ export class StudyModalComponent implements OnInit {
     return total > 0 ? this.reviewedCount() / total : 0;
   });
   listsWithStats = computed(() =>
-    this.bookmarkService.lists().map((list) => ({
+    this.vocabularyService.lists().map((list) => ({
       list,
       due: this.#studyService.stats().find((s) => s.listId === list.id)?.due ?? 0,
     })),
@@ -123,10 +123,15 @@ export class StudyModalComponent implements OnInit {
     const card = this.currentCard();
     if (!card) return;
 
-    const result = await firstValueFrom(this.#dictionaryService.fetchWordLemmas(card.word, card.lang));
-    const firstLemma = result.lemmas[0];
-    this.definition.set(firstLemma?.text ?? '');
-    this.baseWordNote.set(result.word !== card.word ? result.word : null);
+    if (card.back) {
+      this.definition.set(card.back);
+      this.baseWordNote.set(null);
+    } else {
+      const result = await firstValueFrom(this.#dictionaryService.fetchWordLemmas(card.term, card.lang));
+      const firstLemma = result.lemmas[0];
+      this.definition.set(firstLemma?.text ?? '');
+      this.baseWordNote.set(result.word !== card.term ? result.word : null);
+    }
     this.flipped.set(true);
   }
 
@@ -135,7 +140,7 @@ export class StudyModalComponent implements OnInit {
     if (!card) return;
 
     this.#studyService
-      .submitReview(card.word, card.lang, card.listId, rating)
+      .submitReview(card.term, card.lang, card.listId, rating)
       .subscribe();
 
     this.reviewedCount.update((n) => n + 1);

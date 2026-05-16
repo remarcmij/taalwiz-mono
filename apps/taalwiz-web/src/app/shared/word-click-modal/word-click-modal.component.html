@@ -29,8 +29,8 @@
           ></ion-icon>
         </ion-button>
       }
-      @if (bookmarkService.isEnabled()) {
-        <ion-button (click)="bookmarkService.toggle(word(), lang())">
+      @if (vocabularyService.isEnabled()) {
+        <ion-button (click)="vocabularyService.toggle(word(), lang())">
           <ion-icon
             slot="icon-only"
             [name]="isBookmarked() ? 'bookmark' : 'bookmark-outline'"

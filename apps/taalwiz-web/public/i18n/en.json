@@ -18,7 +18,7 @@
     "no-data": "No data available",
     "retry": "Retry",
     "reload": "Reload",
-    "bookmarks": "My Words",
+    "bookmarks": "Vocabulary",
     "remove": "Remove",
     "ok": "OK"
   },
@@ -50,12 +50,12 @@
     "clear-history": "Clear history"
   },
   "bookmarks": {
-    "empty": "No saved words yet. Tap the bookmark icon while viewing a dictionary entry.",
-    "no-lists": "Create a list to start saving words.",
+    "empty": "No items in your vocabulary yet. Tap the bookmark icon while viewing a dictionary entry.",
+    "no-lists": "Create a list to start building your vocabulary.",
     "create-list": "Create List",
     "list-name-placeholder": "List name",
     "delete-list-title": "Delete List",
-    "delete-list-message": "Delete '{{name}}' and all {{count}} saved words?",
+    "delete-list-message": "Delete '{{name}}' and all {{count}} vocabulary items?",
     "delete-empty-list-message": "Delete the list '{{name}}'?",
     "rename-list-title": "Rename List"
   },

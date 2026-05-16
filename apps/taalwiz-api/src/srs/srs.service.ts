@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
-import SrsCard from './models/srs-card.model.js';
+import VocabularyItem from '../vocabulary/models/vocabulary-item.model.js';
+import SrsRecord from './models/srs-record.model.js';
 
-export interface SrsCardInfo {
-  word: string;
+export interface SrsItemInfo {
+  term: string;
   lang: string;
   listId: string;
+  back?: string;
   interval: number;
   easeFactor: number;
   dueDate: string;
@@ -22,42 +24,60 @@ export interface SrsStatsEntry {
 
 @Injectable()
 export class SrsService {
-  async createCard(userId: string, word: string, lang: string, listId: string): Promise<void> {
-    await SrsCard.findOneAndUpdate(
-      { userId: new Types.ObjectId(userId), listId: new Types.ObjectId(listId), word, lang },
+  async createCard(userId: string, term: string, lang: string, listId: string): Promise<void> {
+    await SrsRecord.findOneAndUpdate(
+      { userId: new Types.ObjectId(userId), listId: new Types.ObjectId(listId), term, lang },
       { $setOnInsert: { interval: 1, easeFactor: 2.5, dueDate: new Date(), reps: 0, lapses: 0 } },
       { upsert: true, new: true },
     ).exec();
   }
 
-  async deleteCard(userId: string, word: string, lang: string, listId: string): Promise<void> {
-    await SrsCard.deleteOne({
+  async deleteCard(userId: string, term: string, lang: string, listId: string): Promise<void> {
+    await SrsRecord.deleteOne({
       userId: new Types.ObjectId(userId),
       listId: new Types.ObjectId(listId),
-      word,
+      term,
       lang,
     }).exec();
   }
 
   async deleteCardsByList(userId: string, listId: string): Promise<void> {
-    await SrsCard.deleteMany({
+    await SrsRecord.deleteMany({
       userId: new Types.ObjectId(userId),
       listId: new Types.ObjectId(listId),
     }).exec();
   }
 
-  async getDueCards(userId: string, listId: string): Promise<SrsCardInfo[]> {
-    const cards = await SrsCard.find({
-      userId: new Types.ObjectId(userId),
-      listId: new Types.ObjectId(listId),
+  async getDueCards(userId: string, listId: string): Promise<SrsItemInfo[]> {
+    const userObjectId = new Types.ObjectId(userId);
+    const listObjectId = new Types.ObjectId(listId);
+
+    const cards = await SrsRecord.find({
+      userId: userObjectId,
+      listId: listObjectId,
       dueDate: { $lte: new Date() },
     }).exec();
-    return cards.map(toSrsCardInfo);
+
+    if (cards.length === 0) return [];
+
+    const terms = cards.map((c) => c.term);
+    const bookmarks = await VocabularyItem.find({
+      userId: userObjectId,
+      listId: listObjectId,
+      term: { $in: terms },
+    })
+      .select('term lang back')
+      .lean()
+      .exec();
+
+    const backMap = new Map(bookmarks.map((b) => [`${b.term}:${b.lang}`, b.back as string | undefined]));
+
+    return cards.map((card) => toSrsItemInfo(card, backMap.get(`${card.term}:${card.lang}`)));
   }
 
   async getAllStats(userId: string): Promise<SrsStatsEntry[]> {
     const now = new Date();
-    const agg = await SrsCard.aggregate<{ _id: Types.ObjectId; due: number; new: number; total: number }>([
+    const agg = await SrsRecord.aggregate<{ _id: Types.ObjectId; due: number; new: number; total: number }>([
       { $match: { userId: new Types.ObjectId(userId) } },
       {
         $group: {
@@ -73,27 +93,27 @@ export class SrsService {
 
   async reviewCard(
     userId: string,
-    word: string,
+    term: string,
     lang: string,
     listId: string,
     rating: 'again' | 'good' | 'easy',
   ): Promise<{ dueDate: Date }> {
-    const card = await SrsCard.findOne({
+    const card = await SrsRecord.findOne({
       userId: new Types.ObjectId(userId),
       listId: new Types.ObjectId(listId),
-      word,
+      term,
       lang,
     }).exec();
 
     if (!card) {
-      await this.createCard(userId, word, lang, listId);
+      await this.createCard(userId, term, lang, listId);
       return { dueDate: new Date() };
     }
 
     const next = applySm2({ interval: card.interval, easeFactor: card.easeFactor, reps: card.reps, lapses: card.lapses }, rating);
     const newDueDate = rating === 'again' ? new Date() : addDays(new Date(), next.interval);
 
-    await SrsCard.updateOne(
+    await SrsRecord.updateOne(
       { _id: card._id },
       {
         $set: {
@@ -131,9 +151,12 @@ export function applySm2(state: Sm2State, rating: 'again' | 'good' | 'easy'): Sm
   return { interval: newInterval, easeFactor: clamp(easeFactor + 0.15, 1.3, 4.0), reps: reps + 1, lapses };
 }
 
-function toSrsCardInfo(card: { word: string; lang: string; listId: unknown; interval: number; easeFactor: number; dueDate: unknown; reps: number; lapses: number }): SrsCardInfo {
-  return {
-    word: card.word,
+function toSrsItemInfo(
+  card: { term: string; lang: string; listId: unknown; interval: number; easeFactor: number; dueDate: unknown; reps: number; lapses: number },
+  back: string | undefined,
+): SrsItemInfo {
+  const info: SrsItemInfo = {
+    term: card.term,
     lang: card.lang,
     listId: String(card.listId),
     interval: card.interval,
@@ -142,6 +165,8 @@ function toSrsCardInfo(card: { word: string; lang: string; listId: unknown; inte
     reps: card.reps,
     lapses: card.lapses,
   };
+  if (back !== undefined) info.back = back;
+  return info;
 }
 
 function clamp(value: number, min: number, max: number): number {

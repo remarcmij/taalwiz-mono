@@ -81,11 +81,11 @@ src/app/
 ├── home/                     # Main tabbed feature
 │   ├── home.page.ts          # Tab container
 │   ├── speech-synthesizer.service.ts
-│   ├── bookmarks/            # My Words sub-feature
-│   │   ├── bookmark.service.ts
-│   │   ├── bookmarks.page.ts
-│   │   ├── bookmarks.page.html
-│   │   └── bookmarks.page.scss
+│   ├── vocabulary/           # Vocabulary sub-feature
+│   │   ├── vocabulary.service.ts
+│   │   ├── vocabulary.page.ts
+│   │   ├── vocabulary.page.html
+│   │   └── vocabulary.page.scss
 │   ├── study/                # SRS flashcard sub-feature
 │   │   ├── study.service.ts
 │   │   └── study-modal/
@@ -159,7 +159,7 @@ flowchart TD
     tabs --> dict_tab["/home/tabs/dictionary"]
     dict_tab --> lemma["/home/tabs/dictionary/:word/:lang"]
     tabs --> hashtags_tab["/home/tabs/hashtags"]
-    tabs --> bookmarks_tab["/home/tabs/bookmarks"]
+    tabs --> vocabulary_tab["/home/tabs/bookmarks"]
 
     admin_r["/admin\n(adminGuard)"]
     admin_r --> users["/admin/users"]
@@ -201,7 +201,7 @@ graph LR
     HomePage --> Content["Content tab\n/content"]
     HomePage --> Dictionary["Dictionary tab\n/dictionary"]
     HomePage --> Hashtags["Hashtags tab\n/hashtags"]
-    HomePage --> Bookmarks["My Words tab\n/bookmarks"]
+    HomePage --> Vocabulary["Vocabulary tab\n/bookmarks"]
 
     Content --> Publication["Publication list\n(per groupName)"]
     Publication --> Article["Article page\n(markdown → HTML)"]
@@ -213,11 +213,11 @@ graph LR
 
     Hashtags --> HashtagList["Hashtag list\n(cross-publication index)"]
 
-    Bookmarks --> ChipBar["List chip bar\n(BookmarkService.lists)"]
-    Bookmarks --> WordList["Saved words\n(swipe to remove)"]
-    Bookmarks --> StudyBtn["Study button\n(due-count badge)"]
+    Vocabulary --> ChipBar["List chip bar\n(VocabularyService.lists)"]
+    Vocabulary --> WordList["Saved items\n(swipe to remove)"]
+    Vocabulary --> StudyBtn["Study button\n(due-count badge)"]
     StudyBtn --> StudyModal["StudyModal\n(list picker → flashcard → rating)"]
-    StudyModal --> DictSvc["DictionaryService\n(fetchWordLemmas for card back)"]
+    StudyModal --> DictSvc["DictionaryService\n(fetchWordLemmas — fallback when back is absent)"]
     StudyModal --> StudySvc["StudyService\n(SRS API calls)"]
 ```
 
@@ -251,10 +251,10 @@ graph TD
     TocService -->|signal| headings
     TocService -->|signal| scrollToId
 
-    BookmarkService -->|signal| lists["lists\nBookmarkList[] with counts"]
-    BookmarkService -->|signal| currentListId
-    BookmarkService -->|signal| bookmarks["bookmarks\nBookmarkEntry[] for current list"]
-    BookmarkService -->|signal| bookmarkedKeys["bookmarkedKeys\nSet&lt;string&gt; for O(1) lookup"]
+    VocabularyService -->|signal| lists["lists\nVocabularyList[] with counts"]
+    VocabularyService -->|signal| currentListId
+    VocabularyService -->|signal| bookmarks["bookmarks\nVocabularyEntry[] for current list"]
+    VocabularyService -->|signal| bookmarkedKeys["bookmarkedKeys\nSet&lt;string&gt; for O(1) lookup"]
 
     StudyService -->|signal| stats["stats\nSrsStatsEntry[] per-list due/new/total"]
 
@@ -270,7 +270,7 @@ graph TD
 | Service | Location | Responsibility |
 |---|---|---|
 | `AuthService` | `auth/` | JWT + refresh-token management, login/logout, auto-login (Capacitor Preferences) |
-| `BookmarkService` | `home/bookmarks/` | Named list management; bookmark add/remove with optimistic UI; cross-device current-list sync via `UserPreferences` API |
+| `VocabularyService` | `home/vocabulary/` | Named list management; vocabulary item add/remove with optimistic UI; cross-device current-list sync via `UserPreferences` API |
 | `StudyService` | `home/study/` | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)` and `submitReview()` observables for the SRS API |
 | `DictSyncService` | `home/dictionary/` | Fetch manifest, download & compile dict bundles, write to IndexedDB |
 | `DictStoreService` | `home/dictionary/` | IndexedDB CRUD wrapper (`taalwiz-dict` DB) |

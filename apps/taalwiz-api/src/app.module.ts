@@ -4,7 +4,7 @@ import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'node:path';
 import { AuthModule } from './auth/auth.module.js';
-import { BookmarksModule } from './bookmarks/bookmarks.module.js';
+import { VocabularyModule } from './vocabulary/vocabulary.module.js';
 import { ContentModule } from './content/content.module.js';
 import { HashtagModule } from './hashtag/hashtag.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -17,7 +17,7 @@ const env = EnvDto.getInstance();
 @Module({
   imports: [
     AuthModule,
-    BookmarksModule,
+    VocabularyModule,
     SrsModule,
     UsersModule,
     UserPreferencesModule,

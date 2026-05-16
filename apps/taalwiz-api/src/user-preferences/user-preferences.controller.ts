@@ -18,6 +18,6 @@ export class UserPreferencesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async patch(@Req() req: Request, @Body() dto: UpdateUserPreferencesDto): Promise<void> {
     const userId = (req['user'] as JwtPayload).sub;
-    await this.userPreferencesService.patch(userId, dto.currentBookmarkListId);
+    await this.userPreferencesService.patch(userId, dto.currentVocabularyListId);
   }
 }
