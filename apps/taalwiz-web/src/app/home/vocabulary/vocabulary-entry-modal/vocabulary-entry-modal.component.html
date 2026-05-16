@@ -29,8 +29,7 @@
         (ionInput)="term.set($event.detail.value ?? '')"
         [placeholder]="'vocabulary.term-label' | translate"
         [readonly]="isEditMode()"
-        [clearInput]="!isEditMode()"
-        autofocus="true">
+        [clearInput]="!isEditMode()">
       </ion-input>
     </ion-item>
     <ion-item lines="full">
@@ -52,6 +51,7 @@
   } @else {
     <ion-item lines="full">
       <ion-textarea
+        [label]="'vocabulary.import-label' | translate"
         labelPlacement="stacked"
         [value]="csvText()"
         (ionInput)="csvText.set($event.detail.value ?? '')"
@@ -60,20 +60,22 @@
         class="csv-textarea">
       </ion-textarea>
     </ion-item>
-    @if (parsedEntries().length > 0) {
-      <ion-note class="entry-count">
-        {{ 'vocabulary.import-button' | translate: { count: parsedEntries().length } }}
-      </ion-note>
-    }
-    @if (invalidLineCount() > 0) {
-      <ion-note color="warning" class="entry-count">
-        {{ 'vocabulary.import-invalid-lines' | translate: { count: invalidLineCount() } }}
-      </ion-note>
-    }
-    @if (termOnlyCount() > 0) {
-      <ion-note color="medium" class="entry-count">
-        {{ 'vocabulary.import-dict-lookup' | translate: { count: termOnlyCount() } }}
-      </ion-note>
+    @if (hasNewline()) {
+      @if (parsedEntries().length > 0) {
+        <ion-note class="entry-count">
+          {{ 'vocabulary.import-button' | translate: { count: parsedEntries().length } }}
+        </ion-note>
+      }
+      @if (invalidLineCount() > 0) {
+        <ion-note color="warning" class="entry-count">
+          {{ 'vocabulary.import-invalid-lines' | translate: { count: invalidLineCount() } }}
+        </ion-note>
+      }
+      @if (termOnlyCount() > 0) {
+        <ion-note color="medium" class="entry-count">
+          {{ 'vocabulary.import-dict-lookup' | translate: { count: termOnlyCount() } }}
+        </ion-note>
+      }
     }
     <div class="action-row">
       <ion-button

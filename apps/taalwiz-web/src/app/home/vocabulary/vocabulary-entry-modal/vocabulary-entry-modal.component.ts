@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ViewChild,
   computed,
   effect,
   inject,
@@ -23,6 +24,7 @@ import {
   IonTitle,
   IonToolbar,
   ModalController,
+  Platform,
 } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 import { VocabularyEntry, VocabularyService } from '../vocabulary.service';
@@ -54,8 +56,13 @@ export class VocabularyEntryModalComponent {
   mode = input<'add' | 'edit'>('add');
   existingEntry = input<VocabularyEntry | null>(null);
 
+  @ViewChild(IonInput) private termInput?: IonInput;
+  @ViewChild(IonTextarea) private csvTextarea?: IonTextarea;
+
   #modalCtrl = inject(ModalController);
   #vocabularyService = inject(VocabularyService);
+
+  protected isDesktop = inject(Platform).is('desktop');
 
   protected activeTab = signal<'single' | 'import'>('single');
   protected term = signal('');
@@ -93,6 +100,8 @@ export class VocabularyEntryModalComponent {
     () => this.parsedEntries().filter((e) => !e.back).length,
   );
 
+  protected hasNewline = computed(() => this.csvText().includes('\n'));
+
   constructor() {
     effect(() => {
       const entry = this.existingEntry();
@@ -103,8 +112,23 @@ export class VocabularyEntryModalComponent {
     });
   }
 
+  ionViewDidEnter(): void {
+    if (this.isDesktop) {
+      void this.termInput?.setFocus();
+    }
+  }
+
   protected setActiveTab(value: string | number | undefined): void {
     this.activeTab.set(value === 'import' ? 'import' : 'single');
+    if (this.isDesktop) {
+      setTimeout(() => {
+        if (this.activeTab() === 'import') {
+          void this.csvTextarea?.setFocus();
+        } else {
+          void this.termInput?.setFocus();
+        }
+      }, 100);
+    }
   }
 
   protected async submitSingle(): Promise<void> {

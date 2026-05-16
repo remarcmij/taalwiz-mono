@@ -69,6 +69,7 @@
     "term-label": "Term",
     "back-label": "Flip side",
     "back-placeholder": "Definition, translation, or example sentence (optional)",
+    "import-label": "Type or paste your word list",
     "import-placeholder": "# One item per line\n# Semicolon separates term from flip side\n\nanjing\nkucing hitam;black cat\nikan",
     "import-button": "Import {{count}} entries",
     "import-invalid-lines": "{{count}} line(s) skipped — term missing",
