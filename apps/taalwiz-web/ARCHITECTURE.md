@@ -32,7 +32,7 @@ graph TD
 
     subgraph Features ["Lazy-loaded features"]
         auth["auth/\n(login, register, password)"]
-        home["home/\n(tabs: content | dictionary | hashtags | bookmarks)"]
+        home["home/\n(tabs: content | dictionary | hashtags | vocabulary)"]
         admin["admin/\n(users, content, upload, settings)"]
         user["user/\n(welcome, contact, about)"]
     end
@@ -455,27 +455,29 @@ classDiagram
         +number sortIndex
     }
 
-    class BookmarkEntry {
-        +string word
+    class VocabularyEntry {
+        +string term
         +string lang
         +string listId
+        +string back
         +string savedAt
     }
 
-    class BookmarkList {
+    class VocabularyList {
         +string id
         +string name
         +number count
     }
 
     class UserPreferences {
-        +string currentBookmarkListId
+        +string currentVocabularyListId
     }
 
-    class SrsCard {
-        +string word
+    class SrsItem {
+        +string term
         +string lang
         +string listId
+        +string back
         +number interval
         +number easeFactor
         +string dueDate
@@ -485,8 +487,8 @@ classDiagram
 
     IArticle --> ITopic : belongs to
     ILemma --> ILemma : baseWord reference
-    BookmarkEntry --> BookmarkList : belongs to
-    UserPreferences --> BookmarkList : currentList
-    SrsCard --> BookmarkList : belongs to
-    SrsCard --> BookmarkEntry : mirrors
+    VocabularyEntry --> VocabularyList : belongs to
+    UserPreferences --> VocabularyList : currentList
+    SrsItem --> VocabularyList : belongs to
+    SrsItem --> VocabularyEntry : mirrors
 ```
