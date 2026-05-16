@@ -89,6 +89,10 @@ export class SystemSettingsPage implements OnInit {
       .subscribe();
   }
 
+  onSettingChange() {
+    this.settings.update((s) => [...s]);
+  }
+
   cancel() {
     this.settings.set(deepCopy(this.#origSettings));
   }

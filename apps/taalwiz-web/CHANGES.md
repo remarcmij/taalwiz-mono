@@ -1,5 +1,19 @@
 # Changes — taalwiz-web
 
+## 2026-05-16 — Fix System Settings Save/Cancel buttons not appearing
+
+The Save/Cancel buttons in the System Settings toolbar were conditionally rendered via `@if (isDirty())`, but `isDirty` is a `computed` signal that never re-evaluated after edits because `[(ngModel)]` mutates setting objects in place without notifying the signal. Added `onSettingChange()` which calls `settings.update(s => [...s])` (a new array reference containing the already-mutated objects), triggering the computed to re-evaluate and reveal the buttons. Also corrected the `deleteTopic` API URL from `/api/admin/topics/:filename` to `/api/v1/content/:filename`, and the settings URLs from `/api/admin/settings` to `/api/v1/admin/settings`, aligning all admin service calls with the API's `api/v1` global prefix.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/admin/system-settings/system-settings.page.ts` | Add `onSettingChange()` method |
+| `src/app/admin/system-settings/system-settings.page.html` | Add `(ngModelChange)="onSettingChange()"` to all inputs and toggles |
+| `src/app/admin/admin.service.ts` | Fix `getSettings`/`updateSettings` URLs to `/api/v1/admin/settings`; fix `deleteTopic` URL to `/api/v1/content/:filename` |
+
+---
+
 ## 2026-05-16 — Vocabulary and flashcard UX polish
 
 Small targeted refinements across the vocabulary list, vocabulary entry form, and study flashcard.

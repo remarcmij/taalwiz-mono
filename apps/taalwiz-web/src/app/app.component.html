@@ -46,7 +46,7 @@
           </ion-item>
         </ion-menu-toggle>
         <ion-menu-toggle menu="m1">
-          <ion-item detail button lines="none" routerLink="/help">
+          <ion-item detail button lines="none" [routerLink]="'/help/' + user?.lang">
             <ion-icon slot="start" name="help-circle-outline"></ion-icon>
             <ion-label>{{ 'common.help' | translate }}</ion-label>
           </ion-item>

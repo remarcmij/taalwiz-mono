@@ -51,7 +51,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     }
 
     const frontMatter = parts[1];
-    const body = parts[2];
+    const body = parts.slice(2).join('---');
 
     const rawAttributes: unknown = yaml.load(frontMatter);
     const result = FrontMatterSchema.safeParse(rawAttributes ?? {});

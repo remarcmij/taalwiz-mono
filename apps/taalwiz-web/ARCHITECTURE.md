@@ -236,7 +236,7 @@ Offline-first. On first load the dict manifest is fetched from `/assets/dict-man
 
 ### 4.4 Admin
 
-Protected by `adminGuard`. Covers user management (invite, list, delete), publication sort-order, file upload (`.md` / `.json` only — enforced client **and** server), and system settings (key/value store).
+Protected by `adminGuard`. Covers user management (invite, list, delete), publication sort-order, file upload (`.md` / `.json` only — enforced client **and** server), and system settings (key/value store backed by the `SystemSettings` MongoDB collection, seeded on first API startup). The System Settings page uses an explicit Save/Cancel pattern: buttons appear in the toolbar only when `isDirty()` is true, driven by a `computed` signal that re-evaluates via `onSettingChange()` after each `[(ngModel)]` edit.
 
 ---
 
@@ -322,7 +322,7 @@ sequenceDiagram
 - All services call `authService.getRequestHeaders()` to attach `Authorization: Bearer <token>`. This is the sole API for obtaining an auth header — there is no secondary property equivalent.
 - The `authInterceptor` handles 401s transparently: it invalidates the current token, calls the refresh endpoint, and retries the original request — or forces logout if refresh fails.
 - Auth endpoints (`/api/v1/auth/*`) are excluded from the retry loop to prevent infinite recursion.
-- API base paths: `/api/v1/` (user-facing), `/api/admin/` (admin endpoints), `/assets/` (static dict/content files).
+- API base paths: `/api/v1/` (all API endpoints, including admin), `/assets/` (static dict/content files). Admin-only routes sit under `/api/v1/admin/` and additionally require the `admin` role.
 
 ---
 

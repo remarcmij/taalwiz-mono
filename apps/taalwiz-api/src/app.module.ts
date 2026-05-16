@@ -3,6 +3,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'node:path';
+import { AdminSettingsModule } from './admin-settings/admin-settings.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { VocabularyModule } from './vocabulary/vocabulary.module.js';
 import { ContentModule } from './content/content.module.js';
@@ -16,6 +17,7 @@ const env = EnvDto.getInstance();
 
 @Module({
   imports: [
+    AdminSettingsModule,
     AuthModule,
     VocabularyModule,
     SrsModule,

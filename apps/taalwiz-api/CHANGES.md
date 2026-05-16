@@ -1,5 +1,39 @@
 # Changes — taalwiz-api
 
+## 2026-05-16 — Admin settings module
+
+New `AdminSettingsModule` providing persistent key/value system configuration for administrators.
+
+### Schema
+
+**`SystemSettings`** — `name` (unique string key), `label` (display label), `valueType` (`'string' | 'number' | 'date' | 'boolean'`), `stringVal?`, `numberVal?`, `dateVal?`, `booleanVal?`, `sortIndex` (display order).
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/admin/settings` | Return all settings sorted by `sortIndex` |
+| `PATCH` | `/api/v1/admin/settings` | Update settings `{ settings: ISystemSettings[] }`; returns updated list |
+
+Both endpoints require the `admin` role.
+
+### Seeding
+
+Settings are seeded on first startup if the `SystemSettings` collection is empty. Seed data lives in `src/admin-settings/seeds/settings.seed.ts` (three entries: `custodian_name`, `customer_service_email`, `email_opt_out`).
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/admin-settings/models/system-settings.model.ts` | New — Mongoose schema |
+| `src/admin-settings/seeds/settings.seed.ts` | New — seed data (TypeScript, compiled to dist automatically) |
+| `src/admin-settings/admin-settings.service.ts` | New — `findAll()`, `updateMany()`; seeds on startup |
+| `src/admin-settings/admin-settings.controller.ts` | New — GET + PATCH endpoints |
+| `src/admin-settings/admin-settings.module.ts` | New — NestJS module |
+| `src/app.module.ts` | Register `AdminSettingsModule` |
+
+---
+
 ## 2026-05-16 — Rename bookmarks → vocabulary; word → term; add optional `back` field
 
 Comprehensive rename to align code and data schema with the "Vocabulary" UI term. The `bookmarks` module is now `vocabulary`; Mongoose models and MongoDB collections reflect the new naming. The `word` field on both `VocabularyItem` and `SrsRecord` is renamed to `term` so the feature can hold phrases and sentences, not just single words. An optional `back` field is added to `VocabularyItem`; when present it is served in the `GET /api/v1/srs/due` response so the study modal can display it directly without a dictionary lookup.

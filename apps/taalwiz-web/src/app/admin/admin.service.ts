@@ -101,7 +101,7 @@ export class AdminService {
         if (!headers) {
           return of(null);
         }
-        return this.#http.delete(`/api/admin/topics/${filename}`, { headers });
+        return this.#http.delete(`/api/v1/content/${filename}`, { headers });
       })
     );
   }
@@ -178,7 +178,7 @@ export class AdminService {
     return this.#authService.getRequestHeaders().pipe(
       filter((headers) => !!headers),
       switchMap((headers) =>
-        this.#http.get<ISystemSettings[]>('/api/admin/settings', {
+        this.#http.get<ISystemSettings[]>('/api/v1/admin/settings', {
           headers,
         })
       ),
@@ -196,7 +196,7 @@ export class AdminService {
           return of(null);
         }
         return this.#http.patch(
-          '/api/admin/settings',
+          '/api/v1/admin/settings',
           { settings },
           { headers }
         );

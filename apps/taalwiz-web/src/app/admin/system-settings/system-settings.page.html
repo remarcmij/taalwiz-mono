@@ -20,24 +20,25 @@
       === 'string') {
       <ion-item>
         <ion-label position="floating">{{ setting.label }}</ion-label>
-        <ion-input type="text" [(ngModel)]="setting.stringVal"></ion-input>
+        <ion-input type="text" [(ngModel)]="setting.stringVal" (ngModelChange)="onSettingChange()"></ion-input>
       </ion-item>
       } @else if (setting.valueType === 'number') {
       <ion-item>
         <ion-label position="floating">{{ setting.label }}</ion-label>
-        <ion-input type="number" [(ngModel)]="setting.numberVal"></ion-input>
+        <ion-input type="number" [(ngModel)]="setting.numberVal" (ngModelChange)="onSettingChange()"></ion-input>
       </ion-item>
       } @else if (setting.valueType === 'boolean') {
       <ion-item>
         <ion-label>{{ setting.label }}</ion-label>
-        <ion-toggle [(ngModel)]="setting.booleanVal"></ion-toggle>
+        <ion-toggle [(ngModel)]="setting.booleanVal" (ngModelChange)="onSettingChange()"></ion-toggle>
       </ion-item>
       } @else if (setting.valueType === 'date') {
       <ion-item>
         <ion-label>{{ setting.label }}</ion-label>
         <ion-datetime
           displayFormat="MM/DD/YYYY"
-          [(ngModel)]="setting.dateVal"></ion-datetime>
+          [(ngModel)]="setting.dateVal"
+          (ngModelChange)="onSettingChange()"></ion-datetime>
       </ion-item>
       } }
     </ion-list>

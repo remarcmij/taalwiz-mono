@@ -2,7 +2,7 @@
 
 ## API Endpoints
 
-All user-facing endpoints are under `/api/v1/` and require a valid JWT (`Authorization: Bearer <token>`), enforced by the global auth guard. Admin endpoints are under `/api/admin/`.
+All user-facing endpoints are under `/api/v1/` and require a valid JWT (`Authorization: Bearer <token>`), enforced by the global auth guard. Admin-only endpoints are also under `/api/v1/` and additionally require the `admin` role.
 
 ### Auth (`/api/v1/auth/`)
 
@@ -43,6 +43,15 @@ All user-facing endpoints are under `/api/v1/` and require a valid JWT (`Authori
 | `GET` | `/api/v1/srs/due?listId=<id>` | Cards due for review today in the specified list; response includes `back` field when set |
 | `GET` | `/api/v1/srs/stats` | Per-list counts `{ listId, due, new, total }[]` for all lists |
 | `POST` | `/api/v1/srs/review` | Submit rating `{ term, lang, listId, rating: 'again'\|'good'\|'easy' }`; returns `{ dueDate }` |
+
+### System Settings (`/api/v1/admin/settings`) — admin only
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/admin/settings` | Return all settings sorted by `sortIndex` |
+| `PATCH` | `/api/v1/admin/settings` | Update settings `{ settings: ISystemSettings[] }`; returns updated list |
+
+Settings are seeded on first startup from `src/admin-settings/seeds/settings.seed.ts` (three initial entries: `custodian_name`, `customer_service_email`, `email_opt_out`).
 
 ---
 

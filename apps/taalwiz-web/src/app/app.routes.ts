@@ -32,7 +32,7 @@ export const APP_ROUTES: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'help',
+    path: 'help/:lang',
     loadComponent: () => import('./help/help.page').then((m) => m.HelpPage),
     canActivate: [authGuard],
   },
