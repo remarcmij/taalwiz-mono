@@ -14,6 +14,9 @@
             }
           </div>
         </ion-button>
+        <ion-button (click)="openAddEntryModal()">
+          <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+        </ion-button>
       }
       <ion-button (click)="openCreateListAlert()">
         <ion-icon slot="icon-only" name="add-outline"></ion-icon>
@@ -48,10 +51,31 @@
       <ion-list lines="full">
         @for (entry of vocabularyService.bookmarks(); track entry.term + ':' + entry.lang) {
           <ion-item-sliding>
+            <ion-item-options side="start">
+              <ion-item-option (click)="openEditModal(entry)">
+                {{ 'vocabulary.edit-entry' | translate }}
+              </ion-item-option>
+            </ion-item-options>
             <ion-item button (click)="lookup(entry)">
-              <ion-label>{{ entry.term }}</ion-label>
+              <ion-label>
+                <h2>{{ entry.term }}</h2>
+                @if (entry.back) {
+                  <p class="back-preview">{{ entry.back }}</p>
+                }
+              </ion-label>
               <ion-note slot="end">{{ relativeTime(entry.savedAt) }}</ion-note>
               <ion-badge slot="end" color="medium">{{ entry.lang }}</ion-badge>
+              @if (isDesktop) {
+                <ion-buttons slot="end">
+                  <ion-button fill="clear" (click)="$event.stopPropagation(); openEditModal(entry)">
+                    <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" color="danger"
+                              (click)="$event.stopPropagation(); vocabularyService.toggle(entry.term, entry.lang)">
+                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+              }
             </ion-item>
             <ion-item-options side="end">
               <ion-item-option color="danger" (click)="vocabularyService.toggle(entry.term, entry.lang)">

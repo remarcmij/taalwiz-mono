@@ -27,6 +27,15 @@ ion-button.study-btn::part(native) {
   }
 }
 
+p.back-preview {
+  color: var(--ion-color-medium);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40ch;
+}
+
 .empty-state {
   text-align: center;
   color: var(--ion-color-medium);

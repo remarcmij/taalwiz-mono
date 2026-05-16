@@ -59,6 +59,19 @@
     "delete-empty-list-message": "De lijst '{{name}}' verwijderen?",
     "rename-list-title": "Lijst hernoemen"
   },
+  "vocabulary": {
+    "add-entry": "Invoer toevoegen",
+    "edit-entry": "Bewerken",
+    "single": "Enkel",
+    "import-csv": "CSV importeren",
+    "term-label": "Term",
+    "back-label": "Achterkant",
+    "back-placeholder": "Definitie, vertaling of voorbeeldzin (optioneel)",
+    "import-placeholder": "anjing;hond\nkucing;kat\nikan\n(één per regel; achterkant is optioneel)",
+    "import-button": "{{count}} items importeren",
+    "import-success": "{{count}} items geïmporteerd",
+    "save": "Opslaan"
+  },
   "study": {
     "title": "Studeren",
     "select-list": "Kies een lijst om te studeren",

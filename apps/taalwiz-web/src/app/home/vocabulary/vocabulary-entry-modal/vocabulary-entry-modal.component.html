@@ -1,0 +1,81 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">{{ 'common.close' | translate }}</ion-button>
+    </ion-buttons>
+    <ion-title>{{ (isEditMode() ? 'vocabulary.edit-entry' : 'vocabulary.add-entry') | translate }}</ion-title>
+  </ion-toolbar>
+  @if (!isEditMode()) {
+    <ion-toolbar>
+      <ion-segment [value]="activeTab()" (ionChange)="setActiveTab($event.detail.value)">
+        <ion-segment-button value="single">
+          <ion-label>{{ 'vocabulary.single' | translate }}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="import">
+          <ion-label>{{ 'vocabulary.import-csv' | translate }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ion-toolbar>
+  }
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (activeTab() === 'single') {
+    <ion-item lines="full">
+      <ion-input
+        label="{{ 'vocabulary.term-label' | translate }}"
+        labelPlacement="stacked"
+        [value]="term()"
+        (ionInput)="term.set($event.detail.value ?? '')"
+        [placeholder]="'vocabulary.term-label' | translate"
+        [readonly]="isEditMode()"
+        [clearInput]="!isEditMode()"
+        autofocus="true">
+      </ion-input>
+    </ion-item>
+    <ion-item lines="full">
+      <ion-textarea
+        label="{{ 'vocabulary.back-label' | translate }}"
+        labelPlacement="stacked"
+        [value]="back()"
+        (ionInput)="back.set($event.detail.value ?? '')"
+        [placeholder]="'vocabulary.back-placeholder' | translate"
+        [rows]="4"
+        [autoGrow]="true">
+      </ion-textarea>
+    </ion-item>
+    <div class="action-row">
+      <ion-button expand="block" [disabled]="!canSubmitSingle()" (click)="submitSingle()">
+        {{ 'vocabulary.save' | translate }}
+      </ion-button>
+    </div>
+  } @else {
+    <ion-item lines="full">
+      <ion-textarea
+        labelPlacement="stacked"
+        [value]="csvText()"
+        (ionInput)="csvText.set($event.detail.value ?? '')"
+        [placeholder]="'vocabulary.import-placeholder' | translate"
+        [rows]="10"
+        class="csv-textarea">
+      </ion-textarea>
+    </ion-item>
+    @if (parsedEntries().length > 0) {
+      <ion-note class="entry-count">
+        {{ 'vocabulary.import-button' | translate: { count: parsedEntries().length } }}
+      </ion-note>
+    }
+    <div class="action-row">
+      <ion-button
+        expand="block"
+        [disabled]="parsedEntries().length === 0 || importing()"
+        (click)="submitImport()">
+        @if (importing()) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          {{ 'vocabulary.import-button' | translate: { count: parsedEntries().length } }}
+        }
+      </ion-button>
+    </div>
+  }
+</ion-content>

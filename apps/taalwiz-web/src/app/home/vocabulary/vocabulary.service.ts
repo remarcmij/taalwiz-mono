@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import { EMPTY, catchError, firstValueFrom, of, switchMap, take } from 'rxjs';
+import { EMPTY, catchError, firstValueFrom, map, of, switchMap, take } from 'rxjs';
+import { foreignLang } from '../../app.constants';
 import { AuthService } from '../../auth/auth.service';
 
 export interface VocabularyEntry {
@@ -55,6 +56,82 @@ export class VocabularyService {
   toggle(term: string, lang: string): void {
     if (!this.currentListId()) return;
     this.isBookmarked(term, lang) ? this.#remove(term, lang) : this.#add(term, lang);
+  }
+
+  addEntry(term: string, back?: string): void {
+    if (!this.currentListId()) return;
+    const listId = this.currentListId()!;
+    const lang = foreignLang;
+    const key = `${term}:${lang}`;
+    const entry: VocabularyEntry = { term, lang, listId, back, savedAt: new Date().toISOString() };
+    const listsSnapshot = this.lists();
+
+    this.bookmarkedKeys.update((s) => new Set([...s, key]));
+    this.bookmarks.update((bs) => [entry, ...bs]);
+    this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: l.count + 1 } : l)));
+
+    this.#authService.getRequestHeaders().pipe(
+      switchMap((headers) =>
+        headers.get('Authorization')
+          ? this.#http.post('/api/v1/vocabulary', { term, lang, listId, back }, { headers })
+          : EMPTY,
+      ),
+      catchError(() => {
+        this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
+        this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
+        this.lists.set(listsSnapshot);
+        return EMPTY;
+      }),
+      take(1),
+    ).subscribe();
+  }
+
+  updateBack(term: string, lang: string, back: string): void {
+    if (!this.currentListId()) return;
+    const listId = this.currentListId()!;
+    const snapshot = this.bookmarks();
+
+    this.bookmarks.update((bs) =>
+      bs.map((b) => (b.term === term && b.lang === lang ? { ...b, back: back || undefined } : b)),
+    );
+
+    this.#authService.getRequestHeaders().pipe(
+      switchMap((headers) =>
+        headers.get('Authorization')
+          ? this.#http.post('/api/v1/vocabulary', { term, lang, listId, back }, { headers })
+          : EMPTY,
+      ),
+      catchError(() => {
+        this.bookmarks.set(snapshot);
+        return EMPTY;
+      }),
+      take(1),
+    ).subscribe();
+  }
+
+  async addEntries(entries: { term: string; back?: string }[]): Promise<number> {
+    const listId = this.currentListId();
+    if (!listId) return 0;
+    const lang = foreignLang;
+    const headers = await firstValueFrom(this.#authService.getRequestHeaders());
+    if (!headers.get('Authorization')) return 0;
+
+    const results = await Promise.all(
+      entries.map(({ term, back }) =>
+        firstValueFrom(
+          this.#http.post('/api/v1/vocabulary', { term, lang, listId, back }, { headers }).pipe(
+            map(() => true),
+            catchError(() => of(false)),
+          ),
+        ),
+      ),
+    );
+
+    const succeeded = results.filter(Boolean).length;
+    this.#loadItems(listId);
+    const updatedLists = await this.#fetchLists();
+    this.lists.set(updatedLists);
+    return succeeded;
   }
 
   setCurrentList(id: string): void {

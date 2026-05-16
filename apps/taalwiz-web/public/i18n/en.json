@@ -59,6 +59,19 @@
     "delete-empty-list-message": "Delete the list '{{name}}'?",
     "rename-list-title": "Rename List"
   },
+  "vocabulary": {
+    "add-entry": "Add entry",
+    "edit-entry": "Edit",
+    "single": "Single",
+    "import-csv": "Import CSV",
+    "term-label": "Term",
+    "back-label": "Flip side",
+    "back-placeholder": "Definition, translation, or example sentence (optional)",
+    "import-placeholder": "anjing;dog\nkucing;cat\nikan\n(one per line; flip side is optional)",
+    "import-button": "Import {{count}} entries",
+    "import-success": "Imported {{count}} entries",
+    "save": "Save"
+  },
   "study": {
     "title": "Study",
     "select-list": "Select a list to study",

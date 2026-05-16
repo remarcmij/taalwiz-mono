@@ -20,14 +20,16 @@ import {
   IonTitle,
   IonToolbar,
   ModalController,
+  Platform,
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
-import { addOutline, closeOutline, pencilOutline, schoolOutline } from 'ionicons/icons';
+import { addCircleOutline, addOutline, closeOutline, createOutline, pencilOutline, schoolOutline, trashOutline } from 'ionicons/icons';
 import { DictionaryService } from '../dictionary/dictionary.service';
 import { WordLang } from '../dictionary/word-lang.model';
 import { StudyModalComponent } from '../study/study-modal/study-modal.component';
 import { StudyService } from '../study/study.service';
+import { VocabularyEntryModalComponent } from './vocabulary-entry-modal/vocabulary-entry-modal.component';
 import { VocabularyEntry, VocabularyList, VocabularyService } from './vocabulary.service';
 
 @Component({
@@ -64,6 +66,9 @@ export class VocabularyPage {
   #alertCtrl = inject(AlertController);
   #modalCtrl = inject(ModalController);
   #translate = inject(TranslateService);
+  #platform = inject(Platform);
+
+  protected isDesktop = this.#platform.is('desktop');
 
   protected dueForCurrentList = computed(() => {
     const listId = this.vocabularyService.currentListId();
@@ -72,7 +77,7 @@ export class VocabularyPage {
   });
 
   constructor() {
-    addIcons({ addOutline, closeOutline, pencilOutline, schoolOutline });
+    addIcons({ addCircleOutline, addOutline, closeOutline, createOutline, pencilOutline, schoolOutline, trashOutline });
   }
 
   lookup(entry: VocabularyEntry): void {
@@ -97,6 +102,23 @@ export class VocabularyPage {
     const modal = await this.#modalCtrl.create({
       component: StudyModalComponent,
       componentProps: { defaultListId: listId },
+    });
+    await modal.present();
+  }
+
+  async openAddEntryModal(): Promise<void> {
+    if (!this.vocabularyService.currentListId()) return;
+    const modal = await this.#modalCtrl.create({
+      component: VocabularyEntryModalComponent,
+      componentProps: { mode: 'add' },
+    });
+    await modal.present();
+  }
+
+  async openEditModal(entry: VocabularyEntry): Promise<void> {
+    const modal = await this.#modalCtrl.create({
+      component: VocabularyEntryModalComponent,
+      componentProps: { mode: 'edit', existingEntry: entry },
     });
     await modal.present();
   }
