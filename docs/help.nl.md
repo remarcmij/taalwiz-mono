@@ -56,9 +56,14 @@ Woorden kunnen op twee manieren aan een lijst worden toegevoegd:
 
 Elk item heeft een __achterkant__-veld waar je je eigen definitie, voorbeeldzin of vertaalaantekening kunt schrijven. Tik op een item om het te bewerken.
 
-### Woorden importeren (CSV)
+### Woorden importeren
 
-Je kunt meerdere woorden tegelijk toevoegen door een CSV-bestand te importeren. Het verwachte formaat is één woord per regel: `voorkant,achterkant` (het woord op de voorkant van de kaart, gevolgd door je aantekening of vertaling). Gebruik de optie __CSV importeren__ in het lijstmenu.
+Je kunt meerdere woorden tegelijk toevoegen via het tabblad __Lijst importeren__ in het woordenschatvenster. Eén item per regel:
+
+- Alleen term (achterkant komt uit het woordenboek): `anjing`
+- Term met eigen achterkant: `kucing hitam;zwarte kat`
+
+Regels die beginnen met `#` worden als commentaar beschouwd en genegeerd.
 
 ### Studeren met flashcards
 

@@ -56,9 +56,14 @@ Words can be added to a list in two ways:
 
 Each entry has a __back__ field where you can write your own definition, example sentence, or translation note. Tap an entry to edit it.
 
-### Importing words (CSV)
+### Importing words
 
-You can add multiple words at once by importing a CSV file. The expected format is one word per line: `front,back` (the word on the front of the card, followed by your note or translation). Use the __Import CSV__ option in the list menu.
+You can add multiple words at once using the __Import list__ tab in the vocabulary panel. One entry per line:
+
+- Term only (flip side comes from the dictionary): `anjing`
+- Term with custom flip side: `kucing hitam;black cat`
+
+Lines starting with `#` are treated as comments and ignored.
 
 ### Studying with flashcards
 

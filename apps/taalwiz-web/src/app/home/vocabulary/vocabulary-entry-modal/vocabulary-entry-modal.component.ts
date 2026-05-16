@@ -89,6 +89,10 @@ export class VocabularyEntryModalComponent {
     return nonEmpty.length - this.parsedEntries().length;
   });
 
+  protected termOnlyCount = computed(
+    () => this.parsedEntries().filter((e) => !e.back).length,
+  );
+
   constructor() {
     effect(() => {
       const entry = this.existingEntry();

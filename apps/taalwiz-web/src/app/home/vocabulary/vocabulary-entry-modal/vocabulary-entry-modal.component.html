@@ -12,7 +12,7 @@
           <ion-label>{{ 'vocabulary.single' | translate }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="import">
-          <ion-label>{{ 'vocabulary.import-csv' | translate }}</ion-label>
+          <ion-label>{{ 'vocabulary.import-list' | translate }}</ion-label>
         </ion-segment-button>
       </ion-segment>
     </ion-toolbar>
@@ -68,6 +68,11 @@
     @if (invalidLineCount() > 0) {
       <ion-note color="warning" class="entry-count">
         {{ 'vocabulary.import-invalid-lines' | translate: { count: invalidLineCount() } }}
+      </ion-note>
+    }
+    @if (termOnlyCount() > 0) {
+      <ion-note color="medium" class="entry-count">
+        {{ 'vocabulary.import-dict-lookup' | translate: { count: termOnlyCount() } }}
       </ion-note>
     }
     <div class="action-row">
