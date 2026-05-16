@@ -25,8 +25,6 @@ import {
   ModalController,
 } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
-import { addIcons } from 'ionicons';
-import { addCircleOutline } from 'ionicons/icons';
 import { VocabularyEntry, VocabularyService } from '../vocabulary.service';
 
 @Component({
@@ -84,7 +82,6 @@ export class VocabularyEntryModalComponent {
   );
 
   constructor() {
-    addIcons({ addCircleOutline });
     effect(() => {
       const entry = this.existingEntry();
       if (entry) {
@@ -94,7 +91,7 @@ export class VocabularyEntryModalComponent {
     });
   }
 
-  protected setActiveTab(value: string | undefined): void {
+  protected setActiveTab(value: string | number | undefined): void {
     this.activeTab.set(value === 'import' ? 'import' : 'single');
   }
 

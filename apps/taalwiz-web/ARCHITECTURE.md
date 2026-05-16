@@ -85,7 +85,11 @@ src/app/
 │   │   ├── vocabulary.service.ts
 │   │   ├── vocabulary.page.ts
 │   │   ├── vocabulary.page.html
-│   │   └── vocabulary.page.scss
+│   │   ├── vocabulary.page.scss
+│   │   └── vocabulary-entry-modal/   # Add / edit / CSV-import modal
+│   │       ├── vocabulary-entry-modal.component.ts
+│   │       ├── vocabulary-entry-modal.component.html
+│   │       └── vocabulary-entry-modal.component.scss
 │   ├── study/                # SRS flashcard sub-feature
 │   │   ├── study.service.ts
 │   │   └── study-modal/
@@ -270,7 +274,7 @@ graph TD
 | Service | Location | Responsibility |
 |---|---|---|
 | `AuthService` | `auth/` | JWT + refresh-token management, login/logout, auto-login (Capacitor Preferences) |
-| `VocabularyService` | `home/vocabulary/` | Named list management; vocabulary item add/remove with optimistic UI; cross-device current-list sync via `UserPreferences` API |
+| `VocabularyService` | `home/vocabulary/` | Named list management; vocabulary item add/remove/update with optimistic UI; `addEntry()`, `updateBack()`, `addEntries()` for modal-driven input; cross-device current-list sync via `UserPreferences` API; calls `StudyService.refreshStats()` after every add/remove |
 | `StudyService` | `home/study/` | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)` and `submitReview()` observables for the SRS API |
 | `DictSyncService` | `home/dictionary/` | Fetch manifest, download & compile dict bundles, write to IndexedDB |
 | `DictStoreService` | `home/dictionary/` | IndexedDB CRUD wrapper (`taalwiz-dict` DB) |

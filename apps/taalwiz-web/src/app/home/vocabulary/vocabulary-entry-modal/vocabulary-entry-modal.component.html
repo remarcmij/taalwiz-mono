@@ -1,9 +1,9 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons slot="start">
+    <ion-title>{{ (isEditMode() ? 'vocabulary.edit-entry' : 'vocabulary.add-entry') | translate }}</ion-title>
+    <ion-buttons slot="end">
       <ion-button (click)="close()">{{ 'common.close' | translate }}</ion-button>
     </ion-buttons>
-    <ion-title>{{ (isEditMode() ? 'vocabulary.edit-entry' : 'vocabulary.add-entry') | translate }}</ion-title>
   </ion-toolbar>
   @if (!isEditMode()) {
     <ion-toolbar>

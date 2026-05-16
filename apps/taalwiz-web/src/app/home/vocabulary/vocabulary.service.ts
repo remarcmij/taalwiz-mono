@@ -4,6 +4,7 @@ import { Preferences } from '@capacitor/preferences';
 import { EMPTY, catchError, firstValueFrom, map, of, switchMap, take } from 'rxjs';
 import { foreignLang } from '../../app.constants';
 import { AuthService } from '../../auth/auth.service';
+import { StudyService } from '../study/study.service';
 
 export interface VocabularyEntry {
   term: string;
@@ -27,6 +28,7 @@ const PREFS_KEY = 'vocabularyCurrentListId';
 export class VocabularyService {
   #http = inject(HttpClient);
   #authService = inject(AuthService);
+  #studyService = inject(StudyService);
 
   readonly bookmarks = signal<VocabularyEntry[]>([]);
   readonly bookmarkedKeys = signal<Set<string>>(new Set());
@@ -83,7 +85,7 @@ export class VocabularyService {
         return EMPTY;
       }),
       take(1),
-    ).subscribe();
+    ).subscribe(() => void this.#studyService.refreshStats());
   }
 
   updateBack(term: string, lang: string, back: string): void {
@@ -131,6 +133,7 @@ export class VocabularyService {
     this.#loadItems(listId);
     const updatedLists = await this.#fetchLists();
     this.lists.set(updatedLists);
+    void this.#studyService.refreshStats();
     return succeeded;
   }
 
@@ -306,7 +309,7 @@ export class VocabularyService {
         return EMPTY;
       }),
       take(1),
-    ).subscribe();
+    ).subscribe(() => void this.#studyService.refreshStats());
   }
 
   #remove(term: string, lang: string): void {
@@ -332,6 +335,6 @@ export class VocabularyService {
         return EMPTY;
       }),
       take(1),
-    ).subscribe();
+    ).subscribe(() => void this.#studyService.refreshStats());
   }
 }

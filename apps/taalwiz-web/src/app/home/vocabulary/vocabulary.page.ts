@@ -24,7 +24,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
-import { addCircleOutline, addOutline, closeOutline, createOutline, pencilOutline, schoolOutline, trashOutline } from 'ionicons/icons';
+import { addOutline, closeOutline, createOutline, pencilOutline, schoolOutline, trashOutline } from 'ionicons/icons';
 import { DictionaryService } from '../dictionary/dictionary.service';
 import { WordLang } from '../dictionary/word-lang.model';
 import { StudyModalComponent } from '../study/study-modal/study-modal.component';
@@ -77,7 +77,7 @@ export class VocabularyPage {
   });
 
   constructor() {
-    addIcons({ addCircleOutline, addOutline, closeOutline, createOutline, pencilOutline, schoolOutline, trashOutline });
+    addIcons({ addOutline, closeOutline, createOutline, pencilOutline, schoolOutline, trashOutline });
   }
 
   lookup(entry: VocabularyEntry): void {
@@ -136,7 +136,7 @@ export class VocabularyPage {
       buttons: [
         { text: this.#translate.instant('common.close'), role: 'cancel' },
         {
-          text: this.#translate.instant('common.send'),
+          text: this.#translate.instant('common.ok'),
           handler: (data: { name: string }) => {
             const name = data.name?.trim();
             if (!name) return false;

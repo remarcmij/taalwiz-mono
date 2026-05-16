@@ -6,7 +6,7 @@
     <ion-title>{{ 'common.bookmarks' | translate }}</ion-title>
     <ion-buttons slot="end">
       @if (vocabularyService.lists().length > 0) {
-        <ion-button class="study-btn" (click)="openStudyModal()">
+        <ion-button class="study-btn" [title]="'study.title' | translate" (click)="openStudyModal()">
           <div class="icon-with-badge">
             <ion-icon name="school-outline"></ion-icon>
             @if (dueForCurrentList() > 0) {
@@ -14,11 +14,11 @@
             }
           </div>
         </ion-button>
-        <ion-button (click)="openAddEntryModal()">
-          <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+        <ion-button [title]="'vocabulary.add-entry' | translate" (click)="openAddEntryModal()">
+          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
         </ion-button>
       }
-      <ion-button (click)="openCreateListAlert()">
+      <ion-button [title]="'bookmarks.create-list' | translate" (click)="openCreateListAlert()">
         <ion-icon slot="icon-only" name="add-outline"></ion-icon>
       </ion-button>
     </ion-buttons>

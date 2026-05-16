@@ -1,5 +1,55 @@
 # Changes — taalwiz-web
 
+## 2026-05-16 — Vocabulary entry management (add, edit back, bulk CSV import)
+
+New ways to populate the vocabulary list beyond the word-click modal bookmark icon. Entries can now be added one at a time, bulk-imported via CSV, or edited (flip-side only) directly from the Vocabulary tab. Desktop users get inline edit/delete icon buttons; mobile users get a left-swipe edit action. The SRS badge count now stays in sync after every add or remove.
+
+### New component
+
+**`VocabularyEntryModalComponent`** (`home/vocabulary/vocabulary-entry-modal/`) — full-screen modal opened from the Vocabulary toolbar. Two tabs:
+
+- **Single** — term input + optional flip-side textarea. In add mode both fields are editable; in edit mode the term is read-only and only the flip side can be changed.
+- **Import CSV** — monospace textarea accepting one `term;back` line per line (`back` optional; lines starting with `#` and blank lines are ignored). Shows a live parsed-entry count; imports all on confirm.
+
+### `VocabularyService` additions
+
+Three new public methods (no new API endpoints — the existing `POST /api/v1/vocabulary` upsert handles all three cases):
+
+| Method | Description |
+|---|---|
+| `addEntry(term, back?)` | Optimistic add with rollback; calls `StudyService.refreshStats()` on success |
+| `updateBack(term, lang, back)` | Optimistic flip-side update with rollback |
+| `addEntries(entries[])` | Bulk add via `Promise.all`; reloads list and counts; refreshes stats |
+
+`StudyService` is now injected into `VocabularyService`. `refreshStats()` is called after every successful add and remove (including the existing word-click `toggle()` path), so the SRS due-count badge on the toolbar always reflects the true server state.
+
+### Vocabulary page changes
+
+- **Toolbar**: pencil (`create-outline`) button opens the add-to-vocabulary modal; `+` (`add-outline`) button creates a new list. Both now show native `title` tooltips on hover. "Create List" confirm button changed from "Send" to "OK".
+- **Desktop**: inline `create-outline` (edit) and `trash-outline` (delete) icon buttons shown on each list row (hidden on mobile via `Platform.is('desktop')`).
+- **Mobile**: left-swipe reveals an "Edit" action; right-swipe remains "Remove".
+- **Back preview**: entries with a flip side show it as a muted second line in the list row.
+
+### i18n additions
+
+New `vocabulary.*` section in `en.json` / `nl.json`: `add-entry`, `edit-entry`, `single`, `import-csv`, `term-label`, `back-label`, `back-placeholder`, `import-placeholder`, `import-button`, `import-success`, `save`.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/app/home/vocabulary/vocabulary-entry-modal/vocabulary-entry-modal.component.ts` | New |
+| `src/app/home/vocabulary/vocabulary-entry-modal/vocabulary-entry-modal.component.html` | New |
+| `src/app/home/vocabulary/vocabulary-entry-modal/vocabulary-entry-modal.component.scss` | New |
+| `src/app/home/vocabulary/vocabulary.service.ts` | Inject `StudyService`; add `addEntry()`, `updateBack()`, `addEntries()`; `refreshStats()` after every add/remove |
+| `src/app/home/vocabulary/vocabulary.page.ts` | Inject `Platform`; `isDesktop`; `openAddEntryModal()`, `openEditModal()`; updated `addIcons` set |
+| `src/app/home/vocabulary/vocabulary.page.html` | Pencil toolbar button; `title` tooltips; inline desktop icons; left-swipe edit; back preview |
+| `src/app/home/vocabulary/vocabulary.page.scss` | `p.back-preview` style |
+| `public/i18n/en.json` | New `vocabulary.*` keys; "Create List" button changed to OK |
+| `public/i18n/nl.json` | Dutch equivalents |
+
+---
+
 ## 2026-05-16 — Rename bookmarks → vocabulary; word → term; optional `back` field
 
 UI label "My Words" / "Mijn Woorden" renamed to **"Vocabulary"** / **"Woordenschat"** in both locale files. Code and file names updated throughout to match.
