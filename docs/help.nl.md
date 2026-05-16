@@ -63,7 +63,7 @@ Je kunt meerdere woorden tegelijk toevoegen via het tabblad __Lijst importeren__
 - Alleen term (achterkant komt uit het woordenboek): `anjing`
 - Term met eigen achterkant: `kucing hitam;zwarte kat`
 
-Regels die beginnen met `#` worden als commentaar beschouwd en genegeerd.
+Regels die beginnen met `#` worden als commentaar beschouwd en genegeerd. Lege regels worden ook genegeerd en kunnen gebruikt worden om secties visueel te scheiden.
 
 ### Studeren met flashcards
 

@@ -63,7 +63,7 @@ You can add multiple words at once using the __Import list__ tab in the vocabula
 - Term only (flip side comes from the dictionary): `anjing`
 - Term with custom flip side: `kucing hitam;black cat`
 
-Lines starting with `#` are treated as comments and ignored.
+Lines starting with `#` are treated as comments and ignored. Blank lines are also ignored and can be used to visually separate sections.
 
 ### Studying with flashcards
 

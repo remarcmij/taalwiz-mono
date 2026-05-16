@@ -69,7 +69,7 @@
     "term-label": "Term",
     "back-label": "Achterkant",
     "back-placeholder": "Definitie, vertaling of voorbeeldzin (optioneel)",
-    "import-placeholder": "anjing\nkucing hitam;zwarte kat\nikan\n(één per regel. Puntkomma scheidt term van achterkant)",
+    "import-placeholder": "# Één item per regel\n# Puntkomma scheidt term van achterkant\n\nanjing\nkucing hitam;zwarte kat\nikan",
     "import-button": "{{count}} items importeren",
     "import-invalid-lines": "{{count}} regel(s) overgeslagen — term ontbreekt",
     "import-dict-lookup": "{{count}} term(en) gebruiken het woordenboek",
