@@ -145,42 +145,58 @@ src/app/
 
 All feature routes are lazy-loaded. The router uses `IonicRouteStrategy` (route reuse) and `PreloadAllModules`.
 
+**Redirects**
+
+- `/` → `/home`
+- `**` → `/auth`
+
+**Auth routes**
+
 ```mermaid
 flowchart TD
-    root["/"]
-    root -->|redirect| home_root["/home"]
-
     auth_r["/auth"]
-    auth_r --> login["/auth (login)"]
-    auth_r --> register["/auth/register\n(registerGuard)"]
+    auth_r --> login["/auth — login"]
+    auth_r --> register["/auth/register\nregisterGuard"]
     auth_r --> change_pw["/auth/change-password"]
     auth_r --> req_reset["/auth/request-password-reset"]
     auth_r --> reset["/auth/reset-password"]
+```
 
-    home_r["/home\n(authGuard)"]
-    home_r --> tabs["/home/tabs"]
+**Home tabs** (all require `authGuard`)
+
+```mermaid
+flowchart TD
+    home_r["/home"] --> tabs["/home/tabs"]
+
     tabs --> content_tab["/home/tabs/content"]
     content_tab --> publication["/home/tabs/content/:group"]
     publication --> article["/home/tabs/content/:group/:filename"]
+
     tabs --> dict_tab["/home/tabs/dictionary"]
     dict_tab --> lemma["/home/tabs/dictionary/:word/:lang"]
+
     tabs --> hashtags_tab["/home/tabs/hashtags"]
     tabs --> vocabulary_tab["/home/tabs/bookmarks"]
+```
 
-    admin_r["/admin\n(adminGuard)"]
+**Admin** (requires `adminGuard`)
+
+```mermaid
+flowchart TD
+    admin_r["/admin"]
     admin_r --> users["/admin/users"]
     admin_r --> new_user["/admin/new-user"]
     admin_r --> admin_content["/admin/content"]
     admin_r --> upload["/admin/upload"]
     admin_r --> settings["/admin/system-settings"]
-
-    welcome["/welcome/:lang\n(authGuard)"]
-    about["/about/:lang\n(authGuard)"]
-    contact["/contact\n(authGuard)"]
-    help["/help\n(authGuard)"]
-
-    wildcard["**"] -->|redirect| auth_r
 ```
+
+**Standalone pages** (all require `authGuard`)
+
+- `/welcome/:lang`
+- `/about/:lang`
+- `/contact`
+- `/help`
 
 **Guards:**
 
