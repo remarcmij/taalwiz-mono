@@ -80,9 +80,13 @@ export class VocabularyPage {
     addIcons({ addOutline, closeOutline, createOutline, pencilOutline, schoolOutline, trashOutline });
   }
 
-  lookup(entry: VocabularyEntry): void {
-    this.#router.navigate(['home/tabs/dictionary']);
-    this.#dictionaryService.lookup(new WordLang(entry.term, entry.lang));
+  async lookup(entry: VocabularyEntry): Promise<void> {
+    if (entry.back) {
+      await this.openEditModal(entry);
+    } else {
+      this.#router.navigate(['home/tabs/dictionary']);
+      this.#dictionaryService.lookup(new WordLang(entry.term, entry.lang));
+    }
   }
 
   relativeTime(isoString: string): string {

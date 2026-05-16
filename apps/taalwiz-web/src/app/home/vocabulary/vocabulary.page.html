@@ -64,7 +64,6 @@
                 }
               </ion-label>
               <ion-note slot="end">{{ relativeTime(entry.savedAt) }}</ion-note>
-              <ion-badge slot="end" color="medium">{{ entry.lang }}</ion-badge>
               @if (isDesktop) {
                 <ion-buttons slot="end">
                   <ion-button fill="clear" (click)="$event.stopPropagation(); openEditModal(entry)">

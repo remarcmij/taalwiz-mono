@@ -57,6 +57,7 @@
     justify-content: center;
     padding: 24px;
     box-sizing: border-box;
+
   }
 
   .card-face {
@@ -71,6 +72,14 @@
     font-size: 2rem;
     font-weight: 600;
     margin: 0 0 12px;
+
+    &--medium {
+      font-size: 1.4rem;
+    }
+
+    &--long {
+      font-size: 1.1rem;
+    }
   }
 
   .tap-hint {
@@ -138,3 +147,4 @@
     }
   }
 }
+

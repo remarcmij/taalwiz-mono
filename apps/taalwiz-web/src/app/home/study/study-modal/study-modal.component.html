@@ -63,10 +63,10 @@
              [attr.aria-label]="flipped() ? null : ('study.show-answer' | translate)">
           @if (!flipped()) {
             <div class="card-face card-front">
-              <p class="card-word">{{ card.term }}</p>
-              <ion-badge color="medium">{{ card.lang }}</ion-badge>
+              <p class="card-word"
+                 [class.card-word--medium]="card.term.length > 15"
+                 [class.card-word--long]="card.term.length > 30">{{ card.term }}</p>
               <p class="tap-hint">{{ 'study.show-answer' | translate }}</p>
-              <p class="key-hint">Space</p>
             </div>
           } @else {
             <div class="card-face card-back">

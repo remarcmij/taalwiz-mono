@@ -23,7 +23,7 @@
   @if (activeTab() === 'single') {
     <ion-item lines="full">
       <ion-input
-        label="{{ 'vocabulary.term-label' | translate }}"
+        label="{{ 'vocabulary.term-label' | translate }} (id)"
         labelPlacement="stacked"
         [value]="term()"
         (ionInput)="term.set($event.detail.value ?? '')"
@@ -35,7 +35,7 @@
     </ion-item>
     <ion-item lines="full">
       <ion-textarea
-        label="{{ 'vocabulary.back-label' | translate }}"
+        label="{{ 'vocabulary.back-label' | translate }} (nl)"
         labelPlacement="stacked"
         [value]="back()"
         (ionInput)="back.set($event.detail.value ?? '')"
