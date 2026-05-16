@@ -18,6 +18,7 @@
     "no-data": "Geen gegevens beschikbaar",
     "retry": "Opnieuw proberen",
     "reload": "Opnieuw laden",
+    "help": "Help",
     "bookmarks": "Woordenschat",
     "remove": "Verwijderen",
     "ok": "OK"
@@ -69,6 +70,7 @@
     "back-placeholder": "Definitie, vertaling of voorbeeldzin (optioneel)",
     "import-placeholder": "anjing;hond\nkucing;kat\nikan\n(één per regel; achterkant is optioneel)",
     "import-button": "{{count}} items importeren",
+    "import-invalid-lines": "{{count}} regel(s) overgeslagen — term ontbreekt",
     "import-success": "{{count}} items geïmporteerd",
     "save": "Opslaan"
   },
@@ -84,7 +86,8 @@
     "session-complete": "Sessie voltooid",
     "cards-reviewed": "{{count}} kaarten geoefend",
     "due-count": "{{count}} te doen",
-    "no-definition": "Geen definitie gevonden"
+    "no-definition": "Geen definitie gevonden",
+    "rating-hint": "Je beoordeling bepaalt wanneer je deze kaart terugziet"
   },
   "admin": {
     "admin-tasks": "Beheerderstaken"

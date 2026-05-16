@@ -18,6 +18,7 @@
     "no-data": "No data available",
     "retry": "Retry",
     "reload": "Reload",
+    "help": "Help",
     "bookmarks": "Vocabulary",
     "remove": "Remove",
     "ok": "OK"
@@ -69,6 +70,7 @@
     "back-placeholder": "Definition, translation, or example sentence (optional)",
     "import-placeholder": "anjing;dog\nkucing;cat\nikan\n(one per line; flip side is optional)",
     "import-button": "Import {{count}} entries",
+    "import-invalid-lines": "{{count}} line(s) skipped — term missing",
     "import-success": "Imported {{count}} entries",
     "save": "Save"
   },
@@ -84,7 +86,8 @@
     "session-complete": "Session complete",
     "cards-reviewed": "{{count}} cards reviewed",
     "due-count": "{{count}} due",
-    "no-definition": "No definition found"
+    "no-definition": "No definition found",
+    "rating-hint": "Your rating determines when this card reappears"
   },
   "admin": {
     "admin-tasks": "Administative Tasks"

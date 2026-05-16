@@ -81,6 +81,14 @@ export class VocabularyEntryModalComponent {
       .filter((e) => e.term.length > 0),
   );
 
+  protected invalidLineCount = computed(() => {
+    const nonEmpty = this.csvText()
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0 && !l.startsWith('#'));
+    return nonEmpty.length - this.parsedEntries().length;
+  });
+
   constructor() {
     effect(() => {
       const entry = this.existingEntry();

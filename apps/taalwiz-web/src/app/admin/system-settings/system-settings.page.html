@@ -4,7 +4,12 @@
       <app-back-button></app-back-button>
     </ion-buttons>
     <ion-title>System Settings</ion-title>
-    <ion-buttons slot="end"></ion-buttons>
+    <ion-buttons slot="end">
+      @if (isDirty()) {
+        <ion-button (click)="cancel()">Cancel</ion-button>
+        <ion-button (click)="save()" strong>Save</ion-button>
+      }
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

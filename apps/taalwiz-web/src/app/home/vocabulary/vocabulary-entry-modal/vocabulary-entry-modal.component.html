@@ -65,6 +65,11 @@
         {{ 'vocabulary.import-button' | translate: { count: parsedEntries().length } }}
       </ion-note>
     }
+    @if (invalidLineCount() > 0) {
+      <ion-note color="warning" class="entry-count">
+        {{ 'vocabulary.import-invalid-lines' | translate: { count: invalidLineCount() } }}
+      </ion-note>
+    }
     <div class="action-row">
       <ion-button
         expand="block"

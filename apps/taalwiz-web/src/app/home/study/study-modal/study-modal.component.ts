@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, HostListener, computed, inject, input, OnInit, signal } from '@angular/core';
+import { Preferences } from '@capacitor/preferences';
 import {
   IonBadge,
   IonButton,
@@ -67,6 +68,7 @@ export class StudyModalComponent implements OnInit {
   readonly definition = signal<string>('');
   readonly baseWordNote = signal<string | null>(null);
   readonly reviewedCount = signal<number>(0);
+  readonly showRatingHint = signal<boolean>(false);
 
   readonly currentCard = computed(() => this.queue()[this.currentIndex()] ?? null);
   readonly definitionHtml = computed(() =>
@@ -100,8 +102,17 @@ export class StudyModalComponent implements OnInit {
     }
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.selectedListId.set(this.defaultListId());
+    const { value } = await Preferences.get({ key: 'study.ratingHintDismissed' });
+    if (!value) {
+      this.showRatingHint.set(true);
+    }
+  }
+
+  async dismissRatingHint(): Promise<void> {
+    this.showRatingHint.set(false);
+    await Preferences.set({ key: 'study.ratingHintDismissed', value: 'true' });
   }
 
   selectList(id: string): void {

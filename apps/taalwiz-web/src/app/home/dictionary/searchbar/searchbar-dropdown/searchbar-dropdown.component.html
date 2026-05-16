@@ -1,8 +1,8 @@
 <div style="position: relative">
   <div class="dropdown-anchor" [hidden]="!showSearches()">
-    <ion-list class="dropdown-list">
+    <ion-list class="dropdown-list" role="listbox" aria-label="Search suggestions">
       @for (suggestion of suggestions(); track suggestion.key) {
-      <ion-item button (click)="itemClicked.emit(suggestion)">
+      <ion-item button role="option" aria-selected="false" (click)="itemClicked.emit(suggestion)">
         <ion-label
           [ngClass]="suggestion.lang === 'id' ? 'foreign-text' : 'native-text'">
           {{ suggestion.word }}

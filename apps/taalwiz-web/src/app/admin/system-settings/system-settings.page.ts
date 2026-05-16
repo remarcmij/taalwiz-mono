@@ -1,13 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
-  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
+  IonButton,
   IonButtons,
   IonContent,
   IonDatetime,
@@ -45,6 +46,7 @@ function deepEqual<T>(a: T, b: T): boolean {
     IonHeader,
     IonToolbar,
     IonButtons,
+    IonButton,
     IonTitle,
     IonContent,
     IonList,
@@ -57,14 +59,15 @@ function deepEqual<T>(a: T, b: T): boolean {
   templateUrl: './system-settings.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SystemSettingsPage implements OnInit, OnDestroy {
+export class SystemSettingsPage implements OnInit {
   #adminService = inject(AdminService);
   #logger = inject(LoggerService);
   #apiErrorAlertService = inject(ApiErrorAlertService);
 
   settings = signal<ISystemSettings[]>([]);
-
   #origSettings: ISystemSettings[] = [];
+
+  readonly isDirty = computed(() => !deepEqual(this.settings(), this.#origSettings));
 
   ngOnInit() {
     this.#adminService.getSettings().subscribe((settings) => {
@@ -73,23 +76,20 @@ export class SystemSettingsPage implements OnInit, OnDestroy {
     });
   }
 
-  checkIfDirty() {
-    return !deepEqual(this.settings(), this.#origSettings);
-  }
-
-  ngOnDestroy(): void {
-    if (!this.checkIfDirty()) {
-      return;
-    }
-
+  save() {
     this.#adminService
       .updateSettings(this.settings())
       .pipe(
         tap(() => {
           this.#logger.debug('Settings updated');
+          this.#origSettings = deepCopy(this.settings());
         }),
         catchError((error) => this.#apiErrorAlertService.showError(error))
       )
       .subscribe();
+  }
+
+  cancel() {
+    this.settings.set(deepCopy(this.#origSettings));
   }
 }

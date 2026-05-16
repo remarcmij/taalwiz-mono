@@ -108,6 +108,16 @@
     font-style: italic;
   }
 
+  .rating-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 16px;
+    font-size: 0.75rem;
+    color: var(--ion-color-medium);
+  }
+
   .rating-buttons {
     display: flex;
     gap: 12px;

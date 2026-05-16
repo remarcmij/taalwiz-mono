@@ -56,7 +56,11 @@
       <div class="card-container">
         <p class="card-progress">{{ reviewedCount() + 1 }} / {{ queue().length + reviewedCount() }}</p>
 
-        <div class="flashcard" [class.flipped]="flipped()" (click)="flipCard()">
+        <div class="flashcard"
+             [class.flipped]="flipped()"
+             (click)="flipCard()"
+             role="button"
+             [attr.aria-label]="flipped() ? null : ('study.show-answer' | translate)">
           @if (!flipped()) {
             <div class="card-face card-front">
               <p class="card-word">{{ card.term }}</p>
@@ -79,6 +83,14 @@
         </div>
 
         @if (flipped()) {
+          @if (showRatingHint()) {
+            <div class="rating-hint">
+              <span>{{ 'study.rating-hint' | translate }}</span>
+              <ion-button fill="clear" size="small" (click)="dismissRatingHint()" [attr.aria-label]="'common.close' | translate">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+              </ion-button>
+            </div>
+          }
           <div class="rating-buttons">
             <ion-button color="danger" fill="outline" (click)="rate('again')">
               {{ 'study.again' | translate }}<span class="key-hint">1</span>

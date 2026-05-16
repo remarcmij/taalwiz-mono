@@ -17,6 +17,7 @@ import { Preferences } from "@capacitor/preferences";
 
 import { addIcons } from "ionicons";
 import {
+  helpCircleOutline,
   informationCircleOutline,
   logOutOutline,
   mailOutline,
@@ -100,6 +101,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor() {
     addIcons({
+      helpCircleOutline,
       informationCircleOutline,
       shieldHalfOutline,
       mailOutline,
