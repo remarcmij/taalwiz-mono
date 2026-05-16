@@ -1,0 +1,92 @@
+---
+foreignLang: nl
+baseLang: nl
+author: Jim Cramer
+publicationYear: 2026
+---
+
+# Taalwiz — Help
+
+Welkom bij Taalwiz, jouw persoonlijke leerapp voor Indonesisch–Nederlands. De app is ingedeeld in vier hoofdtabbladen onderaan het scherm, plus een zijmenu voor account- en ondersteuningsopties.
+
+---
+
+## Bibliotheek
+
+De Bibliotheek is je startpunt voor het lezen. Er wordt een lijst met boeken getoond; tik op een boek om de hoofdstukken te zien, en tik vervolgens op een hoofdstuk om het te openen.
+
+Lange hoofdstukken hebben een __Inhoudsopgave__ in het rechterzijmenu; tik op een kop om direct naar dat gedeelte te springen.
+
+Tijdens het lezen kun je op een gemarkeerd woord tikken om het in het woordenboek op te zoeken zonder het hoofdstuk te verlaten.
+
+---
+
+## Woordenboek
+
+Met het Woordenboek kun je Indonesische woorden opzoeken. Typ je zoekterm in de zoekbalk; er verschijnen suggesties terwijl je typt. Druk op __Enter__ of wacht even voor het volledige resultaat.
+
+Elke vermelding toont de lemma (basisvorm) van het woord, samen met de Nederlandse vertaling en eventuele verwante vormen. Je kunt op een verwante vorm tikken om naar het bijbehorende item te navigeren. De app slaat je recente zoekopdrachten op, zodat je snel kunt terugkeren naar eerder opgezochte woorden.
+
+__Offline gebruik:__ Het woordenboek werkt zonder internetverbinding zodra het naar je apparaat is gedownload. Een banner bovenaan het scherm toont de synchronisatiestatus. Als het woordenboek nog niet is gedownload, of als er een update beschikbaar is, begint de app automatisch te synchroniseren zodra je online bent.
+
+---
+
+## Hashtags
+
+Hashtags zijn thematische labels die gerelateerde artikelen met elkaar verbinden. Het tabblad Hashtags toont alle beschikbare tags, gegroepeerd per categorie.
+
+Tik op een hashtag om alle artikelen te zien die die tag dragen. Dit is een snelle manier om inhoud over een specifiek thema te verkennen zonder de volledige Bibliotheek te doorzoeken.
+
+---
+
+## Woordenschat (Bladwijzers)
+
+Het tabblad Woordenschat is waar je je persoonlijke woordenlijsten opbouwt en bestudeert.
+
+### Lijsten beheren
+
+Je kunt zo veel woordenlijsten aanmaken als je wilt — bijvoorbeeld één per hoofdstuk, per onderwerp of per moeilijkheidsgraad. Tik op de __+__-knop om een nieuwe lijst toe te voegen, of houd een bestaand lijsttabblad lang ingedrukt om het te hernoemen of te verwijderen.
+
+### Woorden toevoegen
+
+Woorden kunnen op twee manieren aan een lijst worden toegevoegd:
+
+- Vanuit het __Woordenboek__ of een __artikel__: tik op een woord en kies vervolgens _Aan woordenschat toevoegen_ in het woorddetailvenster.
+- Rechtstreeks in het tabblad Woordenschat: tik op de __+__-knop in een lijst en typ het woord handmatig.
+
+Elk item heeft een __achterkant__-veld waar je je eigen definitie, voorbeeldzin of vertaalaantekening kunt schrijven. Tik op een item om het te bewerken.
+
+### Woorden importeren (CSV)
+
+Je kunt meerdere woorden tegelijk toevoegen door een CSV-bestand te importeren. Het verwachte formaat is één woord per regel: `voorkant,achterkant` (het woord op de voorkant van de kaart, gevolgd door je aantekening of vertaling). Gebruik de optie __CSV importeren__ in het lijstmenu.
+
+### Studeren met flashcards
+
+Tik op de knop __Studeren__ bij een woordenlijst om een flashcardsessie te starten. De app gebruikt __Spaced Repetition (SRS)__ om te bepalen welke kaarten worden getoond: kaarten die je moeilijk vindt komen eerder terug, terwijl kaarten die je goed kent verder in de toekomst worden gepland.
+
+Tijdens een sessie:
+
+- De voorkant van de kaart wordt als eerste getoond. Tik op de kaart (of druk op __Spatie__) om de achterkant te onthullen.
+- Beoordeel hoe goed je het antwoord kende: __Opnieuw__ (wist het niet), __Goed__ (gelukt met enige moeite), of __Makkelijk__ (wist het meteen). Je kunt ook de sneltoetsen __1__, __2__, __3__ gebruiken.
+- Een badge op de knop Studeren toont hoeveel kaarten er vandaag ter herhaling klaarstaan.
+
+---
+
+## Zijmenu
+
+Open het zijmenu door op het menupictogram linksboven te tikken. Van hieruit kun je:
+
+- __Over__ — achtergrondinformatie over Taalwiz lezen.
+- __Help__ — deze pagina openen.
+- __Contact__ — een bericht sturen naar het Taalwiz-team.
+- __Verander wachtwoord__ — je accountwachtwoord bijwerken.
+- __Opnieuw laden__ — een volledige herlaadactie van de app forceren (handig als iets verouderd lijkt).
+- __Afmelden__ — je account uitloggen.
+
+---
+
+## Tips
+
+- De badge op het pictogram van het tabblad Woordenboek verschijnt wanneer een synchronisatie bezig is of als het lokale woordenboek verouderd is.
+- Sneltoetsen werken in de webversie: __Spatie__ draait een flashcard om, __1 / 2 / 3__ beoordeelt hem.
+- Als je een eigen aantekening aan een woordenschatitem hebt toegevoegd, wordt die getoond op de achterkant van de flashcard in plaats van de woordenboekdefinitie.
