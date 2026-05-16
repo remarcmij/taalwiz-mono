@@ -16,6 +16,7 @@
     "send": "Send",
     "server-error": "Server Error",
     "no-data": "No data available",
+    "load-error": "Could not load content — please check your connection.",
     "retry": "Retry",
     "reload": "Reload",
     "help": "Help",

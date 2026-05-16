@@ -16,6 +16,7 @@
     "send": "Verzenden",
     "server-error": "Serverfout",
     "no-data": "Geen gegevens beschikbaar",
+    "load-error": "Inhoud kon niet worden geladen — controleer uw verbinding.",
     "retry": "Opnieuw proberen",
     "reload": "Opnieuw laden",
     "help": "Help",
