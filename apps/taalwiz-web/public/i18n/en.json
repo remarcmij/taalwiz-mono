@@ -69,7 +69,7 @@
     "term-label": "Term",
     "back-label": "Flip side",
     "back-placeholder": "Definition, translation, or example sentence (optional)",
-    "import-placeholder": "anjing\nkucing hitam;black cat\nikan\n(one per line; add ;flip side to override dictionary)",
+    "import-placeholder": "anjing\nkucing hitam;black cat\nikan\n(one per line; semicolon separates term from flip side)",
     "import-button": "Import {{count}} entries",
     "import-invalid-lines": "{{count}} line(s) skipped — term missing",
     "import-dict-lookup": "{{count}} term(s) will use dictionary lookup",
