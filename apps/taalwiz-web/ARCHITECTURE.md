@@ -262,27 +262,49 @@ Protected by `adminGuard`. Covers user management (invite, list, delete), public
 
 There is no centralized store. Services own their state using RxJS `BehaviorSubject` or Angular signals:
 
+**Auth**
+
 ```mermaid
 graph TD
-    AuthService -->|BehaviorSubject| user$["user$\n→ toSignal → authService.user()"]
+    AuthService -->|BehaviorSubject| user$
     AuthService -->|BehaviorSubject| tokenData$
+```
 
-    DictSyncService -->|BehaviorSubject| status$["status$\n'idle'|'syncing'|'done'|'offline'|'error'"]
+`user$` is exposed as `authService.user()` — a signal via `toSignal()`.
 
-    DictionaryService -->|BehaviorSubject| lookupResult$["lookupResult$\nBehaviorSubject&lt;LookupResult|null&gt;"]
+**Dictionary**
 
+```mermaid
+graph TD
+    DictSyncService -->|BehaviorSubject| status$
+    DictionaryService -->|BehaviorSubject| lookupResult$
+```
+
+`status$` values: `'idle' | 'syncing' | 'done' | 'offline' | 'error'`. `lookupResult$` type: `BehaviorSubject<LookupResult | null>`.
+
+**Vocabulary & Study**
+
+```mermaid
+graph TD
+    VocabularyService -->|signal| lists
+    VocabularyService -->|signal| currentListId
+    VocabularyService -->|signal| bookmarks
+    VocabularyService -->|signal| bookmarkedKeys
+    StudyService -->|signal| stats
+```
+
+`lists`: `VocabularyList[]` with counts. `bookmarks`: `VocabularyEntry[]` for current list. `bookmarkedKeys`: `Set<string>` for O(1) lookup. `stats`: `SrsStatsEntry[]` per-list due/new/total.
+
+**Content & Search**
+
+```mermaid
+graph TD
     TocService -->|signal| headings
     TocService -->|signal| scrollToId
-
-    VocabularyService -->|signal| lists["lists\nVocabularyList[] with counts"]
-    VocabularyService -->|signal| currentListId
-    VocabularyService -->|signal| bookmarks["bookmarks\nVocabularyEntry[] for current list"]
-    VocabularyService -->|signal| bookmarkedKeys["bookmarkedKeys\nSet&lt;string&gt; for O(1) lookup"]
-
-    StudyService -->|signal| stats["stats\nSrsStatsEntry[] per-list due/new/total"]
-
-    SearchHistoryService -->|signal| history["history\nHistoryEntry[] newest-first"]
+    SearchHistoryService -->|signal| history
 ```
+
+`history`: `HistoryEntry[]` newest-first.
 
 `AuthService` exposes `user()` — a signal derived from `user$` via `toSignal()`. `AppComponent.currentUser` is a direct alias to this signal; there is no separate local copy. Components use `OnPush` change detection; zoneless change detection is enabled app-wide.
 
@@ -416,6 +438,8 @@ Language preference is persisted on the `User` model and applied via `TranslateS
 
 ## 10. Data models
 
+**Auth**
+
 ```mermaid
 classDiagram
     class User {
@@ -427,7 +451,12 @@ classDiagram
         +string refreshToken
         +Date refreshExp
     }
+```
 
+**Content**
+
+```mermaid
+classDiagram
     class ITopic {
         +string _id
         +string title
@@ -451,6 +480,22 @@ classDiagram
         +string baseLang
     }
 
+    class IHashtag {
+        +string id
+        +string name
+        +string publicationTitle
+        +string articleTitle
+        +string sectionHeader
+        +string filename
+    }
+
+    IArticle --> ITopic : belongs to
+```
+
+**Dictionary**
+
+```mermaid
+classDiagram
     class ILemma {
         +string word
         +string lang
@@ -461,21 +506,17 @@ classDiagram
         +string keyword
     }
 
-    class IHashtag {
+    ILemma --> ILemma : baseWord reference
+```
+
+**Vocabulary & Study**
+
+```mermaid
+classDiagram
+    class VocabularyList {
         +string id
         +string name
-        +string publicationTitle
-        +string articleTitle
-        +string sectionHeader
-        +string filename
-    }
-
-    class ISystemSettings {
-        +string _id
-        +string name
-        +string label
-        +string valueType
-        +number sortIndex
+        +number count
     }
 
     class VocabularyEntry {
@@ -484,12 +525,6 @@ classDiagram
         +string listId
         +string back
         +string savedAt
-    }
-
-    class VocabularyList {
-        +string id
-        +string name
-        +number count
     }
 
     class UserPreferences {
@@ -508,10 +543,21 @@ classDiagram
         +number lapses
     }
 
-    IArticle --> ITopic : belongs to
-    ILemma --> ILemma : baseWord reference
     VocabularyEntry --> VocabularyList : belongs to
     UserPreferences --> VocabularyList : currentList
     SrsItem --> VocabularyList : belongs to
     SrsItem --> VocabularyEntry : mirrors
+```
+
+**Admin**
+
+```mermaid
+classDiagram
+    class ISystemSettings {
+        +string _id
+        +string name
+        +string label
+        +string valueType
+        +number sortIndex
+    }
 ```
