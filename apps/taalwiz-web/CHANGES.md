@@ -1,5 +1,32 @@
 # Changes — taalwiz-web
 
+## 2026-05-17 — Vocabulary import: term-only list support and UX polish
+
+The bulk import tab now clearly supports plain term lists (one word per line) in addition to `term;back` pairs.
+
+- **Renamed tab** — "Import CSV" → "Import list" (both EN and NL).
+- **Textarea label** — Added "Type or paste your word list" label above the import textarea so the intent is immediately clear.
+- **Placeholder rewritten** — Uses self-documenting `#`-comment lines to show both the term-only and `term;back` formats side by side, eliminating the ambiguous punctuation in the old hint text.
+- **Entry count deferred** — The "Import N entries" and "N term(s) will use dictionary lookup" notes no longer appear until the user presses Enter (at least one newline), preventing premature feedback while typing the first word.
+- **Desktop autofocus** — The term input focuses automatically when the modal opens on desktop; switching to the Import tab focuses the textarea.
+- **Import button moved to footer** — The Import/Save button is now in `ion-footer` (idiomatic Ionic), removing spurious white space below the button.
+- **Textarea auto-grows** — The import textarea expands to fill available height when content is pasted, eliminating unused white space.
+- **Help docs updated** — Rewrote the "Importing words" section in both `docs/help.en.md` and `docs/help.nl.md`: fixed comma→semicolon separator bug, documented term-only format, added multi-word example.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `public/i18n/en.json` | Rename `import-csv` key → `import-list`; add `import-label`; rewrite `import-placeholder`; add `import-dict-lookup` |
+| `public/i18n/nl.json` | Same as above in Dutch |
+| `src/app/home/vocabulary/vocabulary-entry-modal/vocabulary-entry-modal.component.ts` | Add `termOnlyCount`, `hasNewline` computed signals; `ionViewDidEnter` autofocus; `setActiveTab` focuses correct input; add `IonFooter` import |
+| `src/app/home/vocabulary/vocabulary-entry-modal/vocabulary-entry-modal.component.html` | Import tab label uses `import-list` key; add labeled textarea; gate entry-count notes on `hasNewline()`; move action button to `ion-footer` |
+| `src/app/home/vocabulary/vocabulary-entry-modal/vocabulary-entry-modal.component.scss` | Remove `.action-row` rule (button moved to footer) |
+| `docs/help.en.md` | Rewrite import section |
+| `docs/help.nl.md` | Rewrite import section |
+
+---
+
 ## 2026-05-16 — Word-click modal: show clicked form, save clicked form, strip trailing punctuation from flashcard back
 
 Three small UX fixes to the word-click workflow:
