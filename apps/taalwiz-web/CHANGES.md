@@ -1,5 +1,17 @@
 # Changes — taalwiz-web
 
+## 2026-05-17 — Migrate APP_INITIALIZER to provideAppInitializer
+
+`APP_INITIALIZER` is deprecated as of Angular 19. Replaced the multi-provider object in `main.ts` with `provideAppInitializer()`, using `inject(TranslateService)` directly inside the initializer function instead of the `deps` array.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/main.ts` | Replace `APP_INITIALIZER` provider with `provideAppInitializer`; `inject()` replaces `deps` array |
+
+---
+
 ## 2026-05-17 — Vocabulary import: term-only list support and UX polish
 
 The bulk import tab now clearly supports plain term lists (one word per line) in addition to `term;back` pairs.

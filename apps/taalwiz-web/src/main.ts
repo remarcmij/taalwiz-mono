@@ -1,9 +1,10 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import {
-  APP_INITIALIZER,
   enableProdMode,
   importProvidersFrom,
+  inject,
   isDevMode,
+  provideAppInitializer,
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
@@ -47,12 +48,7 @@ bootstrapApplication(AppComponent, {
       fallbackLang: 'en',
       loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json', useHttpBackend: true }),
     }),
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (translate: TranslateService) => () => firstValueFrom(translate.use('nl')),
-      deps: [TranslateService],
-      multi: true,
-    },
+    provideAppInitializer(() => firstValueFrom(inject(TranslateService).use('nl'))),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(APP_ROUTES, withPreloading(PreloadAllModules)),
     provideIonicAngular({ useSetInputAPI: true }),
