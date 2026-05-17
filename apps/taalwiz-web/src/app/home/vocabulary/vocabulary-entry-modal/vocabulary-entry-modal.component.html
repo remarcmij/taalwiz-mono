@@ -43,11 +43,6 @@
         [autoGrow]="true">
       </ion-textarea>
     </ion-item>
-    <div class="action-row">
-      <ion-button expand="block" [disabled]="!canSubmitSingle()" (click)="submitSingle()">
-        {{ 'vocabulary.save' | translate }}
-      </ion-button>
-    </div>
   } @else {
     <ion-item lines="full">
       <ion-textarea
@@ -57,6 +52,7 @@
         (ionInput)="csvText.set($event.detail.value ?? '')"
         [placeholder]="'vocabulary.import-placeholder' | translate"
         [rows]="10"
+        [autoGrow]="true"
         class="csv-textarea">
       </ion-textarea>
     </ion-item>
@@ -77,17 +73,24 @@
         </ion-note>
       }
     }
-    <div class="action-row">
-      <ion-button
-        expand="block"
-        [disabled]="parsedEntries().length === 0 || importing()"
-        (click)="submitImport()">
-        @if (importing()) {
-          <ion-spinner name="crescent"></ion-spinner>
-        } @else {
-          {{ 'vocabulary.import-button' | translate: { count: parsedEntries().length } }}
-        }
-      </ion-button>
-    </div>
   }
 </ion-content>
+
+<ion-footer class="ion-padding">
+  @if (activeTab() === 'single') {
+    <ion-button expand="block" [disabled]="!canSubmitSingle()" (click)="submitSingle()">
+      {{ 'vocabulary.save' | translate }}
+    </ion-button>
+  } @else {
+    <ion-button
+      expand="block"
+      [disabled]="parsedEntries().length === 0 || importing()"
+      (click)="submitImport()">
+      @if (importing()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        {{ 'vocabulary.import-button' | translate: { count: parsedEntries().length } }}
+      }
+    </ion-button>
+  }
+</ion-footer>

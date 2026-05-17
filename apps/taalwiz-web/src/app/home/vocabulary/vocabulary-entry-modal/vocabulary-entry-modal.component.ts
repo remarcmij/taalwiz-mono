@@ -12,6 +12,7 @@ import {
   IonButton,
   IonButtons,
   IonContent,
+  IonFooter,
   IonHeader,
   IonInput,
   IonItem,
@@ -33,6 +34,7 @@ import { VocabularyEntry, VocabularyService } from '../vocabulary.service';
   selector: 'app-vocabulary-entry-modal',
   imports: [
     IonHeader,
+    IonFooter,
     IonToolbar,
     IonButtons,
     IonButton,
