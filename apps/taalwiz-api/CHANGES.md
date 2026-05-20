@@ -1,10 +1,10 @@
 # Changes — taalwiz-api
 
-## 2026-05-20 — Auto-seed help articles at startup
+## 2026-05-20 — Idempotent article uploads; move help files into API source tree
 
-Help articles (`help.en.md`, `help.nl.md`) are now seeded automatically into MongoDB when the API starts, eliminating the manual admin upload step. The files live in `src/content/seeds/` and are read at runtime via `process.cwd()` so no build-time asset copying is required.
+`BaseLoader.importUpload` is now idempotent: it computes an MD5 hash of the raw file content and compares it against `topic.sha` in the database *before* calling `parseContent`. If the content is unchanged the method returns `false` immediately, avoiding redundant DB writes. `ArticleLoader` now stores the raw-content MD5 as `topic.sha` (previously it hashed processed data that included a `Date.now()` timestamp, so the SHA never matched on re-upload of unchanged content).
 
-`BaseLoader.importUpload` was refactored to be idempotent: it computes an MD5 hash of the raw file content and compares it against `topic.sha` in the database *before* calling `parseContent`. If the content is unchanged the method returns `false` immediately, avoiding redundant DB writes and suppressing spurious log warnings on restarts. `ArticleLoader` now stores the raw-content hash as `topic.sha` (previously it hashed processed data that included a `Date.now()` timestamp, causing every restart to be treated as a change).
+Help articles (`help.en.md`, `help.nl.md`) are moved from the repo-root `docs/` directory into `src/content/seeds/` so they live alongside the API source. They are still uploaded to the database manually via the admin interface.
 
 ### Files
 
@@ -12,7 +12,6 @@ Help articles (`help.en.md`, `help.nl.md`) are now seeded automatically into Mon
 |------|--------|
 | `src/content/seeds/help.en.md` | Moved from repo-root `docs/` |
 | `src/content/seeds/help.nl.md` | Moved from repo-root `docs/` |
-| `src/content/content.service.ts` | Seed help articles in constructor; log per-file only when actually inserted/updated |
 | `src/content/loaders/BaseLoader.ts` | SHA check (raw-content MD5) before `parseContent`; `importUpload` returns `boolean` |
 | `src/content/loaders/ArticleLoader.ts` | Store raw-content MD5 as `topic.sha` |
 

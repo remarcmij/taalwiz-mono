@@ -1,15 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Response } from 'express';
-import { readFile } from 'node:fs/promises';
 import EventEmitter from 'node:events';
-import { join } from 'node:path';
 import ArticleLoader from './loaders/ArticleLoader.js';
 import { Loader } from './loaders/BaseLoader.js';
 import DictLoader from './loaders/DictLoader.js';
 import Article from './models/article.model.js';
 import Topic from './models/topic.model.js';
-
-const HELP_FILES = ['help.en.md', 'help.nl.md'];
 
 @Injectable()
 export class ContentService {
@@ -18,19 +14,6 @@ export class ContentService {
   private readonly dictLoader = new DictLoader();
   private uploadChain: Promise<void> = Promise.resolve();
   private readonly logger = new Logger(ContentService.name);
-
-  constructor() {
-    void (async () => {
-      const seedDir = join(process.cwd(), 'src', 'content', 'seeds');
-      for (const filename of HELP_FILES) {
-        const content = await readFile(join(seedDir, filename), 'utf8');
-        const seeded = await this.articleLoader.importUpload(content, filename);
-        if (seeded) {
-          this.logger.log(`Seeded help article: ${filename}`);
-        }
-      }
-    })();
-  }
 
   async findIndexTopics() {
     return await Topic.find({ type: 'index' }).sort({ sortIndex: 1 }).lean();
