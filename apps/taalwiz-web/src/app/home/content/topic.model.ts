@@ -7,7 +7,7 @@ export interface ITopic {
   filename: string;
   foreignLang: string;
   groupName: string;
-  hash: string;
+  sha: string;
   isbn: string;
   lastModified: number;
   publicationYear: number;

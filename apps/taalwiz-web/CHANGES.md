@@ -1,5 +1,28 @@
 # Changes — taalwiz-web
 
+## 2026-05-20 — Replace in-memory content cache with SW-based caching
+
+`ContentService` no longer holds an in-memory `Map` of fetched topics and articles. The Angular service worker now owns content caching entirely, via two data groups in `ngsw-config.json`:
+
+- **`content-api-articles`** (`/api/v1/content/article/**`) — `performance` strategy (cache-first + background revalidation), maxSize 150, maxAge 14 d.
+- **`content-api-index`** (`/api/v1/content/**`) — `freshness` strategy (network-first, 3 s timeout), maxSize 50, maxAge 7 d.
+
+`clearCache()` is kept as a public method (all existing admin call sites are unchanged) but is repurposed to wipe the SW `CacheStorage` entries for both groups instead of clearing the in-memory map. It is called on logout and after every admin mutation (upload, reorder, delete).
+
+On login / app restart, `ContentService` fetches `GET /api/v1/content/manifest` and compares per-article `sha` hashes against a baseline stored in `localStorage`. If any hash changed (e.g. an admin re-uploaded an article from another device), both SW caches are cleared before the user navigates to any article.
+
+`ITopic.hash` renamed to `ITopic.sha` to match the field name in the API's MongoDB schema.
+
+### Files
+
+| File | Change |
+|---|---|
+| `ngsw-config.json` | Replace single `content-api` data group with `content-api-articles` (performance) and `content-api-index` (freshness) |
+| `src/app/home/content/content.service.ts` | Remove `#contentCache` Map and `CacheNode` types; repurpose `clearCache()` to flush SW CacheStorage; add manifest fetch + `#checkAndBust()` on login |
+| `src/app/home/content/topic.model.ts` | Rename `hash: string` → `sha: string` |
+
+---
+
 ## 2026-05-20 — Raise Angular component style budget
 
 Increased the `anyComponentStyle` build budget warning threshold from 2 kB to 4 kB (error threshold from 4 kB to 8 kB). `study-modal.component.scss` (2.18 kB) legitimately needs the extra budget for its multiple view states (picker, flashcard, rating buttons) and was triggering a spurious build warning.

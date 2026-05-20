@@ -27,6 +27,12 @@ export class ContentService {
     return await Article.findOne({ filename }).select('-indexText').lean();
   }
 
+  async findContentManifest() {
+    return await Topic.find({ type: { $in: ['article', 'index'] } })
+      .select('filename sha -_id')
+      .lean();
+  }
+
   uploadContent(file: Express.Multer.File, res: Response): void {
     if (!file) {
       return void res.status(400).json({ message: 'No file provided' });

@@ -11,9 +11,10 @@ Angular 20 + Ionic 8 hybrid web/mobile app (Capacitor 7). Standalone components 
 5. [Services and state](#5-services-and-state)
 6. [HTTP layer](#6-http-layer)
 7. [Dictionary (offline-first)](#7-dictionary-offline-first)
-8. [Authentication and security](#8-authentication-and-security)
-9. [i18n](#9-i18n)
-10. [Data models](#10-data-models)
+8. [Content caching (service worker)](#8-content-caching-service-worker)
+9. [Authentication and security](#9-authentication-and-security)
+10. [i18n](#10-i18n)
+11. [Data models](#11-data-models)
 
 ---
 
@@ -321,7 +322,7 @@ graph TD
 | `DictStoreService` | `home/dictionary/` | IndexedDB CRUD wrapper (`taalwiz-dict` DB) |
 | `DictionaryService` | `home/dictionary/` | Lookup with Indonesian stemmer, manage `lookupResult$` |
 | `SearchHistoryService` | `home/dictionary/` | Persist search history (up to 50 entries) via Capacitor Preferences; deduplication on add |
-| `ContentService` | `home/content/` | Fetch publications & articles from API, in-memory cache |
+| `ContentService` | `home/content/` | Fetch publications & articles from API; manage SW content-cache invalidation (manifest check on login, explicit bust on admin mutations and logout) |
 | `MarkdownService` | `home/content/` | Markdown → HTML with foreign-language span injection |
 | `TocService` | `home/content/…/article/` | Extract headings, scroll-to signal |
 | `HashtagsService` | `home/content/hashtags/` | Hashtag index fetching |
@@ -397,7 +398,52 @@ sequenceDiagram
 
 ---
 
-## 8. Authentication and security
+## 8. Content caching (service worker)
+
+Article bodies and topic index lists are cached by the Angular service worker via two `dataGroups` in `ngsw-config.json`:
+
+| Group | URL pattern | Strategy | maxSize | maxAge |
+|---|---|---|---|---|
+| `content-api-articles` | `/api/v1/content/article/**` | `performance` (cache-first + background revalidation) | 150 | 14 d |
+| `content-api-index` | `/api/v1/content/**` | `freshness` (network-first, 3 s timeout) | 50 | 7 d |
+
+**Articles** use `performance` so they load instantly from cache on repeat visits; the SW also fetches a fresh copy in the background to update the cache for the next request. **Topic index lists** use `freshness` so the user always sees the latest publication order when online.
+
+### Cache invalidation
+
+`ContentService` manages three invalidation paths:
+
+- **On login / app restart** — `user$` emits a non-null value. `ContentService` fetches `GET /api/v1/content/manifest` (`{ filename, sha }` per topic), serialises it, and compares with the previous manifest in `localStorage`. If any `sha` changed, both SW data caches are deleted so the next navigation fetches fresh content. First login just seeds the stored manifest.
+- **On admin mutations** — Admin pages call `ContentService.clearCache()` after uploads, reorders, and deletions. This wipes both SW data caches immediately.
+- **On logout** — `user$` emits `null`; `clearCache()` removes cached content from the browser's `CacheStorage`.
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant ContentService
+    participant API
+    participant SW as ServiceWorker
+    participant CS as CacheStorage
+
+    App->>ContentService: user$ emits non-null (login / auto-login)
+    ContentService->>API: GET /api/v1/content/manifest
+    API-->>ContentService: [{filename, sha}, ...]
+    ContentService->>ContentService: compare with localStorage
+
+    alt any sha changed
+        ContentService->>CS: delete content-api-articles + content-api-index caches
+        ContentService->>ContentService: store new manifest
+    end
+
+    App->>SW: GET /api/v1/content/article/:filename
+    SW-->>App: serve from cache instantly (performance)
+    SW->>API: background revalidation fetch
+    API-->>SW: fresh response — update cache for next visit
+```
+
+---
+
+## 9. Authentication and security
 
 ```mermaid
 stateDiagram-v2
@@ -422,7 +468,7 @@ stateDiagram-v2
 
 ---
 
-## 9. i18n
+## 10. i18n
 
 Uses **ngx-translate**. Translation files are loaded at runtime from `/i18n/{lang}.json`.
 
@@ -436,7 +482,7 @@ Language preference is persisted on the `User` model and applied via `TranslateS
 
 ---
 
-## 10. Data models
+## 11. Data models
 
 **Auth**
 

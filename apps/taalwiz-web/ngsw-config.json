@@ -33,13 +33,23 @@
   ],
   "dataGroups": [
     {
-      "name": "content-api",
+      "name": "content-api-articles",
+      "urls": ["/api/v1/content/article/**"],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 150,
+        "maxAge": "14d",
+        "timeout": "3s"
+      }
+    },
+    {
+      "name": "content-api-index",
       "urls": ["/api/v1/content/**"],
       "cacheConfig": {
-        "maxSize": 200,
-        "maxAge": "14d",
-        "timeout": "3s",
-        "strategy": "freshness"
+        "strategy": "freshness",
+        "maxSize": 50,
+        "maxAge": "7d",
+        "timeout": "3s"
       }
     },
     {

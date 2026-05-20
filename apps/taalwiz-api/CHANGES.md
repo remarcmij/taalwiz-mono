@@ -1,5 +1,18 @@
 # Changes — taalwiz-api
 
+## 2026-05-20 — Add content manifest endpoint
+
+New `GET /api/v1/content/manifest` endpoint returns `{ filename, sha }` for every article and index topic. Used by the Angular client to detect content changes between sessions and selectively bust the service worker cache. The route is declared before `GET :groupName` in the controller to prevent the param segment from matching the literal `manifest` path.
+
+### Files
+
+| File | Change |
+|---|---|
+| `src/content/content.controller.ts` | Add `@Get('manifest')` before `@Get(':groupName')` |
+| `src/content/content.service.ts` | Add `findContentManifest()` — queries topics for `filename sha -_id` |
+
+---
+
 ## 2026-05-20 — Fix tsconfig dist/ layout and static file serving paths
 
 ### TypeScript 5.9 + tsconfig restructure

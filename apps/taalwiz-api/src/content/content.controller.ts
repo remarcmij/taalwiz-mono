@@ -34,6 +34,11 @@ export class ContentController {
     return this.contentService.findIndexTopics();
   }
 
+  @Get('manifest')
+  findContentManifest() {
+    return this.contentService.findContentManifest();
+  }
+
   @Get(':groupName')
   findPublicationTopics(@Param('groupName') groupName: string) {
     return this.contentService.findPublicationTopics(groupName);
