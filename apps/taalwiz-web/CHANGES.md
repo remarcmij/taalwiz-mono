@@ -1,5 +1,17 @@
 # Changes — taalwiz-web
 
+## 2026-05-20 — Raise Angular component style budget
+
+Increased the `anyComponentStyle` build budget warning threshold from 2 kB to 4 kB (error threshold from 4 kB to 8 kB). `study-modal.component.scss` (2.18 kB) legitimately needs the extra budget for its multiple view states (picker, flashcard, rating buttons) and was triggering a spurious build warning.
+
+### Files
+
+| File | Change |
+|------|--------|
+| `angular.json` | `anyComponentStyle` maximumWarning: `2kb` → `4kb`; maximumError: `4kb` → `8kb` |
+
+---
+
 ## 2026-05-17 — Migrate APP_INITIALIZER to provideAppInitializer
 
 `APP_INITIALIZER` is deprecated as of Angular 19. Replaced the multi-provider object in `main.ts` with `provideAppInitializer()`, using `inject(TranslateService)` directly inside the initializer function instead of the `deps` array.

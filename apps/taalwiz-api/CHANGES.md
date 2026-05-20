@@ -1,5 +1,34 @@
 # Changes — taalwiz-api
 
+## 2026-05-20 — Fix tsconfig dist/ layout and static file serving paths
+
+### TypeScript 5.9 + tsconfig restructure
+
+Three changes to `tsconfig.json` fix compilation output and dev watch mode:
+
+- Added explicit `"rootDir": "./src"` and excluded `vite.config.ts`/`vitest.config.ts` from compilation, preventing TypeScript 5.9 from inferring the project root as `rootDir` (which caused compiled output to land in `dist/src/` instead of `dist/`).
+- Removed `"baseUrl": "./"` which is a fatal error in TypeScript 5.9 (TS5102).
+- Added `"tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo"` so the incremental build cache lives inside `dist/`. Previously the cache file was written to the project root and survived the `deleteOutDir: true` purge in `nest start --watch`, causing TypeScript to skip all emit on the next startup and crash with "Cannot find module dist/main".
+
+### Static file serving paths corrected
+
+All `import.meta.dirname`-relative paths were calibrated for the old `dist/src/` depth. After the tsconfig fix the compiled modules are one level shallower (`dist/` instead of `dist/src/`) and all traversals needed adjusting:
+
+- `app.module.ts` assets path: `'../..'` → `'..'`
+- `app.module.ts` Angular web app path: `'../../..'` + `'taalwiz-web/www/browser'` → `'../../..'` + `'apps/taalwiz-web/www/browser'`
+- `manifest-writer.ts` `PUBLIC_ASSETS_DIR`: `'../../../../public/assets'` → `'../../../public/assets'`
+
+### Files
+
+| File | Change |
+|------|--------|
+| `tsconfig.json` | Add `exclude`, `rootDir: "./src"`, `tsBuildInfoFile`; remove `baseUrl` |
+| `tsconfig.build.json` | Add `vite.config.ts`, `vitest.config.ts` to exclude list |
+| `src/app.module.ts` | Correct `ServeStaticModule` path depths for flat `dist/` layout |
+| `src/content/loaders/manifest-writer.ts` | Correct `PUBLIC_ASSETS_DIR` path depth for flat `dist/` layout |
+
+---
+
 ## 2026-05-20 — Idempotent article uploads; move help files into API source tree
 
 `BaseLoader.importUpload` is now idempotent: it computes an MD5 hash of the raw file content and compares it against `topic.sha` in the database *before* calling `parseContent`. If the content is unchanged the method returns `false` immediately, avoiding redundant DB writes. `ArticleLoader` now stores the raw-content MD5 as `topic.sha` (previously it hashed processed data that included a `Date.now()` timestamp, so the SHA never matched on re-upload of unchanged content).
