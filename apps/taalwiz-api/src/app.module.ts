@@ -26,14 +26,14 @@ const env = EnvDto.getInstance();
     ContentModule,
     HashtagModule,
     ServeStaticModule.forRoot({
-      rootPath: path.join(import.meta.dirname, '../..', 'public/assets'),
+      rootPath: path.join(import.meta.dirname, '..', 'public/assets'),
       serveRoot: '/assets',
     }),
     ServeStaticModule.forRoot({
       rootPath: path.join(
         import.meta.dirname,
         '../../..',
-        'taalwiz-web/www/browser',
+        'apps/taalwiz-web/www/browser',
       ),
     }),
     MailerModule.forRoot({
