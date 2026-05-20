@@ -13,6 +13,9 @@ abstract class BaseLoader<T> implements Loader {
     const data = await this.parseContent(content, originalFilename);
     let topic = await Topic.findOne({ filename: originalFilename }).exec();
     if (topic) {
+      if (topic.sha && topic.sha === data.topic.sha) {
+        return;
+      }
       await this.removeData(topic);
       await Topic.replaceOne(
         { _id: topic._id },
