@@ -1,13 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnInit,
-  signal,
-  ViewChild,
-} from '@angular/core';
-import { Platform } from '@ionic/angular';
+import { ChangeDetectionStrategy, Component, inject, ViewChild } from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -25,7 +17,6 @@ import {
   IonModal,
   IonRefresher,
   IonRefresherContent,
-  IonText,
   IonTitle,
   IonToolbar,
   ModalController,
@@ -39,47 +30,36 @@ import { HashtagsService } from './hashtags.service';
   selector: 'app-hashtags',
   imports: [
     AsyncPipe,
-    IonRefresher,
-    IonRefresherContent,
-    IonHeader,
-    IonToolbar,
+    TranslatePipe,
+    IonButton,
     IonButtons,
-    IonMenuButton,
-    IonTitle,
-    IonContent,
-    IonList,
-    IonItem,
     IonCard,
+    IonCardContent,
     IonCardHeader,
     IonCardTitle,
-    IonCardContent,
     IonChip,
+    IonContent,
+    IonHeader,
+    IonItem,
     IonLabel,
-    IonText,
-    IonButton,
-    TranslatePipe,
+    IonList,
+    IonMenuButton,
+    IonRefresher,
+    IonRefresherContent,
+    IonTitle,
+    IonToolbar,
   ],
   templateUrl: './hashtags.page.html',
   styleUrls: ['./hashtags.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HashtagsPage implements OnInit {
+export class HashtagsPage {
   #modalCtrl = inject(ModalController);
-  #platform = inject(Platform);
   #hashtagsService = inject(HashtagsService);
 
   @ViewChild(IonModal) modal!: IonModal;
 
   hashtagGroups$ = this.#hashtagsService.getHashtagIndex();
-
-  isDesktop = this.#platform.is('desktop');
-  giveUpWaiting = signal(false);
-
-  ngOnInit(): void {
-    setTimeout(() => {
-      this.giveUpWaiting.set(true);
-    }, 1000);
-  }
 
   handleRefresh(event?: { target: { complete: () => void } }) {
     this.hashtagGroups$ = this.#hashtagsService.getHashtagIndex();

@@ -29,7 +29,7 @@ export class HashtagsService {
           .get<HashtagGroup[]>('/api/v1/hashtags', { headers })
           .pipe(
             catchError((error) => {
-              this.#apiErrorAlertService.showError(error);
+              this.#apiErrorAlertService.showNetworkError(error);
               return of([]);
             })
           );
@@ -49,7 +49,7 @@ export class HashtagsService {
           })
           .pipe(
             catchError((error) => {
-              this.#apiErrorAlertService.showError(error);
+              this.#apiErrorAlertService.showNetworkError(error);
               return of([]);
             })
           );

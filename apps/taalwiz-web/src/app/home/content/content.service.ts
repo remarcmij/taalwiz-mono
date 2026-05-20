@@ -66,7 +66,7 @@ export class ContentService {
         return this.#http
           .get<IArticle>(`/api/v1/content/article/${filename}`, { headers })
           .pipe(catchError((error) => {
-            this.#apiErrorAlertService.showError(error);
+            this.#apiErrorAlertService.showNetworkError(error);
             return of(null);
           }));
       })
@@ -82,7 +82,7 @@ export class ContentService {
         return this.#http
           .get<ITopic[]>(url, { headers })
           .pipe(catchError((error) => {
-            this.#apiErrorAlertService.showError(error);
+            this.#apiErrorAlertService.showNetworkError(error);
             return of([]);
           }));
       })

@@ -22,7 +22,11 @@
     "help": "Help",
     "bookmarks": "Woordenschat",
     "remove": "Verwijderen",
-    "ok": "OK"
+    "ok": "OK",
+    "offline-header": "Niet offline beschikbaar",
+    "offline-message": "Deze inhoud is nog niet gedownload en kan niet worden weergegeven zonder internetverbinding.",
+    "network-error-header": "Inhoud kon niet worden geladen",
+    "network-error-message": "Er is een fout opgetreden bij het laden van de inhoud. Probeer het later nog eens."
   },
   "update": {
     "update-available": "Update beschikbaar",

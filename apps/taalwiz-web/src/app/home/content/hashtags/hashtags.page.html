@@ -28,17 +28,11 @@
           </ion-card-content>
         </ion-card>
       </ion-item>
-      } @empty { @if (giveUpWaiting()) {
-      <ion-text color="medium" class="ion-text-center">
-        <p>{{ 'common.load-error' | translate }}</p>
-      </ion-text>
-      @if (isDesktop) {
-      <div class="ion-text-center">
-        <ion-button (click)="handleRefresh()">
-          {{ 'common.retry' | translate }}
-        </ion-button>
+      } @empty {
+      <div class="ion-text-center ion-padding">
+        <ion-button (click)="handleRefresh()">{{ 'common.retry' | translate }}</ion-button>
       </div>
-      } } }
+      }
     </ion-list>
   </div>
 </ion-content>

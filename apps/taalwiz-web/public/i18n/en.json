@@ -22,7 +22,11 @@
     "help": "Help",
     "bookmarks": "Vocabulary",
     "remove": "Remove",
-    "ok": "OK"
+    "ok": "OK",
+    "offline-header": "Not Available Offline",
+    "offline-message": "This content has not been downloaded yet and cannot be displayed without an internet connection.",
+    "network-error-header": "Could Not Load Content",
+    "network-error-message": "An error occurred while loading content. Please try again later."
   },
   "update": {
     "update-available": "Update Available",

@@ -1,5 +1,29 @@
 # Changes — taalwiz-web
 
+## 2026-05-21 — Improve network error dialogs for content and hashtags
+
+When fetching articles, topic lists, or hashtags fails, the error dialog now distinguishes between two cases:
+
+- **Offline / article not cached** (`HttpErrorResponse.status === 504` or `status === 0`, or `!navigator.onLine`) — shows "Not Available Offline" with a message explaining the content has not been downloaded.
+- **Other network/server error** — shows "Could Not Load Content" with a generic retry prompt.
+
+The generic `showError()` on `ApiErrorAlertService` is unchanged (still used by admin flows); the new `showNetworkError()` method handles the three user-facing services: `ContentService` (`fetchArticle`, `#fetchTopics`) and `HashtagsService` (`getHashtagIndex`, `findHashtag`).
+
+The in-page duplicate `common.load-error` text was removed from both the library and hashtags `@empty` blocks (the dialog now owns error explanation). A RETRY button replaces it — visible to all users, including desktop where pull-to-refresh is unavailable.
+
+### Files
+
+| File | Change |
+|---|---|
+| `src/app/shared/api-error-alert.service.ts` | Add `showNetworkError(error)` — detects offline vs other errors, uses new i18n keys |
+| `src/app/home/content/content.service.ts` | Use `showNetworkError()` in `fetchArticle()` and `#fetchTopics()` |
+| `src/app/home/content/hashtags/hashtags.service.ts` | Use `showNetworkError()` in `getHashtagIndex()` and `findHashtag()` |
+| `src/app/home/content/content.page.html` / `.ts` | Remove `common.load-error` text from `@empty` block; add RETRY button; remove unused `IonText`, `Platform`, `giveUpWaiting` |
+| `src/app/home/content/hashtags/hashtags.page.html` / `.ts` | Same `@empty` cleanup |
+| `public/i18n/en.json` / `nl.json` | Add `common.offline-header`, `common.offline-message`, `common.network-error-header`, `common.network-error-message` |
+
+---
+
 ## 2026-05-20 — Replace in-memory content cache with SW-based caching
 
 `ContentService` no longer holds an in-memory `Map` of fetched topics and articles. The Angular service worker now owns content caching entirely, via two data groups in `ngsw-config.json`:
