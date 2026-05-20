@@ -1,5 +1,23 @@
 # Changes — taalwiz-api
 
+## 2026-05-20 — Auto-seed help articles at startup
+
+Help articles (`help.en.md`, `help.nl.md`) are now seeded automatically into MongoDB when the API starts, eliminating the manual admin upload step. The files live in `src/content/seeds/` and are read at runtime via `process.cwd()` so no build-time asset copying is required.
+
+`BaseLoader.importUpload` was refactored to be idempotent: it computes an MD5 hash of the raw file content and compares it against `topic.sha` in the database *before* calling `parseContent`. If the content is unchanged the method returns `false` immediately, avoiding redundant DB writes and suppressing spurious log warnings on restarts. `ArticleLoader` now stores the raw-content hash as `topic.sha` (previously it hashed processed data that included a `Date.now()` timestamp, causing every restart to be treated as a change).
+
+### Files
+
+| File | Change |
+|------|--------|
+| `src/content/seeds/help.en.md` | Moved from repo-root `docs/` |
+| `src/content/seeds/help.nl.md` | Moved from repo-root `docs/` |
+| `src/content/content.service.ts` | Seed help articles in constructor; log per-file only when actually inserted/updated |
+| `src/content/loaders/BaseLoader.ts` | SHA check (raw-content MD5) before `parseContent`; `importUpload` returns `boolean` |
+| `src/content/loaders/ArticleLoader.ts` | Store raw-content MD5 as `topic.sha` |
+
+---
+
 ## 2026-05-16 — Admin settings module
 
 New `AdminSettingsModule` providing persistent key/value system configuration for administrators.

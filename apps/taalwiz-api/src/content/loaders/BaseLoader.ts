@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import Topic, { TopicDoc } from '../models/topic.model.js';
 
 export interface Upload<T> {
@@ -5,26 +6,30 @@ export interface Upload<T> {
   payload: T;
 }
 export interface Loader {
-  importUpload(filePath: string, originalFilename: string): Promise<void>;
+  importUpload(filePath: string, originalFilename: string): Promise<boolean>;
 }
 
 abstract class BaseLoader<T> implements Loader {
-  async importUpload(content: string, originalFilename: string): Promise<void> {
+  async importUpload(content: string, originalFilename: string): Promise<boolean> {
+    const contentSha = crypto.createHash('md5').update(content).digest('hex');
+    const existingTopic = await Topic.findOne({ filename: originalFilename }).exec();
+    if (existingTopic?.sha === contentSha) {
+      return false;
+    }
+
     const data = await this.parseContent(content, originalFilename);
-    let topic = await Topic.findOne({ filename: originalFilename }).exec();
-    if (topic) {
-      if (topic.sha && topic.sha === data.topic.sha) {
-        return;
-      }
-      await this.removeData(topic);
+    if (existingTopic) {
+      await this.removeData(existingTopic);
       await Topic.replaceOne(
-        { _id: topic._id },
+        { _id: existingTopic._id },
         { ...data.topic, lastModified: Date.now() },
       ).exec();
+      await this.createData(existingTopic, data);
     } else {
-      topic = await Topic.create({ ...data.topic, lastModified: Date.now() });
+      const topic = await Topic.create({ ...data.topic, lastModified: Date.now() });
+      await this.createData(topic, data);
     }
-    await this.createData(topic, data);
+    return true;
   }
 
   async removeTopic(topic: TopicDoc): Promise<void> {

@@ -119,7 +119,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       hashtags: [],
     };
 
-    topic.sha = generateChecksum(JSON.stringify({ topic, article }));
+    topic.sha = generateChecksum(content);
 
     const { body: newBody, hashtags } = await this.extractHashtags(body, article);
 

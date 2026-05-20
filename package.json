@@ -7,7 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "killdev": "lsof -ti :3000 | xargs kill -9"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

@@ -2,8 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { Response } from 'express';
 import { readFile } from 'node:fs/promises';
 import EventEmitter from 'node:events';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import ArticleLoader from './loaders/ArticleLoader.js';
 import { Loader } from './loaders/BaseLoader.js';
 import DictLoader from './loaders/DictLoader.js';
@@ -22,12 +21,14 @@ export class ContentService {
 
   constructor() {
     void (async () => {
-      const seedDir = join(dirname(fileURLToPath(import.meta.url)), 'seeds');
+      const seedDir = join(process.cwd(), 'src', 'content', 'seeds');
       for (const filename of HELP_FILES) {
         const content = await readFile(join(seedDir, filename), 'utf8');
-        await this.articleLoader.importUpload(content, filename);
+        const seeded = await this.articleLoader.importUpload(content, filename);
+        if (seeded) {
+          this.logger.log(`Seeded help article: ${filename}`);
+        }
       }
-      this.logger.log('Seeded help articles');
     })();
   }
 
