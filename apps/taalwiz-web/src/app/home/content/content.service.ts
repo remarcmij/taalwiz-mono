@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, filter, Observable, of, switchMap } from 'rxjs';
+import { catchError, filter, map, Observable, of, switchMap } from 'rxjs';
 
 import { AuthService } from '../../auth/auth.service';
 import { ApiErrorAlertService } from '../../shared/api-error-alert.service';
@@ -55,6 +55,20 @@ export class ContentService {
 
   fetchPublicationTopics(groupName: string): Observable<ITopic[]> {
     return this.#fetchTopics(`/api/v1/content/${groupName}`);
+  }
+
+  prefetchArticle(filename: string): Observable<boolean> {
+    return this.#authService.getRequestHeaders().pipe(
+      switchMap((headers) => {
+        if (!headers) return of(false);
+        return this.#http
+          .get<IArticle>(`/api/v1/content/article/${filename}`, { headers })
+          .pipe(
+            map(() => true),
+            catchError(() => of(false))
+          );
+      })
+    );
   }
 
   fetchArticle(filename: string): Observable<IArticle | null> {

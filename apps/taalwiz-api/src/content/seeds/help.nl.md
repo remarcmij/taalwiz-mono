@@ -17,6 +17,8 @@ De Bibliotheek is je startpunt voor het lezen. Er wordt een lijst met boeken get
 
 Lange hoofdstukken hebben een __Inhoudsopgave__ in het rechterzijmenu; tik op een kop om direct naar dat gedeelte te springen.
 
+Om alle artikelen van een publicatie in één keer te downloaden voor offline gebruik, open de hoofdstukkenlijst en tik op het __download__-pictogram (wolk met pijl) rechtsboven. Een voortgangsbalk toont de downloadvoortgang. Artikelen die je al eerder hebt geopend, worden meteen uit de lokale cache geladen; alleen nieuwe artikelen vereisen een netwerkverbinding.
+
 Tijdens het lezen kun je op een gemarkeerd woord tikken om het woorddetailvenster te openen. De titelbalk toont het woord zoals het in de tekst staat; als de woordenboekbasisvorm afwijkt, worden beide getoond met een pijl (bijv. _dibakar → membakar_).
 
 ---

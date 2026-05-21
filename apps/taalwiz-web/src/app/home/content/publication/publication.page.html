@@ -4,6 +4,22 @@
       <app-back-button></app-back-button>
     </ion-buttons>
     <ion-title>{{ publicationTitle() }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        (click)="cacheAll()"
+        [disabled]="cacheStatus() === 'caching'"
+        aria-label="Cache all articles">
+        <ion-icon
+          slot="icon-only"
+          [name]="cacheStatus() === 'done' ? 'checkmark-circle-outline' : 'cloud-download-outline'">
+        </ion-icon>
+      </ion-button>
+    </ion-buttons>
+    @if (cacheStatus() === 'caching') {
+      <ion-progress-bar
+        [value]="topics().length > 0 ? cachedCount() / topics().length : 0">
+      </ion-progress-bar>
+    }
   </ion-toolbar>
 </ion-header>
 

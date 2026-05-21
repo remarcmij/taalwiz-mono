@@ -1,5 +1,23 @@
 # Changes — taalwiz-web
 
+## 2026-05-21 — Proactive article caching for publications
+
+A **cache-all** button (cloud-download icon) has been added to the toolbar on the publication topic-list page. Tapping it proactively pre-fetches every article in the publication one at a time, causing the Angular service worker to cache them for offline reading without requiring the user to open each article individually.
+
+While fetching is in progress a deterministic progress bar appears at the bottom of the toolbar. Already-cached articles are served from the SW cache instantly (those steps in the progress bar complete immediately); uncached articles are fetched from the network. The button is disabled during the operation and switches to a checkmark icon when the last article completes.
+
+Prefetch errors are swallowed silently via the new `prefetchArticle()` method on `ContentService`, which returns `Observable<boolean>` and does not call `ApiErrorAlertService` — avoiding alert spam if a single article fails during a bulk download.
+
+### Files
+
+| File | Change |
+|---|---|
+| `src/app/home/content/content.service.ts` | Add `prefetchArticle(filename)` — silent fetch returning `Observable<boolean>`; add `map` to RxJS imports |
+| `src/app/home/content/publication/publication.page.ts` | Add `cacheStatus`, `cachedCount` signals; inject `ContentService` + `DestroyRef`; add `cacheAll()` using `concat()` for sequential fetching; register `cloudDownloadOutline` + `checkmarkCircleOutline` icons |
+| `src/app/home/content/publication/publication.page.html` | Download button in toolbar `slot="end"`, progress bar inside toolbar |
+
+---
+
 ## 2026-05-21 — Improve network error dialogs for content and hashtags
 
 When fetching articles, topic lists, or hashtags fails, the error dialog now distinguishes between two cases:

@@ -322,7 +322,7 @@ graph TD
 | `DictStoreService` | `home/dictionary/` | IndexedDB CRUD wrapper (`taalwiz-dict` DB) |
 | `DictionaryService` | `home/dictionary/` | Lookup with Indonesian stemmer, manage `lookupResult$` |
 | `SearchHistoryService` | `home/dictionary/` | Persist search history (up to 50 entries) via Capacitor Preferences; deduplication on add |
-| `ContentService` | `home/content/` | Fetch publications & articles from API; manage SW content-cache invalidation (manifest check on login, explicit bust on admin mutations and logout) |
+| `ContentService` | `home/content/` | Fetch publications & articles from API; `prefetchArticle()` for silent bulk pre-fetch (publication cache-all button); manage SW content-cache invalidation (manifest check on login, explicit bust on admin mutations and logout) |
 | `MarkdownService` | `home/content/` | Markdown → HTML with foreign-language span injection |
 | `TocService` | `home/content/…/article/` | Extract headings, scroll-to signal |
 | `HashtagsService` | `home/content/hashtags/` | Hashtag index fetching |
@@ -440,6 +440,21 @@ sequenceDiagram
     SW->>API: background revalidation fetch
     API-->>SW: fresh response — update cache for next visit
 ```
+
+### Proactive caching
+
+The publication topic-list page (`PublicationPage`) has a **cache-all** button in the toolbar's `end` slot. Tapping it calls `ContentService.prefetchArticle(filename)` for each article in the publication using RxJS `concat()` — one request at a time — so the SW caches all articles before the user opens any of them.
+
+`prefetchArticle()` is a silent variant of `fetchArticle()`: it returns `Observable<boolean>` and swallows HTTP errors without calling `ApiErrorAlertService`. This prevents alert spam if one article fails during a bulk download.
+
+`PublicationPage` drives the UI with two signals:
+
+| Signal | Type | Description |
+|---|---|---|
+| `cacheStatus` | `'idle' \| 'caching' \| 'done'` | Button appearance and disabled state |
+| `cachedCount` | `number` | Numerator for the deterministic `IonProgressBar` value |
+
+Because articles use the `performance` strategy, already-cached entries are served from the SW cache instantly and add no network traffic. Only uncached articles actually hit the API.
 
 ---
 

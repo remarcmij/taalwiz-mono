@@ -17,6 +17,8 @@ The Library is your starting point for reading. It shows a list of books; tap a 
 
 Long chapters have a __Table of Contents__ in the right-hand side menu; tap any heading to jump directly to that section.
 
+To download all articles in a publication for offline reading in one go, open the chapter list and tap the __download__ icon (cloud with arrow) in the top-right corner. A progress bar shows the download progress. Articles you have already opened are retrieved from the local cache instantly, so only new articles require a network connection.
+
 While reading, you can tap any highlighted word to open the word detail panel. The panel title shows the word as it appears in the text; if the dictionary base form differs, both are shown with an arrow (e.g. _dibakar → membakar_).
 
 ---
