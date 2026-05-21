@@ -1,5 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import type { Response } from 'express';
+import type { FilterQuery } from 'mongoose';
+import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
+import type { TopicDoc } from './models/topic.model.js';
 import EventEmitter from 'node:events';
 import ArticleLoader from './loaders/ArticleLoader.js';
 import { Loader } from './loaders/BaseLoader.js';
@@ -15,11 +18,23 @@ export class ContentService {
   private uploadChain: Promise<void> = Promise.resolve();
   private readonly logger = new Logger(ContentService.name);
 
-  async findIndexTopics() {
-    return await Topic.find({ type: 'index' }).sort({ sortIndex: 1 }).lean();
+  private authorizedGroups(user: JwtPayload): string[] | null {
+    if (user.roles?.includes('admin')) return null;
+    return [...(user.groups ?? []), 'public'];
   }
 
-  async findPublicationTopics(groupName: string) {
+  async findIndexTopics(user: JwtPayload) {
+    const query: FilterQuery<TopicDoc> = { type: 'index' };
+    const groups = this.authorizedGroups(user);
+    if (groups) query.groupName = { $in: groups };
+    return await Topic.find(query).sort({ sortIndex: 1 }).lean();
+  }
+
+  async findPublicationTopics(groupName: string, user: JwtPayload) {
+    const groups = this.authorizedGroups(user);
+    if (groups && !groups.includes(groupName)) {
+      throw new ForbiddenException();
+    }
     return await Topic.find({ groupName }).sort('sortIndex title').lean();
   }
 
@@ -27,10 +42,15 @@ export class ContentService {
     return await Article.findOne({ filename }).select('-indexText').lean();
   }
 
-  async findContentManifest() {
-    return await Topic.find({ type: { $in: ['article', 'index'] } })
-      .select('filename sha -_id')
-      .lean();
+  async findContentManifest(user: JwtPayload) {
+    const query: FilterQuery<TopicDoc> = { type: { $in: ['article', 'index'] } };
+    const groups = this.authorizedGroups(user);
+    if (groups) query.groupName = { $in: groups };
+    return await Topic.find(query).select('filename sha -_id').lean();
+  }
+
+  async findGroups(): Promise<string[]> {
+    return await Topic.distinct('groupName').exec();
   }
 
   uploadContent(file: Express.Multer.File, res: Response): void {

@@ -77,6 +77,7 @@ export class AuthService {
       name: user.name,
       lang: user.lang as Language,
       roles: user.roles as Role[],
+      groups: user.groups as string[],
       refreshToken: token,
       refreshExp: exp,
     };
@@ -109,6 +110,7 @@ export class AuthService {
       sub: user._id!.toString(),
       email: user.email,
       roles: user.roles,
+      groups: user.groups as string[],
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {

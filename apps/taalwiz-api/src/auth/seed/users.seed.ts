@@ -10,6 +10,7 @@ export const seedUsers: Omit<UserDoc, '_id' | 'created' | 'lastAccessed'>[] = [
     password: env.adminPassword,
     lang: 'en',
     roles: ['admin', 'user'],
+    groups: [],
   },
   {
     name: 'Demo User',
@@ -17,5 +18,6 @@ export const seedUsers: Omit<UserDoc, '_id' | 'created' | 'lastAccessed'>[] = [
     password: env.demoPassword,
     lang: 'nl',
     roles: ['demo'],
+    groups: [],
   },
 ];

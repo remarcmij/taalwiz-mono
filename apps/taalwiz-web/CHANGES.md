@@ -1,5 +1,37 @@
 # Changes — taalwiz-web
 
+## 2026-05-21 — Content group authorization + SW article caching fix
+
+### Group authorization
+
+The `User` model now carries a `groups: string[]` field, populated from the JWT on login and auto-login. `AuthService` passes `groups` when constructing the `User` object.
+
+The Library (`ContentPage`) and Hashtags (`HashtagsPage`) pages now add `ionViewWillEnter()` hooks that re-issue their data fetches whenever the page becomes visible. This prevents Ionic's component cache from showing stale data from a previous user's session after a user change on the same browser tab.
+
+Admin group management: the Users admin page shows each user's current groups as chips and provides a **Manage Groups** button (people icon) directly on each row. Tapping it opens a `GroupsModalComponent` sheet listing all available groups as checkboxes. The footer provides **Add all** / **Clear all** convenience buttons and a **Save** button. `AdminService` gains `getGroups()` (`GET /api/v1/content/groups`) and `updateUserGroups()` (`PATCH /api/v1/users/:id/groups`).
+
+### SW caching strategy for articles
+
+`content-api-articles` strategy changed from `performance` (cache-first) to `freshness` (network-first, 3 s timeout). Articles now always validate against the API when online; the SW cache is retained as an offline fallback only. This aligns article caching with the existing `content-api-index` strategy and ensures that revoked access is reflected immediately for online users rather than after the 14-day cache expiry.
+
+### Files
+
+| File | Change |
+|---|---|
+| `src/app/auth/user.model.ts` | Add `groups: string[] = []` parameter |
+| `src/app/auth/auth.service.ts` | Pass `groups` when constructing `User` on login + auto-login |
+| `src/app/admin/admin.service.ts` | Add `getGroups()` and `updateUserGroups()` |
+| `src/app/admin/users/users.page.ts` | Load available groups; `onManageGroups()` opens modal; add groups chips to template |
+| `src/app/admin/users/users.page.html` | Inline groups button (`slot="end"`); group chips; delete remains swipe-only |
+| `src/app/admin/users/groups-modal/groups-modal.component.ts` | New — checkbox list with Add all / Clear all / Save |
+| `src/app/admin/users/groups-modal/groups-modal.component.html` | New |
+| `src/app/admin/users/groups-modal/groups-modal.component.scss` | New |
+| `src/app/home/content/content.page.ts` | Add `ionViewWillEnter()` to refresh `topics$` |
+| `src/app/home/content/hashtags/hashtags.page.ts` | Add `ionViewWillEnter()` to refresh `hashtagGroups$` |
+| `ngsw-config.json` | `content-api-articles` strategy: `performance` → `freshness` |
+
+---
+
 ## 2026-05-21 — Proactive article caching for publications
 
 A **cache-all** button (cloud-download icon) has been added to the toolbar on the publication topic-list page. Tapping it proactively pre-fetches every article in the publication one at a time, causing the Angular service worker to cache them for offline reading without requiring the user to open each article individually.

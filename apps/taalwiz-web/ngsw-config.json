@@ -36,7 +36,7 @@
       "name": "content-api-articles",
       "urls": ["/api/v1/content/article/**"],
       "cacheConfig": {
-        "strategy": "performance",
+        "strategy": "freshness",
         "maxSize": 150,
         "maxAge": "14d",
         "timeout": "3s"

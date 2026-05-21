@@ -22,6 +22,28 @@ export class AdminService {
   #contentService = inject(ContentService);
   #apiErrorAlertService = inject(ApiErrorAlertService);
 
+  getGroups() {
+    return this.#authService.getRequestHeaders().pipe(
+      switchMap((headers) => {
+        if (!headers) return of([]);
+        return this.#http.get<string[]>('/api/v1/content/groups', { headers });
+      }),
+      catchError((error) => {
+        this.#apiErrorAlertService.showError(error);
+        return of([]);
+      })
+    );
+  }
+
+  updateUserGroups(id: string, groups: string[]) {
+    return this.#authService.getRequestHeaders().pipe(
+      switchMap((headers) => {
+        if (!headers) return of(null);
+        return this.#http.patch<User>(`/api/v1/users/${id}/groups`, { groups }, { headers });
+      })
+    );
+  }
+
   getUsers() {
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {

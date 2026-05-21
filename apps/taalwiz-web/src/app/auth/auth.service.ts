@@ -29,6 +29,7 @@ export interface AuthResponseData {
   email: string;
   name: string;
   roles: Role[];
+  groups: string[];
   lang: string;
   refreshToken: string;
   refreshExp: string;
@@ -174,6 +175,7 @@ export class AuthService implements OnDestroy {
           parsedData.name,
           parsedData.lang,
           parsedData.roles,
+          parsedData.groups ?? [],
           parsedData.refreshToken,
           +parsedData.refreshExp
         );
@@ -266,6 +268,7 @@ export class AuthService implements OnDestroy {
       userData.name,
       userData.lang,
       userData.roles,
+      userData.groups ?? [],
       userData.refreshToken,
       refreshExp
     );

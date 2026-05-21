@@ -6,6 +6,7 @@ export class User {
     public name: string,
     public lang: string,
     public roles: Role[] = ['user'],
+    public groups: string[] = [],
     public refreshToken: string,
     public refreshExp: number,
     public created?: Date,

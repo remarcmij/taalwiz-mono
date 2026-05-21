@@ -6,6 +6,7 @@ export interface AuthResponse {
   name: string;
   lang: Language;
   roles: Role[];
+  groups: string[];
   refreshToken: string;
   refreshExp: number;
 }

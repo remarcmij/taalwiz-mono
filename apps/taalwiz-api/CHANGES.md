@@ -1,5 +1,54 @@
 # Changes — taalwiz-api
 
+## 2026-05-21 — Content group authorization
+
+Content and hashtag endpoints now filter results by the requesting user's assigned groups. Admin users bypass all filtering and see everything; regular users see content tagged with their groups plus any content tagged `groupName: 'public'`.
+
+### User schema
+
+- **`groups: [String]`** added to `UserSchema` (default `[]`). Existing documents without the field are coerced to `[]` at the controller layer.
+
+### JWT
+
+- **`groups?: string[]`** added to `JwtPayloadSchema` (Zod) and included in both the access token and the refresh token payload.
+- **`groups: string[]`** added to `AuthResponse` so the web client receives group membership on login and registration.
+
+### Content endpoints
+
+`ContentService` gains a private `authorizedGroups(user)` helper: returns `null` for admin (no filter), or `[...user.groups, 'public']` for regular users. The filter is applied as `groupName: { $in: groups }` in:
+
+- `findIndexTopics` — library index
+- `findPublicationTopics` — checks the requested `groupName` is in the authorized set; throws `ForbiddenException` otherwise
+- `findContentManifest` — manifest only lists files the user can access
+
+New admin-only endpoint `GET /api/v1/content/groups` returns all distinct `groupName` values from the `Topic` collection.
+
+### Hashtag endpoints
+
+`HashtagService` replicates the same `authorizedGroups` helper and applies it as a `$match` stage at the top of the `getHashtagIndex` aggregation pipeline and as a filter condition in `findHashtag`.
+
+### User management endpoint
+
+New `PATCH /api/v1/users/:id/groups` endpoint (admin only) accepts `{ groups: string[] }` and updates the user's group membership. `getUsers()` changed to `.lean().exec()` so documents can be safely spread; the controller maps `_id` to `id` and coerces missing `groups` to `[]`.
+
+### Files
+
+| File | Change |
+|---|---|
+| `src/users/models/user.model.ts` | Add `groups: [String]` field |
+| `src/auth/types/jwtpayload.interface.ts` | Add `groups` to Zod schema |
+| `src/auth/types/auth-response.interface.ts` | Add `groups: string[]` |
+| `src/auth/auth.service.ts` | Include `groups` in access token + sign-in response |
+| `src/users/users.service.ts` | Include `groups` in refresh token; add `updateUserGroups()`; `.lean()` on `getUsers()` |
+| `src/users/users.controller.ts` | Add `PATCH /:id/groups`; map `_id → id` + coerce `groups` in `getUsers()` |
+| `src/content/content.service.ts` | `authorizedGroups()` helper; group filter in index/publication/manifest; add `findGroups()` |
+| `src/content/content.controller.ts` | Pass `req['user']` to service methods; add `GET /groups` before `GET /:groupName` |
+| `src/hashtag/hashtag.service.ts` | `authorizedGroups()` helper; `$match` in aggregation; filter in `findHashtag()` |
+| `src/hashtag/hashtag.controller.ts` | Pass `req['user']` to both handlers |
+| `src/auth/seed/users.seed.ts` | Add `groups: []` to both seed entries |
+
+---
+
 ## 2026-05-20 — Add content manifest endpoint
 
 New `GET /api/v1/content/manifest` endpoint returns `{ filename, sha }` for every article and index topic. Used by the Angular client to detect content changes between sessions and selectively bust the service worker cache. The route is declared before `GET :groupName` in the controller to prevent the param segment from matching the literal `manifest` path.

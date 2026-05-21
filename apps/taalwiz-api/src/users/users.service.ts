@@ -34,6 +34,7 @@ export class UsersService {
       sub: user._id!.toString(),
       email: user.email,
       roles: user.roles,
+      groups: user.groups as string[],
     };
 
     const expirationDate = new Date(Date.now() + REFRESH_TOKEN_EXPIRATION * 1000);
@@ -64,11 +65,15 @@ export class UsersService {
   }
 
   async getUsers(): Promise<UserDoc[]> {
-    return await User.find().exec();
+    return await User.find().lean().exec();
   }
 
   async deleteUserById(id: string): Promise<UserDoc | null> {
     return await User.findByIdAndDelete(id).exec();
+  }
+
+  async updateUserGroups(id: string, groups: string[]): Promise<UserDoc | null> {
+    return await User.findByIdAndUpdate(id, { groups }, { new: true }).exec();
   }
 
   async inviteNewUser(email: string, lang: string): Promise<UserDoc> {
@@ -159,6 +164,7 @@ export class UsersService {
       email: user.email,
       name: user.name,
       roles: user.roles as Role[],
+      groups: user.groups as string[],
       lang: user.lang as Language,
       refreshToken,
       refreshExp: exp,

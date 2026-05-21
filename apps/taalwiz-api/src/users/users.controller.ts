@@ -6,6 +6,7 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { Public } from '../auth/decorators/public.decorator.js';
@@ -24,7 +25,16 @@ export class UsersController {
   @Roles('admin')
   @Get()
   async getUsers() {
-    return await this.usersService.getUsers();
+    const users = await this.usersService.getUsers();
+    return users
+      .filter((u) => u.email)
+      .map((u) => ({ ...u, id: u._id!.toString(), groups: u.groups ?? [] }));
+  }
+
+  @Roles('admin')
+  @Patch(':id/groups')
+  async updateUserGroups(@Param('id') id: string, @Body('groups') groups: string[]) {
+    return await this.usersService.updateUserGroups(id, groups);
   }
 
   @Roles('admin')

@@ -51,6 +51,10 @@ export class ContentPage {
 
   topics$ = this.#contentService.fetchPublications();
 
+  ionViewWillEnter() {
+    this.topics$ = this.#contentService.fetchPublications();
+  }
+
   handleRefresh(event?: { target: { complete: () => void } }) {
     this.topics$ = this.#contentService.fetchPublications();
     event?.target.complete();

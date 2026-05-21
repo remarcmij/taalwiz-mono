@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar color="tertiary">
+    <ion-title>
+      <div>Manage Groups</div>
+      <div class="email-subtitle">{{ email() }}</div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">Cancel</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    @for (group of availableGroups(); track group) {
+    <ion-item>
+      <ion-checkbox
+        [checked]="isSelected(group)"
+        (ionChange)="toggle(group, $event.detail.checked)"
+      >
+        {{ group }}
+      </ion-checkbox>
+    </ion-item>
+    }
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="addAll()">Add all</ion-button>
+      <ion-button fill="clear" (click)="clearAll()">Clear all</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button fill="solid" color="primary" (click)="save()">Save</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

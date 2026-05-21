@@ -118,6 +118,7 @@ src/app/
 ├── admin/                    # Admin feature (adminGuard)
 │   ├── admin.service.ts
 │   ├── users/
+│   │   └── groups-modal/     # Group assignment sheet modal
 │   ├── content/
 │   │   └── upload/
 │   └── system-settings/
@@ -253,7 +254,9 @@ Offline-first. On first load the dict manifest is fetched from `/assets/dict-man
 
 ### 4.4 Admin
 
-Protected by `adminGuard`. Covers user management (invite, list, delete), publication sort-order, file upload (`.md` / `.json` only — enforced client **and** server), and system settings (key/value store backed by the `SystemSettings` MongoDB collection, seeded on first API startup). The System Settings page uses an explicit Save/Cancel pattern: buttons appear in the toolbar only when `isDirty()` is true, driven by a `computed` signal that re-evaluates via `onSettingChange()` after each `[(ngModel)]` edit.
+Protected by `adminGuard`. Covers user management (invite, list, delete, group assignment), publication sort-order, file upload (`.md` / `.json` only — enforced client **and** server), and system settings (key/value store backed by the `SystemSettings` MongoDB collection, seeded on first API startup). The System Settings page uses an explicit Save/Cancel pattern: buttons appear in the toolbar only when `isDirty()` is true, driven by a `computed` signal that re-evaluates via `onSettingChange()` after each `[(ngModel)]` edit.
+
+**Group management:** The Users page shows each user's current groups as `IonChip` elements and provides an inline **Manage Groups** button. Tapping it opens `GroupsModalComponent` — a bottom sheet listing all available group names as checkboxes, populated from `GET /api/v1/content/groups`. Changes are saved via `PATCH /api/v1/users/:id/groups` and reflected immediately in the users list signal.
 
 ---
 
@@ -404,10 +407,10 @@ Article bodies and topic index lists are cached by the Angular service worker vi
 
 | Group | URL pattern | Strategy | maxSize | maxAge |
 |---|---|---|---|---|
-| `content-api-articles` | `/api/v1/content/article/**` | `performance` (cache-first + background revalidation) | 150 | 14 d |
+| `content-api-articles` | `/api/v1/content/article/**` | `freshness` (network-first, 3 s timeout) | 150 | 14 d |
 | `content-api-index` | `/api/v1/content/**` | `freshness` (network-first, 3 s timeout) | 50 | 7 d |
 
-**Articles** use `performance` so they load instantly from cache on repeat visits; the SW also fetches a fresh copy in the background to update the cache for the next request. **Topic index lists** use `freshness` so the user always sees the latest publication order when online.
+Both groups use `freshness` so online users always get responses validated by the API — important because content is access-controlled by group membership. The SW cache serves as an offline fallback only. The 14-day `maxAge` on articles means offline reading remains available for two weeks after the last online visit.
 
 ### Cache invalidation
 
@@ -436,9 +439,9 @@ sequenceDiagram
     end
 
     App->>SW: GET /api/v1/content/article/:filename
-    SW-->>App: serve from cache instantly (performance)
-    SW->>API: background revalidation fetch
-    API-->>SW: fresh response — update cache for next visit
+    SW->>API: network request (freshness — try network first)
+    API-->>SW: 200 OK (or 403 if access revoked)
+    SW-->>App: serve fresh response (or fall back to cache if offline)
 ```
 
 ### Proactive caching
@@ -475,6 +478,7 @@ stateDiagram-v2
 
 - **Token storage:** Access token in memory (JS ref); refresh token persisted via **Capacitor Preferences** (secure native storage on mobile; `localStorage` equivalent on web — see security note below).
 - **Role-based access:** `roles: ('user' | 'admin' | 'demo')[]` on `User`. Admin routes require `'admin'` in the array; enforced in both `adminGuard` and the NestJS API.
+- **Content group authorization:** `groups: string[]` on `User` controls which Library publications and hashtags are visible. Content tagged `groupName: 'public'` is visible to all authenticated users. Admin users bypass group filtering entirely. Groups are included in both the access token and refresh token; the admin UI allows assigning groups to users via `PATCH /api/v1/users/:id/groups`.
 - **Upload restriction:** Admin upload page accepts only `.md` and `.json` — enforced in the client `accept` prop **and** in `content.service.ts` server-side validation.
 - **Server-side HTML sanitization:** `convertMarkdown()` in `apps/taalwiz-api/src/util/markup.ts` passes all Markdown-derived HTML through `sanitize-html` before storing or serving it. The allowlist covers only the tags and attributes the pipeline legitimately produces; `<script>`, event handlers, and `javascript:` URLs are stripped at the source.
 - **`bypassSecurityTrustHtml`:** `ArticleBodyComponent` still calls `bypassSecurityTrustHtml()` on article HTML. This is acceptable because the HTML has already been sanitized server-side before it reaches the client.
@@ -509,6 +513,7 @@ classDiagram
         +string name
         +string lang
         +string[] roles
+        +string[] groups
         +string refreshToken
         +Date refreshExp
     }
@@ -528,7 +533,7 @@ classDiagram
         +string foreignLang
         +string baseLang
         +number sortIndex
-        +string hash
+        +string sha
     }
 
     class IArticle {

@@ -7,7 +7,9 @@ import {
 } from '@angular/core';
 import {
   IonBackButton,
+  IonButton,
   IonButtons,
+  IonChip,
   IonContent,
   IonHeader,
   IonIcon,
@@ -20,13 +22,15 @@ import {
   IonTitle,
   IonToast,
   IonToolbar,
+  ModalController,
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { trash } from 'ionicons/icons';
+import { peopleOutline, trash } from 'ionicons/icons';
 
 import { User } from '../../auth/user.model';
 import { AdminService } from '../admin.service';
+import { GroupsModalComponent } from './groups-modal/groups-modal.component';
 
 @Component({
   selector: 'app-users',
@@ -41,7 +45,9 @@ import { AdminService } from '../admin.service';
     IonList,
     IonItemSliding,
     IonItem,
+    IonButton,
     IonLabel,
+    IonChip,
     IonItemOptions,
     IonItemOption,
     IonIcon,
@@ -52,8 +58,10 @@ import { AdminService } from '../admin.service';
 })
 export class UsersPage {
   #adminService = inject(AdminService);
+  #modalCtrl = inject(ModalController);
 
   users = signal<User[]>([]);
+  availableGroups = signal<string[]>([]);
   isToastOpen = signal(false);
 
   ionViewWillEnter() {
@@ -64,6 +72,37 @@ export class UsersPage {
           .sort((a, b) => a.email.localeCompare(b.email))
       );
     });
+    this.#adminService.getGroups().subscribe((groups) => {
+      this.availableGroups.set(groups);
+    });
+  }
+
+  async onManageGroups(user: User, slidingItem: IonItemSliding) {
+    slidingItem.close();
+
+    const modal = await this.#modalCtrl.create({
+      component: GroupsModalComponent,
+      componentProps: {
+        email: user.email,
+        availableGroups: this.availableGroups(),
+        initialGroups: user.groups,
+      },
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss<string[]>();
+    if (role === 'save' && data) {
+      this.#adminService.updateUserGroups(user.id, data).subscribe((updated) => {
+        if (updated) {
+          this.users.update((users) =>
+            users.map((u) => (u.id === user.id ? { ...u, groups: data } : u))
+          );
+        }
+      });
+    }
   }
 
   async onDeleteUser(id: string, slidingItem: IonItemSliding) {
@@ -81,6 +120,6 @@ export class UsersPage {
   }
 
   constructor() {
-    addIcons({ trash });
+    addIcons({ trash, peopleOutline });
   }
 }

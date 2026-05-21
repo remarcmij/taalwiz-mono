@@ -61,6 +61,10 @@ export class HashtagsPage {
 
   hashtagGroups$ = this.#hashtagsService.getHashtagIndex();
 
+  ionViewWillEnter() {
+    this.hashtagGroups$ = this.#hashtagsService.getHashtagIndex();
+  }
+
   handleRefresh(event?: { target: { complete: () => void } }) {
     this.hashtagGroups$ = this.#hashtagsService.getHashtagIndex();
     event?.target.complete();

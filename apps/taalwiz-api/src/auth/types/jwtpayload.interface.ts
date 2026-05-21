@@ -5,6 +5,7 @@ export const JwtPayloadSchema = z.object({
   email: z.email(),
   lang: z.string().optional(),
   roles: z.array(z.string()).optional(),
+  groups: z.array(z.string()).optional(),
   iss: z.string().optional(),
   aud: z.union([z.string(), z.array(z.string())]).optional(),
   exp: z.number().optional(),

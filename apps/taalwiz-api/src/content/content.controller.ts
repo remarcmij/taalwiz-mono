@@ -9,13 +9,15 @@ import {
   ParseArrayPipe,
   Patch,
   Post,
+  Req,
   Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/index.js';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator.js';
+import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import { ContentService } from './content.service.js';
 
 @Controller('content')
@@ -29,19 +31,20 @@ export class ContentController {
     return this.contentService.uploadContent(file, response);
   }
 
+  @Roles('admin')
+  @Get('groups')
+  findGroups() {
+    return this.contentService.findGroups();
+  }
+
   @Get('index')
-  findIndexTopics() {
-    return this.contentService.findIndexTopics();
+  findIndexTopics(@Req() req: Request) {
+    return this.contentService.findIndexTopics(req['user'] as JwtPayload);
   }
 
   @Get('manifest')
-  findContentManifest() {
-    return this.contentService.findContentManifest();
-  }
-
-  @Get(':groupName')
-  findPublicationTopics(@Param('groupName') groupName: string) {
-    return this.contentService.findPublicationTopics(groupName);
+  findContentManifest(@Req() req: Request) {
+    return this.contentService.findContentManifest(req['user'] as JwtPayload);
   }
 
   @Get('article/:filename')
@@ -51,6 +54,11 @@ export class ContentController {
       throw new NotFoundException('Article not found');
     }
     return article;
+  }
+
+  @Get(':groupName')
+  findPublicationTopics(@Param('groupName') groupName: string, @Req() req: Request) {
+    return this.contentService.findPublicationTopics(groupName, req['user'] as JwtPayload);
   }
 
   @Delete(':filename')
