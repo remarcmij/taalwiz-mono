@@ -95,7 +95,7 @@ export class DictionaryService {
         : new IndonesianStemmer().getWordVariations(word);
 
     for (const w of words) {
-      const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
+      const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang, true);
       if (lemmas.length > 0) {
         const found = makeLookupResult({ word: w, lang: target.lang, lemmas, haveMore: false });
         found.targetBase = target;
