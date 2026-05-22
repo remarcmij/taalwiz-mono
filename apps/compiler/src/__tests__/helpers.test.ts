@@ -1,6 +1,3 @@
-import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
-
 import { removeParenthesizedFragments } from '../compiler/helpers.js';
 
 describe('removeParenthesizedFragments', () => {
@@ -9,6 +6,6 @@ describe('removeParenthesizedFragments', () => {
     const actual = removeParenthesizedFragments(
       '**trusa(h)** †, → (*tak*) **usah**, het hoeft niet.'
     );
-    assert.equal(actual, expected);
+    expect(actual).toBe(expected);
   });
 });

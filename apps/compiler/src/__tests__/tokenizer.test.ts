@@ -1,6 +1,3 @@
-import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
-
 import Tokenizer, { Token } from '../compiler/Tokenizer.js';
 
 describe('Tokenizer', () => {
@@ -38,7 +35,7 @@ describe('Tokenizer', () => {
       actual.push(token);
     } while (token !== Token.Done);
 
-    assert.deepStrictEqual(actual, expected);
+    expect(actual).toStrictEqual(expected);
   });
 
   it('should recognize all token types', () => {
@@ -87,7 +84,7 @@ describe('Tokenizer', () => {
       actualContent.push(lexer.value);
     } while (token !== Token.Done);
 
-    assert.deepStrictEqual(actualTokens, expectedTokens);
-    assert.deepStrictEqual(actualContent, expectedContent);
+    expect(actualTokens).toStrictEqual(expectedTokens);
+    expect(actualContent).toStrictEqual(expectedContent);
   });
 });
