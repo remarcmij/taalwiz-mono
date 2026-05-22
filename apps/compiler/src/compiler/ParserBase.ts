@@ -89,7 +89,6 @@ abstract class ParserBase implements Parser {
       this.extractWords(text, parserResult);
     }
 
-    // TODO: deduplicate words?
     if (this.base && !parserResult.sourceKeywords.has(this.base)) {
       parserResult.sourceWords.add(this.base);
     }
