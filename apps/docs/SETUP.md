@@ -1,4 +1,4 @@
-# Deployment Setup — taalwiz-docs
+# Deployment Setup — docs
 
 This site is served as static files by the existing nginx instance on the Raspberry Pi. No new process or systemd service is needed.
 
@@ -7,10 +7,10 @@ This site is served as static files by the existing nginx instance on the Raspbe
 On the Pi (or build locally and `rsync` the output):
 
 ```bash
-pnpm --filter taalwiz-docs run build
+pnpm --filter docs run build
 ```
 
-Output directory: `apps/taalwiz-docs/docs/.vitepress/dist/`
+Output directory: `apps/docs/docs/.vitepress/dist/`
 
 ## 2. nginx configuration
 
@@ -18,7 +18,7 @@ Add the following `location` block inside the existing `taalwiz.nl` `server { }`
 
 ```nginx
 location /guide/ {
-    alias /home/jim/taalwiz-mono/apps/taalwiz-docs/docs/.vitepress/dist/;
+    alias /home/jim/taalwiz-mono/apps/docs/docs/.vitepress/dist/;
     index index.html;
     try_files $uri $uri/ =404;
 }
@@ -44,7 +44,7 @@ sudo nginx -t && sudo systemctl reload nginx
 After editing Markdown source files and rebuilding:
 
 ```bash
-pnpm --filter taalwiz-docs run build
+pnpm --filter docs run build
 sudo systemctl reload nginx   # usually not needed — static files are read on each request
 ```
 

@@ -18,59 +18,59 @@ pnpm check-types    # Type-check all packages
 pnpm format         # Prettier format all .ts/.tsx/.md files
 ```
 
-### NestJS API (`apps/taalwiz-api`)
+### NestJS API (`apps/api`)
 
 ```bash
-pnpm --filter taalwiz-api run start:dev          # Dev server with watch
-pnpm --filter taalwiz-api run build              # Build via nest build
-pnpm --filter taalwiz-api run lint               # Lint with auto-fix
-pnpm --filter taalwiz-api run test               # Run all Vitest tests
-pnpm --filter taalwiz-api run test:watch         # Watch mode
-pnpm --filter taalwiz-api run test user.service.spec.ts     # Single test file
-pnpm --filter taalwiz-api run test:e2e           # E2E tests (test/vitest.config.ts)
+pnpm --filter api run start:dev          # Dev server with watch
+pnpm --filter api run build              # Build via nest build
+pnpm --filter api run lint               # Lint with auto-fix
+pnpm --filter api run test               # Run all Vitest tests
+pnpm --filter api run test:watch         # Watch mode
+pnpm --filter api run test user.service.spec.ts     # Single test file
+pnpm --filter api run test:e2e           # E2E tests (test/vitest.config.ts)
 ```
 
-### Angular Web (`apps/taalwiz-web`)
+### Angular Web (`apps/web`)
 
 ```bash
-pnpm --filter taalwiz-web run dev      # Dev server (ng serve, port 4200)
-pnpm --filter taalwiz-web run build    # Production build (ng build)
-pnpm --filter taalwiz-web run test     # Karma/Jasmine tests
-pnpm --filter taalwiz-web run lint     # Angular lint
+pnpm --filter web run dev      # Dev server (ng serve, port 4200)
+pnpm --filter web run build    # Production build (ng build)
+pnpm --filter web run test     # Karma/Jasmine tests
+pnpm --filter web run lint     # Angular lint
 ```
 
-### Dict Compiler (`apps/dict-compiler`)
+### Dict Compiler (`apps/compiler`)
 
 ```bash
-pnpm --filter dict-compiler run build    # tsc build
-pnpm --filter dict-compiler run test     # Node.js built-in test runner with tsx
+pnpm --filter compiler run build    # tsc build
+pnpm --filter compiler run test     # Node.js built-in test runner with tsx
 ```
 
 ## Architecture
 
 ### Monorepo Layout
 
-- **`apps/taalwiz-api`** — NestJS 11 backend (Express platform, MongoDB/Mongoose, JWT auth, Nodemailer with Handlebars templates, class-validator)
-- **`apps/taalwiz-web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); **primary web app**
-- **`apps/dict-compiler`** — Standalone TypeScript utility for compiling dictionaries
+- **`apps/api`** — NestJS 11 backend (Express platform, MongoDB/Mongoose, JWT auth, Nodemailer with Handlebars templates, class-validator)
+- **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); **primary web app**
+- **`apps/compiler`** — Standalone TypeScript utility for compiling dictionaries
 - **`packages/eslint-config`** — Shared ESLint configs with presets: `base`, `nest`, `angular`
 - **`packages/typescript-config`** — Shared `base.json` tsconfig (ESNext, NodeNext module, strict)
 
 ### Dependencies Between Packages
 
-All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `nest` preset, web uses `angular`, and dict-compiler uses `base`. TypeScript configs in apps extend or reference `@repo/typescript-config/base.json`.
+All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `nest` preset, web uses `angular`, and compiler uses `base`. TypeScript configs in apps extend or reference `@repo/typescript-config/base.json`.
 
 ### Testing Strategy
 
 - **API**: Vitest with globals (test files: `*.spec.ts` in `src/`)
 - **Web**: Karma + Jasmine (test files: `*.spec.ts`)
-- **Dict Compiler**: Node.js built-in test runner with tsx (test files: `src/__tests__/**/*.test.ts`)
+- **Compiler**: Node.js built-in test runner with tsx (test files: `src/__tests__/**/*.test.ts`)
 
 ## Security
 
 ### File uploads (admin)
 
-The upload dropzone in the admin page is restricted to `.md` and `.json`. If new file types are needed, update both the client-side `accept` prop **and** the server-side validation in `apps/taalwiz-api/src/content/content.service.ts`.
+The upload dropzone in the admin page is restricted to `.md` and `.json`. If new file types are needed, update both the client-side `accept` prop **and** the server-side validation in `apps/api/src/content/content.service.ts`.
 
 ## Conventions
 

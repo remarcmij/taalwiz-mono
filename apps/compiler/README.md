@@ -1,4 +1,4 @@
-# dict-compiler
+# compiler
 
 Compiles bilingual dictionary source files (custom Markdown format) into structured JSON consumed by the Taalwiz web/mobile apps.
 

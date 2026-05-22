@@ -33,7 +33,7 @@ const env = EnvDto.getInstance();
       rootPath: path.join(
         import.meta.dirname,
         '../../..',
-        'apps/taalwiz-web/www/browser',
+        'apps/web/www/browser',
       ),
     }),
     MailerModule.forRoot({

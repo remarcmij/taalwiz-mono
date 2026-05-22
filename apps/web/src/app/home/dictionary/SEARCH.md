@@ -282,10 +282,10 @@ Run the Karma/Jasmine test suite for the Angular app:
 
 ```bash
 # One-time run (headless)
-pnpm --filter taalwiz-web run test --watch=false --browsers=ChromeHeadless
+pnpm --filter web run test --watch=false --browsers=ChromeHeadless
 
 # Or with watch mode for development
-pnpm --filter taalwiz-web run test
+pnpm --filter web run test
 ```
 
 All 57 tests should pass. The test file uses a helper function `variations(word)` to generate stemmer output and validates the results with `.toEqual()` and `.toContain()` assertions.
