@@ -1,6 +1,5 @@
 ---
-foreignLang: nl
-baseLang: nl
+targetLang: nl
 author: Jim Cramer
 publicationYear: 2026
 ---

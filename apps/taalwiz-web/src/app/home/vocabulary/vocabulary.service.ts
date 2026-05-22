@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { EMPTY, catchError, firstValueFrom, map, of, switchMap, take } from 'rxjs';
-import { foreignLang } from '../../app.constants';
+import { langConfig } from '../../app.constants';
 import { AuthService } from '../../auth/auth.service';
 import { StudyService } from '../study/study.service';
 
@@ -63,7 +63,7 @@ export class VocabularyService {
   addEntry(term: string, back?: string): void {
     if (!this.currentListId()) return;
     const listId = this.currentListId()!;
-    const lang = foreignLang;
+    const lang = langConfig.targetLang;
     const key = `${term}:${lang}`;
     const entry: VocabularyEntry = { term, lang, listId, back, savedAt: new Date().toISOString() };
     const listsSnapshot = this.lists();
@@ -114,7 +114,7 @@ export class VocabularyService {
   async addEntries(entries: { term: string; back?: string }[]): Promise<number> {
     const listId = this.currentListId();
     if (!listId) return 0;
-    const lang = foreignLang;
+    const lang = langConfig.targetLang;
     const headers = await firstValueFrom(this.#authService.getRequestHeaders());
     if (!headers.get('Authorization')) return 0;
 

@@ -72,7 +72,7 @@ export class Compiler {
       const fsIn = fs.createReadStream(this.inFile);
       fsOut = fs.createWriteStream(this.outFile);
 
-      fsOut.write(`{"baseLang": "${this.parser.sourceLang}", "lemmas": [\n`);
+      fsOut.write(`{"targetLang": "${this.parser.sourceLang}", "lemmas": [\n`);
 
       const rl = readline.createInterface({
         input: fsIn,

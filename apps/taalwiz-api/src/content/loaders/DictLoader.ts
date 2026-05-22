@@ -6,12 +6,11 @@ import BaseLoader, { Upload } from './BaseLoader.js';
 import { PUBLIC_ASSETS_DIR, writeDictManifest } from './manifest-writer.js';
 
 const DictDataTopLevelSchema = z.object({
-  baseLang: z.string().min(1),
+  targetLang: z.string().min(1),
   lemmas: z.array(z.unknown()),
 });
 
 interface DictFileMeta {
-  baseLang: string;
   rawContent: string;
 }
 
@@ -35,9 +34,9 @@ class DictFileLoader extends BaseLoader<DictFileMeta> {
         type: 'dict',
         groupName,
         title: groupName.charAt(0).toUpperCase() + groupName.slice(1),
-        baseLang: result.data.baseLang,
+        targetLang: result.data.targetLang,
       },
-      payload: { baseLang: result.data.baseLang, rawContent: content },
+      payload: { rawContent: content },
     };
   }
 

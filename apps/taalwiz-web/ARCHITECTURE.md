@@ -65,7 +65,7 @@ graph TD
 src/app/
 ├── app.component.ts          # Root shell (Ionic side-menu + outlet)
 ├── app.routes.ts             # Top-level route table
-├── app.constants.ts          # foreignLang = 'id'
+├── app.constants.ts          # langConfig (targetLang, nativeLang, stemmer)
 │
 ├── auth/                     # Auth feature
 │   ├── auth.service.ts
@@ -109,7 +109,8 @@ src/app/
 │       ├── dict-sync.service.ts
 │       ├── dict-store.service.ts
 │       ├── search-history.service.ts
-│       ├── indonesian-stemmer.ts
+│       ├── indonesian-stemmer.ts  # implements Stemmer interface
+│       ├── stemmer.ts             # Stemmer interface + IdentityStemmer fallback
 │       ├── word-lang.model.ts
 │       ├── history-modal/
 │       ├── searchbar/
@@ -250,7 +251,7 @@ graph LR
 
 ### 4.3 Dictionary
 
-Offline-first. On first load the dict manifest is fetched from `/assets/dict-manifest.json`; new or updated bundles are compiled and stored in IndexedDB (`taalwiz-dict`). `DictionaryService` wraps `DictStoreService` with Indonesian stemming for fuzzy lookup.
+Offline-first. On first load the dict manifest is fetched from `/assets/dict-manifest.json`; new or updated bundles are compiled and stored in IndexedDB (`taalwiz-dict`). `DictionaryService` wraps `DictStoreService` with pluggable stemming (via `langConfig.stemmer`) for fuzzy lookup — all searches run entirely offline against IndexedDB.
 
 ### 4.4 Admin
 
@@ -323,7 +324,7 @@ graph TD
 | `StudyService` | `home/study/` | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)` and `submitReview()` observables for the SRS API |
 | `DictSyncService` | `home/dictionary/` | Fetch manifest, download & compile dict bundles, write to IndexedDB |
 | `DictStoreService` | `home/dictionary/` | IndexedDB CRUD wrapper (`taalwiz-dict` DB) |
-| `DictionaryService` | `home/dictionary/` | Lookup with Indonesian stemmer, manage `lookupResult$` |
+| `DictionaryService` | `home/dictionary/` | Offline lookup via `DictStoreService` using `langConfig.stemmer` (pluggable); manages `lookupResult$` |
 | `SearchHistoryService` | `home/dictionary/` | Persist search history (up to 50 entries) via Capacitor Preferences; deduplication on add |
 | `ContentService` | `home/content/` | Fetch publications & articles from API; `prefetchArticle()` for silent bulk pre-fetch (publication cache-all button); manage SW content-cache invalidation (manifest check on login, explicit bust on admin mutations and logout) |
 | `MarkdownService` | `home/content/` | Markdown → HTML with foreign-language span injection |
@@ -395,9 +396,9 @@ sequenceDiagram
     Note over DictSyncService: No changes → status = 'done' immediately
 ```
 
-`DictStoreService` opens the `taalwiz-dict` IndexedDB database with two stores: `lemmas` (indexed by `word:lang` and `word`) and `metadata` (stores manifest hashes for delta checking).
+`DictStoreService` opens the `taalwiz-dict` IndexedDB database (version 3) with two stores: `lemmas` (indexes: `by-lang-word ([lang, word])` for language-scoped queries, `by-word (word)` for cross-language lookups) and `meta` (stores the current dict version for delta checking).
 
-`DictionaryService` uses `IndonesianStemmer` to generate word variants (prefixes, suffixes) before calling `DictStoreService.findWordsStartingWith()`, so inflected forms resolve to the correct lemma.
+`DictionaryService` uses `langConfig.stemmer` (a pluggable `Stemmer` interface; currently `IndonesianStemmer`) to generate word variants before searching `DictStoreService`; inflected forms resolve to the correct lemma entirely offline.
 
 ---
 
@@ -495,7 +496,7 @@ Uses **ngx-translate**. Translation files are loaded at runtime from `/i18n/{lan
 |---|---|
 | Default UI language | Dutch (`nl`) |
 | Fallback language | English (`en`) |
-| Foreign (learning) language | Indonesian (`id`) — constant in `app.constants.ts` |
+| Target (learning) language | Indonesian (`id`) — `langConfig.targetLang` in `app.constants.ts` |
 
 Language preference is persisted on the `User` model and applied via `TranslateService.use(user.lang)` on login.
 
@@ -530,8 +531,7 @@ classDiagram
         +string groupName
         +string filename
         +string type
-        +string foreignLang
-        +string baseLang
+        +string targetLang
         +number sortIndex
         +string sha
     }
@@ -542,8 +542,7 @@ classDiagram
         +string title
         +string mdText
         +string htmlText
-        +string foreignLang
-        +string baseLang
+        +string targetLang
     }
 
     class IHashtag {

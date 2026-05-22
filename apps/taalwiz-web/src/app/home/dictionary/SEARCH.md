@@ -54,62 +54,62 @@ When the user clicks a suggestion or presses Enter with suggestions available:
 
 ## Search Paths & Stemming
 
-**Files**: `dictionary.service.ts`, `indonesian-stemmer.ts`
+**Files**: `dictionary.service.ts`, `indonesian-stemmer.ts`, `stemmer.ts`
+
+All dictionary searches run entirely offline against IndexedDB — there are no API calls during lookup. The compiled dictionary is synced to IDB on login (`DictSyncService`) and queried by `DictStoreService`.
+
+The stemmer is pluggable via `langConfig.stemmer` (`Stemmer` interface in `stemmer.ts`; currently `IndonesianStemmer`). `DictionaryService.#searchLocal()` iterates over the variations returned by `langConfig.stemmer.getWordVariations()`, calling `DictStoreService.findByWordAndLang()` for each, and stops at the first variation that yields keyword-flagged lemmas.
 
 ### Path 1: Autocomplete Suggestion (with match)
 
 1. User types → autocomplete finds match (e.g., "air")
 2. User clicks suggestion or presses Enter with suggestions available
-3. `lookup({word: 'air', lang: 'id'})` is called
-4. Since `lang === 'id'`, it routes to `lookupVariations('air')` in the service
-5. Stemmer generates variations: `["air"]` (already a base form, no affixes to strip)
-6. API is called: `word="air"`, `lang="id"`, no keyword flag
-7. API splits on commas (only one term) and searches for exact match `{word: "air", lang: "id"}`
-8. **Result**: Returns all lemmas for "air" including compound entries ("air abu", "air alas", etc.)
+3. `lookup({word: 'air', lang: 'id'})` is called → `searchDictionary()` → `#searchLocal()`
+4. Since `lang === 'id'`, stemmer generates variations: `["air"]` (already a base form)
+5. `DictStoreService.findByWordAndLang('air', 'id')` queries the `by-lang-word` IDB index
+6. **Result**: Returns all lemmas for "air" including compound entries ("air abu", "air alas", etc.)
 
 ### Path 2: Manual Entry Without Autocomplete (no match)
 
 1. User types "dibakar" (or other word) → no suggestions match
 2. User presses Enter
-3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `lookupVariations(currentTerm)`
-4. Stemmer generates variations: `["dibakar", "membakar", "bakar"]`
+3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `searchDictionary(new WordLang(currentTerm, targetLang))`
+4. `#searchLocal()` calls `langConfig.stemmer.getWordVariations('dibakar')`:
+   - `["dibakar", "membakar", "bakar"]`
    - "dibakar" = original (passive: "was burned")
    - "membakar" = active voice form (meN- + bakar, where 'b' initial → mem-)
    - "bakar" = bare root
-5. Variations are joined and sent to API: `word="dibakar,membakar,bakar"`, `lang="id"`, no keyword flag
-6. API splits on commas and tries each in order:
-   - Searches for `{word: "dibakar", lang: "id"}` → not found (passive forms rarely indexed)
-   - Searches for `{word: "membakar", lang: "id"}` → **found!** Returns all lemmas for "membakar"
-   - "bakar" is not tried (API stops at first match per README design)
-7. **Result**: Returns all lemmas for "membakar" (the found base), including compounds, full definitions
+5. Iterates variations, querying IDB for each:
+   - `findByWordAndLang('dibakar', 'id')` → `[]` (passive forms rarely indexed)
+   - `findByWordAndLang('membakar', 'id')` → lemmas found — **iteration stops**
+6. **Result**: Returns all lemmas for "membakar" (the found base), including compounds, full definitions
 
 ### Path 3: Recent Search / Breadcrumb Click
 
 1. User clicks "dibakar" from the breadcrumb list (from a previous Path 2 search)
-2. `lookup({word: 'dibakar', lang: 'id'})` is called
-3. Since `lang === 'id'`, routes to `lookupVariations('dibakar')` (same as Path 2)
-4. Stemmer generates variations and API search proceeds as in Path 2
-5. **Result**: Same as Path 2 — full "membakar" entries returned
+2. `lookup({word: 'dibakar', lang: 'id'})` is called → same path as Path 2
+3. Stemmer generates variations and IDB search proceeds as in Path 2
+4. **Result**: Same as Path 2 — full "membakar" entries returned
 
 ---
 
 ## Indonesian Stemmer
 
-**File**: `indonesian-stemmer.ts`
+**File**: `indonesian-stemmer.ts` (implements the `Stemmer` interface from `stemmer.ts`)
 
 ### Purpose
 
-Indonesian uses a rich system of prefixes, suffixes, and circumfixes to modify root words. The dictionary API indexes various word forms directly (e.g., it has entries for both `membaca` and `baca`), but not all morphological variants are indexed—particularly passive forms with `di-` prefix.
+Indonesian uses a rich system of prefixes, suffixes, and circumfixes to modify root words. The compiled dictionary indexes various word forms directly (e.g., it has entries for both `membaca` and `baca`), but not all morphological variants are indexed—particularly passive forms with `di-` prefix.
 
 The stemmer **increases the likelihood of finding a match** by generating alternative forms of a search query. This is essential for user experience:
 
 - When a user searches for an **inflected word** like `dibakar` (passive: "was burned"), the stemmer generates variations including `membakar` (active form, more likely indexed)
-- The API searches these variations in order and **stops at the first match**, returning full results for that matched form
+- `DictionaryService.#searchLocal()` tries each variation against IndexedDB in order and **stops at the first match**
 - Without stemming, `dibakar` would return zero results, forcing the user to guess the base form manually
 
-**Key Design Principle**: Generate a set of plausible variations rather than a single canonical root. Extra candidates (false positives) just create additional API searches; missing the actual match (false negative) is the real problem.
+**Key Design Principle**: Generate a set of plausible variations rather than a single canonical root. Extra candidates (false positives) just create additional IDB lookups; missing the actual match (false negative) is the real problem.
 
-**API Search Behavior**: The variations are sent comma-separated (e.g., `word="dibakar,membakar,bakar"`). The API splits on commas and tries each in order, returning full results for the first variant that matches. Remaining variations are not searched.
+**IDB Search Behavior**: `#searchLocal()` iterates the variation array, calling `DictStoreService.findByWordAndLang(w, lang)` for each. It stops and returns on the first variation that yields keyword-flagged lemmas. Remaining variations are not queried.
 
 ### How It Works
 
@@ -477,12 +477,11 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 ### Scenario: User types "dibakar" and presses Enter (no autocomplete match)
 
 1. **Keystroke detection**: The `ionViewWillEnter()` keyup listener fires, debounces, finds no suggestions
-2. **Enter handling**: `lookupVariations('dibakar')` is called
-3. **Stemming**: Generates `["dibakar", "membakar", "bakar"]`
-4. **API call**: `GET /api/v1/dictionary/find/dibakar,membakar,bakar/id`
-   - API splits on comma, tries "dibakar" → not found
-   - Tries "membakar" → **found**
-   - Returns lemmas with `word: "membakar"`, `baseWord: "bakar"`
+2. **Enter handling**: `searchDictionary(new WordLang('dibakar', 'id'))` is called
+3. **Stemming**: `langConfig.stemmer.getWordVariations('dibakar')` generates `["dibakar", "membakar", "bakar"]`
+4. **IDB lookup**: `#searchLocal()` iterates variations:
+   - `findByWordAndLang('dibakar', 'id')` → `[]` (passive forms rarely indexed)
+   - `findByWordAndLang('membakar', 'id')` → **found** — returns lemmas with `word: "membakar"`, `baseWord: "bakar"`
 5. **Result processing**:
    - `makeLookupResult()` groups by baseWord: `bases[0] = {word: "bakar", lang: "id"}`
    - BUT all lemmas have actual `word: "membakar"` — the 10+ entries for "membakar" (main def + compounds)
@@ -505,46 +504,36 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 ---
 
-## API Behavior Notes
+## IndexedDB Lookup Notes
 
-**File**: `apps/taalwiz-api/src/dictionary/dictionary.service.ts`
+**File**: `dict-store.service.ts`
 
-### Comma-Separated Words
+### Variation Iteration
 
-The API **always** splits the `:word` parameter on commas and tries each variant in order, regardless of the `keyword` query flag. This is a built-in fallback mechanism.
+`DictionaryService.#searchLocal()` iterates the stemmer's variation array and calls `DictStoreService.findByWordAndLang(w, lang)` for each. It stops at the first variation that returns keyword-flagged lemmas (`keyword === 1`). This mirrors the "stop at first match" design that was previously handled server-side.
 
 ```typescript
-const words = paramsDto.word.split(',');
-for (const word of words) {
-  const lemmas = await this.findWordHelper(word, ...);
-  if (lemmas.length) {
-    return { word, lang, lemmas, haveMore: false }; // Stop on first match
+for (const w of words) {
+  const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
+  if (lemmas.some((l) => (l.keyword ?? 1) === 1)) {
+    return makeLookupResult({ word: w, lang: target.lang, lemmas, haveMore: false });
   }
 }
 ```
 
 ### Keyword Flag
 
-The `keyword` query flag only affects filtering by the `keyword: boolean` field in the Lemma schema:
-- `keyword=1`: Returns only lemmas where `keyword: true` (keyword-flagged entries only)
-- `keyword=0`: Returns only lemmas where `keyword: false` (non-keyword entries only)
-- `keyword=undefined` (omitted): Returns all lemmas regardless of keyword flag
+`DictStoreService.findByWordAndLang()` accepts an optional `keywordOnly` boolean:
+- `keywordOnly=true`: returns only lemmas where `keyword === 1` (used by the word-click-modal)
+- `keywordOnly=false` (default): returns all lemmas regardless of keyword
 
-The dictionary search **does not use the keyword flag** (it's undefined/omitted). This ensures all lemmas are returned, including compound-word entries that may be non-keyword flagged.
+The dictionary page search passes `keywordOnly=false`, so all lemmas are returned including compound-word entries.
 
-The `keyword` flag is used elsewhere, e.g., in the word-click-modal feature, which intentionally filters to keyword-flagged lemmas only.
+### Exact Match
 
-### Exact Match Search
+The IDB query uses `IDBKeyRange.only([lang, word])` on the `by-lang-word` compound index — exact match on both fields. There is no prefix or regex matching at this layer. This is why stemming is necessary on the client side before querying IDB.
 
-The database query is always an exact match on `{ word, lang }`:
-
-```typescript
-const query = Lemma.find({ word, lang, keyword: ... })
-  .sort('word order')
-  .select('-order -attr -groupName -keyword -_topic');
-```
-
-There is no prefix search or regex matching at this endpoint. The word must match exactly. This is why stemming is necessary on the client side.
+Prefix queries (autocomplete suggestions) use `IDBKeyRange.bound([lang, start], [lang, start + '￿'])` on the same index via `DictStoreService.findWordsStartingWith()`.
 
 ---
 

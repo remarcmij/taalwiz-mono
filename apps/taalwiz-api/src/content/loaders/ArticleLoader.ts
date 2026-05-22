@@ -11,10 +11,8 @@ import BaseLoader, { Upload } from './BaseLoader.js';
 
 const FrontMatterSchema = z.object({
   author: z.string().optional(),
-  baseLang: z.string().optional(),
   chapter: z.string().optional(),
   copyright: z.string().optional(),
-  foreignLang: z.string().optional(),
   groupName: z.string().optional(),
   isbn: z.string().optional(),
   publicationYear: z.number().int().optional(),
@@ -94,8 +92,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     const topic: TopicDoc = {
       type: name === 'index' ? 'index' : 'article',
       filename: filename,
-      foreignLang: attributes.foreignLang,
-      baseLang: attributes.baseLang,
+      targetLang: attributes.targetLang,
       groupName: group,
       sortIndex: attributes.sortIndex ?? 0,
       title: title,
@@ -109,9 +106,8 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     };
 
     const article: ArticleDoc = {
-      baseLang: attributes.baseLang ?? 'nl',
       filename: filename,
-      foreignLang: attributes.foreignLang ?? 'en',
+      targetLang: attributes.targetLang,
       groupName: group,
       title: topic.title ?? 'untitled',
       htmlText: '',

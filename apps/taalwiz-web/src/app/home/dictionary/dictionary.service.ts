@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, from, Observable } from 'rxjs';
 
+import { langConfig } from '../../app.constants';
 import { DictStoreService } from './dict-store.service';
-import { IndonesianStemmer } from './indonesian-stemmer';
 import { type ILemma } from './lemma/lemma.model';
 import { WordLang } from './word-lang.model';
 
@@ -49,12 +49,12 @@ export class DictionaryService {
   }
 
   async #fetchSuggestionsAsync(term: string): Promise<WordLang[]> {
-    const idVariations = new IndonesianStemmer().getWordVariations(term);
+    const variations = langConfig.stemmer.getWordVariations(term);
     const seen = new Set<string>();
     const results: WordLang[] = [];
 
-    for (const variation of idVariations) {
-      const hits = await this.#dictStore.findWordsStartingWith(variation, 'id', 10);
+    for (const variation of variations) {
+      const hits = await this.#dictStore.findWordsStartingWith(variation, langConfig.targetLang, 10);
       for (const hit of hits) {
         const key = hit.word + '|' + hit.lang;
         if (!seen.has(key)) {
@@ -69,7 +69,7 @@ export class DictionaryService {
     if (results.length < 10) {
       const nlHits = await this.#dictStore.findWordsStartingWith(
         term.toLowerCase(),
-        'nl',
+        langConfig.nativeLang,
         10 - results.length,
       );
       for (const hit of nlHits) {
@@ -90,13 +90,13 @@ export class DictionaryService {
 
     const word = searchWord ?? target.word;
     const words =
-      target.lang === 'nl'
+      target.lang === langConfig.nativeLang
         ? word.split(',').map((w) => w.trim())
-        : new IndonesianStemmer().getWordVariations(word);
+        : langConfig.stemmer.getWordVariations(word);
 
     for (const w of words) {
-      const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang, true);
-      if (lemmas.length > 0) {
+      const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
+      if (lemmas.some((l) => (l.keyword ?? 1) === 1)) {
         const found = makeLookupResult({ word: w, lang: target.lang, lemmas, haveMore: false });
         found.targetBase = target;
         return found;
@@ -108,9 +108,9 @@ export class DictionaryService {
 
   async #fetchWordLemmasAsync(word: string, lang: string): Promise<LookupResponse> {
     const variations =
-      lang === 'nl'
+      lang === langConfig.nativeLang
         ? word.split(',').map((w) => w.trim())
-        : new IndonesianStemmer().getWordVariations(word);
+        : langConfig.stemmer.getWordVariations(word);
     for (const keywordOnly of [true, false]) {
       for (const w of variations) {
         const lemmas = await this.#dictStore.findByWordAndLang(w, lang, keywordOnly);

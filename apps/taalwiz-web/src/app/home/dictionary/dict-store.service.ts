@@ -14,7 +14,6 @@ interface DictDB {
     value: DictRecord;
     key: number;
     indexes: {
-      'by-word-lang': [string, string];
       'by-lang-word': [string, string];
       'by-word': string;
     };
@@ -40,7 +39,7 @@ export interface CompiledLemma {
 }
 
 export interface CompiledDict {
-  baseLang: string;
+  targetLang: string;
   lemmas: CompiledLemma[];
 }
 
@@ -53,7 +52,7 @@ export function transformDict(data: CompiledDict): ILemma[] {
         lang: wordDef.lang,
         keyword: wordDef.keyword,
         baseWord: lemma.base,
-        baseLang: data.baseLang,
+        baseLang: data.targetLang,
         text: lemma.text,
         homonym: lemma.homonym,
       });
@@ -68,10 +67,9 @@ export class DictStoreService {
 
   async open(): Promise<void> {
     if (this.#db) return;
-    this.#db = await openDB<DictDB>('taalwiz-dict', 2, {
+    this.#db = await openDB<DictDB>('taalwiz-dict', 3, {
       upgrade(db) {
         const lemmaStore = db.createObjectStore('lemmas', { autoIncrement: true });
-        lemmaStore.createIndex('by-word-lang', ['word', 'lang'], { unique: false });
         lemmaStore.createIndex('by-word', 'word', { unique: false });
         // [lang, word] ordering pins language as primary key so IDBKeyRange prefix
         // queries are natively language-scoped (used by findWordsStartingWith).
@@ -99,8 +97,8 @@ export class DictStoreService {
   async findByWordAndLang(word: string, lang: string, keywordOnly = false): Promise<ILemma[]> {
     const results = await this.#db!.getAllFromIndex(
       'lemmas',
-      'by-word-lang',
-      IDBKeyRange.only([word, lang]),
+      'by-lang-word',
+      IDBKeyRange.only([lang, word]),
     );
     return results
       .filter((lemma) => !keywordOnly || (lemma.keyword ?? 1) === 1)

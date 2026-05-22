@@ -47,7 +47,7 @@ Custom markup syntax:
 
 ```json
 {
-  "baseLang": "id",
+  "targetLang": "id",
   "lemmas": [
     {
       "text": "**ab** I, sv busje, potje (voor het opbergen van opium).",
@@ -71,11 +71,11 @@ The `order` field enables efficient alphabetical searching:
 ## Commands
 
 ```bash
-pnpm --filter dict-compiler run build    # Compile TypeScript (tsgo)
-pnpm --filter dict-compiler run clean    # Remove dist/
-pnpm --filter dict-compiler run test     # Run tests (node:test + tsx)
-pnpm --filter dict-compiler run lint     # ESLint
-pnpm --filter dict-compiler run format   # Prettier
+pnpm --filter compiler run build    # Compile TypeScript (tsgo)
+pnpm --filter compiler run clean    # Remove dist/
+pnpm --filter compiler run test     # Run tests (node:test + tsx)
+pnpm --filter compiler run lint     # ESLint
+pnpm --filter compiler run format   # Prettier
 ```
 
 ## Testing

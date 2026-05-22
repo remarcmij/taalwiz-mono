@@ -3,10 +3,8 @@ import { model, Schema, Types } from 'mongoose';
 
 const TopicSchema = new Schema({
   author: String,
-  baseLang: String,
   copyright: String,
   filename: { type: String, required: true, unique: true },
-  foreignLang: String,
   groupName: { type: String, required: true },
   isbn: String,
   lastModified: { type: Number, default: Date.now() },

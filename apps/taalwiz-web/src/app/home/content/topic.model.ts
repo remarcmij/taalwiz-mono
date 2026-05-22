@@ -1,11 +1,9 @@
 export interface ITopic {
   _id: string;
   author: string;
-  baseLang: string;
   categories: string;
   copyright: string;
   filename: string;
-  foreignLang: string;
   groupName: string;
   sha: string;
   isbn: string;

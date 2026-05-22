@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import { ModalController } from "@ionic/angular/standalone";
-import { foreignLang } from "../../app.constants";
+import { langConfig } from "../../app.constants";
 import { DictionaryService } from "../../home/dictionary/dictionary.service";
 import { WordLang } from "../../home/dictionary/word-lang.model";
 import { WordClickModalComponent } from "./word-click-modal.component";
@@ -68,7 +68,7 @@ export class WordClickModalService {
   getWordClickParams(target: HTMLElement): WordLang | null {
     let word = target.innerText.trim();
     word = this.cleanseTerm(word);
-    return new WordLang(word, foreignLang);
+    return new WordLang(word, langConfig.targetLang);
   }
 
   private cleanseTerm(term: string): string {

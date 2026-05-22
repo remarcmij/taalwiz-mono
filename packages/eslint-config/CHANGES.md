@@ -1,1 +1,0 @@
-# Changes — eslint-config
