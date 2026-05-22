@@ -43,7 +43,7 @@ pnpm --filter web run lint     # Angular lint
 
 ```bash
 pnpm --filter compiler run build    # tsc build
-pnpm --filter compiler run test     # Node.js built-in test runner with tsx
+pnpm --filter compiler run test     # Vitest
 ```
 
 ## Architecture
@@ -64,7 +64,7 @@ All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `ne
 
 - **API**: Vitest with globals (test files: `*.spec.ts` in `src/`)
 - **Web**: Karma + Jasmine (test files: `*.spec.ts`)
-- **Compiler**: Node.js built-in test runner with tsx (test files: `src/__tests__/**/*.test.ts`)
+- **Compiler**: Vitest (test files: `src/__tests__/**/*.test.ts`)
 
 ## Security
 
