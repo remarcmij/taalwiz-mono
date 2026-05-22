@@ -4,8 +4,7 @@ import readline from 'node:readline';
 import path from 'node:path';
 import { finished } from 'node:stream/promises';
 import { Parser, ParserResult } from './ParserBase.js';
-import TeeuwParser from './TeeuwParser.js';
-import VanDaleParser from './VanDaleParser.js';
+import { parserRegistry } from './parser-registry.js';
 
 // Order distance between letter chapters of the dictionary,
 // assuming no more than 50,000 lemmas per chapter
@@ -59,13 +58,11 @@ export class Compiler {
       const dictName = match[1];
       const letter = match[2];
 
-      if (dictName.startsWith('teeuw')) {
-        this.parser = new TeeuwParser();
-      } else if (dictName.startsWith('vandale')) {
-        this.parser = new VanDaleParser();
-      } else {
+      const entry = parserRegistry.find(({ prefix }) => dictName.startsWith(prefix));
+      if (!entry) {
         throw new Error(`Skipping unrecognized file: ${inFileBaseName}`);
       }
+      this.parser = entry.factory();
 
       let order = (letter.charCodeAt(0) - 'a'.charCodeAt(0)) * CHAPTER_DISTANCE;
 
