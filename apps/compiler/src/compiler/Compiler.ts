@@ -105,6 +105,9 @@ export class Compiler {
       }
 
       fsOut.write(']}\n');
+      fsOut.end();
+      await finished(fsOut);
+      fsOut = null;
 
       console.log(inFileBaseName);
     } catch (err: any) {
