@@ -142,9 +142,11 @@ function makeLookupResult(response: LookupResponse) {
 }
 
 function reorderLookupResult(result: LookupResult) {
-  const headBase = result.bases.find((base) => base.key === result.targetBase!.key);
+  const headBase =
+    result.bases.find((base) => result.lemmas[base.key].some((l) => l.keyword === 1)) ??
+    result.bases.find((base) => base.key === result.targetBase!.key);
   if (headBase) {
-    const otherBases = result.bases.filter((base) => base.key !== result.targetBase!.key);
+    const otherBases = result.bases.filter((base) => base.key !== headBase.key);
     result.bases = [headBase, ...otherBases];
   }
 }
