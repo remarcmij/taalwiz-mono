@@ -76,6 +76,8 @@ describe('IndonesianStemmer', () => {
     it('se-', () => expect(variations('sehari')).toContain('hari'));
 
     it('ke-', () => expect(variations('ketua')).toContain('tua'));
+
+    it('per-', () => expect(variations('perbaik')).toContain('baik'));
   });
 
   describe('meN- prefix stripping (active voice)', () => {
@@ -173,6 +175,9 @@ describe('IndonesianStemmer', () => {
 
     it('berbicara: ber- prefix', () =>
       expect(variations('berbicara')).toContain('bicara'));
+
+    it('memperbaik: mem- + per- prefixes → baik', () =>
+      expect(variations('memperbaik')).toContain('baik'));
   });
 
   describe('original word is always included', () => {

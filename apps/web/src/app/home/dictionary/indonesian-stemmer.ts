@@ -87,6 +87,12 @@ export class IndonesianStemmer implements Stemmer {
       this.getVariations(match[1], variations, mePrefixed);
     }
 
+    // strip per- prefix (e.g. memperbaik → perbaik → baik)
+    match = word.match(/^per(.{2,})$/);
+    if (match) {
+      this.getVariations(match[1], variations, mePrefixed);
+    }
+
     // strip se- prefix
     match = word.match(/^se(.{2,})$/);
     if (match) {
