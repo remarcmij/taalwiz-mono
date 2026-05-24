@@ -67,12 +67,12 @@ export class PublicationPage {
   });
 
   topics = computed(() =>
-    this.#topics().filter((topic) => topic.type === 'article')
+    this.#topics().filter((topic) => topic.type === 'article' || topic.type === 'manifest')
   );
 
   publicationTitle = computed(
     () =>
-      this.#topics().find((topic) => topic.type === 'index')?.title ||
+      this.#topics().find((topic) => topic.type === 'manifest')?.title ||
       'Publication'
   );
 

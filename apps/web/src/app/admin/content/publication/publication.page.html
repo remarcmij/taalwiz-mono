@@ -5,15 +5,9 @@
     </ion-buttons>
     <ion-title>{{ publicationTitle() }}</ion-title>
     <ion-buttons slot="primary">
-      @if (!isReorderMode()) {
       <ion-button (click)="presentActionSheet()">
         <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
       </ion-button>
-      } @else {
-      <ion-button [disabled]="!isDirty()" (click)="resetOrder()">
-        Undo
-      </ion-button>
-      }
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -21,32 +15,23 @@
 <ion-content [fullscreen]="true">
   <div class="content-container">
     <ion-list>
-      <ion-reorder-group
-        [disabled]="!isReorderMode()"
-        (ionItemReorder)="handleReorder($any($event))">
-        @for (topic of topics(); track topic._id) { @if (topic.type ===
-        'article') {
-        <ion-item-sliding #slidingItem>
-          <ion-item
-            button
-            [detail]="!isReorderMode()"
-            (click)="navigateToArticle(topic)">
-            <ion-label>
-              <h2>{{ topic.title }}</h2>
-              <p>{{ topic.subtitle }}</p>
-            </ion-label>
-            <ion-reorder slot="end"></ion-reorder>
-          </ion-item>
-          <ion-item-options>
-            <ion-item-option
-              color="danger"
-              (click)="onDeleteArticle(topic, slidingItem)">
-              <ion-icon name="trash" slot="icon-only"></ion-icon>
-            </ion-item-option>
-          </ion-item-options>
-        </ion-item-sliding>
-        } }
-      </ion-reorder-group>
+      @for (topic of topics(); track topic._id) {
+      <ion-item-sliding #slidingItem>
+        <ion-item button detail (click)="navigateToArticle(topic)">
+          <ion-label>
+            <h2>{{ topic.title }}</h2>
+            <p>{{ topic.subtitle }}</p>
+          </ion-label>
+        </ion-item>
+        <ion-item-options>
+          <ion-item-option
+            color="danger"
+            (click)="onDeleteArticle(topic, slidingItem)">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+      }
     </ion-list>
 
     <ion-toast

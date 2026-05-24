@@ -1,13 +1,10 @@
 /// <reference types="multer" />
 import {
-  Body,
   Controller,
   Delete,
   Get,
   NotFoundException,
   Param,
-  ParseArrayPipe,
-  Patch,
   Post,
   Req,
   Res,
@@ -38,8 +35,8 @@ export class ContentController {
   }
 
   @Get('index')
-  findIndexTopics(@Req() req: Request) {
-    return this.contentService.findIndexTopics(req['user'] as JwtPayload);
+  findPublications(@Req() req: Request) {
+    return this.contentService.findPublications(req['user'] as JwtPayload);
   }
 
   @Get('manifest')
@@ -69,15 +66,5 @@ export class ContentController {
       throw new NotFoundException('Topic not found');
     }
     return result;
-  }
-
-  @Patch('sort')
-  @Roles('admin')
-  async updateSortIndices(@Body(new ParseArrayPipe({ items: String })) ids: string[]) {
-    try {
-      await this.contentService.updateSortIndices(ids);
-    } catch (_) {
-      throw new NotFoundException('One or more topics not found');
-    }
   }
 }

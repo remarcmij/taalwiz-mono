@@ -19,12 +19,9 @@ import {
   IonItemSliding,
   IonLabel,
   IonList,
-  IonReorder,
-  IonReorderGroup,
   IonTitle,
   IonToast,
   IonToolbar,
-  ItemReorderEventDetail,
 } from '@ionic/angular/standalone';
 
 import { from, map, mergeAll, takeLast } from 'rxjs';
@@ -49,22 +46,12 @@ import { AdminService } from '../../admin.service';
     IonIcon,
     IonContent,
     IonList,
-    IonReorderGroup,
     IonItemSliding,
     IonItem,
     IonLabel,
-    IonReorder,
     IonItemOptions,
     IonItemOption,
     IonToast,
-    IonHeader,
-    IonToolbar,
-    IonButtons,
-    IonTitle,
-    IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
   ],
   templateUrl: './publication.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -77,62 +64,37 @@ export class PublicationPage {
   #contentService = inject(ContentService);
   #adminService = inject(AdminService);
 
-  #indexTopic?: ITopic;
-  #resetTopics: ITopic[] = [];
-
   topics = signal<ITopic[]>([]);
   publicationTitle = signal('Publication');
   isToastOpen = signal(false);
-  isDirty = signal(false);
-  isReorderMode = signal(false);
 
   ionViewWillEnter() {
     const groupName = this.#route.snapshot.params['groupName'];
     this.#contentService
       .fetchPublicationTopics(groupName)
       .subscribe((topics) => {
-        this.topics.set(topics.filter((topic) => topic.type === 'article'));
-        this.#resetTopics = [...this.topics()];
-        this.#indexTopic = topics.find((topic) => topic.type === 'index');
-        if (this.#indexTopic) {
-          this.publicationTitle.set(this.#indexTopic.title);
+        this.topics.set(topics.filter((t) => t.type === 'article' || t.type === 'manifest'));
+        const manifestTopic = topics.find((t) => t.type === 'manifest');
+        if (manifestTopic) {
+          this.publicationTitle.set(manifestTopic.title);
         }
       });
   }
 
-  ionViewDidLeave() {
-    if (this.isDirty()) {
-      this.saveOrder();
-    }
-  }
-
   navigateToArticle(topic: ITopic) {
-    if (!this.isReorderMode()) {
-      // Strip .md so the URL has no file extension; dev-server historyApiFallback skips
-      // extension-like paths and serves 404 instead of index.html on live reload.
-      this.#router.navigate([
-        '/',
-        'admin',
-        'content',
-        'article',
-        topic.filename.replace('.md', ''),
-      ]);
-    }
+    this.#router.navigate([
+      '/',
+      'admin',
+      'content',
+      'article',
+      topic.filename.replace('.md', ''),
+    ]);
   }
 
   async presentActionSheet() {
     const actionSheet = await this.#actionSheetCtrl.create({
       header: 'Articles',
       buttons: [
-        {
-          text: `Reorder articles`,
-          data: {
-            action: 'reorder',
-          },
-          handler: () => {
-            this.isReorderMode.set(true);
-          },
-        },
         {
           text: 'Delete all articles',
           role: 'destructive',
@@ -143,45 +105,10 @@ export class PublicationPage {
         {
           text: 'Cancel',
           role: 'cancel',
-          data: {
-            action: 'cancel',
-          },
         },
       ],
     });
     await actionSheet.present();
-  }
-
-  handleReorder(ev: CustomEvent<ItemReorderEventDetail>) {
-    this.isDirty.set(true);
-    this.topics.set(ev.detail.complete(this.topics()));
-  }
-
-  toggleReorder() {
-    this.isReorderMode.update((value) => !value);
-  }
-
-  resetOrder() {
-    this.isReorderMode.set(false);
-    this.isDirty.set(false);
-    this.topics.set([...this.#resetTopics]);
-  }
-
-  saveOrder() {
-    let ids = this.topics().map((topic) => ({ id: topic._id }));
-
-    // Ensure the index topic is always first
-    if (this.#indexTopic) {
-      ids = [{ id: this.#indexTopic._id }, ...ids];
-    }
-
-    this.#adminService.updateSortIndices(ids).subscribe((success) => {
-      if (success) {
-        this.isDirty.set(false);
-        this.isReorderMode.set(false);
-        this.#contentService.clearCache();
-      }
-    });
   }
 
   async onDeleteArticle(topic: ITopic, slidingItem: IonItemSliding) {
@@ -201,8 +128,7 @@ export class PublicationPage {
   }
 
   async onDeleteAll() {
-    const topics = [...this.topics(), this.#indexTopic!];
-    const deleteObs$ = from(topics).pipe(
+    const deleteObs$ = from(this.topics()).pipe(
       map((topic) => this.#adminService.deleteTopic(topic.filename)),
       mergeAll()
     );

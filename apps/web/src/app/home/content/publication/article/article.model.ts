@@ -5,7 +5,6 @@ export interface IArticle {
   targetLang: string;
   groupName: string;
   htmlText: string;
-  mdText: string;
   publication: string;
   title: string;
 }

@@ -4,10 +4,9 @@ import {
   ActionSheetController,
   AlertController,
 } from '@ionic/angular/standalone';
-import { catchError, filter, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, filter, Observable, of, switchMap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { User } from '../auth/user.model';
-import { ContentService } from '../home/content/content.service';
 import { ApiErrorAlertService } from '../shared/api-error-alert.service';
 import { ISystemSettings } from './system-settings/system-settings.model';
 
@@ -19,7 +18,6 @@ export class AdminService {
   #actionSheetCtrl = inject(ActionSheetController);
   #alertCtrl = inject(AlertController);
   #authService = inject(AuthService);
-  #contentService = inject(ContentService);
   #apiErrorAlertService = inject(ApiErrorAlertService);
 
   getGroups() {
@@ -85,38 +83,6 @@ export class AdminService {
     );
   }
 
-  updateSortIndices(ids: { id: string }[]) {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) {
-          return of(false);
-        }
-        return this.#http
-          .patch(
-            '/api/v1/content/sort',
-            ids.map((id) => id.id),
-            { headers }
-          )
-          .pipe(map(() => true));
-      }),
-      tap(() => {
-        this.#contentService.clearCache();
-      }),
-      catchError((error) => {
-        this.#alertCtrl
-          .create({
-            header: 'Server Error',
-            message: error.error.message || 'An error occurred!',
-            buttons: ['OK'],
-          })
-          .then((alertEl) => {
-            alertEl.present();
-          });
-        return of(false);
-      })
-    );
-  }
-
   deleteTopic(filename: string) {
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {
@@ -149,8 +115,6 @@ export class AdminService {
       ],
     });
 
-    // TODO use handler, check admin content page
-
     await actionSheetEl.present();
     const resp = await actionSheetEl.onDidDismiss();
 
@@ -170,30 +134,6 @@ export class AdminService {
         return of(null);
       })
     );
-  }
-
-  async presentReorderActionSheet(itemType: string) {
-    const actionSheet = await this.#actionSheetCtrl.create({
-      header: 'Options',
-      buttons: [
-        {
-          text: `Reorder ${itemType}`,
-          data: {
-            action: 'reorder',
-          },
-        },
-        {
-          text: 'Cancel',
-          role: 'cancel',
-          data: {
-            action: 'cancel',
-          },
-        },
-      ],
-    });
-    await actionSheet.present();
-    const response = await actionSheet.onDidDismiss();
-    return response.data.action;
   }
 
   getSettings(): Observable<ISystemSettings[]> {

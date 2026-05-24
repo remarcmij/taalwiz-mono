@@ -1,19 +1,20 @@
 export interface ITopic {
   _id: string;
+  articles?: string[];
   author: string;
   categories: string;
   copyright: string;
   filename: string;
   groupName: string;
+  groups?: string[];
   sha: string;
   isbn: string;
   lastModified: number;
   publicationYear: number;
   publication: string;
   publisher: string;
-  sortIndex: number;
   subtitle: string;
   targetLang: string;
   title: string;
-  type: 'index' | 'article' | 'dict';
+  type: 'main' | 'manifest' | 'article' | 'dict';
 }

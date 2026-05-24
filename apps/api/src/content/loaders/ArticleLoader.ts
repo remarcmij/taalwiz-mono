@@ -9,7 +9,7 @@ import Hashtag, { ExtractedHashtag, HashtagDoc } from '../models/hashtag.model.j
 import Topic, { TopicDoc } from '../models/topic.model.js';
 import BaseLoader, { Upload } from './BaseLoader.js';
 
-const FrontMatterSchema = z.object({
+const ArticleFrontMatterSchema = z.object({
   author: z.string().optional(),
   chapter: z.string().optional(),
   copyright: z.string().optional(),
@@ -17,13 +17,18 @@ const FrontMatterSchema = z.object({
   isbn: z.string().optional(),
   publicationYear: z.number().int().optional(),
   publisher: z.string().optional(),
-  sortIndex: z.number().int().optional(),
   subtitle: z.string().optional(),
   targetLang: z.string().optional(),
   title: z.string().optional(),
 });
 
-type FrontMatterAttributes = z.infer<typeof FrontMatterSchema>;
+const ManifestFrontMatterSchema = ArticleFrontMatterSchema.extend({
+  articles: z.array(z.string()).optional(),
+  groups: z.array(z.string()).optional(),
+});
+
+type ArticleFrontMatterAttributes = z.infer<typeof ArticleFrontMatterSchema>;
+type ManifestFrontMatterAttributes = z.infer<typeof ManifestFrontMatterSchema>;
 
 interface ExtractHashtagResult {
   body: string;
@@ -36,7 +41,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
   private readonly logger = new Logger(ArticleLoader.name);
 
   protected async parseContent(content: string, filename: string): Promise<Upload<ArticleDoc>> {
-    let match = filename.match(/^(.+)\.(.+)\.md$/);
+    const match = filename.match(/^(.+)\.(.+)\.md$/);
     if (!match || match.length < 3) {
       throw new Error(`ill-formed filename: ${filename}`);
     }
@@ -52,96 +57,179 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     const body = parts.slice(2).join('---');
 
     const rawAttributes: unknown = yaml.load(frontMatter);
-    const result = FrontMatterSchema.safeParse(rawAttributes ?? {});
+
+    if (name === 'manifest') {
+      return this.parseManifest(content, filename, group, body, rawAttributes);
+    }
+
+    return this.parseArticle(content, filename, group, body, rawAttributes);
+  }
+
+  private async parseManifest(
+    content: string,
+    filename: string,
+    group: string,
+    body: string,
+    rawAttributes: unknown,
+  ): Promise<Upload<ArticleDoc>> {
+    const result = ManifestFrontMatterSchema.safeParse(rawAttributes ?? {});
     if (!result.success) {
-      throw new Error(
-        `invalid front matter in ${filename}: ${z.prettifyError(result.error)}`,
-      );
+      throw new Error(`invalid front matter in ${filename}: ${z.prettifyError(result.error)}`);
     }
-    const attributes: FrontMatterAttributes = result.data;
-    let title = attributes.title;
+    const attributes: ManifestFrontMatterAttributes = result.data;
 
-    // If no title is provided, try to extract it from the content
-    if (!title) {
-      const h1RegExp = /^# *([^#][^\n]+)/m;
-      match = content.match(h1RegExp);
-      title = 'untitled';
-      if (match) {
-        title = match[1];
-      }
-    }
-
-    let subtitle = attributes.subtitle;
-
-    // If no subtitle is provided, try to extract it from the content by
-    // concatenating all h2 headers
-    if (!subtitle && name !== 'index') {
-      const h2RegExp = /^##\s+(.*)$/gm;
-      subtitle = '';
-      match = h2RegExp.exec(content);
-
-      while (match) {
-        if (subtitle.length > 0) {
-          subtitle += ' • ';
-        }
-        subtitle += match[1];
-        match = h2RegExp.exec(content);
-      }
-    }
+    const isMain = group === 'main';
+    const title = attributes.title ?? (isMain ? 'Main Manifest' : group);
 
     const topic: TopicDoc = {
-      type: name === 'index' ? 'index' : 'article',
-      filename: filename,
-      targetLang: attributes.targetLang,
+      type: isMain ? 'main' : 'manifest',
+      filename,
       groupName: group,
-      sortIndex: attributes.sortIndex ?? 0,
-      title: title,
-      subtitle: subtitle,
+      title,
+      targetLang: attributes.targetLang,
+      subtitle: attributes.subtitle,
       author: attributes.author,
       copyright: attributes.copyright,
       publisher: attributes.publisher,
       publicationYear: attributes.publicationYear,
       isbn: attributes.isbn,
+      sha: generateChecksum(content),
+      lastModified: Date.now(),
+      articles: isMain ? undefined : (attributes.articles ?? []),
+      groups: isMain ? (attributes.groups ?? []) : undefined,
+    };
+
+    const article: ArticleDoc = {
+      filename,
+      targetLang: attributes.targetLang,
+      groupName: group,
+      title,
+      htmlText: isMain ? '' : await convertMarkdown(body),
+      mdText: body,
+      hashtags: [],
+    };
+
+    return { topic, payload: article };
+  }
+
+  private async parseArticle(
+    content: string,
+    filename: string,
+    group: string,
+    body: string,
+    rawAttributes: unknown,
+  ): Promise<Upload<ArticleDoc>> {
+    const result = ArticleFrontMatterSchema.safeParse(rawAttributes ?? {});
+    if (!result.success) {
+      throw new Error(`invalid front matter in ${filename}: ${z.prettifyError(result.error)}`);
+    }
+    const attributes: ArticleFrontMatterAttributes = result.data;
+
+    let titleMatch = content.match(/^# *([^#][^\n]+)/m);
+    const title = attributes.title ?? (titleMatch ? titleMatch[1] : 'untitled');
+
+    let subtitle = attributes.subtitle;
+    if (!subtitle) {
+      const h2RegExp = /^##\s+(.*)$/gm;
+      subtitle = '';
+      let h2Match = h2RegExp.exec(content);
+      while (h2Match) {
+        if (subtitle.length > 0) subtitle += ' • ';
+        subtitle += h2Match[1];
+        h2Match = h2RegExp.exec(content);
+      }
+    }
+
+    const topic: TopicDoc = {
+      type: 'article',
+      filename,
+      targetLang: attributes.targetLang,
+      groupName: group,
+      title,
+      subtitle,
+      author: attributes.author,
+      copyright: attributes.copyright,
+      publisher: attributes.publisher,
+      publicationYear: attributes.publicationYear,
+      isbn: attributes.isbn,
+      sha: generateChecksum(content),
       lastModified: Date.now(),
     };
 
     const article: ArticleDoc = {
-      filename: filename,
+      filename,
       targetLang: attributes.targetLang,
       groupName: group,
-      title: topic.title ?? 'untitled',
+      title,
       htmlText: '',
       mdText: body,
       hashtags: [],
     };
 
-    topic.sha = generateChecksum(content);
-
     const { body: newBody, hashtags } = await this.extractHashtags(body, article);
-
     article.hashtags = hashtags;
 
     // add markup for single word hash tags
-    content = content.replace(/#[-'a-zA-Z\u00C0-\u00FF]{2,}/g, '<span class="hashtag">$&</span>');
+    content = content.replace(/#[-'a-zA-ZÀ-ÿ]{2,}/g, '<span class="hashtag">$&</span>');
 
     // add markup for hash tags enclosed in curly brackets (e.g. multi-word)
     content = content.replace(/#\{(.+?)}/g, '<span class="hashtag">#$1</span>');
 
     article.htmlText = await convertMarkdown(newBody);
 
-    return {
-      topic: topic,
-      payload: article,
-    };
+    return { topic, payload: article };
   }
 
   protected async createData(
     topic: TopicDoc,
     { payload: article }: Upload<ArticleDoc>,
   ): Promise<void> {
+    if (topic.type === 'main') {
+      return;
+    }
     await Article.create({ ...article, _topic: topic._id });
     if (article.hashtags.length > 0) {
       await this.bulkLoadHashTags(article.hashtags, topic);
+    }
+    if (topic.type === 'manifest') {
+      await this.reprocessGroupHashtags(topic);
+    }
+  }
+
+  private async reprocessGroupHashtags(manifestTopic: TopicDoc): Promise<void> {
+    const articles = await Article.find({
+      groupName: manifestTopic.groupName,
+      filename: { $ne: manifestTopic.filename },
+    }).lean();
+
+    if (articles.length === 0) return;
+
+    this.logger.log(
+      `reprocessing hashtags for ${articles.length} article(s) in group '${manifestTopic.groupName}'`,
+    );
+
+    for (const stored of articles) {
+      await Hashtag.deleteMany({ _topic: stored._topic }).exec();
+
+      const articleDoc: ArticleDoc = {
+        filename: stored.filename,
+        groupName: stored.groupName,
+        targetLang: stored.targetLang ?? undefined,
+        title: stored.title,
+        mdText: stored.mdText,
+        htmlText: stored.htmlText,
+        hashtags: [],
+      };
+
+      const { body: newBody, hashtags } = await this.extractHashtags(stored.mdText, articleDoc);
+      const htmlText = await convertMarkdown(newBody);
+
+      await Article.updateOne({ _id: stored._id }, { htmlText }).exec();
+
+      if (hashtags.length > 0) {
+        const articleTopicRef = { _id: stored._topic, groupName: stored.groupName } as TopicDoc;
+        await this.bulkLoadHashTags(hashtags, articleTopicRef);
+      }
     }
   }
 
@@ -178,19 +266,19 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     const lines = body.split('\n');
     let sectionHeader = '';
 
-    const indexTopics = await Topic.find({ type: 'index' }).lean();
+    const manifestTopic = await Topic.findOne({
+      type: 'manifest',
+      groupName: article.groupName,
+    }).lean();
 
-    const indexTopic = indexTopics.find((topic) => topic.groupName === article.groupName);
-    if (!indexTopic) {
-      // No index topic found, so no hashtags to extract
-      this.logger.warn(`extractHashtags: No index topic found for ${article.groupName}`);
+    if (!manifestTopic) {
+      this.logger.warn(`extractHashtags: No manifest topic found for ${article.groupName}`);
       return { body, hashtags: [] };
     }
 
     for (const line of lines) {
       hashtagRegExp1.lastIndex = 0;
       let outLine = line;
-      // Check for a markdown header
       if (/^#/.test(line)) {
         sectionHeader = line.replace(/^#+/, '').trim();
       } else {
@@ -200,11 +288,11 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
 
           const id = crypto.randomUUID();
           const hashtag: ExtractedHashtag = {
-            tagname: tagname,
-            id: id,
-            publicationTitle: indexTopic.title,
+            tagname,
+            id,
+            publicationTitle: manifestTopic.title,
             articleTitle: article.title,
-            sectionHeader: sectionHeader,
+            sectionHeader,
           };
 
           hashtags.push(hashtag);

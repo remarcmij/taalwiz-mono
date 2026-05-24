@@ -23,11 +23,24 @@ export class ContentService {
     return [...(user.groups ?? []), 'public'];
   }
 
-  async findIndexTopics(user: JwtPayload) {
-    const query: FilterQuery<TopicDoc> = { type: 'index' };
+  async findPublications(user: JwtPayload) {
+    const mainManifest = await Topic.findOne({ type: 'main' }).lean();
+    if (!mainManifest?.groups?.length) {
+      return [];
+    }
     const groups = this.authorizedGroups(user);
-    if (groups) query.groupName = { $in: groups };
-    return await Topic.find(query).sort({ sortIndex: 1 }).lean();
+    const authorizedGroupList = groups
+      ? mainManifest.groups.filter((g) => groups.includes(g))
+      : mainManifest.groups;
+
+    const manifests = await Topic.find({
+      type: 'manifest',
+      groupName: { $in: authorizedGroupList },
+    }).lean();
+
+    return authorizedGroupList
+      .map((g) => manifests.find((m) => m.groupName === g))
+      .filter((m): m is NonNullable<typeof m> => m != null);
   }
 
   async findPublicationTopics(groupName: string, user: JwtPayload) {
@@ -35,15 +48,27 @@ export class ContentService {
     if (groups && !groups.includes(groupName)) {
       throw new ForbiddenException();
     }
-    return await Topic.find({ groupName }).sort('sortIndex title').lean();
+
+    const manifestTopic = await Topic.findOne({ type: 'manifest', groupName }).lean();
+    const articles = await Topic.find({ type: 'article', groupName }).lean();
+
+    if (!manifestTopic) {
+      return articles;
+    }
+
+    const ordered = (manifestTopic.articles ?? [])
+      .map((name) => articles.find((a) => a.filename === `${groupName}.${name}.md`))
+      .filter((a): a is NonNullable<typeof a> => a != null);
+
+    return [manifestTopic, ...ordered];
   }
 
   async findArticle(filename: string) {
-    return await Article.findOne({ filename }).select('-indexText').lean();
+    return await Article.findOne({ filename }).select('-indexText -mdText').lean();
   }
 
   async findContentManifest(user: JwtPayload) {
-    const query: FilterQuery<TopicDoc> = { type: { $in: ['article', 'index'] } };
+    const query: FilterQuery<TopicDoc> = { type: { $in: ['article', 'manifest', 'main'] } };
     const groups = this.authorizedGroups(user);
     if (groups) query.groupName = { $in: groups };
     return await Topic.find(query).select('filename sha -_id').lean();
@@ -100,21 +125,5 @@ export class ContentService {
     const loader = topic.type === 'dict' ? this.dictLoader : this.articleLoader;
     await loader.removeTopic(topic);
     return { deletedCount: 1 };
-  }
-
-  async updateSortIndices(ids: string[]) {
-    // Fetch all topics by their IDs to ensure they exist
-    const topics = await Promise.all(ids.map((id) => Topic.findById(id).exec()));
-    if (topics.includes(null)) {
-      throw new Error('One or more topics not found');
-    }
-
-    // Update sortIndex for each topic based on its position in the ids array
-    Promise.all(
-      topics.map((topic, index) => {
-        topic!.sortIndex = index;
-        return topic!.save();
-      }),
-    );
   }
 }
