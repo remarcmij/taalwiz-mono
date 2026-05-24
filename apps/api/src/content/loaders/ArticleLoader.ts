@@ -11,7 +11,6 @@ import BaseLoader, { Upload } from './BaseLoader.js';
 
 const ArticleFrontMatterSchema = z.object({
   author: z.string().optional(),
-  chapter: z.string().optional(),
   copyright: z.string().optional(),
   groupName: z.string().optional(),
   isbn: z.string().optional(),

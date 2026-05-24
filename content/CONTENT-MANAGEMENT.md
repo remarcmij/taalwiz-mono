@@ -131,7 +131,6 @@ Use *Selamat pagi* in the morning...
 | `subtitle` | No | Short description. If omitted, all `## H2` headings are concatenated. |
 | `targetLang` | No | Overrides the group's target language for this article |
 | `author` | No | Author (if different from publication author) |
-| `chapter` | No | Chapter label (informational only) |
 
 **Title and subtitle fallback rules:**
 
