@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import markedFootnote from 'marked-footnote';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { markedSmartypants } from 'marked-smartypants';
 import sanitizeHtml from 'sanitize-html';
@@ -9,19 +10,23 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     'p', 'blockquote', 'pre', 'ul', 'ol', 'li', 'hr', 'br',
     'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td',
     'a', 'strong', 'em', 'code', 'del', 'span', 'img',
+    'sup', 'section',
   ],
   allowedAttributes: {
-    'h1': ['id'], 'h2': ['id'], 'h3': ['id'],
+    'h1': ['id'], 'h2': ['id', 'class'], 'h3': ['id'],
     'h4': ['id'], 'h5': ['id'], 'h6': ['id'],
-    'a':    ['href', 'title', 'target'],
-    'img':  ['src', 'alt', 'title'],
-    'table': ['class'],
-    'span':  ['id', 'class'],
+    'a':       ['href', 'title', 'target', 'id', 'aria-describedby', 'aria-label', 'data-footnote-ref', 'data-footnote-backref'],
+    'img':     ['src', 'alt', 'title'],
+    'table':   ['class'],
+    'span':    ['id', 'class'],
+    'sup':     ['id'],
+    'li':      ['id'],
+    'section': ['class', 'data-footnotes'],
   },
   allowedSchemes: ['http', 'https', 'mailto'],
 };
 
-marked.use(markedSmartypants(), gfmHeadingId());
+marked.use(markedSmartypants(), gfmHeadingId(), markedFootnote());
 
 const FOREIGN_FRAGMENT_RE = /\*{1,2}.+?\*{1,2}/g;
 const FOREIGN_WORD_RE = /([-'()\p{L}]{2,})|(<.+?>)/gu;
