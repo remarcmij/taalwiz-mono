@@ -103,7 +103,8 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     const attributes: ManifestFrontMatterAttributes = result.data;
 
     const isMain = group === 'main';
-    const title = attributes.title ?? (isMain ? 'Main Manifest' : group);
+    const h1Match = body.match(/^# *([^#][^\n]+)/m);
+    const title = attributes.title ?? (h1Match ? h1Match[1].trim() : (isMain ? 'Main Manifest' : group));
 
     const topic: TopicDoc = {
       type: isMain ? 'main' : 'manifest',
