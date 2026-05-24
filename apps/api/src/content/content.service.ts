@@ -4,7 +4,8 @@ import type { FilterQuery } from 'mongoose';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import type { TopicDoc } from './models/topic.model.js';
 import EventEmitter from 'node:events';
-import ArticleLoader from './loaders/ArticleLoader.js';
+import { LRUCache } from 'lru-cache';
+import ArticleLoader, { renderArticleHtml } from './loaders/ArticleLoader.js';
 import { Loader } from './loaders/BaseLoader.js';
 import DictLoader from './loaders/DictLoader.js';
 import Article from './models/article.model.js';
@@ -17,6 +18,7 @@ export class ContentService {
   private readonly dictLoader = new DictLoader();
   private uploadChain: Promise<void> = Promise.resolve();
   private readonly logger = new Logger(ContentService.name);
+  readonly #htmlCache = new LRUCache<string, string>({ max: 500 });
 
   private authorizedGroups(user: JwtPayload): string[] | null {
     if (user.roles?.includes('admin')) return null;
@@ -64,7 +66,19 @@ export class ContentService {
   }
 
   async findArticle(filename: string) {
-    return await Article.findOne({ filename }).select('-indexText -mdText').lean();
+    const article = await Article.findOne({ filename }).select('-indexText').lean();
+    if (!article) return null;
+    const htmlText = await this.#getHtml(article.filename, article.mdText);
+    const { mdText: _mdText, ...rest } = article;
+    return { ...rest, htmlText };
+  }
+
+  async #getHtml(filename: string, mdText: string): Promise<string> {
+    const cached = this.#htmlCache.get(filename);
+    if (cached !== undefined) return cached;
+    const html = await renderArticleHtml(mdText, filename);
+    this.#htmlCache.set(filename, html);
+    return html;
   }
 
   async findContentManifest(user: JwtPayload) {
@@ -96,6 +110,7 @@ export class ContentService {
     const data = file.buffer.toString('utf8');
 
     this.uploadEventEmitter.emit('upload', file.originalname);
+    this.#htmlCache.clear();
 
     this.uploadChain = this.uploadChain.then(async () => {
       try {

@@ -6,7 +6,6 @@ const ArticleSchema = new Schema({
   filename: { type: String, required: true, index: true },
   targetLang: { type: String },
   groupName: { type: String, required: true },
-  htmlText: { type: String, required: true },
   mdText: { type: String, required: true },
   title: { type: String, required: true },
 });

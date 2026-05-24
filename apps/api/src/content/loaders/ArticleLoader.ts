@@ -31,11 +31,35 @@ type ArticleFrontMatterAttributes = z.infer<typeof ArticleFrontMatterSchema>;
 type ManifestFrontMatterAttributes = z.infer<typeof ManifestFrontMatterSchema>;
 
 interface ExtractHashtagResult {
-  body: string;
   hashtags: ExtractedHashtag[];
 }
 
 const createHashtagRegExp = () => /\\?#([-\p{L}0-9]{2,})/gu;
+
+function deterministicHashtagId(filename: string, tagname: string, occurrence: number): string {
+  return crypto.createHash('sha256').update(`${filename}:${tagname}:${occurrence}`).digest('hex').slice(0, 24);
+}
+
+export function applyHashtagSpans(body: string, filename: string): string {
+  const occurrenceMap = new Map<string, number>();
+  return body
+    .split('\n')
+    .map((line) => {
+      if (/^#/.test(line)) return line;
+      return line.replace(createHashtagRegExp(), (fullMatch, tagname: string) => {
+        if (fullMatch.startsWith('\\')) return fullMatch;
+        tagname = tagname.toLowerCase().trim();
+        const occ = occurrenceMap.get(tagname) ?? 0;
+        occurrenceMap.set(tagname, occ + 1);
+        return `<span id="_${deterministicHashtagId(filename, tagname, occ)}_" class="hashtag">#${tagname}</span>`;
+      });
+    })
+    .join('\n');
+}
+
+export async function renderArticleHtml(mdText: string, filename: string): Promise<string> {
+  return convertMarkdown(applyHashtagSpans(mdText, filename));
+}
 
 class ArticleLoader extends BaseLoader<ArticleDoc> {
   private readonly logger = new Logger(ArticleLoader.name);
@@ -104,7 +128,6 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       targetLang: attributes.targetLang,
       groupName: group,
       title,
-      htmlText: isMain ? '' : await convertMarkdown(body),
       mdText: body,
       hashtags: [],
     };
@@ -161,21 +184,12 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       targetLang: attributes.targetLang,
       groupName: group,
       title,
-      htmlText: '',
       mdText: body,
       hashtags: [],
     };
 
-    const { body: newBody, hashtags } = await this.extractHashtags(body, article);
+    const { hashtags } = await this.extractHashtags(body, article);
     article.hashtags = hashtags;
-
-    // add markup for single word hash tags
-    content = content.replace(/#[-'a-zA-ZÀ-ÿ]{2,}/g, '<span class="hashtag">$&</span>');
-
-    // add markup for hash tags enclosed in curly brackets (e.g. multi-word)
-    content = content.replace(/#\{(.+?)}/g, '<span class="hashtag">#$1</span>');
-
-    article.htmlText = await convertMarkdown(newBody);
 
     return { topic, payload: article };
   }
@@ -217,14 +231,10 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
         targetLang: stored.targetLang ?? undefined,
         title: stored.title,
         mdText: stored.mdText,
-        htmlText: stored.htmlText,
         hashtags: [],
       };
 
-      const { body: newBody, hashtags } = await this.extractHashtags(stored.mdText, articleDoc);
-      const htmlText = await convertMarkdown(newBody);
-
-      await Article.updateOne({ _id: stored._id }, { htmlText }).exec();
+      const { hashtags } = await this.extractHashtags(stored.mdText, articleDoc);
 
       if (hashtags.length > 0) {
         const articleTopicRef = { _id: stored._topic, groupName: stored.groupName } as TopicDoc;
@@ -258,13 +268,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
   }
 
   private async extractHashtags(body: string, article: ArticleDoc): Promise<ExtractHashtagResult> {
-    const hashtagRegExp1 = createHashtagRegExp();
-    const hashtagRegExp2 = createHashtagRegExp();
-    const outLines: string[] = [];
     const hashtags: ExtractedHashtag[] = [];
-
-    const lines = body.split('\n');
-    let sectionHeader = '';
 
     const manifestTopic = await Topic.findOne({
       type: 'manifest',
@@ -273,41 +277,34 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
 
     if (!manifestTopic) {
       this.logger.warn(`extractHashtags: No manifest topic found for ${article.groupName}`);
-      return { body, hashtags: [] };
+      return { hashtags: [] };
     }
 
-    for (const line of lines) {
-      hashtagRegExp1.lastIndex = 0;
-      let outLine = line;
+    const occurrenceMap = new Map<string, number>();
+    let sectionHeader = '';
+
+    for (const line of body.split('\n')) {
       if (/^#/.test(line)) {
         sectionHeader = line.replace(/^#+/, '').trim();
       } else {
-        let match = hashtagRegExp1.exec(line);
-        while (match) {
-          const tagname = match[1].trim().toLowerCase();
-
-          const id = crypto.randomUUID();
-          const hashtag: ExtractedHashtag = {
+        line.replace(createHashtagRegExp(), (fullMatch, tagname: string) => {
+          if (fullMatch.startsWith('\\')) return fullMatch;
+          tagname = tagname.toLowerCase().trim();
+          const occ = occurrenceMap.get(tagname) ?? 0;
+          occurrenceMap.set(tagname, occ + 1);
+          hashtags.push({
             tagname,
-            id,
+            id: deterministicHashtagId(article.filename, tagname, occ),
             publicationTitle: manifestTopic.title,
             articleTitle: article.title,
             sectionHeader,
-          };
-
-          hashtags.push(hashtag);
-
-          outLine = outLine.replace(
-            hashtagRegExp2,
-            `<span id="_${id}_" class="hashtag">#$1</span>`,
-          );
-          match = hashtagRegExp1.exec(line);
-        }
+          });
+          return fullMatch;
+        });
       }
-      outLines.push(outLine);
     }
 
-    return { body: outLines.join('\n'), hashtags };
+    return { hashtags };
   }
 }
 
