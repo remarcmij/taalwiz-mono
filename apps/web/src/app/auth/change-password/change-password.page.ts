@@ -24,7 +24,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { first, switchMap, tap } from 'rxjs';
+import { first, switchMap } from 'rxjs';
 
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -38,7 +38,6 @@ import {
 import { BackButtonComponent } from '../../shared/back-button/back-button.component';
 import { LoggerService } from '../../shared/logger.service';
 import { AuthService } from '../auth.service';
-import { User } from '../user.model';
 
 @Component({
   selector: 'app-change-password',
@@ -84,31 +83,20 @@ export class ChangePasswordPage {
 
     const { password, newPassword } = form.value;
 
-    let user: User;
-
     this.#authService.user$
       .pipe(
         first(),
-        tap((usr) => {
-          if (!usr) {
+        switchMap((user) => {
+          if (!user) {
             this.#logger.debug('ChangePasswordPage', 'No user found');
             throw new Error('User not found');
           }
-          user = usr;
+          return this.#http.post('/api/v1/users/change-password', {
+            email: user.email,
+            password,
+            newPassword,
+          });
         }),
-        switchMap(() => this.#authService.getRequestHeaders()),
-        switchMap((headers) => {
-          console.log('headers', headers);
-          return this.#http.post(
-            '/api/v1/users/change-password',
-            {
-              email: user.email,
-              password,
-              newPassword,
-            },
-            { headers }
-          );
-        })
       )
       .subscribe({
         next: async (resData) => {
