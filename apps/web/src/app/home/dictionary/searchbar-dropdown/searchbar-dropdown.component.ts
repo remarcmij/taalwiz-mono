@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { IonItem, IonLabel, IonList } from '@ionic/angular/standalone';
 
-import { WordLang } from '../../word-lang.model';
+import { WordLang } from '../word-lang.model';
 
 // TODO Find a way to animate the dropdown
 

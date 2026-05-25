@@ -55,7 +55,7 @@ import { DictionaryService } from './dictionary.service';
 import { HistoryModalComponent } from './history-modal/history-modal.component';
 import { LemmaComponent } from './lemma/lemma.component';
 import { SearchHistoryService } from './search-history.service';
-import { SearchbarDropdownComponent } from './searchbar/searchbar-dropdown/searchbar-dropdown.component';
+import { SearchbarDropdownComponent } from './searchbar-dropdown/searchbar-dropdown.component';
 import { WordLang } from './word-lang.model';
 
 const MAX_RECENT_SEARCHES = 4;
