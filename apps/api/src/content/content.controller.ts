@@ -6,12 +6,10 @@ import {
   NotFoundException,
   Param,
   Post,
-  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/index.js';
-import type { Response } from 'express';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
@@ -24,8 +22,8 @@ export class ContentController {
   @Roles('admin')
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  uploadContent(@UploadedFile() file: Express.Multer.File, @Res() response: Response) {
-    return this.contentService.uploadContent(file, response);
+  uploadContent(@UploadedFile() file: Express.Multer.File) {
+    return this.contentService.uploadContent(file);
   }
 
   @Roles('admin')

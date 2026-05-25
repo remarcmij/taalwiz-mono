@@ -1,5 +1,4 @@
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
-import type { Response } from 'express';
+import { BadRequestException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import type { FilterQuery } from 'mongoose';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import type { TopicDoc } from './models/topic.model.js';
@@ -93,44 +92,41 @@ export class ContentService {
     return await Topic.distinct('groupName').exec();
   }
 
-  uploadContent(file: Express.Multer.File, res: Response): void {
+  async uploadContent(file: Express.Multer.File): Promise<{ filename: string }> {
     if (!file) {
-      return void res.status(400).json({ message: 'No file provided' });
+      throw new BadRequestException('No file provided');
     }
 
     let loader: Loader;
-
     if (/\.json$/.test(file.originalname)) {
       loader = this.dictLoader;
     } else if (/\.md$/.test(file.originalname)) {
       loader = this.articleLoader;
     } else {
-      return void res.status(400).json({ message: 'Invalid upload file type' });
+      throw new BadRequestException('Invalid upload file type');
     }
 
     const data = file.buffer.toString('utf8');
-
     this.uploadEventEmitter.emit('upload', file.originalname);
     this.#htmlCache.clear();
 
-    this.uploadChain = this.uploadChain.then(async () => {
+    const work = this.uploadChain.then(async () => {
       try {
         await loader.importUpload(data, file.originalname);
         this.logger.log(`file '${file.originalname}' uploaded successfully`);
-        res.json({ filename: file.originalname });
+        return { filename: file.originalname };
       } catch (err) {
-        let message = 'unknown error';
-        if (err instanceof Error) {
-          if (err.name === 'ValidationError') {
-            message = err.toString();
-          } else {
-            message = err.message;
-          }
-        }
+        const message = err instanceof Error
+          ? err.name === 'ValidationError' ? err.toString() : err.message
+          : 'unknown error';
         this.logger.error(`error uploading file '${file.originalname}': ${message}`);
-        res.status(400).json({ message: message });
+        throw new BadRequestException(message);
       }
     });
+
+    // Keep the chain resolved so a failed upload doesn't block subsequent ones.
+    this.uploadChain = work.then(() => undefined, () => undefined);
+    return work;
   }
 
   async reprocessHashtags(): Promise<void> {
