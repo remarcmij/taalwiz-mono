@@ -1,5 +1,5 @@
-import { Controller, Get, Param, Req } from '@nestjs/common';
-import type { Request } from 'express';
+import { Controller, Get, Param } from '@nestjs/common';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import { HashtagService } from './hashtag.service.js';
 
@@ -8,12 +8,12 @@ export class HashtagController {
   constructor(private readonly hashtagService: HashtagService) {}
 
   @Get()
-  async getHashtagIndex(@Req() req: Request) {
-    return await this.hashtagService.getHashtagIndex(req['user'] as JwtPayload);
+  async getHashtagIndex(@CurrentUser() user: JwtPayload) {
+    return await this.hashtagService.getHashtagIndex(user);
   }
 
   @Get(':name')
-  async findHashtag(@Param('name') name: string, @Req() req: Request) {
-    return await this.hashtagService.findHashtag(name, req['user'] as JwtPayload);
+  async findHashtag(@Param('name') name: string, @CurrentUser() user: JwtPayload) {
+    return await this.hashtagService.findHashtag(name, user);
   }
 }
