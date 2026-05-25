@@ -77,5 +77,4 @@ The upload dropzone in the admin page is restricted to `.md` and `.json`. If new
 - ESM everywhere — use `import`/`export`, never CommonJS
 - Unused variables must be prefixed with `_` (ESLint rule)
 - Angular components use `app` prefix with kebab-case selectors
-- NestJS API has `noImplicitAny: false` in its tsconfig
 - Environment variables are tracked in `turbo.json` for caching — update the `globalEnv` list there when adding new env vars
