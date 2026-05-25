@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
@@ -19,39 +19,39 @@ const env = EnvDto.getInstance();
 const ACCESS_TOKEN_EXPIRATION = 60 * 60; // 1 hour
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnApplicationBootstrap {
   private readonly logger = new Logger(AuthService.name);
 
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {
-    void (async () => {
-      for (const seedUser of plainToInstance(UserSeedDto, seedUsers)) {
-        const errors = await validate(seedUser);
-        if (errors.length > 0) {
-          this.logger.error(`Invalid seed user data: ${JSON.stringify(errors)}`);
-          continue;
-        }
-        const user = await this.usersService.findOne(seedUser.email);
-        if (!user) {
-          try {
-            await this.usersService.createUser({
-              name: seedUser.name,
-              email: seedUser.email,
-              password: await this.usersService.encryptPassword(seedUser.password),
-              roles: seedUser.roles,
-              lang: seedUser.lang,
-            });
-            this.logger.log(`Seeded user: ${seedUser.email}`);
-          } catch (err) {
-            if (err instanceof Error) {
-              this.logger.error(`Error seeding user ${seedUser.email}: ${err.message}`);
-            }
+  ) {}
+
+  async onApplicationBootstrap(): Promise<void> {
+    for (const seedUser of plainToInstance(UserSeedDto, seedUsers)) {
+      const errors = await validate(seedUser);
+      if (errors.length > 0) {
+        this.logger.error(`Invalid seed user data: ${JSON.stringify(errors)}`);
+        continue;
+      }
+      const user = await this.usersService.findOne(seedUser.email);
+      if (!user) {
+        try {
+          await this.usersService.createUser({
+            name: seedUser.name,
+            email: seedUser.email,
+            password: await this.usersService.encryptPassword(seedUser.password),
+            roles: seedUser.roles,
+            lang: seedUser.lang,
+          });
+          this.logger.log(`Seeded user: ${seedUser.email}`);
+        } catch (err) {
+          if (err instanceof Error) {
+            this.logger.error(`Error seeding user ${seedUser.email}: ${err.message}`);
           }
         }
       }
-    })();
+    }
   }
 
   async signIn(email: string, password: string): Promise<AuthResponse> {

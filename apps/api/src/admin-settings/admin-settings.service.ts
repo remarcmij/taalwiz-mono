@@ -1,19 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import SystemSettings, { SystemSettingsDoc } from './models/system-settings.model.js';
 import { settingsSeed } from './seeds/settings.seed.js';
 
 @Injectable()
-export class AdminSettingsService {
+export class AdminSettingsService implements OnApplicationBootstrap {
   private readonly logger = new Logger(AdminSettingsService.name);
 
-  constructor() {
-    void (async () => {
-      const exists = await SystemSettings.findOne({}).exec();
-      if (exists) return;
+  async onApplicationBootstrap(): Promise<void> {
+    const exists = await SystemSettings.findOne({}).exec();
+    if (exists) return;
 
-      await SystemSettings.insertMany(settingsSeed);
-      this.logger.log('Seeded system settings');
-    })();
+    await SystemSettings.insertMany(settingsSeed);
+    this.logger.log('Seeded system settings');
   }
 
   findAll() {
