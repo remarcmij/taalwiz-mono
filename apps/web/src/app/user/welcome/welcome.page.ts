@@ -53,7 +53,7 @@ export class WelcomePage {
       return this.#contentService.fetchArticle(`welcome.${lang}.md`);
     }),
     filter((article) => !!article),
-    map((article) => this.#sanitizer.bypassSecurityTrustHtml(article.htmlText))
+    map((article) => this.#sanitizer.bypassSecurityTrustHtml(article.htmlText)),
   );
 
   goHome() {

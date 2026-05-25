@@ -1,11 +1,5 @@
 import { NgClass } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -60,9 +54,7 @@ export class ArticlePage implements OnInit {
     this.#activatedRoute.data.subscribe(({ article }) => {
       this.#article = article;
       this.title.set(article.title);
-      this.safeHtml.set(
-        this.#sanitizer.bypassSecurityTrustHtml(article.htmlText)
-      );
+      this.safeHtml.set(this.#sanitizer.bypassSecurityTrustHtml(article.htmlText));
     });
   }
 
@@ -85,6 +77,4 @@ export class ArticlePage implements OnInit {
       this.#router.navigate(['/admin/content', this.#article.groupName]);
     });
   }
-
-
 }

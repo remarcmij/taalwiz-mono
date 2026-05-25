@@ -1,9 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import {
-  ActionSheetController,
-  AlertController,
-} from '@ionic/angular/standalone';
+import { ActionSheetController, AlertController } from '@ionic/angular/standalone';
 import { catchError, Observable, of } from 'rxjs';
 import { User } from '../auth/user.model';
 import { ApiErrorAlertService } from '../shared/api-error-alert.service';
@@ -23,7 +20,7 @@ export class AdminService {
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of([]);
-      })
+      }),
     );
   }
 
@@ -36,7 +33,7 @@ export class AdminService {
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of([]);
-      })
+      }),
     );
   }
 
@@ -94,7 +91,7 @@ export class AdminService {
           })
           .then((alertEl) => alertEl.present());
         return of(null);
-      })
+      }),
     );
   }
 
@@ -103,7 +100,7 @@ export class AdminService {
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of([]);
-      })
+      }),
     );
   }
 

@@ -1,17 +1,11 @@
-import {
-  HttpErrorResponse,
-  HttpInterceptorFn,
-  HttpRequest,
-} from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, first, switchMap, throwError } from 'rxjs';
 
 import { AuthService } from './auth.service';
 
-const isApiRequest = (req: HttpRequest<unknown>) =>
-  req.url.startsWith('/api/v1/');
-const isAuthEndpoint = (req: HttpRequest<unknown>) =>
-  req.url.startsWith('/api/v1/auth/');
+const isApiRequest = (req: HttpRequest<unknown>) => req.url.startsWith('/api/v1/');
+const isAuthEndpoint = (req: HttpRequest<unknown>) => req.url.startsWith('/api/v1/auth/');
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);

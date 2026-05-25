@@ -1,11 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-} from "@angular/core";
-import { toSignal } from "@angular/core/rxjs-interop";
-import { ActivatedRoute } from "@angular/router";
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute } from '@angular/router';
 import {
   IonButtons,
   IonContent,
@@ -15,21 +10,21 @@ import {
   IonTitle,
   IonToolbar,
   ModalController,
-} from "@ionic/angular/standalone";
-import { addIcons } from "ionicons";
-import { listOutline } from "ionicons/icons";
-import { map } from "rxjs";
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { listOutline } from 'ionicons/icons';
+import { map } from 'rxjs';
 
-import { BackButtonComponent } from "../../../../shared/back-button/back-button.component";
-import { WordClickModalService } from "../../../../shared/word-click-modal/word-click-modal.service";
-import { HashtagModalComponent } from "../../hashtags/hashtag-modal/hashtag-modal.component";
-import { ArticleBodyComponent } from "./article-body/article-body.component";
-import { IArticle } from "./article.model";
-import { extractHeadings, type IHeading } from "./extract-headings.util";
-import { TocService } from "./toc.service";
+import { BackButtonComponent } from '../../../../shared/back-button/back-button.component';
+import { WordClickModalService } from '../../../../shared/word-click-modal/word-click-modal.service';
+import { HashtagModalComponent } from '../../hashtags/hashtag-modal/hashtag-modal.component';
+import { ArticleBodyComponent } from './article-body/article-body.component';
+import { IArticle } from './article.model';
+import { extractHeadings, type IHeading } from './extract-headings.util';
+import { TocService } from './toc.service';
 
 @Component({
-  selector: "app-article",
+  selector: 'app-article',
   imports: [
     IonHeader,
     IonToolbar,
@@ -41,8 +36,8 @@ import { TocService } from "./toc.service";
     ArticleBodyComponent,
     BackButtonComponent,
   ],
-  templateUrl: "./article.page.html",
-  styleUrls: ["./article.page.scss"],
+  templateUrl: './article.page.html',
+  styleUrls: ['./article.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticlePage {
@@ -58,9 +53,7 @@ export class ArticlePage {
   #article$ = this.#route.data.pipe<IArticle>(map(({ article }) => article));
 
   article = toSignal(this.#article$, { initialValue: {} as IArticle });
-  headings = computed<IHeading[]>(() =>
-    extractHeadings(this.article().htmlText),
-  );
+  headings = computed<IHeading[]>(() => extractHeadings(this.article().htmlText));
 
   ionViewWillEnter() {
     this.#tocService.headings.set(this.headings());
@@ -83,7 +76,7 @@ export class ArticlePage {
       return;
     }
 
-    if (event.target.classList.contains("hashtag")) {
+    if (event.target.classList.contains('hashtag')) {
       const hashtagName = event.target.textContent?.substring(1);
       if (hashtagName) {
         this.openHashtagModal(hashtagName);

@@ -2,13 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
-import {
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/angular/standalone';
+import { IonButtons, IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
 
 import { filter, map, switchMap } from 'rxjs';
 
@@ -41,10 +35,8 @@ export class HelpPage {
     switchMap((lang) =>
       this.#contentService.fetchArticle(`help.${lang}.md`).pipe(
         filter((article) => !!article),
-        map((article) =>
-          this.#sanitizer.bypassSecurityTrustHtml(article.htmlText)
-        )
-      )
-    )
+        map((article) => this.#sanitizer.bypassSecurityTrustHtml(article.htmlText)),
+      ),
+    ),
   );
 }

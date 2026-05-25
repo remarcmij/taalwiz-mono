@@ -1,15 +1,14 @@
-import { Injectable, inject } from "@angular/core";
-import { ModalController } from "@ionic/angular/standalone";
-import { langConfig } from "../../app.constants";
-import { DictionaryService } from "../../home/dictionary/dictionary.service";
-import { WordLang } from "../../home/dictionary/word-lang.model";
-import { WordClickModalComponent } from "./word-click-modal.component";
+import { Injectable, inject } from '@angular/core';
+import { ModalController } from '@ionic/angular/standalone';
+import { langConfig } from '../../app.constants';
+import { DictionaryService } from '../../home/dictionary/dictionary.service';
+import { WordLang } from '../../home/dictionary/word-lang.model';
+import { WordClickModalComponent } from './word-click-modal.component';
 
-const removeAccents = (str: string) =>
-  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const removeAccents = (str: string) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class WordClickModalService {
   private readonly dictionaryService = inject(DictionaryService);
@@ -20,12 +19,12 @@ export class WordClickModalService {
     event.stopPropagation();
     const target = event.target as HTMLInputElement;
 
-    const sentence = target.parentElement?.textContent ?? "";
+    const sentence = target.parentElement?.textContent ?? '';
 
     const wordLang = this.getWordClickParams(target);
 
     if (wordLang) {
-      target.classList.add("clicked");
+      target.classList.add('clicked');
 
       this.fetchLemmas(removeAccents(wordLang.word), wordLang.lang).subscribe({
         next: (response) => {
@@ -45,12 +44,12 @@ export class WordClickModalService {
               },
               initialBreakpoint: 0.25,
               breakpoints: [0, 0.25, 0.5],
-              handleBehavior: "cycle",
+              handleBehavior: 'cycle',
             })
             .then((modal) => {
               modal.present();
               modal.onDidDismiss().then(() => {
-                target.classList.remove("clicked");
+                target.classList.remove('clicked');
               });
             });
         },
@@ -77,9 +76,6 @@ export class WordClickModalService {
       term = match[0];
     }
     term = term.trim().toLowerCase();
-    return (
-      term.replace(/\(.*?\)/g, "").replace(/[()]/g, "") ||
-      term.replace(/[()]/g, "")
-    );
+    return term.replace(/\(.*?\)/g, '').replace(/[()]/g, '') || term.replace(/[()]/g, '');
   }
 }

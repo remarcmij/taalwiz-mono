@@ -1,11 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import {
-  IonIcon,
-  IonLabel,
-  IonTabBar,
-  IonTabButton,
-  IonTabs,
-} from '@ionic/angular/standalone';
+import { IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
 import { bookmarkOutline, libraryOutline, navigateOutline, searchOutline } from 'ionicons/icons';

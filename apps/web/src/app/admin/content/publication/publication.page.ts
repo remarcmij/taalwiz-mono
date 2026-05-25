@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   ActionSheetController,
@@ -70,25 +65,17 @@ export class PublicationPage {
 
   ionViewWillEnter() {
     const groupName = this.#route.snapshot.params['groupName'];
-    this.#contentService
-      .fetchPublicationTopics(groupName)
-      .subscribe((topics) => {
-        this.topics.set(topics.filter((t) => t.type === 'article' || t.type === 'manifest'));
-        const manifestTopic = topics.find((t) => t.type === 'manifest');
-        if (manifestTopic) {
-          this.publicationTitle.set(manifestTopic.title);
-        }
-      });
+    this.#contentService.fetchPublicationTopics(groupName).subscribe((topics) => {
+      this.topics.set(topics.filter((t) => t.type === 'article' || t.type === 'manifest'));
+      const manifestTopic = topics.find((t) => t.type === 'manifest');
+      if (manifestTopic) {
+        this.publicationTitle.set(manifestTopic.title);
+      }
+    });
   }
 
   navigateToArticle(topic: ITopic) {
-    this.#router.navigate([
-      '/',
-      'admin',
-      'content',
-      'article',
-      topic.filename.replace('.md', ''),
-    ]);
+    this.#router.navigate(['/', 'admin', 'content', 'article', topic.filename.replace('.md', '')]);
   }
 
   async presentActionSheet() {
@@ -119,9 +106,7 @@ export class PublicationPage {
 
     confirmedObs$.subscribe((result) => {
       if (result) {
-        this.topics.update((topics) =>
-          topics.filter((t) => t._id !== topic._id)
-        );
+        this.topics.update((topics) => topics.filter((t) => t._id !== topic._id));
         this.isToastOpen.set(true);
       }
     });
@@ -130,7 +115,7 @@ export class PublicationPage {
   async onDeleteAll() {
     const deleteObs$ = from(this.topics()).pipe(
       map((topic) => this.#adminService.deleteTopic(topic.filename)),
-      mergeAll()
+      mergeAll(),
     );
 
     const confirmedObs$ = await this.#adminService.deleteConfirmed(deleteObs$);
@@ -142,8 +127,7 @@ export class PublicationPage {
       this.topics.set([]);
       const alertEl = await this.#alertCtrl.create({
         header: 'Delete Publication',
-        message:
-          'The publication and all its articles have been deleted successfully.',
+        message: 'The publication and all its articles have been deleted successfully.',
         buttons: ['OK'],
       });
       alertEl.present();

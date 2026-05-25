@@ -25,8 +25,8 @@ export const adminGuard: CanActivateFn = (route, state) => {
             router.navigateByUrl(homeUrl, { replaceUrl: true });
           }
           return isAdmin;
-        })
+        }),
       );
-    })
+    }),
   );
 };

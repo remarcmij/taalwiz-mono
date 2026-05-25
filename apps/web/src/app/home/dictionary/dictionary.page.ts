@@ -119,9 +119,7 @@ export class DictionaryPage implements OnDestroy {
       .map((e) => new WordLang(e.word, e.lang)),
   );
 
-  hasMoreHistory = computed(
-    () => this.#historyService.history().length > MAX_RECENT_SEARCHES,
-  );
+  hasMoreHistory = computed(() => this.#historyService.history().length > MAX_RECENT_SEARCHES);
 
   #destroy$ = new Subject<void>();
 
@@ -136,7 +134,7 @@ export class DictionaryPage implements OnDestroy {
         this.word.set(results.targetBase!.word);
       }
       this.content?.nativeElement.scrollToTop();
-    })
+    }),
   );
 
   addRecentSearch(wordLang: WordLang): void {
@@ -177,16 +175,14 @@ export class DictionaryPage implements OnDestroy {
           keyupKey === 'Enter'
             ? of(this.suggestions())
             : timer(250).pipe(
-                switchMap(() =>
-                  term ? this.getSuggestions(term) : of<WordLang[]>([])
-                )
-              )
+                switchMap(() => (term ? this.getSuggestions(term) : of<WordLang[]>([]))),
+              ),
         ),
         tap((suggestions) => {
           this.showSearches.set(suggestions.length > 0);
         }),
         catchError(() => of<WordLang[]>([])),
-        takeUntil(this.#destroy$)
+        takeUntil(this.#destroy$),
       )
       .subscribe((suggestions) => {
         this.suggestions.set(suggestions);

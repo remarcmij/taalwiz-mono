@@ -24,7 +24,14 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
-import { addOutline, closeOutline, createOutline, pencilOutline, schoolOutline, trashOutline } from 'ionicons/icons';
+import {
+  addOutline,
+  closeOutline,
+  createOutline,
+  pencilOutline,
+  schoolOutline,
+  trashOutline,
+} from 'ionicons/icons';
 import { DictionaryService } from '../dictionary/dictionary.service';
 import { WordLang } from '../dictionary/word-lang.model';
 import { StudyModalComponent } from '../study/study-modal/study-modal.component';
@@ -73,11 +80,21 @@ export class VocabularyPage {
   protected dueForCurrentList = computed(() => {
     const listId = this.vocabularyService.currentListId();
     if (!listId) return 0;
-    return this.#studyService.stats().find((s: { listId: string; due: number }) => s.listId === listId)?.due ?? 0;
+    return (
+      this.#studyService.stats().find((s: { listId: string; due: number }) => s.listId === listId)
+        ?.due ?? 0
+    );
   });
 
   constructor() {
-    addIcons({ addOutline, closeOutline, createOutline, pencilOutline, schoolOutline, trashOutline });
+    addIcons({
+      addOutline,
+      closeOutline,
+      createOutline,
+      pencilOutline,
+      schoolOutline,
+      trashOutline,
+    });
   }
 
   async lookup(entry: VocabularyEntry): Promise<void> {
@@ -157,7 +174,10 @@ export class VocabularyPage {
   async confirmDeleteList(list: VocabularyList): Promise<void> {
     const message =
       list.count > 0
-        ? this.#translate.instant('bookmarks.delete-list-message', { name: list.name, count: list.count })
+        ? this.#translate.instant('bookmarks.delete-list-message', {
+            name: list.name,
+            count: list.count,
+          })
         : this.#translate.instant('bookmarks.delete-empty-list-message', { name: list.name });
 
     const alert = await this.#alertCtrl.create({

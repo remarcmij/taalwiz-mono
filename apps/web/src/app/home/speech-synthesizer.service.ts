@@ -66,16 +66,11 @@ export class SpeechSynthesizerService {
     }
 
     this.loadVoices().then((voices) => {
-      this.voicesAvailable = voices.sort((a, b) =>
-        a.lang.localeCompare(b.lang)
-      );
+      this.voicesAvailable = voices.sort((a, b) => a.lang.localeCompare(b.lang));
       if (!environment.production && this.logger.isMinLevel('silly')) {
         console.table(this.voicesAvailable);
       }
-      this.logger.debug(
-        'SpeechSynthesizerService',
-        `${voices.length} voices loaded`
-      );
+      this.logger.debug('SpeechSynthesizerService', `${voices.length} voices loaded`);
     });
   }
 
@@ -103,10 +98,7 @@ export class SpeechSynthesizerService {
           voices = window.speechSynthesis.getVoices();
           retries += 1;
           if (voices.length !== 0 || retries > MAX_RETRIES) {
-            this.logger.debug(
-              'SpeechSynthesizerService.loadVoices',
-              'retries ' + retries
-            );
+            this.logger.debug('SpeechSynthesizerService.loadVoices', 'retries ' + retries);
             clearInterval(intervalID);
             resolve(voices);
             return;
@@ -167,16 +159,12 @@ export class SpeechSynthesizerService {
       map((phrase) => phrase.trim()),
       filter((phrase) => phrase.length !== 0),
       concatMap((phrase) =>
-        this.speakObservable(phrase, lang, options).pipe(delay(options!.pause))
-      )
+        this.speakObservable(phrase, lang, options).pipe(delay(options!.pause)),
+      ),
     );
   }
 
-  speakSingle(
-    text: string,
-    lang: string,
-    options?: SpeakOptions
-  ): Observable<void> {
+  speakSingle(text: string, lang: string, options?: SpeakOptions): Observable<void> {
     if (!this.isSynthesisSupported()) {
       return throwError(() => new Error('speech synthesis not supported'));
     }
@@ -203,8 +191,7 @@ export class SpeechSynthesizerService {
         this.utterance.voiceURI = voice.voiceURI;
         this.utterance.lang = voice.lang;
         this.utterance.rate = options.rate || 1;
-        this.utterance.volume =
-          typeof options.volume === 'number' ? options.volume : 1;
+        this.utterance.volume = typeof options.volume === 'number' ? options.volume : 1;
 
         const onEndHandler = () => {
           this._hasSpoken = true;
@@ -219,10 +206,7 @@ export class SpeechSynthesizerService {
 
         window.speechSynthesis.speak(this.utterance);
       } catch (err: any) {
-        this.logger.error(
-          'SpeechSynthesizerService.speakObservable',
-          err.message
-        );
+        this.logger.error('SpeechSynthesizerService.speakObservable', err.message);
         observer.error(err);
       }
     });

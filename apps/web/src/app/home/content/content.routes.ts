@@ -15,17 +15,13 @@ export const CONTENT_ROUTES: Routes = [
       {
         path: '',
         loadComponent: () =>
-          import('./publication/publication.page').then(
-            (p) => p.PublicationPage,
-          ),
+          import('./publication/publication.page').then((p) => p.PublicationPage),
         resolve: { topics: publicationsIndexResolver },
       },
       {
         path: ':filename',
         loadComponent: () =>
-          import('./publication/article/article.page').then(
-            (p) => p.ArticlePage,
-          ),
+          import('./publication/article/article.page').then((p) => p.ArticlePage),
         resolve: { article: articleResolver },
       },
     ],

@@ -20,6 +20,6 @@ export const registerGuard: CanActivateFn = (route) => {
       logger.warn('registerGuard', 'Invalid registration token');
       router.navigateByUrl('/auth');
       return of(false);
-    })
+    }),
   );
 };

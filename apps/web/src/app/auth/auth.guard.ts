@@ -20,6 +20,6 @@ export const authGuard: CanActivateFn = () => {
       } else {
         void dictSync.init(); // fire and forget — does not block navigation
       }
-    })
+    }),
   );
 };

@@ -10,13 +10,11 @@ export const CONTENT_ROUTES: Routes = [
   },
   {
     path: 'article/:filename',
-    loadComponent: () =>
-      import('./publication/article/article.page').then((p) => p.ArticlePage),
+    loadComponent: () => import('./publication/article/article.page').then((p) => p.ArticlePage),
     resolve: { article: articleResolver },
   },
   {
     path: ':groupName',
-    loadComponent: () =>
-      import('./publication/publication.page').then((p) => p.PublicationPage),
+    loadComponent: () => import('./publication/publication.page').then((p) => p.PublicationPage),
   },
 ];

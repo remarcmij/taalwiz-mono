@@ -10,16 +10,13 @@ export const AUTH_ROUTES: Routes = [
   },
   {
     path: 'register',
-    loadComponent: () =>
-      import('./register/register.page').then((p) => p.RegisterPage),
+    loadComponent: () => import('./register/register.page').then((p) => p.RegisterPage),
     canActivate: [registerGuard],
   },
   {
     path: 'change-password',
     loadComponent: () =>
-      import('./change-password/change-password.page').then(
-        (p) => p.ChangePasswordPage,
-      ),
+      import('./change-password/change-password.page').then((p) => p.ChangePasswordPage),
   },
   {
     path: 'request-password-reset',
@@ -31,8 +28,6 @@ export const AUTH_ROUTES: Routes = [
   {
     path: 'reset-password',
     loadComponent: () =>
-      import('./reset-password/reset-password.page').then(
-        (p) => p.ResetPasswordPage,
-      ),
+      import('./reset-password/reset-password.page').then((p) => p.ResetPasswordPage),
   },
 ];

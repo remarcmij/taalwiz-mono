@@ -1,10 +1,5 @@
 import { NgClass } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { IonItem, IonLabel, IonList } from '@ionic/angular/standalone';
 
 import { WordLang } from '../../word-lang.model';

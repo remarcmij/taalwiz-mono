@@ -28,12 +28,7 @@ import {
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
-import {
-  EMAIL_EXISTS,
-  EMAIL_MISMATCH,
-  MIN_PASSWORD_LENGTH,
-  TOKEN_INVALID,
-} from '@repo/api-types';
+import { EMAIL_EXISTS, EMAIL_MISMATCH, MIN_PASSWORD_LENGTH, TOKEN_INVALID } from '@repo/api-types';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -102,7 +97,7 @@ export class RegisterPage implements OnInit {
       .pipe(
         finalize(() => {
           loadingEl.dismiss();
-        })
+        }),
       )
       .subscribe({
         next: () => {
@@ -116,17 +111,13 @@ export class RegisterPage implements OnInit {
               this.showAlert(this.#translate.instant('auth.email-exists'));
               break;
             case EMAIL_MISMATCH:
-              this.showAlert(
-                this.#translate.instant('auth.code-email-mismatch')
-              );
+              this.showAlert(this.#translate.instant('auth.code-email-mismatch'));
               break;
             case TOKEN_INVALID:
               this.showAlert(this.#translate.instant('auth.code-invalid'));
               break;
             default:
-              this.showAlert(
-                this.#translate.instant('auth.registration-failed')
-              );
+              this.showAlert(this.#translate.instant('auth.registration-failed'));
           }
         },
       });

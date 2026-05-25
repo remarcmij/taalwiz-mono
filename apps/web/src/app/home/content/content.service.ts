@@ -29,7 +29,7 @@ export class ContentService {
     this.#authService.user$
       .pipe(
         takeUntilDestroyed(),
-        filter((user) => !user)
+        filter((user) => !user),
       )
       .subscribe(() => {
         this.clearCache();
@@ -39,7 +39,7 @@ export class ContentService {
       .pipe(
         takeUntilDestroyed(),
         filter((user) => !!user),
-        switchMap(() => this.#fetchManifest())
+        switchMap(() => this.#fetchManifest()),
       )
       .subscribe((manifest) => this.#checkAndBust(manifest));
   }
@@ -62,7 +62,7 @@ export class ContentService {
       .get<IArticle>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`)
       .pipe(
         map(() => true),
-        catchError(() => of(false))
+        catchError(() => of(false)),
       );
   }
 
@@ -73,7 +73,7 @@ export class ContentService {
         catchError((error) => {
           this.#apiErrorAlertService.showNetworkError(error);
           return of(null);
-        })
+        }),
       );
   }
 
@@ -82,7 +82,7 @@ export class ContentService {
       catchError((error) => {
         this.#apiErrorAlertService.showNetworkError(error);
         return of([]);
-      })
+      }),
     );
   }
 

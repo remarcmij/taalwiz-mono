@@ -1,11 +1,5 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  input,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonContent,

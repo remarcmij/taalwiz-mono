@@ -18,7 +18,6 @@ import {
   tap,
 } from 'rxjs';
 
-
 import { toSignal } from '@angular/core/rxjs-interop';
 import { homeUrl } from '../home/home.routes';
 import { LoggerService } from '../shared/logger.service';
@@ -45,7 +44,7 @@ const LATENCY_MARGIN = 5;
 class TokenData {
   constructor(
     public token: string,
-    public exp: number
+    public exp: number,
   ) {}
 }
 
@@ -62,14 +61,14 @@ export class AuthService implements OnDestroy {
     private http: HttpClient,
     private router: Router,
     private translate: TranslateService,
-    private logger: LoggerService
+    private logger: LoggerService,
   ) {
     this.#user$.subscribe((user) => {
       if (user) {
         this.translate.use(user.lang);
         logger.debug(
           'AuthService',
-          `user ${user.email} logged in as ${user.roles} using language ${user.lang}.`
+          `user ${user.email} logged in as ${user.roles} using language ${user.lang}.`,
         );
       }
     });
@@ -105,21 +104,19 @@ export class AuthService implements OnDestroy {
               // There is no refresh token, so we can't get a new token.
               return of(null);
             }
-            return this.http
-              .post<TokenResponseData>('/api/v1/auth/refresh', { refreshToken })
-              .pipe(
-                switchMap((tokenData) => {
-                  // Add a safety margin to allow for backend latency.
-                  const newTokenData = new TokenData(
-                    tokenData.token,
-                    +tokenData.exp - LATENCY_MARGIN
-                  );
-                  this.#tokenData$.next(newTokenData);
-                  this.logger.debug('AuthService', 'token refreshed');
-                  return of(tokenData.token);
-                })
-              );
-          })
+            return this.http.post<TokenResponseData>('/api/v1/auth/refresh', { refreshToken }).pipe(
+              switchMap((tokenData) => {
+                // Add a safety margin to allow for backend latency.
+                const newTokenData = new TokenData(
+                  tokenData.token,
+                  +tokenData.exp - LATENCY_MARGIN,
+                );
+                this.#tokenData$.next(newTokenData);
+                this.logger.debug('AuthService', 'token refreshed');
+                return of(tokenData.token);
+              }),
+            );
+          }),
         );
       }),
       catchError((error) => {
@@ -127,7 +124,7 @@ export class AuthService implements OnDestroy {
         this.logout();
         return of(null);
       }),
-      takeUntil(this.#destroy$)
+      takeUntil(this.#destroy$),
     );
   }
 
@@ -155,7 +152,7 @@ export class AuthService implements OnDestroy {
           parsedData.roles,
           parsedData.groups ?? [],
           parsedData.refreshToken,
-          +parsedData.refreshExp
+          +parsedData.refreshExp,
         );
         if (parsedData.name) {
           user.name = parsedData.name;
@@ -170,7 +167,7 @@ export class AuthService implements OnDestroy {
       }),
       map((user) => {
         return !!user;
-      })
+      }),
     );
   }
 
@@ -181,10 +178,8 @@ export class AuthService implements OnDestroy {
           return null;
         }
         // Return the refresh token if it is still valid, otherwise return null.
-        return user.refreshExp < new Date().getTime() / 1000
-          ? null
-          : user.refreshToken;
-      })
+        return user.refreshExp < new Date().getTime() / 1000 ? null : user.refreshToken;
+      }),
     );
   }
 
@@ -248,7 +243,7 @@ export class AuthService implements OnDestroy {
       userData.roles,
       userData.groups ?? [],
       userData.refreshToken,
-      refreshExp
+      refreshExp,
     );
 
     this.#user$.next(user);
@@ -260,7 +255,7 @@ export class AuthService implements OnDestroy {
       userData.lang,
       userData.roles,
       userData.refreshToken,
-      refreshExp
+      refreshExp,
     );
   }
 
@@ -271,7 +266,7 @@ export class AuthService implements OnDestroy {
     lang: string,
     roles: Role[],
     refreshToken: string,
-    refreshExp: number
+    refreshExp: number,
   ) {
     const data = JSON.stringify({
       id,

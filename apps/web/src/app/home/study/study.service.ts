@@ -45,9 +45,7 @@ export class StudyService {
 
   async refreshStats(): Promise<void> {
     const data = await firstValueFrom(
-      this.#http
-        .get<SrsStatsEntry[]>('/api/v1/srs/stats')
-        .pipe(catchError(() => of([]))),
+      this.#http.get<SrsStatsEntry[]>('/api/v1/srs/stats').pipe(catchError(() => of([]))),
     );
     this.stats.set(data);
   }
@@ -58,7 +56,12 @@ export class StudyService {
       .pipe(catchError(() => EMPTY));
   }
 
-  submitReview(term: string, lang: string, listId: string, rating: SrsRating): Observable<{ dueDate: string }> {
+  submitReview(
+    term: string,
+    lang: string,
+    listId: string,
+    rating: SrsRating,
+  ): Observable<{ dueDate: string }> {
     return this.#http
       .post<{ dueDate: string }>('/api/v1/srs/review', { term, lang, listId, rating })
       .pipe(catchError(() => EMPTY));

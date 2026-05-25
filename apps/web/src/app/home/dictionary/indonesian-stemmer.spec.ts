@@ -82,8 +82,7 @@ describe('IndonesianStemmer', () => {
   });
 
   describe('meN- prefix stripping (active voice)', () => {
-    it('mem- + b/f root: membaca → baca', () =>
-      expect(variations('membaca')).toContain('baca'));
+    it('mem- + b/f root: membaca → baca', () => expect(variations('membaca')).toContain('baca'));
 
     it('meng- + vowel root: mengambil → ambil', () =>
       expect(variations('mengambil')).toContain('ambil'));
@@ -114,8 +113,7 @@ describe('IndonesianStemmer', () => {
     it('pen- + t root with restoration: penulis → tulis', () =>
       expect(variations('penulis')).toContain('tulis'));
 
-    it('pem- + b root: pembaca → baca', () =>
-      expect(variations('pembaca')).toContain('baca'));
+    it('pem- + b root: pembaca → baca', () => expect(variations('pembaca')).toContain('baca'));
 
     it('peng- + vowel root: pengambil → ambil', () =>
       expect(variations('pengambil')).toContain('ambil'));
@@ -128,31 +126,23 @@ describe('IndonesianStemmer', () => {
   });
 
   describe('circumfix stripping', () => {
-    it('ke-...-an: kebaikan → baik', () =>
-      expect(variations('kebaikan')).toContain('baik'));
+    it('ke-...-an: kebaikan → baik', () => expect(variations('kebaikan')).toContain('baik'));
 
-    it('ke-...-an: kehidupan → hidup', () =>
-      expect(variations('kehidupan')).toContain('hidup'));
+    it('ke-...-an: kehidupan → hidup', () => expect(variations('kehidupan')).toContain('hidup'));
 
-    it('per-...-an: perjalanan → jalan', () =>
-      expect(variations('perjalanan')).toContain('jalan'));
+    it('per-...-an: perjalanan → jalan', () => expect(variations('perjalanan')).toContain('jalan'));
 
-    it('per-...-an: perbedaan → beda', () =>
-      expect(variations('perbedaan')).toContain('beda'));
+    it('per-...-an: perbedaan → beda', () => expect(variations('perbedaan')).toContain('beda'));
 
-    it('pe-...-an: penulisan → tulis', () =>
-      expect(variations('penulisan')).toContain('tulis'));
+    it('pe-...-an: penulisan → tulis', () => expect(variations('penulisan')).toContain('tulis'));
 
-    it('pe-...-an: pembacaan → baca', () =>
-      expect(variations('pembacaan')).toContain('baca'));
+    it('pe-...-an: pembacaan → baca', () => expect(variations('pembacaan')).toContain('baca'));
   });
 
   describe('reduplication', () => {
-    it('anak-anak → anak', () =>
-      expect(variations('anak-anak')).toContain('anak'));
+    it('anak-anak → anak', () => expect(variations('anak-anak')).toContain('anak'));
 
-    it('rumah-rumah → rumah', () =>
-      expect(variations('rumah-rumah')).toContain('rumah'));
+    it('rumah-rumah → rumah', () => expect(variations('rumah-rumah')).toContain('rumah'));
   });
 
   describe('complex multi-affix words', () => {
@@ -174,8 +164,7 @@ describe('IndonesianStemmer', () => {
       expect(ambilIndex).toBeGreaterThan(origIndex);
     });
 
-    it('berbicara: ber- prefix', () =>
-      expect(variations('berbicara')).toContain('bicara'));
+    it('berbicara: ber- prefix', () => expect(variations('berbicara')).toContain('bicara'));
 
     it('memperbaik: mem- + per- prefixes → baik', () =>
       expect(variations('memperbaik')).toContain('baik'));

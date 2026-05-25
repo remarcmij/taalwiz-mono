@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -80,7 +75,7 @@ export class AuthPage {
       .pipe(
         finalize(() => {
           loadingEl.dismiss();
-        })
+        }),
       )
       .subscribe({
         next: () => {
@@ -89,9 +84,7 @@ export class AuthPage {
         },
         error: (errResp) => {
           const msgKey =
-            errResp.error.message === AUTH_FAILED
-              ? 'auth.auth-failed'
-              : 'auth.login-failed';
+            errResp.error.message === AUTH_FAILED ? 'auth.auth-failed' : 'auth.login-failed';
           const alertText = this.#translate.instant(msgKey);
           this.showAlert(alertText);
         },

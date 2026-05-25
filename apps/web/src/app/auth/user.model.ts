@@ -10,6 +10,6 @@ export class User {
     public refreshToken: string,
     public refreshExp: number,
     public created?: Date,
-    public lastAccessed?: Date
+    public lastAccessed?: Date,
   ) {}
 }

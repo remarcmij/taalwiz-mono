@@ -16,14 +16,12 @@ export const APP_ROUTES: Routes = [
 
   {
     path: 'welcome/:lang',
-    loadComponent: () =>
-      import('./user/welcome/welcome.page').then((p) => p.WelcomePage),
+    loadComponent: () => import('./user/welcome/welcome.page').then((p) => p.WelcomePage),
     canActivate: [authGuard],
   },
   {
     path: 'admin',
-    loadChildren: () =>
-      import('./admin/admin.routes').then((r) => r.ADMIN_ROUTES),
+    loadChildren: () => import('./admin/admin.routes').then((r) => r.ADMIN_ROUTES),
     canActivate: [adminGuard],
   },
   {
@@ -38,8 +36,7 @@ export const APP_ROUTES: Routes = [
   },
   {
     path: 'contact',
-    loadComponent: () =>
-      import('./user/contact/contact.page').then((p) => p.ContactPage),
+    loadComponent: () => import('./user/contact/contact.page').then((p) => p.ContactPage),
     canActivate: [authGuard],
   },
   { path: '**', redirectTo: 'auth' },

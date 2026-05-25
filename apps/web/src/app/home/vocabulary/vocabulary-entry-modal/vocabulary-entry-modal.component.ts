@@ -98,9 +98,7 @@ export class VocabularyEntryModalComponent {
     return nonEmpty.length - this.parsedEntries().length;
   });
 
-  protected termOnlyCount = computed(
-    () => this.parsedEntries().filter((e) => !e.back).length,
-  );
+  protected termOnlyCount = computed(() => this.parsedEntries().filter((e) => !e.back).length);
 
   protected hasNewline = computed(() => this.csvText().includes('\n'));
 

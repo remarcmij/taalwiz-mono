@@ -20,11 +20,7 @@ export class IndonesianStemmer implements Stemmer {
     return [...variations];
   }
 
-  private getVariations(
-    word: string,
-    variations: Set<string>,
-    mePrefixed: boolean,
-  ) {
+  private getVariations(word: string, variations: Set<string>, mePrefixed: boolean) {
     let meWord: string;
 
     variations.add(word);

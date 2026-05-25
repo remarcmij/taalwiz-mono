@@ -1,21 +1,10 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnDestroy,
-  OnInit,
-} from "@angular/core";
-import {
-  NavigationEnd,
-  NavigationStart,
-  Router,
-  RouterLink,
-} from "@angular/router";
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { NavigationEnd, NavigationStart, Router, RouterLink } from '@angular/router';
 
-import { App, AppState } from "@capacitor/app";
-import { Preferences } from "@capacitor/preferences";
+import { App, AppState } from '@capacitor/app';
+import { Preferences } from '@capacitor/preferences';
 
-import { addIcons } from "ionicons";
+import { addIcons } from 'ionicons';
 import {
   helpCircleOutline,
   informationCircleOutline,
@@ -24,10 +13,10 @@ import {
   reloadOutline,
   rocketOutline,
   shieldHalfOutline,
-} from "ionicons/icons";
+} from 'ionicons/icons';
 
-import { filter, first, pairwise, Subject, takeUntil } from "rxjs";
-import { environment } from "../environments/environment";
+import { filter, first, pairwise, Subject, takeUntil } from 'rxjs';
+import { environment } from '../environments/environment';
 
 import {
   IonApp,
@@ -45,19 +34,19 @@ import {
   IonToolbar,
   MenuController,
   ToastController,
-} from "@ionic/angular/standalone";
-import { TranslatePipe, TranslateService } from "@ngx-translate/core";
-import { AuthService } from "./auth/auth.service";
-import { DictSyncService } from "./home/dictionary/dict-sync.service";
-import { TocService } from "./home/content/publication/article/toc.service";
-import { SpeechSynthesizerService } from "./home/speech-synthesizer.service";
-import { LoggerService } from "./shared/logger.service";
-import { PromptUpdateService } from "./sw-update/prompt-update.service";
+} from '@ionic/angular/standalone';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { AuthService } from './auth/auth.service';
+import { DictSyncService } from './home/dictionary/dict-sync.service';
+import { TocService } from './home/content/publication/article/toc.service';
+import { SpeechSynthesizerService } from './home/speech-synthesizer.service';
+import { LoggerService } from './shared/logger.service';
+import { PromptUpdateService } from './sw-update/prompt-update.service';
 
 @Component({
-  selector: "app-root",
-  templateUrl: "app.component.html",
-  styleUrl: "app.component.scss",
+  selector: 'app-root',
+  templateUrl: 'app.component.html',
+  styleUrl: 'app.component.scss',
   imports: [
     IonApp,
     IonMenu,
@@ -110,7 +99,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    const logLevel = environment.production ? "info" : "silly";
+    const logLevel = environment.production ? 'info' : 'silly';
     this.#logger.setLevel(logLevel);
 
     this.#authService.user$
@@ -120,26 +109,26 @@ export class AppComponent implements OnInit, OnDestroy {
         takeUntil(this.#destroy$),
       )
       .subscribe(() => {
-        this.#router.navigateByUrl("/auth");
+        this.#router.navigateByUrl('/auth');
       });
 
     if (this.#speechService.isSynthesisSupported()) {
-      this.#logger.debug("AppComponent", "speech synthesis is available");
+      this.#logger.debug('AppComponent', 'speech synthesis is available');
     } else {
-      this.#logger.error("AppComponent", "speech synthesis is NOT available");
+      this.#logger.error('AppComponent', 'speech synthesis is NOT available');
     }
 
     this.#dictSync.status$
       .pipe(
         pairwise(),
-        filter(([prev, curr]) => prev === "syncing" && curr === "done"),
+        filter(([prev, curr]) => prev === 'syncing' && curr === 'done'),
         takeUntil(this.#destroy$),
       )
       .subscribe(() => {
         void this.#showSyncDoneToast();
       });
 
-    App.addListener("appStateChange", this.checkAuthOnResume.bind(this));
+    App.addListener('appStateChange', this.checkAuthOnResume.bind(this));
 
     // Blur the focused element when navigation starts so that Ionic can safely
     // apply aria-hidden to the outgoing page without triggering a browser
@@ -161,7 +150,7 @@ export class AppComponent implements OnInit, OnDestroy {
         filter((event) => event instanceof NavigationEnd),
       )
       .subscribe(async (event) => {
-        await Preferences.set({ key: "lastUrl", value: event.url });
+        await Preferences.set({ key: 'lastUrl', value: event.url });
       });
   }
 
@@ -175,10 +164,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   async onTocClick(headingId: string) {
-    await this.#menuCtrl.close("toc-menu");
-    document
-      .getElementById(headingId)
-      ?.scrollIntoView({ behavior: "instant", block: "start" });
+    await this.#menuCtrl.close('toc-menu');
+    document.getElementById(headingId)?.scrollIntoView({ behavior: 'instant', block: 'start' });
   }
 
   reload() {
@@ -187,9 +174,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   async #showSyncDoneToast() {
     const toast = await this.#toastCtrl.create({
-      message: this.#translate.instant("dictionary.sync-done"),
+      message: this.#translate.instant('dictionary.sync-done'),
       duration: 3000,
-      position: "bottom",
+      position: 'bottom',
     });
     await toast.present();
   }

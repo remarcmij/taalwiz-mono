@@ -54,7 +54,11 @@ export class DictionaryService {
     const results: WordLang[] = [];
 
     for (const variation of variations) {
-      const hits = await this.#dictStore.findWordsStartingWith(variation, langConfig.targetLang, 10);
+      const hits = await this.#dictStore.findWordsStartingWith(
+        variation,
+        langConfig.targetLang,
+        10,
+      );
       for (const hit of hits) {
         const key = hit.word + '|' + hit.lang;
         if (!seen.has(key)) {

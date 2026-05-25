@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import {
   AlertController,
@@ -79,7 +74,7 @@ export class RequestPasswordResetPage {
       .pipe(
         finalize(() => {
           loadingEl.dismiss();
-        })
+        }),
       )
       .subscribe({
         next: () => {
@@ -90,9 +85,7 @@ export class RequestPasswordResetPage {
           if (errResp.error.message === EMAIL_NOT_FOUND) {
             this.showAlert(this.#translate.instant('auth.email-not-found'));
           } else {
-            this.showAlert(
-              this.#translate.instant('common.something-went-wrong')
-            );
+            this.showAlert(this.#translate.instant('common.something-went-wrong'));
           }
         },
       });

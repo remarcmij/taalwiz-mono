@@ -25,8 +25,6 @@ export class ArticleBodyComponent implements OnInit {
   safeHtml = signal<SafeHtml | null>(null);
 
   ngOnInit() {
-    this.safeHtml.set(
-      this.#sanitizer.bypassSecurityTrustHtml(this.article().htmlText)
-    );
+    this.safeHtml.set(this.#sanitizer.bypassSecurityTrustHtml(this.article().htmlText));
   }
 }

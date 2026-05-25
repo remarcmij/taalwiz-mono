@@ -14,8 +14,7 @@ export const HOME_ROUTES: Routes = [
         children: [
           {
             path: '',
-            loadChildren: () =>
-              import('./content/content.routes').then((r) => r.CONTENT_ROUTES),
+            loadChildren: () => import('./content/content.routes').then((r) => r.CONTENT_ROUTES),
           },
         ],
       },
@@ -25,17 +24,13 @@ export const HOME_ROUTES: Routes = [
           {
             path: '',
             loadComponent: () =>
-              import('./dictionary/dictionary.page').then(
-                (p) => p.DictionaryPage,
-              ),
+              import('./dictionary/dictionary.page').then((p) => p.DictionaryPage),
             pathMatch: 'full',
           },
           {
             path: ':lang/:word',
             loadComponent: () =>
-              import('./dictionary/dictionary.page').then(
-                (p) => p.DictionaryPage,
-              ),
+              import('./dictionary/dictionary.page').then((p) => p.DictionaryPage),
           },
         ],
       },
@@ -45,9 +40,7 @@ export const HOME_ROUTES: Routes = [
           {
             path: '',
             loadComponent: () =>
-              import('./content/hashtags/hashtags.page').then(
-                (p) => p.HashtagsPage,
-              ),
+              import('./content/hashtags/hashtags.page').then((p) => p.HashtagsPage),
           },
         ],
       },
@@ -57,9 +50,7 @@ export const HOME_ROUTES: Routes = [
           {
             path: '',
             loadComponent: () =>
-              import('./vocabulary/vocabulary.page').then(
-                (p) => p.VocabularyPage,
-              ),
+              import('./vocabulary/vocabulary.page').then((p) => p.VocabularyPage),
           },
         ],
       },

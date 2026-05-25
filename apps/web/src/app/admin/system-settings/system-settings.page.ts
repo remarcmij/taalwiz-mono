@@ -84,7 +84,7 @@ export class SystemSettingsPage implements OnInit {
           this.#logger.debug('Settings updated');
           this.#origSettings = deepCopy(this.settings());
         }),
-        catchError((error) => this.#apiErrorAlertService.showError(error))
+        catchError((error) => this.#apiErrorAlertService.showError(error)),
       )
       .subscribe();
   }

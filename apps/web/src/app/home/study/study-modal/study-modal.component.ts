@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, HostListener, computed, inject, input, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  computed,
+  inject,
+  input,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import {
   IonBadge,
@@ -94,7 +103,10 @@ export class StudyModalComponent implements OnInit {
     if (this.screen() !== 'card') return;
     const key = (event as KeyboardEvent).key;
     if (!this.flipped()) {
-      if (key === ' ') { event.preventDefault(); void this.flipCard(); }
+      if (key === ' ') {
+        event.preventDefault();
+        void this.flipCard();
+      }
     } else {
       if (key === '1') this.rate('again');
       else if (key === '2') this.rate('good');
@@ -138,7 +150,9 @@ export class StudyModalComponent implements OnInit {
       this.definition.set(card.back);
       this.baseWordNote.set(null);
     } else {
-      const result = await firstValueFrom(this.#dictionaryService.fetchWordLemmas(card.term, card.lang));
+      const result = await firstValueFrom(
+        this.#dictionaryService.fetchWordLemmas(card.term, card.lang),
+      );
       const firstLemma = result.lemmas[0];
       this.definition.set(firstLemma?.text.replace(/[;,]\s*$/, '') ?? '');
       this.baseWordNote.set(result.word !== card.term ? result.word : null);
@@ -150,9 +164,7 @@ export class StudyModalComponent implements OnInit {
     const card = this.currentCard();
     if (!card) return;
 
-    this.#studyService
-      .submitReview(card.term, card.lang, card.listId, rating)
-      .subscribe();
+    this.#studyService.submitReview(card.term, card.lang, card.listId, rating).subscribe();
 
     this.reviewedCount.update((n) => n + 1);
     const nextIndex = this.currentIndex() + 1;

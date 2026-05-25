@@ -82,11 +82,9 @@ export class ContactPage {
         next: () => {
           form.reset();
           loadingEl.dismiss();
-          this.showAlert(this.#translate.instant('user.contact-sent')).then(
-            () => {
-              this.#navCtrl.navigateBack(homeUrl);
-            }
-          );
+          this.showAlert(this.#translate.instant('user.contact-sent')).then(() => {
+            this.#navCtrl.navigateBack(homeUrl);
+          });
         },
         error: () => {
           loadingEl.dismiss();

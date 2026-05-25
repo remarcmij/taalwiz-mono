@@ -15,10 +15,7 @@ import {
   withPreloading,
 } from '@angular/router';
 import { ServiceWorkerModule } from '@angular/service-worker';
-import {
-  IonicRouteStrategy,
-  provideIonicAngular,
-} from '@ionic/angular/standalone';
+import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { firstValueFrom } from 'rxjs';
@@ -40,13 +37,17 @@ bootstrapApplication(AppComponent, {
         // Register the ServiceWorker as soon as the application is stable
         // or after 30 seconds (whichever comes first).
         registrationStrategy: 'registerWhenStable:30000',
-      })
+      }),
     ),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideTranslateService({
       lang: 'nl',
       fallbackLang: 'en',
-      loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json', useHttpBackend: true }),
+      loader: provideTranslateHttpLoader({
+        prefix: '/i18n/',
+        suffix: '.json',
+        useHttpBackend: true,
+      }),
     }),
     provideAppInitializer(() => firstValueFrom(inject(TranslateService).use('nl'))),
     provideHttpClient(withInterceptors([authInterceptor])),

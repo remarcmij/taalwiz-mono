@@ -1,11 +1,5 @@
 import { DecimalPipe, NgClass } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import {
   AlertController,
   IonBackButton,
@@ -97,12 +91,10 @@ export class UploadPage implements OnInit {
           header = 'Upload complete with errors';
           message = errorMessages.join(', ');
         }
-        this.#alertCtrl
-          .create({ header, message, buttons: ['OK'] })
-          .then((alertEl) => {
-            alertEl.present();
-            errorMessages = [];
-          });
+        this.#alertCtrl.create({ header, message, buttons: ['OK'] }).then((alertEl) => {
+          alertEl.present();
+          errorMessages = [];
+        });
       };
 
       this.theUploader.set(uploader);

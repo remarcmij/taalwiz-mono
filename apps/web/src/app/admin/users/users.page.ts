@@ -1,10 +1,5 @@
 import { DatePipe } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import {
   IonBackButton,
   IonButton,
@@ -69,7 +64,7 @@ export class UsersPage {
       this.users.set(
         users
           .filter((user) => !user.roles.includes('admin'))
-          .sort((a, b) => a.email.localeCompare(b.email))
+          .sort((a, b) => a.email.localeCompare(b.email)),
       );
     });
     this.#adminService.getGroups().subscribe((groups) => {
@@ -98,7 +93,7 @@ export class UsersPage {
       this.#adminService.updateUserGroups(user.id, data).subscribe((updated) => {
         if (updated) {
           this.users.update((users) =>
-            users.map((u) => (u.id === user.id ? { ...u, groups: data } : u))
+            users.map((u) => (u.id === user.id ? { ...u, groups: data } : u)),
           );
         }
       });

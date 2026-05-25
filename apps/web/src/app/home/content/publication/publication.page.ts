@@ -67,13 +67,11 @@ export class PublicationPage {
   });
 
   topics = computed(() =>
-    this.#topics().filter((topic) => topic.type === 'article' || topic.type === 'manifest')
+    this.#topics().filter((topic) => topic.type === 'article' || topic.type === 'manifest'),
   );
 
   publicationTitle = computed(
-    () =>
-      this.#topics().find((topic) => topic.type === 'manifest')?.title ||
-      'Publication'
+    () => this.#topics().find((topic) => topic.type === 'manifest')?.title || 'Publication',
   );
 
   cacheStatus = signal<CacheStatus>('idle');
@@ -90,9 +88,7 @@ export class PublicationPage {
     this.cacheStatus.set('caching');
     this.cachedCount.set(0);
 
-    const prefetches = articleTopics.map((t) =>
-      this.#contentService.prefetchArticle(t.filename)
-    );
+    const prefetches = articleTopics.map((t) => this.#contentService.prefetchArticle(t.filename));
 
     concat(...prefetches)
       .pipe(takeUntilDestroyed(this.#destroyRef))

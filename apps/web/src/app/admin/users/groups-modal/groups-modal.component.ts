@@ -50,7 +50,7 @@ export class GroupsModalComponent implements OnInit {
 
   toggle(group: string, checked: boolean) {
     this.selectedGroups.update((groups) =>
-      checked ? [...groups, group] : groups.filter((g) => g !== group)
+      checked ? [...groups, group] : groups.filter((g) => g !== group),
     );
   }
 

@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -27,11 +22,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
-import {
-  MIN_PASSWORD_LENGTH,
-  TOKEN_EXPIRED,
-  TOKEN_INVALID,
-} from '@repo/api-types';
+import { MIN_PASSWORD_LENGTH, TOKEN_EXPIRED, TOKEN_INVALID } from '@repo/api-types';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -95,7 +86,7 @@ export class ResetPasswordPage {
       .pipe(
         finalize(() => {
           loadingEl.dismiss();
-        })
+        }),
       )
       .subscribe({
         next: async () => {

@@ -34,7 +34,9 @@ export class VocabularyService {
   readonly bookmarkedKeys = signal<Set<string>>(new Set());
   readonly lists = signal<VocabularyList[]>([]);
   readonly currentListId = signal<string | null>(null);
-  readonly currentList = computed(() => this.lists().find((l) => l.id === this.currentListId()) ?? null);
+  readonly currentList = computed(
+    () => this.lists().find((l) => l.id === this.currentListId()) ?? null,
+  );
   readonly isEnabled = computed(() => !!this.#authService.user() && this.currentListId() !== null);
 
   constructor() {
@@ -76,7 +78,11 @@ export class VocabularyService {
       .post('/api/v1/vocabulary', { term, lang, listId, back })
       .pipe(
         catchError(() => {
-          this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
+          this.bookmarkedKeys.update((s) => {
+            const n = new Set(s);
+            n.delete(key);
+            return n;
+          });
           this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
           this.lists.set(listsSnapshot);
           return EMPTY;
@@ -235,9 +241,7 @@ export class VocabularyService {
 
   async #fetchLists(): Promise<VocabularyList[]> {
     return firstValueFrom(
-      this.#http
-        .get<VocabularyList[]>('/api/v1/vocabulary/lists')
-        .pipe(catchError(() => of([]))),
+      this.#http.get<VocabularyList[]>('/api/v1/vocabulary/lists').pipe(catchError(() => of([]))),
     );
   }
 
@@ -265,7 +269,11 @@ export class VocabularyService {
       .post('/api/v1/vocabulary', { term, lang, listId })
       .pipe(
         catchError(() => {
-          this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
+          this.bookmarkedKeys.update((s) => {
+            const n = new Set(s);
+            n.delete(key);
+            return n;
+          });
           this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
           this.lists.set(listsSnapshot);
           return EMPTY;
@@ -280,9 +288,15 @@ export class VocabularyService {
     const bookmarksSnapshot = this.bookmarks();
     const listsSnapshot = this.lists();
 
-    this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
+    this.bookmarkedKeys.update((s) => {
+      const n = new Set(s);
+      n.delete(key);
+      return n;
+    });
     this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
-    this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: Math.max(0, l.count - 1) } : l)));
+    this.lists.update((ls) =>
+      ls.map((l) => (l.id === listId ? { ...l, count: Math.max(0, l.count - 1) } : l)),
+    );
 
     this.#http
       .delete('/api/v1/vocabulary', { params: { term, lang, listId } })
