@@ -87,10 +87,8 @@ export class AppComponent implements OnInit, OnDestroy {
   #logger = inject(LoggerService);
   #translate = inject(TranslateService);
 
-  // Injected for its side effect only: Angular constructing the singleton starts
-  // the service worker update detection. The field is intentionally never read.
-  // ESLint is suppressed below; TypeScript diagnostic 6133 ("declared but its
-  // value is never read") will still appear — that is expected and harmless.
+  // Injected for its construction side effect (service worker update detection);
+  // intentionally never read.
   // eslint-disable-next-line no-unused-private-class-members
   #updateService = inject(PromptUpdateService);
 

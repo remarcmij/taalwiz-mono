@@ -36,7 +36,7 @@ const DEFAULT_OPTIONS = { pause: 0, volume: 1, rate: 0.8 };
 })
 export class SpeechSynthesizerService {
   voicesAvailable!: SpeechSynthesisVoice[];
-  private _hasSpoken = false; // needed for iOS
+  private _hasSpoken = false;
   isCancelling = false;
   speechSubscription?: Subscription;
   utterance: any;
