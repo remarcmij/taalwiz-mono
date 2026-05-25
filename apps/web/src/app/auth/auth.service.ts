@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -10,7 +10,6 @@ import {
   BehaviorSubject,
   Subject,
   catchError,
-  first,
   from,
   map,
   of,
@@ -18,6 +17,7 @@ import {
   takeUntil,
   tap,
 } from 'rxjs';
+
 
 import { toSignal } from '@angular/core/rxjs-interop';
 import { homeUrl } from '../home/home.routes';
@@ -128,28 +128,6 @@ export class AuthService implements OnDestroy {
         return of(null);
       }),
       takeUntil(this.#destroy$)
-    );
-  }
-
-  getRequestHeaders() {
-    return this.token.pipe(
-      first(),
-      switchMap((token) => {
-        if (!token) {
-          throw new Error('No access token available');
-        }
-        const headers = new HttpHeaders({ Authorization: 'Bearer ' + token });
-        return of(headers);
-      }),
-      catchError((error) => {
-        this.logger.error(
-          'AuthService',
-          'Request headers retrieval failed',
-          error
-        );
-        this.logout();
-        return of(new HttpHeaders());
-      })
     );
   }
 
