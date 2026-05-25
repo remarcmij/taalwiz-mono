@@ -29,6 +29,13 @@ export class ContentController {
   }
 
   @Roles('admin')
+  @Post('reprocess-hashtags')
+  async reprocessHashtags() {
+    await this.contentService.reprocessHashtags();
+    return { message: 'Hashtags reprocessed successfully' };
+  }
+
+  @Roles('admin')
   @Get('groups')
   findGroups() {
     return this.contentService.findGroups();

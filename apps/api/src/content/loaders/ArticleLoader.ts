@@ -33,7 +33,7 @@ interface ExtractHashtagResult {
   hashtags: ExtractedHashtag[];
 }
 
-const createHashtagRegExp = () => /\\?#([-\p{L}0-9]{2,})/gu;
+const createHashtagRegExp = () => /\\?#(?:\{([-\p{L}0-9 ]{2,})\}|([-\p{L}0-9]{2,}))/gu;
 
 function deterministicHashtagId(filename: string, tagname: string, occurrence: number): string {
   return crypto.createHash('sha256').update(`${filename}:${tagname}:${occurrence}`).digest('hex').slice(0, 24);
@@ -45,9 +45,9 @@ export function applyHashtagSpans(body: string, filename: string): string {
     .split('\n')
     .map((line) => {
       if (/^#/.test(line)) return line;
-      return line.replace(createHashtagRegExp(), (fullMatch, tagname: string) => {
+      return line.replace(createHashtagRegExp(), (fullMatch, bracedName: string | undefined, plainName: string | undefined) => {
         if (fullMatch.startsWith('\\')) return fullMatch;
-        tagname = tagname.toLowerCase().trim();
+        const tagname = (bracedName ?? plainName ?? '').toLowerCase().trim();
         const occ = occurrenceMap.get(tagname) ?? 0;
         occurrenceMap.set(tagname, occ + 1);
         return `<span id="_${deterministicHashtagId(filename, tagname, occ)}_" class="hashtag">#${tagname}</span>`;
@@ -210,6 +210,27 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     }
   }
 
+  async reprocessAllHashtags(): Promise<void> {
+    const articles = await Article.find().lean();
+    this.logger.log(`reprocessing hashtags for ${articles.length} article(s)`);
+    for (const stored of articles) {
+      await Hashtag.deleteMany({ _topic: stored._topic }).exec();
+      const articleDoc: ArticleDoc = {
+        filename: stored.filename,
+        groupName: stored.groupName,
+        targetLang: stored.targetLang ?? undefined,
+        title: stored.title,
+        mdText: stored.mdText,
+        hashtags: [],
+      };
+      const { hashtags } = await this.extractHashtags(stored.mdText, articleDoc);
+      if (hashtags.length > 0) {
+        const topicRef = { _id: stored._topic, groupName: stored.groupName } as TopicDoc;
+        await this.bulkLoadHashTags(hashtags, topicRef);
+      }
+    }
+  }
+
   private async reprocessGroupHashtags(manifestTopic: TopicDoc): Promise<void> {
     const articles = await Article.find({
       groupName: manifestTopic.groupName,
@@ -287,9 +308,9 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       if (/^#/.test(line)) {
         sectionHeader = line.replace(/^#+/, '').trim();
       } else {
-        line.replace(createHashtagRegExp(), (fullMatch, tagname: string) => {
+        line.replace(createHashtagRegExp(), (fullMatch, bracedName: string | undefined, plainName: string | undefined) => {
           if (fullMatch.startsWith('\\')) return fullMatch;
-          tagname = tagname.toLowerCase().trim();
+          const tagname = (bracedName ?? plainName ?? '').toLowerCase().trim();
           const occ = occurrenceMap.get(tagname) ?? 0;
           occurrenceMap.set(tagname, occ + 1);
           hashtags.push({

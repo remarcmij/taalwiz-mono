@@ -83,6 +83,15 @@ export class AdminService {
     );
   }
 
+  reprocessHashtags() {
+    return this.#authService.getRequestHeaders().pipe(
+      switchMap((headers) => {
+        if (!headers) return of(null);
+        return this.#http.post('/api/v1/content/reprocess-hashtags', {}, { headers });
+      })
+    );
+  }
+
   deleteTopic(filename: string) {
     return this.#authService.getRequestHeaders().pipe(
       switchMap((headers) => {

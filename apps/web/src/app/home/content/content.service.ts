@@ -62,7 +62,7 @@ export class ContentService {
       switchMap((headers) => {
         if (!headers) return of(false);
         return this.#http
-          .get<IArticle>(`/api/v1/content/article/${filename}`, { headers })
+          .get<IArticle>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`, { headers })
           .pipe(
             map(() => true),
             catchError(() => of(false))
@@ -78,7 +78,7 @@ export class ContentService {
           return of(null);
         }
         return this.#http
-          .get<IArticle>(`/api/v1/content/article/${filename}`, { headers })
+          .get<IArticle>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`, { headers })
           .pipe(catchError((error) => {
             this.#apiErrorAlertService.showNetworkError(error);
             return of(null);

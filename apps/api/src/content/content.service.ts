@@ -66,7 +66,8 @@ export class ContentService {
   }
 
   async findArticle(filename: string) {
-    const article = await Article.findOne({ filename }).select('-indexText').lean();
+    const normalizedFilename = filename.endsWith('.md') ? filename : `${filename}.md`;
+    const article = await Article.findOne({ filename: normalizedFilename }).select('-indexText').lean();
     if (!article) return null;
     const htmlText = await this.#getHtml(article.filename, article.mdText);
     const { mdText: _mdText, ...rest } = article;
@@ -130,6 +131,10 @@ export class ContentService {
         res.status(400).json({ message: message });
       }
     });
+  }
+
+  async reprocessHashtags(): Promise<void> {
+    return this.articleLoader.reprocessAllHashtags();
   }
 
   async deleteTopic(filename: string) {
