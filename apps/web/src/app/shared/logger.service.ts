@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable } from '@angular/core';
 
 // Log levels in increasing severity
@@ -29,30 +28,31 @@ export class LoggerService {
     return LEVELS.indexOf(level) >= this.minLevel;
   }
 
-  silly(label: string, ...args: any) {
+  silly(label: string, ...args: unknown[]) {
     this.log('silly', label, ...args);
   }
 
-  debug(label: string, ...args: any) {
+  debug(label: string, ...args: unknown[]) {
     this.log('debug', label, ...args);
   }
 
-  info(label: string, ...args: any) {
+  info(label: string, ...args: unknown[]) {
     this.log('info', label, ...args);
   }
 
-  warn(label: string, ...args: any) {
+  warn(label: string, ...args: unknown[]) {
     this.log('warn', label, ...args);
   }
 
-  error(label: string, ...args: any) {
+  error(label: string, ...args: unknown[]) {
     this.log('error', label, ...args);
   }
 
-  fatal(label: string, ...args: any) {
+  fatal(label: string, ...args: unknown[]) {
     this.log('fatal', label, ...args);
   }
-  private log(level: string, label: string, ...args: any) {
+
+  private log(level: string, label: string, ...args: unknown[]) {
     if (!this.isMinLevel(level)) {
       return;
     }
