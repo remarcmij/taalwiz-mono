@@ -65,8 +65,8 @@ export class UsersService {
     return await User.findById(id).exec();
   }
 
-  async updateLastAccessed(id: string): Promise<UserDoc | null> {
-    return await User.findByIdAndUpdate(id, { lastAccessed: new Date() }).exec();
+  async updateLastAccessed(id: string): Promise<void> {
+    await User.findByIdAndUpdate(id, { lastAccessed: new Date() }).exec();
   }
 
   async createUser(userData: Partial<UserDoc>): Promise<UserDoc> {
