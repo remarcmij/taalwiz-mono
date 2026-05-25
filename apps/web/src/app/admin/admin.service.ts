@@ -4,8 +4,7 @@ import {
   ActionSheetController,
   AlertController,
 } from '@ionic/angular/standalone';
-import { catchError, filter, Observable, of, switchMap } from 'rxjs';
-import { AuthService } from '../auth/auth.service';
+import { catchError, Observable, of } from 'rxjs';
 import { User } from '../auth/user.model';
 import { ApiErrorAlertService } from '../shared/api-error-alert.service';
 import { ISystemSettings } from './system-settings/system-settings.model';
@@ -17,15 +16,10 @@ export class AdminService {
   #http = inject(HttpClient);
   #actionSheetCtrl = inject(ActionSheetController);
   #alertCtrl = inject(AlertController);
-  #authService = inject(AuthService);
   #apiErrorAlertService = inject(ApiErrorAlertService);
 
   getGroups() {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) return of([]);
-        return this.#http.get<string[]>('/api/v1/content/groups', { headers });
-      }),
+    return this.#http.get<string[]>('/api/v1/content/groups').pipe(
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of([]);
@@ -34,22 +28,11 @@ export class AdminService {
   }
 
   updateUserGroups(id: string, groups: string[]) {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) return of(null);
-        return this.#http.patch<User>(`/api/v1/users/${id}/groups`, { groups }, { headers });
-      })
-    );
+    return this.#http.patch<User>(`/api/v1/users/${id}/groups`, { groups });
   }
 
   getUsers() {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) {
-          return of([]);
-        }
-        return this.#http.get<User[]>('/api/v1/users', { headers });
-      }),
+    return this.#http.get<User[]>('/api/v1/users').pipe(
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of([]);
@@ -58,49 +41,19 @@ export class AdminService {
   }
 
   deleteUser(id: string) {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) {
-          return of(null);
-        }
-        return this.#http.delete(`/api/v1/users/${id}`, { headers });
-      })
-    );
+    return this.#http.delete(`/api/v1/users/${id}`);
   }
 
   inviteNewUser(email: string, lang: string) {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) {
-          return of(null);
-        }
-        return this.#http.post(
-          `/api/v1/users/invite`,
-          { email, lang },
-          { headers }
-        );
-      })
-    );
+    return this.#http.post(`/api/v1/users/invite`, { email, lang });
   }
 
   reprocessHashtags() {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) return of(null);
-        return this.#http.post('/api/v1/content/reprocess-hashtags', {}, { headers });
-      })
-    );
+    return this.#http.post('/api/v1/content/reprocess-hashtags', {});
   }
 
   deleteTopic(filename: string) {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) {
-          return of(null);
-        }
-        return this.#http.delete(`/api/v1/content/${filename}`, { headers });
-      })
-    );
+    return this.#http.delete(`/api/v1/content/${filename}`);
   }
 
   async deleteConfirmed<T>(deleteObs: Observable<T>) {
@@ -146,13 +99,7 @@ export class AdminService {
   }
 
   getSettings(): Observable<ISystemSettings[]> {
-    return this.#authService.getRequestHeaders().pipe(
-      filter((headers) => !!headers),
-      switchMap((headers) =>
-        this.#http.get<ISystemSettings[]>('/api/v1/admin/settings', {
-          headers,
-        })
-      ),
+    return this.#http.get<ISystemSettings[]>('/api/v1/admin/settings').pipe(
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of([]);
@@ -161,17 +108,6 @@ export class AdminService {
   }
 
   updateSettings(settings: ISystemSettings[]) {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) {
-          return of(null);
-        }
-        return this.#http.patch(
-          '/api/v1/admin/settings',
-          { settings },
-          { headers }
-        );
-      })
-    );
+    return this.#http.patch('/api/v1/admin/settings', { settings });
   }
 }
