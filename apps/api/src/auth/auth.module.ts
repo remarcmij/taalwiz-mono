@@ -1,21 +1,23 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core/constants.js';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module.js';
+import { EnvDto } from '../util/env.dto.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
 import { AuthGuard } from './guards/auth.guard.js';
 import { RolesGuard } from './guards/role.guard.js';
-import { EnvDto } from '../util/env.dto.js';
-
-const env = EnvDto.getInstance();
 
 @Module({
   imports: [
     UsersModule,
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      secret: env.jwtSecret,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<EnvDto, true>) => ({
+        secret: config.get('JWT_SECRET'),
+      }),
     }),
   ],
   controllers: [AuthController],

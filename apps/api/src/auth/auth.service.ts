@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnApplicationBootstrap, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
@@ -7,14 +8,12 @@ import type { Language, Role } from '../users/models/user.model.js';
 import { UsersService } from '../users/users.service.js';
 import { EnvDto } from '../util/env.dto.js';
 import { UserSeedDto } from './dto/user-seed.dto.js';
-import { seedUsers } from './seed/users.seed.js';
+import { getSeedUsers } from './seed/users.seed.js';
 import type {
   AuthResponse,
   RefreshTokenResponse,
 } from './types/auth-response.interface.js';
 import { JwtPayload, JwtPayloadSchema } from './types/jwtpayload.interface.js';
-
-const env = EnvDto.getInstance();
 
 const ACCESS_TOKEN_EXPIRATION = 60 * 60; // 1 hour
 
@@ -25,10 +24,11 @@ export class AuthService implements OnApplicationBootstrap {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly config: ConfigService<EnvDto, true>,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
-    for (const seedUser of plainToInstance(UserSeedDto, seedUsers)) {
+    for (const seedUser of plainToInstance(UserSeedDto, getSeedUsers(this.config))) {
       const errors = await validate(seedUser);
       if (errors.length > 0) {
         this.logger.error(`Invalid seed user data: ${JSON.stringify(errors)}`);
@@ -88,7 +88,7 @@ export class AuthService implements OnApplicationBootstrap {
     try {
       decoded = JwtPayloadSchema.parse(
         await this.jwtService.verifyAsync(refreshToken, {
-          secret: env.jwtRefreshSecret,
+          secret: this.config.get('JWT_REFRESH_SECRET'),
         }),
       );
     } catch (err) {
@@ -115,7 +115,7 @@ export class AuthService implements OnApplicationBootstrap {
 
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: ACCESS_TOKEN_EXPIRATION,
-      secret: env.jwtSecret,
+      secret: this.config.get('JWT_SECRET'),
     });
 
     const expirationDate = new Date(Date.now() + ACCESS_TOKEN_EXPIRATION * 1000);
@@ -129,7 +129,7 @@ export class AuthService implements OnApplicationBootstrap {
 
     try {
       decoded = JwtPayloadSchema.parse(
-        this.jwtService.verify(token, { secret: env.jwtSecret }),
+        this.jwtService.verify(token, { secret: this.config.get('JWT_SECRET') }),
       );
     } catch (_) {
       this.logger.error('Invalid registration token');

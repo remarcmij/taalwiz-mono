@@ -6,6 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import type { AuthResponse } from '../auth/types/auth-response.interface.js';
@@ -13,9 +14,8 @@ import { JwtPayload, JwtPayloadSchema } from '../auth/types/jwtpayload.interface
 import { EnvDto } from '../util/env.dto.js';
 import User, { Language, Role, UserDoc } from './models/user.model.js';
 
-const env = EnvDto.getInstance();
-
 const REFRESH_TOKEN_EXPIRATION = 60 * 60 * 24 * 365; // 1 year
+
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -23,6 +23,7 @@ export class UsersService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
+    private readonly config: ConfigService<EnvDto, true>,
   ) {}
 
   async encryptPassword(password: string): Promise<string> {
@@ -41,7 +42,7 @@ export class UsersService {
 
     const token = await this.jwtService.signAsync(payload, {
       expiresIn: REFRESH_TOKEN_EXPIRATION,
-      secret: env.jwtRefreshSecret,
+      secret: this.config.get('JWT_REFRESH_SECRET'),
     });
 
     return { token, exp: expirationDate.getTime() };
@@ -85,7 +86,7 @@ export class UsersService {
     const token = this.jwtService.sign(
       { email, lang },
       {
-        secret: env.jwtSecret,
+        secret: this.config.get('JWT_SECRET'),
         expiresIn: '7d',
       },
     );
@@ -93,16 +94,16 @@ export class UsersService {
     const template = lang === 'nl' ? 'register.nl.hbs' : 'register.en.hbs';
 
     return await this.mailerService.sendMail({
-      from: env.smtpUser,
+      from: this.config.get('SMTP_USER'),
       to: email,
       subject: lang == 'nl' ? 'Registratie Code' : 'Registration Code',
       template,
       context: {
         email,
-        site_name: env.siteName,
-        activation_url: `${env.hostUrl}/auth/register?email=${email}&lang=${lang}&token=${token}`,
+        site_name: this.config.get('SITE_NAME'),
+        activation_url: `${this.config.get('HOST_URL')}/auth/register?email=${email}&lang=${lang}&token=${token}`,
         expiration_days: '7',
-        custodian_name: env.custodianName,
+        custodian_name: this.config.get('CUSTODIAN_NAME'),
       },
     });
   }
@@ -117,7 +118,7 @@ export class UsersService {
 
     try {
       decoded = JwtPayloadSchema.parse(
-        this.jwtService.verify(token, { secret: env.jwtSecret }),
+        this.jwtService.verify(token, { secret: this.config.get('JWT_SECRET') }),
       );
     } catch (_) {
       this.logger.error('Invalid registration token');
@@ -149,8 +150,8 @@ export class UsersService {
     const { token: refreshToken, exp } = await this.generateRefreshToken(user.toObject<UserDoc>());
 
     await this.mailerService.sendMail({
-      from: env.smtpUser,
-      to: env.custodianEmail,
+      from: this.config.get('SMTP_USER'),
+      to: this.config.get('CUSTODIAN_EMAIL'),
       subject: 'New User Registration',
       template: 'user-registered',
       context: {
@@ -183,15 +184,15 @@ export class UsersService {
 
     const payload: JwtPayload = { sub: user._id.toString(), email: user.email };
     const resetToken = this.jwtService.sign(payload, {
-      secret: env.jwtSecret,
+      secret: this.config.get('JWT_SECRET'),
       expiresIn: '1h',
     });
 
-    const resetLink = `${env.hostUrl}/auth/reset-password?email=${email}&token=${resetToken}`;
+    const resetLink = `${this.config.get('HOST_URL')}/auth/reset-password?email=${email}&token=${resetToken}`;
 
     // Send reset email
     await this.mailerService.sendMail({
-      from: env.smtpUser,
+      from: this.config.get('SMTP_USER'),
       to: user.email,
       subject: 'Password Reset',
       template: 'reset-password-request',
@@ -226,7 +227,7 @@ export class UsersService {
 
     try {
       decoded = JwtPayloadSchema.parse(
-        this.jwtService.verify(token, { secret: env.jwtSecret }),
+        this.jwtService.verify(token, { secret: this.config.get('JWT_SECRET') }),
       );
     } catch (err) {
       if (err instanceof Error && err.name === 'TokenExpiredError') {
@@ -257,8 +258,8 @@ export class UsersService {
 
   async contactRequest(email: string, message: string) {
     return await this.mailerService.sendMail({
-      from: env.smtpUser,
-      to: env.custodianEmail,
+      from: this.config.get('SMTP_USER'),
+      to: this.config.get('CUSTODIAN_EMAIL'),
       subject: 'Contact Form Submission',
       template: 'contact',
       context: {

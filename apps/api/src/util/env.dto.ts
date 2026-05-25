@@ -1,63 +1,64 @@
-import { IsEmail, IsNotEmpty, IsNumberString } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsNumberString, validateSync } from 'class-validator';
 
 export class EnvDto {
-  private static instance: EnvDto;
+  @IsNotEmpty()
+  NODE_ENV!: string;
 
   @IsNotEmpty()
-  nodeEnv = process.env.NODE_ENV!;
+  MONGO_URL!: string;
 
   @IsNotEmpty()
-  mongoUrl = process.env.MONGO_URL!;
+  SITE_NAME!: string;
 
   @IsNotEmpty()
-  siteName = process.env.SITE_NAME!;
+  HOST_URL!: string;
 
   @IsNotEmpty()
-  hostUrl = process.env.HOST_URL!;
-
-  @IsNotEmpty()
-  smtpHost = process.env.SMTP_HOST!;
+  SMTP_HOST!: string;
 
   @IsNotEmpty()
   @IsNumberString()
-  smtpPort = process.env.SMTP_PORT!;
+  SMTP_PORT!: string;
 
   @IsNotEmpty()
-  smtpUser = process.env.SMTP_USER!;
+  SMTP_USER!: string;
 
   @IsNotEmpty()
-  smtpPassword = process.env.SMTP_PASSWORD!;
+  SMTP_PASSWORD!: string;
 
   @IsEmail()
-  adminEmail = process.env.ADMIN_EMAIL!;
+  ADMIN_EMAIL!: string;
 
   @IsNotEmpty()
-  adminPassword = process.env.ADMIN_PASSWORD!;
+  ADMIN_PASSWORD!: string;
 
   @IsEmail()
-  demoEmail = process.env.DEMO_EMAIL!;
+  DEMO_EMAIL!: string;
 
   @IsNotEmpty()
-  demoPassword = process.env.DEMO_PASSWORD!;
+  DEMO_PASSWORD!: string;
 
   @IsNotEmpty()
-  custodianName = process.env.CUSTODIAN_NAME!;
+  CUSTODIAN_NAME!: string;
 
   @IsEmail()
-  custodianEmail = process.env.CUSTODIAN_EMAIL!;
+  CUSTODIAN_EMAIL!: string;
 
   @IsNotEmpty()
-  jwtSecret = process.env.JWT_SECRET!;
+  JWT_SECRET!: string;
 
   @IsNotEmpty()
-  jwtRefreshSecret = process.env.JWT_REFRESH_SECRET!;
+  JWT_REFRESH_SECRET!: string;
+}
 
-  private constructor() {}
-
-  static getInstance(): EnvDto {
-    if (!EnvDto.instance) {
-      EnvDto.instance = new EnvDto();
-    }
-    return EnvDto.instance;
+export function validateEnv(config: Record<string, unknown>): EnvDto {
+  const validated = plainToInstance(EnvDto, config, {
+    enableImplicitConversion: true,
+  });
+  const errors = validateSync(validated, { skipMissingProperties: false });
+  if (errors.length > 0) {
+    throw new Error(`Invalid environment variables:\n${errors.toString()}`);
   }
+  return validated;
 }

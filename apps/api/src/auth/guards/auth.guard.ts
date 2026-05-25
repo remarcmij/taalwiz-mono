@@ -1,17 +1,18 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core/services/index.js';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
+import { EnvDto } from '../../util/env.dto.js';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
 import { JwtPayloadSchema } from '../types/jwtpayload.interface.js';
-import { EnvDto } from '../../util/env.dto.js';
 
-const env = EnvDto.getInstance();
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
+    private config: ConfigService<EnvDto, true>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -20,7 +21,6 @@ export class AuthGuard implements CanActivate {
       context.getClass(),
     ]);
     if (isPublic) {
-      // 💡 See this condition
       return true;
     }
 
@@ -31,7 +31,9 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const payload = JwtPayloadSchema.parse(
-        await this.jwtService.verifyAsync(token, { secret: env.jwtSecret }),
+        await this.jwtService.verifyAsync(token, {
+          secret: this.config.get('JWT_SECRET'),
+        }),
       );
       request.user = payload;
     } catch {

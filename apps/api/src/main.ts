@@ -1,26 +1,21 @@
-import { validateSync } from 'class-validator';
 import 'dotenv/config';
 
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
 import { AppModule } from './app.module.js';
-import { EnvDto } from './util/env.dto.js';
+import type { EnvDto } from './util/env.dto.js';
 
 async function bootstrap() {
-  const env = EnvDto.getInstance();
-  const errors = validateSync(env, { skipMissingProperties: false });
-  if (errors.length > 0) {
-    console.error('❌  Invalid environment variables:', errors);
-    process.exit(1);
-  }
-
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const config = app.get(ConfigService<EnvDto, true>);
+
   app.enableCors();
 
-  if (env.nodeEnv === 'development') {
+  if (config.get('NODE_ENV') === 'development') {
     app.use(morgan('dev'));
   }
 
@@ -32,7 +27,7 @@ async function bootstrap() {
     }),
   );
 
-  await mongoose.connect(env.mongoUrl!, {
+  await mongoose.connect(config.get('MONGO_URL'), {
     dbName: 'taalwiz',
   });
 

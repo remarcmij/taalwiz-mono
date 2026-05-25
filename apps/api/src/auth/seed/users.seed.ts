@@ -1,23 +1,26 @@
+import type { ConfigService } from '@nestjs/config';
 import type { UserDoc } from '../../users/models/user.model.js';
-import { EnvDto } from '../../util/env.dto.js';
+import type { EnvDto } from '../../util/env.dto.js';
 
-const env = EnvDto.getInstance();
-
-export const seedUsers: Omit<UserDoc, '_id' | 'created' | 'lastAccessed'>[] = [
-  {
-    name: 'Admin',
-    email: env.adminEmail!,
-    password: env.adminPassword,
-    lang: 'en',
-    roles: ['admin', 'user'],
-    groups: [],
-  },
-  {
-    name: 'Demo User',
-    email: env.demoEmail!,
-    password: env.demoPassword,
-    lang: 'nl',
-    roles: ['demo'],
-    groups: [],
-  },
-];
+export function getSeedUsers(
+  config: ConfigService<EnvDto, true>,
+): Omit<UserDoc, '_id' | 'created' | 'lastAccessed'>[] {
+  return [
+    {
+      name: 'Admin',
+      email: config.get('ADMIN_EMAIL'),
+      password: config.get('ADMIN_PASSWORD'),
+      lang: 'en',
+      roles: ['admin', 'user'],
+      groups: [],
+    },
+    {
+      name: 'Demo User',
+      email: config.get('DEMO_EMAIL'),
+      password: config.get('DEMO_PASSWORD'),
+      lang: 'nl',
+      roles: ['demo'],
+      groups: [],
+    },
+  ];
+}
