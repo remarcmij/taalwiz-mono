@@ -58,60 +58,38 @@ export class ContentService {
   }
 
   prefetchArticle(filename: string): Observable<boolean> {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) return of(false);
-        return this.#http
-          .get<IArticle>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`, { headers })
-          .pipe(
-            map(() => true),
-            catchError(() => of(false))
-          );
-      })
-    );
+    return this.#http
+      .get<IArticle>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`)
+      .pipe(
+        map(() => true),
+        catchError(() => of(false))
+      );
   }
 
   fetchArticle(filename: string): Observable<IArticle | null> {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) {
+    return this.#http
+      .get<IArticle>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`)
+      .pipe(
+        catchError((error) => {
+          this.#apiErrorAlertService.showNetworkError(error);
           return of(null);
-        }
-        return this.#http
-          .get<IArticle>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`, { headers })
-          .pipe(catchError((error) => {
-            this.#apiErrorAlertService.showNetworkError(error);
-            return of(null);
-          }));
-      })
-    );
+        })
+      );
   }
 
   #fetchTopics(url: string): Observable<ITopic[]> {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) {
-          return of([]);
-        }
-        return this.#http
-          .get<ITopic[]>(url, { headers })
-          .pipe(catchError((error) => {
-            this.#apiErrorAlertService.showNetworkError(error);
-            return of([]);
-          }));
+    return this.#http.get<ITopic[]>(url).pipe(
+      catchError((error) => {
+        this.#apiErrorAlertService.showNetworkError(error);
+        return of([]);
       })
     );
   }
 
   #fetchManifest(): Observable<ContentManifestEntry[]> {
-    return this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) => {
-        if (!headers) return of([]);
-        return this.#http
-          .get<ContentManifestEntry[]>('/api/v1/content/manifest', { headers })
-          .pipe(catchError(() => of([])));
-      })
-    );
+    return this.#http
+      .get<ContentManifestEntry[]>('/api/v1/content/manifest')
+      .pipe(catchError(() => of([])));
   }
 
   #checkAndBust(manifest: ContentManifestEntry[]): void {
