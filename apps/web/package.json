@@ -33,6 +33,7 @@
     "@ionic/angular": "^8.0.0",
     "@ngx-translate/core": "^17.0.0",
     "@ngx-translate/http-loader": "^17.0.0",
+    "@repo/api-types": "workspace:*",
     "github-markdown-css": "^5.8.1",
     "idb": "^8.0.3",
     "ionicons": "^7.0.0",

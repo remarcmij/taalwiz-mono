@@ -8,6 +8,15 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import {
+  AUTH_FAILED,
+  DEMO_ACCOUNT,
+  EMAIL_EXISTS,
+  EMAIL_MISMATCH,
+  EMAIL_NOT_FOUND,
+  TOKEN_EXPIRED,
+  TOKEN_INVALID,
+} from '@repo/api-types';
 import bcrypt from 'bcrypt';
 import type { AuthResponse } from '../auth/types/auth-response.interface.js';
 import { JwtPayload, JwtPayloadSchema } from '../auth/types/jwtpayload.interface.js';
@@ -80,7 +89,7 @@ export class UsersService {
   async inviteNewUser(email: string, lang: string): Promise<UserDoc> {
     const existing = await User.findOne({ email });
     if (existing) {
-      throw new ForbiddenException('EMAIL_EXISTS');
+      throw new ForbiddenException(EMAIL_EXISTS);
     }
 
     const token = this.jwtService.sign(
@@ -122,18 +131,18 @@ export class UsersService {
       );
     } catch (_) {
       this.logger.error('Invalid registration token');
-      throw new ForbiddenException('TOKEN_INVALID');
+      throw new ForbiddenException(TOKEN_INVALID);
     }
 
     if (decoded.email !== email) {
       this.logger.error('Email mismatch during registration');
-      throw new ForbiddenException('EMAIL_MISMATCH');
+      throw new ForbiddenException(EMAIL_MISMATCH);
     }
 
     let user = await User.findOne({ email }).exec();
     if (user) {
       this.logger.error('Email already exists during registration');
-      throw new ForbiddenException('EMAIL_EXISTS');
+      throw new ForbiddenException(EMAIL_EXISTS);
     }
 
     const hashedPassword = await this.encryptPassword(password);
@@ -175,11 +184,11 @@ export class UsersService {
   async requestPasswordReset(email: string) {
     const user = await User.findOne({ email }).exec();
     if (!user) {
-      throw new NotFoundException('EMAIL_NOT_FOUND');
+      throw new NotFoundException(EMAIL_NOT_FOUND);
     }
 
     if (user.roles.includes('demo')) {
-      throw new ForbiddenException('DEMO_ACCOUNT');
+      throw new ForbiddenException(DEMO_ACCOUNT);
     }
 
     const payload: JwtPayload = { sub: user._id.toString(), email: user.email };
@@ -205,15 +214,15 @@ export class UsersService {
   async changePassword(email: string, password: string, newPassword: string) {
     const user = await User.findOne({ email }).exec();
     if (!user) {
-      throw new NotFoundException('EMAIL_NOT_FOUND');
+      throw new NotFoundException(EMAIL_NOT_FOUND);
     }
 
     if (!(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('AUTH_FAILED');
+      throw new UnauthorizedException(AUTH_FAILED);
     }
 
     if (user.roles.includes('demo')) {
-      throw new ForbiddenException('DEMO_ACCOUNT');
+      throw new ForbiddenException(DEMO_ACCOUNT);
     }
 
     // Update the password
@@ -232,23 +241,23 @@ export class UsersService {
     } catch (err) {
       if (err instanceof Error && err.name === 'TokenExpiredError') {
         this.logger.error('Password reset token expired');
-        throw new ForbiddenException('TOKEN_EXPIRED');
+        throw new ForbiddenException(TOKEN_EXPIRED);
       }
       this.logger.error('Invalid password reset token');
-      throw new ForbiddenException('TOKEN_INVALID');
+      throw new ForbiddenException(TOKEN_INVALID);
     }
 
     const user = await User.findById(decoded.sub).exec();
     if (!user) {
-      throw new NotFoundException('EMAIL_NOT_FOUND');
+      throw new NotFoundException(EMAIL_NOT_FOUND);
     }
 
     if (user.email !== decoded.email) {
-      throw new ForbiddenException('EMAIL_MISMATCH');
+      throw new ForbiddenException(EMAIL_MISMATCH);
     }
 
     if (user.roles.includes('demo')) {
-      throw new ForbiddenException('DEMO_ACCOUNT');
+      throw new ForbiddenException(DEMO_ACCOUNT);
     }
 
     const hashedPassword = await this.encryptPassword(newPassword);

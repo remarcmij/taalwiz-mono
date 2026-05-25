@@ -28,7 +28,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { TranslatePipe } from '@ngx-translate/core';
-import { EMAIL_EXISTS } from '../../../server/shared/shared';
+import { EMAIL_EXISTS } from '@repo/api-types';
 import { ApiErrorAlertService } from '../../../shared/api-error-alert.service';
 import { BackButtonComponent } from '../../../shared/back-button/back-button.component';
 import { LoggerService } from '../../../shared/logger.service';

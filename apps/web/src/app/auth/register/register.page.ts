@@ -33,7 +33,7 @@ import {
   EMAIL_MISMATCH,
   MIN_PASSWORD_LENGTH,
   TOKEN_INVALID,
-} from '../../server/shared/shared';
+} from '@repo/api-types';
 import { AuthService } from '../auth.service';
 
 @Component({

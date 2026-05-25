@@ -34,7 +34,7 @@ import {
   DEMO_ACCOUNT,
   EMAIL_NOT_FOUND,
   MIN_PASSWORD_LENGTH,
-} from '../../server/shared/shared';
+} from '@repo/api-types';
 import { BackButtonComponent } from '../../shared/back-button/back-button.component';
 import { LoggerService } from '../../shared/logger.service';
 import { AuthService } from '../auth.service';

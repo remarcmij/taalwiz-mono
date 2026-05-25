@@ -31,7 +31,7 @@ import {
   MIN_PASSWORD_LENGTH,
   TOKEN_EXPIRED,
   TOKEN_INVALID,
-} from '../../server/shared/shared';
+} from '@repo/api-types';
 import { AuthService } from '../auth.service';
 
 @Component({

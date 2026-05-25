@@ -28,7 +28,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
-import { EMAIL_NOT_FOUND } from '../../server/shared/shared';
+import { EMAIL_NOT_FOUND } from '@repo/api-types';
 import { AuthService } from '../auth.service';
 
 @Component({

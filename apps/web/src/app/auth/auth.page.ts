@@ -27,7 +27,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { finalize } from 'rxjs';
 import { homeUrl } from '../home/home.routes';
-import { AUTH_FAILED, MIN_PASSWORD_LENGTH } from '../server/shared/shared';
+import { AUTH_FAILED, MIN_PASSWORD_LENGTH } from '@repo/api-types';
 import { AuthService } from './auth.service';
 
 @Component({
