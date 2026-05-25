@@ -348,8 +348,9 @@ sequenceDiagram
     participant API
 
     Component->>Service: fetchX()
-    Service->>authInterceptor: HttpRequest (with Bearer token)
-    authInterceptor->>API: request
+    Service->>authInterceptor: HttpRequest (plain)
+    authInterceptor->>authInterceptor: fetch token via AuthService.token
+    authInterceptor->>API: request + Authorization: Bearer <token>
     API-->>authInterceptor: 200 OK
     authInterceptor-->>Service: response
     Service-->>Component: data
@@ -362,9 +363,9 @@ sequenceDiagram
     authInterceptor-->>Service: response
 ```
 
-- All services call `authService.getRequestHeaders()` to attach `Authorization: Bearer <token>`. This is the sole API for obtaining an auth header — there is no secondary property equivalent.
-- The `authInterceptor` handles 401s transparently: it invalidates the current token, calls the refresh endpoint, and retries the original request — or forces logout if refresh fails.
-- Auth endpoints (`/api/v1/auth/*`) are excluded from the retry loop to prevent infinite recursion.
+- The `authInterceptor` is the sole place that attaches `Authorization: Bearer <token>` to outgoing requests. Services and pages call `HttpClient` directly with no awareness of auth headers.
+- Header attachment is scoped to `/api/v1/` URLs. Auth endpoints (`/api/v1/auth/*`) are skipped entirely — they're public, and routing `/auth/refresh` back through the interceptor would recurse via the token getter. Non-API traffic (i18n files, static assets) is also skipped.
+- On a 401 the interceptor invalidates the current token, calls the refresh endpoint, and retries the original request once. If refresh fails the user is logged out.
 - API base paths: `/api/v1/` (all API endpoints, including admin), `/assets/` (static dict/content files). Admin-only routes sit under `/api/v1/admin/` and additionally require the `admin` role.
 
 ---
