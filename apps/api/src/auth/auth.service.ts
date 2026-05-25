@@ -72,7 +72,7 @@ export class AuthService implements OnApplicationBootstrap {
     const { token, exp } = await this.usersService.generateRefreshToken(user);
 
     return {
-      id: user._id!.toString(),
+      id: user._id.toString(),
       email: user.email,
       name: user.name,
       lang: user.lang as Language,
@@ -107,7 +107,7 @@ export class AuthService implements OnApplicationBootstrap {
     await this.usersService.updateLastAccessed(decoded.sub);
 
     const payload: JwtPayload = {
-      sub: user._id!.toString(),
+      sub: user._id.toString(),
       email: user.email,
       roles: user.roles,
       groups: user.groups as string[],

@@ -28,7 +28,7 @@ export class UsersController {
     const users = await this.usersService.getUsers();
     return users
       .filter((u) => u.email)
-      .map((u) => ({ ...u, id: u._id!.toString(), groups: u.groups ?? [] }));
+      .map((u) => ({ ...u, id: u._id.toString(), groups: u.groups ?? [] }));
   }
 
   @Roles('admin')

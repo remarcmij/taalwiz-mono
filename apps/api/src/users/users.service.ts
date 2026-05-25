@@ -41,7 +41,7 @@ export class UsersService {
 
   async generateRefreshToken(user: UserDoc): Promise<{ token: string; exp: number }> {
     const payload: JwtPayload = {
-      sub: user._id!.toString(),
+      sub: user._id.toString(),
       email: user.email,
       roles: user.roles,
       groups: user.groups as string[],
@@ -170,7 +170,7 @@ export class UsersService {
     });
 
     return {
-      id: user._id!.toString(),
+      id: user._id.toString(),
       email: user.email,
       name: user.name,
       roles: user.roles as Role[],
