@@ -278,17 +278,17 @@ Automated tests are located in `indonesian-stemmer.spec.ts` and cover 57 test ca
 
 #### Running the Tests
 
-Run the Karma/Jasmine test suite for the Angular app:
+Run the Vitest test suite for the Angular app:
 
 ```bash
-# One-time run (headless)
-pnpm --filter web run test --watch=false --browsers=ChromeHeadless
+# One-time run
+pnpm --filter web run test
 
 # Or with watch mode for development
-pnpm --filter web run test
+pnpm --filter web run test:watch
 ```
 
-All 57 tests should pass. The test file uses a helper function `variations(word)` to generate stemmer output and validates the results with `.toEqual()` and `.toContain()` assertions.
+All 59 tests should pass. The test file uses a helper function `variations(word)` to generate stemmer output and validates the results with `.toEqual()` and `.toContain()` assertions.
 
 #### Manual Verification
 

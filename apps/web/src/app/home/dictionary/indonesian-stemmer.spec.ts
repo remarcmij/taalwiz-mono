@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it } from 'vitest';
 import { IndonesianStemmer } from './indonesian-stemmer';
 
 describe('IndonesianStemmer', () => {

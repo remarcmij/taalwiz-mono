@@ -35,7 +35,8 @@ pnpm --filter api run test:e2e           # E2E tests (test/vitest.config.ts)
 ```bash
 pnpm --filter web run dev      # Dev server (ng serve, port 4200)
 pnpm --filter web run build    # Production build (ng build)
-pnpm --filter web run test     # Karma/Jasmine tests
+pnpm --filter web run test     # Vitest (single run)
+pnpm --filter web run test:watch  # Vitest watch mode
 pnpm --filter web run lint     # Angular lint
 ```
 
@@ -63,7 +64,7 @@ All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `ne
 ### Testing Strategy
 
 - **API**: Vitest with globals (test files: `*.spec.ts` in `src/`)
-- **Web**: Karma + Jasmine (test files: `*.spec.ts`)
+- **Web**: Vitest (test files: `*.spec.ts` in `src/`). Pure-logic only — no Angular component/DOM tests yet.
 - **Compiler**: Vitest (test files: `src/__tests__/**/*.test.ts`)
 
 ## Security
