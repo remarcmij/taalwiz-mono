@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { Public } from '../auth/decorators/public.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
-import { RegisterDto } from '../auth/dto/register.dt.js';
+import { RegisterDto } from './dto/register.dto.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { ContactRequestDto } from './dto/contact-request.dto.js';
 import { EmailLangDto } from './dto/email-lang.dto.js';
