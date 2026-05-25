@@ -54,4 +54,4 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular({ useSetInputAPI: true }),
     provideZonelessChangeDetection(),
   ],
-}).catch((err) => console.log(err));
+}).catch((err) => console.error(err));

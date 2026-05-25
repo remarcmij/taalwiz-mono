@@ -112,7 +112,6 @@ export class ChangePasswordPage {
           this.#router.navigateByUrl(homeUrl, { replaceUrl: true });
         },
         error: (errResp) => {
-          console.error('ChangePasswordPage', errResp);
           this.#logger.error('ChangePasswordPage', errResp.error.message);
           let messageKey: string;
           switch (errResp.error.message) {

@@ -77,7 +77,6 @@ export class RegisterPage implements OnInit {
 
   ngOnInit() {
     this.#route.queryParamMap.subscribe((params) => {
-      console.log('params', params);
       this.#token = params.get('token') || '';
       this.#lang = params.get('lang') || '';
       this.email.set(params.get('email') || '');
