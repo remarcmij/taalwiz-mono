@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { CompiledDict, DictStoreService, transformDict } from './dict-store.service';
 import { ILemma } from './lemma/lemma.model';
@@ -14,10 +14,10 @@ interface DictManifest {
 export class DictSyncService {
   readonly status$ = new BehaviorSubject<SyncStatus>('idle');
 
-  constructor(private dictStore: DictStoreService) {}
+  #dictStore = inject(DictStoreService);
 
   async init(): Promise<void> {
-    await this.dictStore.open();
+    await this.#dictStore.open();
     await this.syncIfNeeded();
   }
 
@@ -42,7 +42,7 @@ export class DictSyncService {
       return;
     }
 
-    const storedVersion = await this.dictStore.getStoredVersion();
+    const storedVersion = await this.#dictStore.getStoredVersion();
     if (storedVersion === manifest.version) {
       this.status$.next('done');
       return;
@@ -51,15 +51,15 @@ export class DictSyncService {
     this.status$.next('syncing');
 
     try {
-      const allLemmas = await this.fetchAndTransformFiles(manifest.files);
-      await this.dictStore.replaceAll(allLemmas, manifest.version);
+      const allLemmas = await this.#fetchAndTransformFiles(manifest.files);
+      await this.#dictStore.replaceAll(allLemmas, manifest.version);
       this.status$.next('done');
     } catch {
       this.status$.next('error');
     }
   }
 
-  private async fetchAndTransformFiles(files: string[]): Promise<ILemma[]> {
+  async #fetchAndTransformFiles(files: string[]): Promise<ILemma[]> {
     const results = await Promise.all(
       files.map(async (filename) => {
         const response = await fetch('/assets/' + filename);

@@ -11,8 +11,8 @@ const removeAccents = (str: string) => str.normalize('NFD').replace(/[\u0300-\u0
   providedIn: 'root',
 })
 export class WordClickModalService {
-  private readonly dictionaryService = inject(DictionaryService);
-  private readonly modalCtrl = inject(ModalController);
+  #dictionaryService = inject(DictionaryService);
+  #modalCtrl = inject(ModalController);
 
   onClicked(event: MouseEvent) {
     event.preventDefault();
@@ -31,7 +31,7 @@ export class WordClickModalService {
           const { word, lang, lemmas } = response;
           const bases = new Set(lemmas.map((lemma) => lemma.baseWord));
 
-          this.modalCtrl
+          this.#modalCtrl
             .create({
               component: WordClickModalComponent,
               componentProps: {
@@ -61,16 +61,16 @@ export class WordClickModalService {
   }
 
   fetchLemmas(word: string, lang: string) {
-    return this.dictionaryService.fetchWordLemmas(word, lang);
+    return this.#dictionaryService.fetchWordLemmas(word, lang);
   }
 
   getWordClickParams(target: HTMLElement): WordLang | null {
     let word = target.innerText.trim();
-    word = this.cleanseTerm(word);
+    word = this.#cleanseTerm(word);
     return new WordLang(word, langConfig.targetLang);
   }
 
-  private cleanseTerm(term: string): string {
+  #cleanseTerm(term: string): string {
     const match = term.match(/[-'()a-zA-Z\u00C0-\u00FF]{2,}/g);
     if (match) {
       term = match[0];

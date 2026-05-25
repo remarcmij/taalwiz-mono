@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Preferences } from '@capacitor/preferences';
@@ -52,21 +52,21 @@ class TokenData {
   providedIn: 'root',
 })
 export class AuthService implements OnDestroy {
+  #http = inject(HttpClient);
+  #router = inject(Router);
+  #translate = inject(TranslateService);
+  #logger = inject(LoggerService);
+
   #user$ = new BehaviorSubject<User | null>(null);
   #user = toSignal(this.#user$, { initialValue: null });
   #tokenData$ = new BehaviorSubject<TokenData | null>(null);
   #destroy$ = new Subject<void>();
 
-  constructor(
-    private http: HttpClient,
-    private router: Router,
-    private translate: TranslateService,
-    private logger: LoggerService,
-  ) {
+  constructor() {
     this.#user$.subscribe((user) => {
       if (user) {
-        this.translate.use(user.lang);
-        logger.debug(
+        this.#translate.use(user.lang);
+        this.#logger.debug(
           'AuthService',
           `user ${user.email} logged in as ${user.roles} using language ${user.lang}.`,
         );
@@ -104,7 +104,7 @@ export class AuthService implements OnDestroy {
               // There is no refresh token, so we can't get a new token.
               return of(null);
             }
-            return this.http.post<TokenResponseData>('/api/v1/auth/refresh', { refreshToken }).pipe(
+            return this.#http.post<TokenResponseData>('/api/v1/auth/refresh', { refreshToken }).pipe(
               switchMap((tokenData) => {
                 // Add a safety margin to allow for backend latency.
                 const newTokenData = new TokenData(
@@ -112,7 +112,7 @@ export class AuthService implements OnDestroy {
                   +tokenData.exp - LATENCY_MARGIN,
                 );
                 this.#tokenData$.next(newTokenData);
-                this.logger.debug('AuthService', 'token refreshed');
+                this.#logger.debug('AuthService', 'token refreshed');
                 return of(tokenData.token);
               }),
             );
@@ -120,7 +120,7 @@ export class AuthService implements OnDestroy {
         );
       }),
       catchError((error) => {
-        this.logger.error('AuthService', 'Token retrieval failed', error);
+        this.#logger.error('AuthService', 'Token retrieval failed', error);
         this.logout();
         return of(null);
       }),
@@ -134,7 +134,7 @@ export class AuthService implements OnDestroy {
       map((value) => {
         if (value && value.value) {
           lastUrl = value.value;
-          this.logger.debug('AuthService', `lastUrl: ${lastUrl}`);
+          this.#logger.debug('AuthService', `lastUrl: ${lastUrl}`);
         }
       }),
       switchMap(() => from(Preferences.get({ key: 'authData' }))),
@@ -162,7 +162,7 @@ export class AuthService implements OnDestroy {
       tap((user) => {
         if (user) {
           this.#user$.next(user);
-          this.router.navigateByUrl(lastUrl);
+          this.#router.navigateByUrl(lastUrl);
         }
       }),
       map((user) => {
@@ -184,27 +184,27 @@ export class AuthService implements OnDestroy {
   }
 
   register(email: string, password: string, name: string, token: string) {
-    return this.http
+    return this.#http
       .post<AuthResponseData>('/api/v1/users/register', {
         email,
         password,
         name,
         token,
       })
-      .pipe(tap(this.setUserData.bind(this)));
+      .pipe(tap(this.#setUserData.bind(this)));
   }
 
   login(email: string, password: string) {
-    return this.http
+    return this.#http
       .post<AuthResponseData>('/api/v1/auth/login', {
         email,
         password,
       })
-      .pipe(tap(this.setUserData.bind(this)));
+      .pipe(tap(this.#setUserData.bind(this)));
   }
 
   changePassword(email: string, password: string, newPassword: string) {
-    return this.http.post('/api/v1/users/change-password', {
+    return this.#http.post('/api/v1/users/change-password', {
       email,
       password,
       newPassword,
@@ -212,11 +212,11 @@ export class AuthService implements OnDestroy {
   }
 
   requestPasswordReset(email: string) {
-    return this.http.post('/api/v1/users/request-password-reset', { email });
+    return this.#http.post('/api/v1/users/request-password-reset', { email });
   }
 
   resetPassword(newPassword: string, token: string) {
-    return this.http.post('/api/v1/users/reset-password', {
+    return this.#http.post('/api/v1/users/reset-password', {
       newPassword,
       token,
     });
@@ -226,14 +226,14 @@ export class AuthService implements OnDestroy {
     this.#user$.next(null);
     this.#tokenData$.next(null);
     Preferences.remove({ key: 'authData' });
-    this.router.navigateByUrl('/auth');
+    this.#router.navigateByUrl('/auth');
   }
 
   invalidateToken(): void {
     this.#tokenData$.next(null);
   }
 
-  private setUserData(userData: AuthResponseData) {
+  #setUserData(userData: AuthResponseData) {
     const refreshExp = +userData.refreshExp - LATENCY_MARGIN;
     const user = new User(
       userData.id,
@@ -248,7 +248,7 @@ export class AuthService implements OnDestroy {
 
     this.#user$.next(user);
 
-    this.storeAuthData(
+    this.#storeAuthData(
       userData.id,
       userData.email,
       userData.name,
@@ -259,7 +259,7 @@ export class AuthService implements OnDestroy {
     );
   }
 
-  private async storeAuthData(
+  async #storeAuthData(
     id: string,
     email: string,
     name: string,
