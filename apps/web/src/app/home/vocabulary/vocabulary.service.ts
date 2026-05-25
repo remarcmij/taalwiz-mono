@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
-import { EMPTY, catchError, firstValueFrom, map, of, switchMap, take } from 'rxjs';
+import { EMPTY, catchError, firstValueFrom, map, of } from 'rxjs';
 import { langConfig } from '../../app.constants';
 import { AuthService } from '../../auth/auth.service';
 import { StudyService } from '../study/study.service';
@@ -72,20 +72,17 @@ export class VocabularyService {
     this.bookmarks.update((bs) => [entry, ...bs]);
     this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: l.count + 1 } : l)));
 
-    this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) =>
-        headers.get('Authorization')
-          ? this.#http.post('/api/v1/vocabulary', { term, lang, listId, back }, { headers })
-          : EMPTY,
-      ),
-      catchError(() => {
-        this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
-        this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
-        this.lists.set(listsSnapshot);
-        return EMPTY;
-      }),
-      take(1),
-    ).subscribe(() => void this.#studyService.refreshStats());
+    this.#http
+      .post('/api/v1/vocabulary', { term, lang, listId, back })
+      .pipe(
+        catchError(() => {
+          this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
+          this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
+          this.lists.set(listsSnapshot);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => void this.#studyService.refreshStats());
   }
 
   updateBack(term: string, lang: string, back: string): void {
@@ -97,31 +94,26 @@ export class VocabularyService {
       bs.map((b) => (b.term === term && b.lang === lang ? { ...b, back: back || undefined } : b)),
     );
 
-    this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) =>
-        headers.get('Authorization')
-          ? this.#http.post('/api/v1/vocabulary', { term, lang, listId, back }, { headers })
-          : EMPTY,
-      ),
-      catchError(() => {
-        this.bookmarks.set(snapshot);
-        return EMPTY;
-      }),
-      take(1),
-    ).subscribe();
+    this.#http
+      .post('/api/v1/vocabulary', { term, lang, listId, back })
+      .pipe(
+        catchError(() => {
+          this.bookmarks.set(snapshot);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   async addEntries(entries: { term: string; back?: string }[]): Promise<number> {
     const listId = this.currentListId();
     if (!listId) return 0;
     const lang = langConfig.targetLang;
-    const headers = await firstValueFrom(this.#authService.getRequestHeaders());
-    if (!headers.get('Authorization')) return 0;
 
     const results = await Promise.all(
       entries.map(({ term, back }) =>
         firstValueFrom(
-          this.#http.post('/api/v1/vocabulary', { term, lang, listId, back }, { headers }).pipe(
+          this.#http.post('/api/v1/vocabulary', { term, lang, listId, back }).pipe(
             map(() => true),
             catchError(() => of(false)),
           ),
@@ -145,20 +137,15 @@ export class VocabularyService {
   }
 
   createList(name: string): void {
-    this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) =>
-        headers.get('Authorization')
-          ? this.#http.post<VocabularyList>('/api/v1/vocabulary/lists', { name }, { headers })
-          : EMPTY,
-      ),
-      catchError(() => EMPTY),
-      take(1),
-    ).subscribe((list) => {
-      this.lists.update((ls) => [...ls, list]);
-      if (this.currentListId() === null) {
-        this.setCurrentList(list.id);
-      }
-    });
+    this.#http
+      .post<VocabularyList>('/api/v1/vocabulary/lists', { name })
+      .pipe(catchError(() => EMPTY))
+      .subscribe((list) => {
+        this.lists.update((ls) => [...ls, list]);
+        if (this.currentListId() === null) {
+          this.setCurrentList(list.id);
+        }
+      });
   }
 
   deleteList(id: string): void {
@@ -180,36 +167,30 @@ export class VocabularyService {
       }
     }
 
-    this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) =>
-        headers.get('Authorization')
-          ? this.#http.delete(`/api/v1/vocabulary/lists/${id}`, { headers })
-          : EMPTY,
-      ),
-      catchError(() => {
-        this.lists.set(snapshot);
-        return EMPTY;
-      }),
-      take(1),
-    ).subscribe();
+    this.#http
+      .delete(`/api/v1/vocabulary/lists/${id}`)
+      .pipe(
+        catchError(() => {
+          this.lists.set(snapshot);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   renameList(id: string, newName: string): void {
     const snapshot = this.lists();
     this.lists.update((ls) => ls.map((l) => (l.id === id ? { ...l, name: newName } : l)));
 
-    this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) =>
-        headers.get('Authorization')
-          ? this.#http.patch(`/api/v1/vocabulary/lists/${id}`, { name: newName }, { headers })
-          : EMPTY,
-      ),
-      catchError(() => {
-        this.lists.set(snapshot);
-        return EMPTY;
-      }),
-      take(1),
-    ).subscribe();
+    this.#http
+      .patch(`/api/v1/vocabulary/lists/${id}`, { name: newName })
+      .pipe(
+        catchError(() => {
+          this.lists.set(snapshot);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   async #initLists(): Promise<void> {
@@ -238,52 +219,36 @@ export class VocabularyService {
   }
 
   async #fetchServerPrefs(): Promise<string | null> {
-    const headers = await firstValueFrom(this.#authService.getRequestHeaders());
-    if (!headers.get('Authorization')) return null;
     return firstValueFrom(
       this.#http
-        .get<{ currentVocabularyListId: string | null }>('/api/v1/user-preferences', { headers })
-        .pipe(
-          catchError(() => of({ currentVocabularyListId: null })),
-        ),
+        .get<{ currentVocabularyListId: string | null }>('/api/v1/user-preferences')
+        .pipe(catchError(() => of({ currentVocabularyListId: null }))),
     ).then((p) => p.currentVocabularyListId);
   }
 
   #syncServerPrefs(listId: string): void {
-    this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) =>
-        headers.get('Authorization')
-          ? this.#http.patch('/api/v1/user-preferences', { currentVocabularyListId: listId }, { headers })
-          : EMPTY,
-      ),
-      catchError(() => EMPTY),
-      take(1),
-    ).subscribe();
+    this.#http
+      .patch('/api/v1/user-preferences', { currentVocabularyListId: listId })
+      .pipe(catchError(() => EMPTY))
+      .subscribe();
   }
 
   async #fetchLists(): Promise<VocabularyList[]> {
-    const headers = await firstValueFrom(this.#authService.getRequestHeaders());
-    if (!headers.get('Authorization')) return [];
     return firstValueFrom(
-      this.#http.get<VocabularyList[]>('/api/v1/vocabulary/lists', { headers }).pipe(
-        catchError(() => of([])),
-      ),
+      this.#http
+        .get<VocabularyList[]>('/api/v1/vocabulary/lists')
+        .pipe(catchError(() => of([]))),
     );
   }
 
   #loadItems(listId: string): void {
-    this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) =>
-        headers.get('Authorization')
-          ? this.#http.get<VocabularyEntry[]>('/api/v1/vocabulary', { headers, params: { listId } })
-          : EMPTY,
-      ),
-      catchError(() => EMPTY),
-      take(1),
-    ).subscribe((entries) => {
-      this.bookmarks.set(entries);
-      this.bookmarkedKeys.set(new Set(entries.map((e) => `${e.term}:${e.lang}`)));
-    });
+    this.#http
+      .get<VocabularyEntry[]>('/api/v1/vocabulary', { params: { listId } })
+      .pipe(catchError(() => EMPTY))
+      .subscribe((entries) => {
+        this.bookmarks.set(entries);
+        this.bookmarkedKeys.set(new Set(entries.map((e) => `${e.term}:${e.lang}`)));
+      });
   }
 
   #add(term: string, lang: string): void {
@@ -296,20 +261,17 @@ export class VocabularyService {
     this.bookmarks.update((bs) => [entry, ...bs]);
     this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: l.count + 1 } : l)));
 
-    this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) =>
-        headers.get('Authorization')
-          ? this.#http.post('/api/v1/vocabulary', { term, lang, listId }, { headers })
-          : EMPTY,
-      ),
-      catchError(() => {
-        this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
-        this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
-        this.lists.set(listsSnapshot);
-        return EMPTY;
-      }),
-      take(1),
-    ).subscribe(() => void this.#studyService.refreshStats());
+    this.#http
+      .post('/api/v1/vocabulary', { term, lang, listId })
+      .pipe(
+        catchError(() => {
+          this.bookmarkedKeys.update((s) => { const n = new Set(s); n.delete(key); return n; });
+          this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
+          this.lists.set(listsSnapshot);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => void this.#studyService.refreshStats());
   }
 
   #remove(term: string, lang: string): void {
@@ -322,19 +284,16 @@ export class VocabularyService {
     this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
     this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: Math.max(0, l.count - 1) } : l)));
 
-    this.#authService.getRequestHeaders().pipe(
-      switchMap((headers) =>
-        headers.get('Authorization')
-          ? this.#http.delete('/api/v1/vocabulary', { headers, params: { term, lang, listId } })
-          : EMPTY,
-      ),
-      catchError(() => {
-        this.bookmarkedKeys.update((s) => new Set([...s, key]));
-        this.bookmarks.set(bookmarksSnapshot);
-        this.lists.set(listsSnapshot);
-        return EMPTY;
-      }),
-      take(1),
-    ).subscribe(() => void this.#studyService.refreshStats());
+    this.#http
+      .delete('/api/v1/vocabulary', { params: { term, lang, listId } })
+      .pipe(
+        catchError(() => {
+          this.bookmarkedKeys.update((s) => new Set([...s, key]));
+          this.bookmarks.set(bookmarksSnapshot);
+          this.lists.set(listsSnapshot);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => void this.#studyService.refreshStats());
   }
 }
