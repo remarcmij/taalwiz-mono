@@ -18,11 +18,10 @@ import {
 } from '@ionic/angular/standalone';
 
 import { TranslateService } from '@ngx-translate/core';
-import { first, switchMap, tap } from 'rxjs';
+import { first, switchMap } from 'rxjs';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../auth/auth.service';
-import { User } from '../../auth/user.model';
 import { homeUrl } from '../../home/home.routes';
 import { BackButtonComponent } from '../../shared/back-button/back-button.component';
 
@@ -66,25 +65,18 @@ export class ContactPage {
     });
     loadingEl.present();
 
-    let user: User;
-
     this.#authService.user$
       .pipe(
         first(),
-        tap((usr) => {
-          if (!usr) {
+        switchMap((user) => {
+          if (!user) {
             throw new Error('User not found');
           }
-          user = usr;
+          return this.#http.post('/api/v1/users/contact', {
+            message,
+            email: user.email,
+          });
         }),
-        switchMap(() => this.#authService.getRequestHeaders()),
-        switchMap((headers) => {
-          return this.#http.post(
-            '/api/v1/users/contact',
-            { message, email: user.email },
-            { headers }
-          );
-        })
       )
       .subscribe({
         next: () => {
