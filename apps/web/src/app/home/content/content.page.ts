@@ -19,6 +19,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { TranslatePipe } from '@ngx-translate/core';
+import { Subject, switchMap } from 'rxjs';
 import { ContentService } from './content.service';
 
 @Component({
@@ -49,14 +50,15 @@ import { ContentService } from './content.service';
 export class ContentPage {
   #contentService = inject(ContentService);
 
-  topics$ = this.#contentService.fetchPublications();
+  #refresh$ = new Subject<void>();
+  topics$ = this.#refresh$.pipe(switchMap(() => this.#contentService.fetchPublications()));
 
   ionViewWillEnter() {
-    this.topics$ = this.#contentService.fetchPublications();
+    this.#refresh$.next();
   }
 
   handleRefresh(event?: { target: { complete: () => void } }) {
-    this.topics$ = this.#contentService.fetchPublications();
+    this.#refresh$.next();
     event?.target.complete();
   }
 }
