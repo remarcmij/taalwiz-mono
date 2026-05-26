@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import {
   IonButton,
@@ -19,7 +20,8 @@ import {
 } from '@ionic/angular/standalone';
 
 import { TranslatePipe } from '@ngx-translate/core';
-import { Subject, switchMap } from 'rxjs';
+import { Subject, filter, switchMap } from 'rxjs';
+import { AuthService } from '../../auth/auth.service';
 import { ContentService } from './content.service';
 
 @Component({
@@ -49,9 +51,17 @@ import { ContentService } from './content.service';
 })
 export class ContentPage {
   #contentService = inject(ContentService);
+  #authService = inject(AuthService);
 
   #refresh$ = new Subject<void>();
   topics$ = this.#refresh$.pipe(switchMap(() => this.#contentService.fetchPublications()));
+
+  constructor() {
+    this.#authService.user$.pipe(
+      takeUntilDestroyed(),
+      filter(Boolean),
+    ).subscribe(() => this.#refresh$.next());
+  }
 
   ionViewWillEnter() {
     this.#refresh$.next();
