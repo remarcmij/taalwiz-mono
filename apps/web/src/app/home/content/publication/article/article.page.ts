@@ -50,10 +50,13 @@ export class ArticlePage {
     addIcons({ listOutline });
   }
 
-  #article$ = this.#route.data.pipe<IArticle>(map(({ article }) => article));
+  #article$ = this.#route.data.pipe(map(({ article }) => article as IArticle | null));
 
-  article = toSignal(this.#article$, { initialValue: {} as IArticle });
-  headings = computed<IHeading[]>(() => extractHeadings(this.article().htmlText));
+  article = toSignal(this.#article$, { initialValue: null });
+  headings = computed<IHeading[]>(() => {
+    const article = this.article();
+    return article ? extractHeadings(article.htmlText) : [];
+  });
 
   ionViewWillEnter() {
     this.#tocService.headings.set(this.headings());

@@ -1,10 +1,12 @@
+@let articleValue = article();
+
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
       <app-back-button></app-back-button>
     </ion-buttons>
-    @if (article()) {
-    <ion-title>{{ article().title }}</ion-title>
+    @if (articleValue) {
+    <ion-title>{{ articleValue.title }}</ion-title>
     }
     @if (headings().length > 0) {
     <ion-buttons slot="end">
@@ -18,9 +20,9 @@
 
 <ion-content>
   <div class="content-container noselect">
-    @if (article()) {
+    @if (articleValue) {
     <app-article-body
-      [article]="article()"
+      [article]="articleValue"
       (clicked)="onClicked($event)"></app-article-body>
     }
   </div>
