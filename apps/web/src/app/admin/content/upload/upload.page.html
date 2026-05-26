@@ -4,60 +4,57 @@
       <ion-back-button text="" defaultHref="/admin"></ion-back-button>
     </ion-buttons>
     <ion-title>Upload Content</ion-title>
-    @if (showProgressBar()) {
+    @if (isUploading()) {
     <ion-progress-bar color="dark" [value]="progress()"></ion-progress-bar>
     }
   </ion-toolbar>
 </ion-header>
 
-@if (!!theUploader()) {
 <ion-content [fullscreen]="true">
-  @let uploader = theUploader()!;
   <ion-grid>
     <ion-row>
       <ion-col size="12" size-sm="8" offset-sm="2">
         <div
-          ng2FileDrop
-          [ngClass]="{'nv-file-over': hasBaseDropZoneOver()}"
-          (fileOver)="fileOverBase($event)"
-          [uploader]="uploader"
+          [ngClass]="{'nv-file-over': isDragOver()}"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
           class="well">
           Drag files here
         </div>
-        <input type="file" ng2FileSelect [uploader]="uploader" multiple />
+        <input
+          type="file"
+          multiple
+          accept=".md,.json"
+          title="Select files to upload"
+          (change)="onFileSelect($event)" />
       </ion-col>
     </ion-row>
     <ion-row>
       <ion-col size="12" size-sm="8" offset-sm="2">
         <h3>Upload queue</h3>
-        <p>Queue length: {{ uploader.queue.length }}</p>
+        <p>Queue length: {{ items().length }}</p>
       </ion-col>
     </ion-row>
-    @if (uploader.queue.length) {
+    @if (items().length) {
     <ion-row>
       <ion-col size="6" size-sm="4" offset-sm="2">Name</ion-col>
       <ion-col size="3" size-sm="2" class="ion-text-center">Size</ion-col>
       <ion-col size="3" size-sm="2" class="ion-text-center">Status</ion-col>
     </ion-row>
-    } @for(item of uploader.queue; track $index) {
+    } @for(item of items(); track item.file) {
     <ion-row>
       <ion-col size="6" size-sm="4" offset-sm="2">{{ item.file.name }}</ion-col>
       <ion-col size="3" size-sm="2" class="ion-text-center">
         {{ item.file.size/1024 | number: '.1-1' }} KB
       </ion-col>
       <ion-col size="3" size-sm="2" class="ion-text-center">
-        @if (item.isSuccess) {
-        <span>
-          <ion-icon name="checkmark-outline" color="success"></ion-icon>
-        </span>
-        } @else if (item.isCancel) {
-        <span>
-          <ion-icon name="alert-outline" color="warning"></ion-icon>
-        </span>
-        } @else if (item.isError) {
-        <span>
-          <ion-icon name="close-outline" color="danger"></ion-icon>
-        </span>
+        @if (item.status === 'success') {
+        <ion-icon name="checkmark-outline" color="success"></ion-icon>
+        } @else if (item.status === 'cancelled') {
+        <ion-icon name="alert-outline" color="warning"></ion-icon>
+        } @else if (item.status === 'error') {
+        <ion-icon name="close-outline" color="danger"></ion-icon>
         }
       </ion-col>
     </ion-row>
@@ -69,19 +66,19 @@
             <ion-button
               color="primary"
               (click)="uploadAll()"
-              [disabled]="!uploader.queue.length">
+              [disabled]="!items().length || isUploading()">
               Upload All
             </ion-button>
             <ion-button
               color="danger"
               (click)="cancelAll()"
-              [disabled]="!uploader.isUploading">
+              [disabled]="!isUploading()">
               Cancel All
             </ion-button>
             <ion-button
               color="warning"
-              (click)="uploader.clearQueue()"
-              [disabled]="!uploader.queue.length">
+              (click)="clearQueue()"
+              [disabled]="!items().length || isUploading()">
               Clear Queue
             </ion-button>
           </ion-buttons>
@@ -90,4 +87,3 @@
     </ion-row>
   </ion-grid>
 </ion-content>
-}

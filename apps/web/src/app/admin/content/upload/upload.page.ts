@@ -1,5 +1,6 @@
 import { DecimalPipe, NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { HttpClient, HttpEventType } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import {
   AlertController,
   IonBackButton,
@@ -19,18 +20,26 @@ import {
 import { addIcons } from 'ionicons';
 import { alertOutline, checkmarkOutline, closeOutline } from 'ionicons/icons';
 
-import { FileUploader, FileUploadModule } from 'ng2-file-upload';
-import { first } from 'rxjs';
+import { Subscription } from 'rxjs';
 
-import { AuthService } from '../../../auth/auth.service';
 import { ContentService } from '../../../home/content/content.service';
+
+type UploadStatus = 'pending' | 'uploading' | 'success' | 'error' | 'cancelled';
+
+interface UploadItem {
+  file: File;
+  status: UploadStatus;
+  progress: number;
+  error?: string;
+}
+
+const ACCEPT_PATTERN = /\.(md|json)$/i;
 
 @Component({
   selector: 'app-upload',
   templateUrl: './upload.page.html',
   styleUrls: ['./upload.page.scss'],
   imports: [
-    FileUploadModule,
     NgClass,
     DecimalPipe,
     IonHeader,
@@ -48,74 +57,139 @@ import { ContentService } from '../../../home/content/content.service';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UploadPage implements OnInit {
-  #authService = inject(AuthService);
+export class UploadPage {
+  #http = inject(HttpClient);
   #alertCtrl = inject(AlertController);
   #contentService = inject(ContentService);
 
-  theUploader = signal<FileUploader | null>(null);
-  hasBaseDropZoneOver = signal(false);
-  hasAnotherDropZoneOver = false;
-  showProgressBar = signal(false);
-  progress = signal(0);
+  items = signal<UploadItem[]>([]);
+  isDragOver = signal(false);
+  isUploading = signal(false);
+  progress = computed(() => {
+    const items = this.items();
+    if (items.length === 0) return 0;
+    return items.reduce((sum, it) => sum + it.progress, 0) / items.length;
+  });
+
+  #activeSub: Subscription | null = null;
+  #cancelRequested = false;
 
   constructor() {
     addIcons({ checkmarkOutline, alertOutline, closeOutline });
   }
 
-  ngOnInit() {
-    let errorMessages: string[] = [];
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    this.isDragOver.set(true);
+  }
 
-    this.#authService.token.pipe(first()).subscribe((token) => {
-      const uploader = new FileUploader({
-        url: '/api/v1/content/upload',
-        authToken: 'Bearer ' + token,
-        isHTML5: true,
-      });
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    this.isDragOver.set(false);
+  }
 
-      uploader.onErrorItem = (item, response) => {
-        const body = JSON.parse(response);
-        errorMessages.push(`${item.file.name}: ${body.message}`);
-      };
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    this.isDragOver.set(false);
+    const files = event.dataTransfer?.files;
+    if (files) this.#addFiles(files);
+  }
 
-      uploader.onProgressAll = (progress) => {
-        this.progress.set(progress / 100);
-      };
+  onFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files) this.#addFiles(input.files);
+    input.value = '';
+  }
 
-      uploader.onCompleteAll = () => {
-        this.showProgressBar.set(false);
-        this.#contentService.clearCache();
-        let header = 'Upload complete';
-        let message = 'All files have been uploaded';
-        if (errorMessages.length > 0) {
-          header = 'Upload complete with errors';
-          message = errorMessages.join(', ');
-        }
-        this.#alertCtrl.create({ header, message, buttons: ['OK'] }).then((alertEl) => {
-          alertEl.present();
-          errorMessages = [];
+  #addFiles(fileList: FileList) {
+    const newItems: UploadItem[] = [];
+    for (const file of Array.from(fileList)) {
+      if (!ACCEPT_PATTERN.test(file.name)) continue;
+      newItems.push({ file, status: 'pending', progress: 0 });
+    }
+    if (newItems.length > 0) {
+      this.items.update((items) => [...items, ...newItems]);
+    }
+  }
+
+  async uploadAll() {
+    if (this.isUploading()) return;
+    this.isUploading.set(true);
+    this.#cancelRequested = false;
+    const errors: string[] = [];
+
+    const snapshot = this.items();
+    for (let i = 0; i < snapshot.length; i++) {
+      if (this.#cancelRequested) break;
+      if (this.items()[i].status !== 'pending') continue;
+      const err = await this.#uploadOne(i);
+      if (err) errors.push(err);
+    }
+
+    this.isUploading.set(false);
+    this.#contentService.clearCache();
+    await this.#showCompletionAlert(errors);
+  }
+
+  #uploadOne(index: number): Promise<string | null> {
+    return new Promise((resolve) => {
+      const item = this.items()[index];
+      const formData = new FormData();
+      formData.append('file', item.file);
+
+      this.#patchItem(index, { status: 'uploading', progress: 0 });
+
+      this.#activeSub = this.#http
+        .post('/api/v1/content/upload', formData, {
+          reportProgress: true,
+          observe: 'events',
+        })
+        .subscribe({
+          next: (event) => {
+            if (event.type === HttpEventType.UploadProgress && event.total) {
+              this.#patchItem(index, { progress: event.loaded / event.total });
+            } else if (event.type === HttpEventType.Response) {
+              this.#patchItem(index, { status: 'success', progress: 1 });
+            }
+          },
+          error: (err) => {
+            const msg = err.error?.message ?? err.message ?? 'Unknown error';
+            this.#patchItem(index, { status: 'error', error: msg });
+            this.#activeSub = null;
+            resolve(`${item.file.name}: ${msg}`);
+          },
+          complete: () => {
+            this.#activeSub = null;
+            resolve(null);
+          },
         });
-      };
-
-      this.theUploader.set(uploader);
     });
   }
 
-  fileOverBase(e: boolean) {
-    this.hasBaseDropZoneOver.set(e);
-  }
-
-  fileOverAnother(e: boolean) {
-    this.hasAnotherDropZoneOver = e;
-  }
-
-  uploadAll() {
-    this.showProgressBar.set(true);
-    this.theUploader()!.uploadAll();
+  #patchItem(index: number, patch: Partial<UploadItem>) {
+    this.items.update((items) =>
+      items.map((it, i) => (i === index ? { ...it, ...patch } : it)),
+    );
   }
 
   cancelAll() {
-    this.showProgressBar.set(false);
-    this.theUploader()!.cancelAll();
+    this.#cancelRequested = true;
+    this.#activeSub?.unsubscribe();
+    this.#activeSub = null;
+    this.items.update((items) =>
+      items.map((it) => (it.status === 'uploading' ? { ...it, status: 'cancelled' } : it)),
+    );
+    this.isUploading.set(false);
+  }
+
+  clearQueue() {
+    this.items.set([]);
+  }
+
+  async #showCompletionAlert(errors: string[]) {
+    const header = errors.length > 0 ? 'Upload complete with errors' : 'Upload complete';
+    const message = errors.length > 0 ? errors.join(', ') : 'All files have been uploaded';
+    const alertEl = await this.#alertCtrl.create({ header, message, buttons: ['OK'] });
+    alertEl.present();
   }
 }
