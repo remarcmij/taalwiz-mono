@@ -8,12 +8,17 @@ import { TranslateService } from '@ngx-translate/core';
 
 import {
   BehaviorSubject,
+  Observable,
   Subject,
   catchError,
+  defer,
+  finalize,
   from,
   map,
   of,
+  shareReplay,
   switchMap,
+  take,
   takeUntil,
   tap,
 } from 'rxjs';
@@ -59,7 +64,8 @@ export class AuthService implements OnDestroy {
 
   #user$ = new BehaviorSubject<User | null>(null);
   #user = toSignal(this.#user$, { initialValue: null });
-  #tokenData$ = new BehaviorSubject<TokenData | null>(null);
+  #tokenData: TokenData | null = null;
+  #refreshInFlight$: Observable<string | null> | null = null;
   #destroy$ = new Subject<void>();
 
   constructor() {
@@ -88,37 +94,12 @@ export class AuthService implements OnDestroy {
   }
 
   get token() {
-    return this.#tokenData$.asObservable().pipe(
-      switchMap((tokenData) => {
-        if (tokenData) {
-          // Check if the token is still valid.
-          if (tokenData.exp > new Date().getTime() / 1000) {
-            return of(tokenData.token);
-          }
-        }
-
-        // There is no valid token, so we need to get a new one using the refresh token.
-        return this.refreshToken.pipe(
-          switchMap((refreshToken) => {
-            if (!refreshToken) {
-              // There is no refresh token, so we can't get a new token.
-              return of(null);
-            }
-            return this.#http.post<TokenResponseData>('/api/v1/auth/refresh', { refreshToken }).pipe(
-              switchMap((tokenData) => {
-                // Add a safety margin to allow for backend latency.
-                const newTokenData = new TokenData(
-                  tokenData.token,
-                  +tokenData.exp - LATENCY_MARGIN,
-                );
-                this.#tokenData$.next(newTokenData);
-                this.#logger.debug('AuthService', 'token refreshed');
-                return of(tokenData.token);
-              }),
-            );
-          }),
-        );
-      }),
+    return defer(() => {
+      if (this.#tokenData && this.#tokenData.exp > new Date().getTime() / 1000) {
+        return of(this.#tokenData.token);
+      }
+      return this.#getRefreshedToken();
+    }).pipe(
       catchError((error) => {
         this.#logger.error('AuthService', 'Token retrieval failed', error);
         this.logout();
@@ -126,6 +107,34 @@ export class AuthService implements OnDestroy {
       }),
       takeUntil(this.#destroy$),
     );
+  }
+
+  #getRefreshedToken(): Observable<string | null> {
+    if (!this.#refreshInFlight$) {
+      this.#refreshInFlight$ = this.refreshToken.pipe(
+        take(1),
+        switchMap((refreshToken) => {
+          if (!refreshToken) {
+            return of(null);
+          }
+          return this.#http
+            .post<TokenResponseData>('/api/v1/auth/refresh', { refreshToken })
+            .pipe(
+              map((tokenData) => {
+                // Add a safety margin to allow for backend latency.
+                this.#tokenData = new TokenData(tokenData.token, +tokenData.exp - LATENCY_MARGIN);
+                this.#logger.debug('AuthService', 'token refreshed');
+                return tokenData.token;
+              }),
+            );
+        }),
+        finalize(() => {
+          this.#refreshInFlight$ = null;
+        }),
+        shareReplay({ bufferSize: 1, refCount: true }),
+      );
+    }
+    return this.#refreshInFlight$;
   }
 
   autoLogin() {
@@ -224,13 +233,13 @@ export class AuthService implements OnDestroy {
 
   logout() {
     this.#user$.next(null);
-    this.#tokenData$.next(null);
+    this.#tokenData = null;
     Preferences.remove({ key: 'authData' });
     this.#router.navigateByUrl('/auth');
   }
 
   invalidateToken(): void {
-    this.#tokenData$.next(null);
+    this.#tokenData = null;
   }
 
   #setUserData(userData: AuthResponseData) {
