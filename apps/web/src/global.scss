@@ -41,10 +41,18 @@
 
 :root {
   --foreign-text-color: var(--ion-color-primary);
-  --native-text-color: rgba(0, 0, 0, 0.87);
+  --native-text-color: var(--ion-text-color);
   --box-shadow-md:
     0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14),
     0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --box-shadow-md:
+      0 3px 1px -2px rgba(0, 0, 0, 0.4), 0 2px 2px 0 rgba(0, 0, 0, 0.28),
+      0 1px 5px 0 rgba(0, 0, 0, 0.24);
+  }
 }
 
 .text-content {
@@ -64,28 +72,22 @@
     border-bottom: none;
   }
 
-  font-family: var(--ion-font-family, inherit);
+  font-family: var(--content-font-family);
+}
+
+.markdown-body {
+  font-family: var(--content-font-family);
+  background-color: transparent;
 }
 
 span.hashtag {
-  color: var(--ion-color-danger);
+  color: var(--ion-color-primary-tint);
   cursor: pointer;
 }
 
 .noselect {
-  -webkit-touch-callout: none;
-  /* iOS Safari */
   -webkit-user-select: none;
-  /* Chrome/Safari/Opera */
-  -khtml-user-select: none;
-  /* Konqueror */
-  -moz-user-select: none;
-  /* Firefox */
-  -ms-user-select: none;
-  /* Internet Explorer/Edge */
   user-select: none;
-  /* Non-prefixed version, currently
-                                not supported by any browser */
 }
 
 .plt-desktop .content-container {

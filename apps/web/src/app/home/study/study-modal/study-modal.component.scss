@@ -51,6 +51,12 @@
     background: var(--ion-card-background, var(--ion-item-background));
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+    @media (prefers-color-scheme: dark) {
+      background: var(--ion-background-color-step-150, #363636);
+      box-shadow: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
     cursor: pointer;
     display: flex;
     align-items: center;
