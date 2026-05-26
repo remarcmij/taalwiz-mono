@@ -1,7 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import {
-  AlertController,
   IonBackButton,
   IonBadge,
   IonButton,
@@ -30,6 +29,7 @@ import { User } from '../../auth/user.model';
 import { ApiErrorAlertService } from '../../shared/api-error-alert.service';
 import { AdminService } from '../admin.service';
 import { GroupsModalComponent } from './groups-modal/groups-modal.component';
+import { SetPasswordModalComponent } from './set-password-modal/set-password-modal.component';
 
 @Component({
   selector: 'app-users',
@@ -60,7 +60,6 @@ import { GroupsModalComponent } from './groups-modal/groups-modal.component';
 export class UsersPage {
   #adminService = inject(AdminService);
   #modalCtrl = inject(ModalController);
-  #alertCtrl = inject(AlertController);
   #apiErrorAlertService = inject(ApiErrorAlertService);
 
   users = signal<User[]>([]);
@@ -135,29 +134,21 @@ export class UsersPage {
   }
 
   async onSetPassword(user: User) {
-    const alert = await this.#alertCtrl.create({
-      header: 'Set Password',
-      subHeader: user.email,
-      inputs: [
-        {
-          name: 'newPassword',
-          type: 'password',
-          placeholder: 'New password (min 6 chars)',
-        },
-      ],
-      buttons: [
-        { text: 'Cancel', role: 'cancel' },
-        {
-          text: 'Save',
-          handler: (data: { newPassword: string }) => {
-            this.#adminService.adminSetPassword(user.id, data.newPassword).subscribe({
-              error: (err) => this.#apiErrorAlertService.showError(err),
-            });
-          },
-        },
-      ],
+    const modal = await this.#modalCtrl.create({
+      component: SetPasswordModalComponent,
+      componentProps: { email: user.email },
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
     });
-    await alert.present();
+
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss<{ newPassword: string }>();
+    if (role === 'save' && data) {
+      this.#adminService.adminSetPassword(user.id, data.newPassword).subscribe({
+        error: (err) => this.#apiErrorAlertService.showError(err),
+      });
+    }
   }
 
   constructor() {
