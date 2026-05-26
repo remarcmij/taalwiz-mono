@@ -4,7 +4,6 @@ import {
   IonButton,
   IonButtons,
   IonContent,
-  IonFooter,
   IonHeader,
   IonInput,
   IonInputPasswordToggle,
@@ -33,7 +32,6 @@ import { MIN_PASSWORD_LENGTH } from '@repo/api-types';
     IonItem,
     IonInput,
     IonInputPasswordToggle,
-    IonFooter,
   ],
 })
 export class SetPasswordModalComponent {

@@ -137,8 +137,8 @@ export class UsersPage {
     const modal = await this.#modalCtrl.create({
       component: SetPasswordModalComponent,
       componentProps: { email: user.email },
-      breakpoints: [0, 1],
-      initialBreakpoint: 1,
+      breakpoints: [0, 0.45],
+      initialBreakpoint: 0.45,
     });
 
     await modal.present();
