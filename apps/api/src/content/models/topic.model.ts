@@ -8,6 +8,7 @@ const TopicSchema = new Schema({
   filename: { type: String, required: true, unique: true },
   groupName: { type: String, required: true },
   groups: { type: [String], default: undefined },
+  image: String,
   isbn: String,
   lastModified: { type: Number, default: Date.now() },
   publicationYear: Number,

@@ -3,12 +3,17 @@ import type { FilterQuery } from 'mongoose';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import type { TopicDoc } from './models/topic.model.js';
 import EventEmitter from 'node:events';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { LRUCache } from 'lru-cache';
 import ArticleLoader, { renderArticleHtml } from './loaders/ArticleLoader.js';
 import { Loader } from './loaders/BaseLoader.js';
 import DictLoader from './loaders/DictLoader.js';
 import Article from './models/article.model.js';
 import Topic from './models/topic.model.js';
+
+const IMAGE_EXT_PATTERN = /\.(jpe?g|png|gif|webp)$/i;
+const IMAGES_DIR = path.join(import.meta.dirname, '..', '..', 'public/assets/images');
 
 @Injectable()
 export class ContentService {
@@ -97,6 +102,10 @@ export class ContentService {
       throw new BadRequestException('No file provided');
     }
 
+    if (IMAGE_EXT_PATTERN.test(file.originalname)) {
+      return this.#uploadImage(file);
+    }
+
     let loader: Loader;
     if (/\.json$/.test(file.originalname)) {
       loader = this.dictLoader;
@@ -125,6 +134,31 @@ export class ContentService {
     });
 
     // Keep the chain resolved so a failed upload doesn't block subsequent ones.
+    this.uploadChain = work.then(() => undefined, () => undefined);
+    return work;
+  }
+
+  #uploadImage(file: Express.Multer.File): Promise<{ filename: string }> {
+    const { originalname } = file;
+    if (originalname.includes('/') || originalname.includes('\\') || originalname.includes('..')) {
+      throw new BadRequestException('Invalid image filename');
+    }
+
+    this.uploadEventEmitter.emit('upload', originalname);
+
+    const work = this.uploadChain.then(async () => {
+      try {
+        await fs.mkdir(IMAGES_DIR, { recursive: true });
+        await fs.writeFile(path.join(IMAGES_DIR, originalname), file.buffer);
+        this.logger.log(`image '${originalname}' uploaded successfully`);
+        return { filename: originalname };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'unknown error';
+        this.logger.error(`error uploading image '${originalname}': ${message}`);
+        throw new BadRequestException(message);
+      }
+    });
+
     this.uploadChain = work.then(() => undefined, () => undefined);
     return work;
   }

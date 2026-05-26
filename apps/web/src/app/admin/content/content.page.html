@@ -17,6 +17,11 @@
     <ion-list class="ion-padding-vertical">
       @for (topic of topics(); track topic._id) {
       <ion-item button detail (click)="navigateToArticles(topic)">
+        @if (topic.image) {
+        <ion-thumbnail slot="start">
+          <ion-img [src]="'/assets/images/' + topic.image"></ion-img>
+        </ion-thumbnail>
+        }
         <ion-label>
           <h2>{{ topic.title }}</h2>
           @if (topic.author) {

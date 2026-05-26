@@ -33,7 +33,7 @@ interface UploadItem {
   error?: string;
 }
 
-const ACCEPT_PATTERN = /\.(md|json)$/i;
+const ACCEPT_PATTERN = /\.(md|json|jpe?g|png|gif|webp)$/i;
 
 @Component({
   selector: 'app-upload',

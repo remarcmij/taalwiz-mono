@@ -7,6 +7,7 @@ export interface ITopic {
   filename: string;
   groupName: string;
   groups?: string[];
+  image?: string;
   sha: string;
   isbn: string;
   lastModified: number;

@@ -71,7 +71,7 @@ All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `ne
 
 ### File uploads (admin)
 
-The upload dropzone in the admin page is restricted to `.md` and `.json`. If new file types are needed, update both the client-side `accept` prop **and** the server-side validation in `apps/api/src/content/content.service.ts`.
+The upload dropzone in the admin page accepts `.md` and `.json` content files plus `.jpg`, `.jpeg`, `.png`, `.gif`, and `.webp` publication images. Images are written directly to `apps/api/public/assets/images/` and served at `/assets/images/`. Each manifest declares which image to display via an `image:` frontmatter field; the value is the full image filename (e.g. `bumi-manusia.jpg`). If new file types are needed, update both the client-side `accept` prop **and** the server-side validation in `apps/api/src/content/content.service.ts`.
 
 ## Conventions
 

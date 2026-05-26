@@ -18,10 +18,11 @@
         detail
         button
         [routerLink]="['/', 'home', 'tabs', 'content', topic.groupName]">
+        @if (topic.image) {
         <ion-thumbnail slot="start">
-          <ion-img
-            [src]="'/assets/images/' + topic.groupName + '.jpg'"></ion-img>
+          <ion-img [src]="'/assets/images/' + topic.image"></ion-img>
         </ion-thumbnail>
+        }
         <ion-label>
           <h2>{{ topic.title }}</h2>
           @if (topic.author) {
