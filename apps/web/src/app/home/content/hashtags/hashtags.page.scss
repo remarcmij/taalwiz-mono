@@ -3,3 +3,10 @@
   box-shadow: var(--box-shadow-md);
   margin: 8px;
 }
+
+ion-chip {
+  --background: rgba(var(--ion-color-primary-rgb), 0.12);
+  --color: var(--ion-color-primary);
+
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.35);
+}
