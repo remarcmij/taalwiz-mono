@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   NotFoundException,
@@ -9,13 +10,17 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { Public } from '../auth/decorators/public.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
-import { RegisterDto } from './dto/register.dto.js';
+import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
+import { AdminSetPasswordDto } from './dto/admin-set-password.dto.js';
 import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { ContactRequestDto } from './dto/contact-request.dto.js';
 import { EmailLangDto } from './dto/email-lang.dto.js';
+import { RegisterDto } from './dto/register.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
+import { SetSuspendedDto } from './dto/set-suspended.dto.js';
 import { UsersService } from './users.service.js';
 
 @Controller('users')
@@ -35,6 +40,34 @@ export class UsersController {
   @Patch(':id/groups')
   async updateUserGroups(@Param('id') id: string, @Body('groups') groups: string[]) {
     return await this.usersService.updateUserGroups(id, groups);
+  }
+
+  @Roles('admin')
+  @Patch(':id/suspended')
+  @HttpCode(204)
+  async setUserSuspended(
+    @Param('id') id: string,
+    @Body() dto: SetSuspendedDto,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<void> {
+    if (id === currentUser.sub) {
+      throw new ForbiddenException('Cannot suspend your own account');
+    }
+    await this.usersService.setUserSuspended(id, dto.isSuspended);
+  }
+
+  @Roles('admin')
+  @Patch(':id/password')
+  @HttpCode(204)
+  async adminSetPassword(
+    @Param('id') id: string,
+    @Body() dto: AdminSetPasswordDto,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<void> {
+    if (id === currentUser.sub) {
+      throw new ForbiddenException('Use the change-password flow to update your own password');
+    }
+    await this.usersService.adminSetPassword(id, dto.newPassword);
   }
 
   @Roles('admin')

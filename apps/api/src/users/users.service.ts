@@ -86,6 +86,19 @@ export class UsersService {
     return await User.findByIdAndUpdate(id, { groups }, { new: true }).exec();
   }
 
+  async setUserSuspended(id: string, isSuspended: boolean): Promise<void> {
+    await User.findByIdAndUpdate(id, { isSuspended }).exec();
+  }
+
+  async adminSetPassword(id: string, newPassword: string): Promise<void> {
+    const user = await User.findById(id).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const password = await this.encryptPassword(newPassword);
+    await User.findByIdAndUpdate(id, { password }).exec();
+  }
+
   async inviteNewUser(email: string, lang: string): Promise<UserDoc> {
     const existing = await User.findOne({ email });
     if (existing) {

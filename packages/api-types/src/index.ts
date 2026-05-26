@@ -1,6 +1,7 @@
 export const MIN_PASSWORD_LENGTH = 6;
 
 export const AUTH_FAILED = 'AUTH_FAILED';
+export const ACCOUNT_SUSPENDED = 'ACCOUNT_SUSPENDED';
 export const DEMO_ACCOUNT = 'DEMO_ACCOUNT';
 export const EMAIL_EXISTS = 'EMAIL_EXISTS';
 export const EMAIL_MISMATCH = 'EMAIL_MISMATCH';

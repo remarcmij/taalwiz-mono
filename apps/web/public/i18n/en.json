@@ -36,7 +36,6 @@
   "content": {
     "single-hashtag": "This hashtag does not occur elsewhere."
   },
-
   "user": {
     "welcome": "Welcome",
     "contact": "Contact TaalWiz",
@@ -130,7 +129,6 @@
     "reset-link-invalid": "This password reset link is invalid. Please request a new one from the most recent email.",
     "resetting-password": "Resetting Password...",
     "password-reset-request-sent": "Password reset request sent. Please check your email for further instructions.",
-
     "forgot-password": "Forgot Password? Click here to reset it.",
     "password-reset-instructions": "Please enter your email address and we will send you a link to reset your password.",
     "register-message": "Please enter your name and a password to use with TaalWiz. Please note that the password is unique to TaalWiz and not related to the password that you use with your email provider.",
@@ -141,6 +139,7 @@
     "logging-in": "Logging in...",
     "login-error": "Login Error",
     "login-failed": "Could not log you in, please try again later.",
-    "sending": "Sending..."
+    "sending": "Sending...",
+    "account-suspended": "Your account has been suspended. Please contact the administrator."
   }
 }

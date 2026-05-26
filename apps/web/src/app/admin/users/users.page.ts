@@ -1,7 +1,9 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import {
+  AlertController,
   IonBackButton,
+  IonBadge,
   IonButton,
   IonButtons,
   IonChip,
@@ -16,14 +18,16 @@ import {
   IonList,
   IonTitle,
   IonToast,
+  IonToggle,
   IonToolbar,
   ModalController,
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { peopleOutline, trash } from 'ionicons/icons';
+import { keyOutline, peopleOutline, trash } from 'ionicons/icons';
 
 import { User } from '../../auth/user.model';
+import { ApiErrorAlertService } from '../../shared/api-error-alert.service';
 import { AdminService } from '../admin.service';
 import { GroupsModalComponent } from './groups-modal/groups-modal.component';
 
@@ -42,10 +46,12 @@ import { GroupsModalComponent } from './groups-modal/groups-modal.component';
     IonItem,
     IonButton,
     IonLabel,
+    IonBadge,
     IonChip,
     IonItemOptions,
     IonItemOption,
     IonIcon,
+    IonToggle,
     IonToast,
   ],
   templateUrl: './users.page.html',
@@ -54,6 +60,8 @@ import { GroupsModalComponent } from './groups-modal/groups-modal.component';
 export class UsersPage {
   #adminService = inject(AdminService);
   #modalCtrl = inject(ModalController);
+  #alertCtrl = inject(AlertController);
+  #apiErrorAlertService = inject(ApiErrorAlertService);
 
   users = signal<User[]>([]);
   availableGroups = signal<string[]>([]);
@@ -114,7 +122,45 @@ export class UsersPage {
     });
   }
 
+  onToggleSuspended(user: User, event: Event) {
+    const isSuspended = !(event as CustomEvent<{ checked: boolean }>).detail.checked;
+    this.#adminService.setUserSuspended(user.id, isSuspended).subscribe({
+      next: () => {
+        this.users.update((users) =>
+          users.map((u) => (u.id === user.id ? { ...u, isSuspended } : u)),
+        );
+      },
+      error: (err) => this.#apiErrorAlertService.showError(err),
+    });
+  }
+
+  async onSetPassword(user: User) {
+    const alert = await this.#alertCtrl.create({
+      header: 'Set Password',
+      subHeader: user.email,
+      inputs: [
+        {
+          name: 'newPassword',
+          type: 'password',
+          placeholder: 'New password (min 6 chars)',
+        },
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Save',
+          handler: (data: { newPassword: string }) => {
+            this.#adminService.adminSetPassword(user.id, data.newPassword).subscribe({
+              error: (err) => this.#apiErrorAlertService.showError(err),
+            });
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
   constructor() {
-    addIcons({ trash, peopleOutline });
+    addIcons({ trash, peopleOutline, keyOutline });
   }
 }

@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { ACCOUNT_SUSPENDED } from '@repo/api-types';
 import type { Language, Role } from '../users/models/user.model.js';
 import { UsersService } from '../users/users.service.js';
 import { EnvDto } from '../util/env.dto.js';
@@ -67,6 +68,11 @@ export class AuthService implements OnApplicationBootstrap {
       throw new UnauthorizedException();
     }
 
+    if (user.isSuspended) {
+      this.logger.error(`User ${email} account is suspended`);
+      throw new UnauthorizedException(ACCOUNT_SUSPENDED);
+    }
+
     this.logger.debug(`User ${email} signed in successfully`);
 
     const { token, exp } = await this.usersService.generateRefreshToken(user);
@@ -101,6 +107,11 @@ export class AuthService implements OnApplicationBootstrap {
     const user = await this.usersService.findById(decoded.sub);
     if (!user) {
       this.logger.error(`Invalid refresh token for user ${decoded.email}`);
+      throw new UnauthorizedException();
+    }
+
+    if (user.isSuspended) {
+      this.logger.error(`Refresh token rejected: user ${decoded.email} account is suspended`);
       throw new UnauthorizedException();
     }
 

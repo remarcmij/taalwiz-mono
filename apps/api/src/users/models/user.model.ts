@@ -12,6 +12,7 @@ const UserSchema = new Schema({
   lang: { type: String, default: 'nl', enum: ['en', 'nl'] },
   created: { type: Date, default: Date.now },
   lastAccessed: { type: Date, default: Date.now },
+  isSuspended: { type: Boolean, default: false },
 });
 
 export type UserDoc = InferSchemaType<typeof UserSchema> & {

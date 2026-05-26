@@ -22,7 +22,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { finalize } from 'rxjs';
 import { homeUrl } from '../home/home.routes';
-import { AUTH_FAILED, MIN_PASSWORD_LENGTH } from '@repo/api-types';
+import { ACCOUNT_SUSPENDED, AUTH_FAILED, MIN_PASSWORD_LENGTH } from '@repo/api-types';
 import { AuthService } from './auth.service';
 
 @Component({
@@ -83,8 +83,13 @@ export class AuthPage {
           this.#router.navigateByUrl(homeUrl, { replaceUrl: true });
         },
         error: (errResp) => {
+          const msg = errResp.error?.message;
           const msgKey =
-            errResp.error.message === AUTH_FAILED ? 'auth.auth-failed' : 'auth.login-failed';
+            msg === AUTH_FAILED
+              ? 'auth.auth-failed'
+              : msg === ACCOUNT_SUSPENDED
+                ? 'auth.account-suspended'
+                : 'auth.login-failed';
           const alertText = this.#translate.instant(msgKey);
           this.showAlert(alertText);
         },

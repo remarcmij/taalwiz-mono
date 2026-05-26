@@ -11,5 +11,6 @@ export class User {
     public refreshExp: number,
     public created?: Date,
     public lastAccessed?: Date,
+    public isSuspended?: boolean,
   ) {}
 }

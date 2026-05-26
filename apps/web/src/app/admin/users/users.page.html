@@ -29,7 +29,24 @@
               }
             </div>
             }
+            @if (user.isSuspended) {
+            <ion-badge color="warning">suspended</ion-badge>
+            }
           </ion-label>
+          <ion-toggle
+            slot="end"
+            [checked]="!user.isSuspended"
+            (ionChange)="onToggleSuspended(user, $event)"
+            title="Suspend/enable account"
+          ></ion-toggle>
+          <ion-button
+            slot="end"
+            fill="clear"
+            (click)="onSetPassword(user)"
+            title="Set password"
+          >
+            <ion-icon name="key-outline" slot="icon-only"></ion-icon>
+          </ion-button>
           <ion-button
             slot="end"
             fill="clear"

@@ -4,7 +4,7 @@ import type { EnvDto } from '../../util/env.dto.js';
 
 export function getSeedUsers(
   config: ConfigService<EnvDto, true>,
-): Omit<UserDoc, '_id' | 'created' | 'lastAccessed'>[] {
+): Omit<UserDoc, '_id' | 'created' | 'lastAccessed' | 'isSuspended'>[] {
   return [
     {
       name: 'Admin',

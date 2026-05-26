@@ -28,6 +28,14 @@ export class AdminService {
     return this.#http.patch<User>(`/api/v1/users/${id}/groups`, { groups });
   }
 
+  setUserSuspended(id: string, isSuspended: boolean): Observable<void> {
+    return this.#http.patch<void>(`/api/v1/users/${id}/suspended`, { isSuspended });
+  }
+
+  adminSetPassword(id: string, newPassword: string): Observable<void> {
+    return this.#http.patch<void>(`/api/v1/users/${id}/password`, { newPassword });
+  }
+
   getUsers() {
     return this.#http.get<User[]>('/api/v1/users').pipe(
       catchError((error) => {

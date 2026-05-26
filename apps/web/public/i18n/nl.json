@@ -36,7 +36,6 @@
   "content": {
     "single-hashtag": "Deze hashtag komt nergens anders voor."
   },
-
   "user": {
     "welcome": "Welkom",
     "contact": "Contact TaalWiz",
@@ -141,6 +140,7 @@
     "login-error": "Aanmeldfout",
     "login-failed": "Er is een fout opgetreden bij het aanmelden, probeer het later nog eens.",
     "wrong-credentials": "Ongeldig emailadres of wachtwoord.",
-    "sending": "Versturen..."
+    "sending": "Versturen...",
+    "account-suspended": "Uw account is geblokkeerd. Neem contact op met de beheerder."
   }
 }
