@@ -137,3 +137,7 @@ build/
 json/
 
 dict/
+
+# tsgo leaks emit for vitest.config.ts next to the source
+vitest.config.js
+vitest.config.js.map
