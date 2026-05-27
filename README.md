@@ -1,14 +1,17 @@
 # Taalwiz Monorepo
 
-This repository contains the Taalwiz language learning platform, including a NestJS backend API, an Angular/Ionic web app, and supporting utilities.
+Taalwiz is a language learning platform (Indonesian ↔ Dutch). This repository is a
+TypeScript monorepo managed by [Turborepo](https://turborepo.com) and
+[pnpm](https://pnpm.io), containing the backend API, the client app, a dictionary
+compiler, and the documentation site.
 
-## Archived Apps
+## Apps
 
-The following apps have been archived and removed from the main codebase to keep LLMs focused on active development:
+| App | What it is |
+|-----|------------|
+| [`apps/web`](apps/web/README.md) | Angular 20 + Ionic 8 + Capacitor 7 hybrid web/mobile app — the primary client |
+| [`apps/api`](apps/api/README.md) | NestJS 11 backend (MongoDB/Mongoose, JWT) serving the REST API |
+| [`apps/compiler`](apps/compiler/README.md) | Utility that compiles dictionary sources into structured JSON |
+| [`apps/docs`](apps/docs/README.md) | VitePress static documentation site |
 
-- **`apps/web-react`** — React reference implementation (archived)
-- **`apps/api-legacy`** — Legacy Express 5 API (archived)
-
-Full history is preserved in git tag `archive/before-deprecation-removal`. To access: `git checkout archive/before-deprecation-removal`
-
-See `CLAUDE.md` for project architecture and development commands.
+See [CLAUDE.md](CLAUDE.md) for the full list of development commands and conventions.

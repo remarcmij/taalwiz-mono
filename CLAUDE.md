@@ -47,6 +47,14 @@ pnpm --filter compiler run build    # tsc build
 pnpm --filter compiler run test     # Vitest
 ```
 
+### Docs Site (`apps/docs`)
+
+```bash
+pnpm --filter docs run dev       # VitePress dev server (port 4173)
+pnpm --filter docs run build     # Static build (output: docs/.vitepress/dist/)
+pnpm --filter docs run preview   # Preview the production build (port 4173)
+```
+
 ## Architecture
 
 ### Monorepo Layout
@@ -54,6 +62,8 @@ pnpm --filter compiler run test     # Vitest
 - **`apps/api`** — NestJS 11 backend (Express platform, MongoDB/Mongoose, JWT auth, Nodemailer with Handlebars templates, class-validator)
 - **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); **primary web app**
 - **`apps/compiler`** — Standalone TypeScript utility for compiling dictionaries
+- **`apps/docs`** — VitePress static documentation site (served at `/guide`)
+- **`packages/api-types`** — Shared API type definitions consumed by `api` and `web`
 - **`packages/eslint-config`** — Shared ESLint configs with presets: `base`, `nest`, `angular`
 - **`packages/typescript-config`** — Shared `base.json` tsconfig (ESNext, NodeNext module, strict)
 
