@@ -1,18 +1,30 @@
-import { inject, Injectable } from '@angular/core';
+import { ApplicationRef, inject, Injectable } from '@angular/core';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { filter } from 'rxjs';
+import { concat, filter, first, interval } from 'rxjs';
+
+const UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
 @Injectable({ providedIn: 'root' })
 export class PromptUpdateService {
   #alertCtrl = inject(AlertController);
   #translate = inject(TranslateService);
+  #appRef = inject(ApplicationRef);
 
   constructor(swUpdate: SwUpdate) {
     if (!swUpdate.isEnabled) {
       return;
     }
+
+    // A page reload alone does not make the running service worker re-read
+    // ngsw.json, so update detection is unreliable without an explicit check.
+    // Check once the app first stabilizes, then on a fixed interval, so warm
+    // reloads and long-lived tabs both pick up new versions.
+    const appIsStable$ = this.#appRef.isStable.pipe(first((isStable) => isStable === true));
+    concat(appIsStable$, interval(UPDATE_CHECK_INTERVAL_MS)).subscribe(() => {
+      void swUpdate.checkForUpdate().catch(() => undefined);
+    });
 
     swUpdate.versionUpdates
       .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
