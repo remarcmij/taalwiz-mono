@@ -13,8 +13,9 @@ Angular 20 + Ionic 8 hybrid web/mobile app (Capacitor 7). Standalone components 
 7. [Dictionary (offline-first)](#7-dictionary-offline-first)
 8. [Content caching (service worker)](#8-content-caching-service-worker)
 9. [Authentication and security](#9-authentication-and-security)
-10. [i18n](#10-i18n)
-11. [Data models](#11-data-models)
+10. [Theming](#10-theming)
+11. [i18n](#11-i18n)
+12. [Data models](#12-data-models)
 
 ---
 
@@ -43,6 +44,7 @@ graph TD
         dictSync["DictSyncService\n(IndexedDB sync)"]
         logger["LoggerService"]
         swUpdate["PromptUpdateService\n(PWA)"]
+        theme["ThemeService\n(light/dark/system)"]
     end
 
     main --> config
@@ -55,6 +57,7 @@ graph TD
     home --> authSvc
     home --> dictSync
     admin --> authSvc
+    app --> theme
 ```
 
 ---
@@ -104,6 +107,7 @@ src/app/
 │   │   ├── publication/
 │   │   │   └── article/      # Article + ToC
 │   │   └── hashtags/
+│   │       └── hashtag-modal/  # Occurrences list → article + scroll
 │   └── dictionary/           # Dictionary sub-feature
 │       ├── dictionary.service.ts
 │       ├── dict-sync.service.ts
@@ -113,15 +117,17 @@ src/app/
 │       ├── stemmer.ts             # Stemmer interface + IdentityStemmer fallback
 │       ├── word-lang.model.ts
 │       ├── history-modal/
-│       ├── searchbar/
+│       ├── searchbar-dropdown/
 │       └── lemma/
 │
 ├── admin/                    # Admin feature (adminGuard)
 │   ├── admin.service.ts
 │   ├── users/
-│   │   └── groups-modal/     # Group assignment sheet modal
+│   │   ├── new-user/         # Invite-new-user page
+│   │   ├── groups-modal/     # Group assignment sheet modal
+│   │   └── set-password-modal/  # Admin set-password sheet
 │   ├── content/
-│   │   └── upload/
+│   │   └── upload/           # Drag/drop .md/.json + image upload
 │   └── system-settings/
 │
 ├── user/                     # Standalone user pages
@@ -130,11 +136,14 @@ src/app/
 │
 ├── about/
 │
-├── help/                     # Help page (markdown, always Dutch)
+├── help/                     # Help page (markdown, per user.lang)
+│
+├── settings/                 # Theme selector (light/dark/system)
 │
 ├── shared/                   # Non-feature utilities
 │   ├── logger.service.ts
 │   ├── api-error-alert.service.ts
+│   ├── theme/                # ThemeService (class-based dark palette)
 │   ├── back-button/
 │   └── word-click-modal/
 │
@@ -176,7 +185,7 @@ flowchart TD
     publication --> article["/home/tabs/content/:group/:filename"]
 
     tabs --> dict_tab["/home/tabs/dictionary"]
-    dict_tab --> lemma["/home/tabs/dictionary/:word/:lang"]
+    dict_tab --> lemma["/home/tabs/dictionary/:lang/:word"]
 
     tabs --> hashtags_tab["/home/tabs/hashtags"]
     tabs --> vocabulary_tab["/home/tabs/bookmarks"]
@@ -199,7 +208,8 @@ flowchart TD
 - `/welcome/:lang`
 - `/about/:lang`
 - `/contact`
-- `/help`
+- `/help/:lang`
+- `/settings`
 
 **Guards:**
 
@@ -238,6 +248,8 @@ graph LR
     Searchbar --> Lemma["Lemma page\n(definitions)"]
 
     Hashtags --> HashtagList["Hashtag list\n(cross-publication index)"]
+    HashtagList --> HashtagModal["Hashtag modal\n(occurrences → article + scroll)"]
+    Article --> HashtagModal
 
     Vocabulary --> ChipBar["List chip bar\n(VocabularyService.lists)"]
     Vocabulary --> WordList["Saved items\n(swipe to remove)"]
@@ -249,13 +261,17 @@ graph LR
 
 **Article flow:** `ArticleResolver` pre-fetches the article. `MarkdownService` converts `mdText` to HTML, wrapping foreign-language spans. Headings are extracted by `extract-headings.util.ts` and stored in `TocService`. Clicking a word opens `WordClickModalComponent` via `WordClickModalService`, which calls `DictionaryService` for lemma lookup.
 
+**Hashtag flow:** Tapping a hashtag — either a `.hashtag` span inside an article or a chip on the Hashtags tab — opens `HashtagModalComponent`. It calls `HashtagsService.findHashtag()` to list every occurrence across publications; selecting one navigates to the target article and sets `TocService.scrollToId` so the page scrolls to the matching section.
+
 ### 4.3 Dictionary
 
 Offline-first. On first load the dict manifest is fetched from `/assets/dict-manifest.json`; new or updated bundles are compiled and stored in IndexedDB (`taalwiz-dict`). `DictionaryService` wraps `DictStoreService` with pluggable stemming (via `langConfig.stemmer`) for fuzzy lookup — all searches run entirely offline against IndexedDB.
 
 ### 4.4 Admin
 
-Protected by `adminGuard`. Covers user management (invite, list, delete, group assignment), publication sort-order, file upload (`.md` / `.json` only — enforced client **and** server), and system settings (key/value store backed by the `SystemSettings` MongoDB collection, seeded on first API startup). The System Settings page uses an explicit Save/Cancel pattern: buttons appear in the toolbar only when `isDirty()` is true, driven by a `computed` signal that re-evaluates via `onSettingChange()` after each `[(ngModel)]` edit.
+Protected by `adminGuard`. Covers user management (invite, list, delete, group assignment, suspend/reactivate, admin-set password), publication sort-order, hashtag reprocessing, file upload (`.md` / `.json` content plus `.jpg` / `.jpeg` / `.png` / `.gif` / `.webp` publication images — enforced client **and** server), and system settings (key/value store backed by the `SystemSettings` MongoDB collection, seeded on first API startup). The System Settings page uses an explicit Save/Cancel pattern: buttons appear in the toolbar only when `isDirty()` is true, driven by a `computed` signal that re-evaluates via `onSettingChange()` after each `[(ngModel)]` edit.
+
+**Account actions:** The Users page exposes per-user actions beyond group management. **Suspend** toggles `User.isSuspended` via `PATCH /api/v1/users/:id/suspended`; a suspended user is blocked at the API. **Set password** opens `SetPasswordModalComponent` — a sheet with a password field (`IonInputPasswordToggle` eye toggle, min length from the shared `MIN_PASSWORD_LENGTH` constant) — and saves via `PATCH /api/v1/users/:id/password`.
 
 **Group management:** The Users page shows each user's current groups as `IonChip` elements and provides an inline **Manage Groups** button. Tapping it opens `GroupsModalComponent` — a bottom sheet listing all available group names as checkboxes, populated from `GET /api/v1/content/groups`. Changes are saved via `PATCH /api/v1/users/:id/groups` and reflected immediately in the users list signal.
 
@@ -329,12 +345,13 @@ graph TD
 | `ContentService` | `home/content/` | Fetch publications & articles from API; `prefetchArticle()` for silent bulk pre-fetch (publication cache-all button); manage SW content-cache invalidation (manifest check on login, explicit bust on admin mutations and logout) |
 | `MarkdownService` | `home/content/` | Markdown → HTML with foreign-language span injection |
 | `TocService` | `home/content/…/article/` | Extract headings, scroll-to signal |
-| `HashtagsService` | `home/content/hashtags/` | Hashtag index fetching |
+| `HashtagsService` | `home/content/hashtags/` | Hashtag index fetching; `findHashtag()` lists occurrences for the hashtag modal |
 | `SpeechSynthesizerService` | `home/` | Web Speech API wrapper (single word + full sentence) |
 | `WordClickModalService` | `shared/` | Coordinate word taps → dictionary lookup → modal display |
 | `ApiErrorAlertService` | `shared/` | Display Ionic alert on HTTP errors |
 | `LoggerService` | `shared/` | Levelled logging (dev: `silly`, prod: `info`) |
 | `PromptUpdateService` | `sw-update/` | PWA version-update detection and reload prompt |
+| `ThemeService` | `shared/theme/` | Light/dark/system theme: persists choice in Capacitor Preferences, toggles the `ion-palette-dark` class on `<html>`, and (in `system` mode) tracks the OS `prefers-color-scheme` media query |
 
 ---
 
@@ -366,6 +383,7 @@ sequenceDiagram
 - The `authInterceptor` is the sole place that attaches `Authorization: Bearer <token>` to outgoing requests. Services and pages call `HttpClient` directly with no awareness of auth headers.
 - Header attachment is scoped to `/api/v1/` URLs. Auth endpoints (`/api/v1/auth/*`) are skipped entirely — they're public, and routing `/auth/refresh` back through the interceptor would recurse via the token getter. Non-API traffic (i18n files, static assets) is also skipped.
 - On a 401 the interceptor invalidates the current token, calls the refresh endpoint, and retries the original request once. If refresh fails the user is logged out.
+- Concurrent refreshes are de-duplicated. `AuthService.token` checks the in-memory access token's expiry; when a refresh is needed it routes through `#getRefreshedToken()`, which caches a single in-flight `Observable` (`shareReplay` + `finalize` reset). Multiple requests that 401 at once therefore share one `POST /api/v1/auth/refresh` rather than each firing their own.
 - API base paths: `/api/v1/` (all API endpoints, including admin), `/assets/` (static dict/content files). Admin-only routes sit under `/api/v1/admin/` and additionally require the `admin` role.
 
 ---
@@ -405,14 +423,15 @@ sequenceDiagram
 
 ## 8. Content caching (service worker)
 
-Article bodies and topic index lists are cached by the Angular service worker via two `dataGroups` in `ngsw-config.json`:
+Article bodies, topic index lists, and publication images are cached by the Angular service worker via three `dataGroups` in `ngsw-config.json`:
 
 | Group | URL pattern | Strategy | maxSize | maxAge |
 |---|---|---|---|---|
 | `content-api-articles` | `/api/v1/content/article/**` | `freshness` (network-first, 3 s timeout) | 150 | 14 d |
 | `content-api-index` | `/api/v1/content/**` | `freshness` (network-first, 3 s timeout) | 50 | 7 d |
+| `publication-images` | `/assets/images/*.(jpg\|png)` | `performance` (cache-first, 10 s timeout) | 100 | 7 d |
 
-Both groups use `freshness` so online users always get responses validated by the API — important because content is access-controlled by group membership. The SW cache serves as an offline fallback only. The 14-day `maxAge` on articles means offline reading remains available for two weeks after the last online visit.
+The two `content-api` groups use `freshness` so online users always get responses validated by the API — important because content is access-controlled by group membership. The SW cache serves as an offline fallback only. The 14-day `maxAge` on articles means offline reading remains available for two weeks after the last online visit. Publication images are public static assets, so they use `performance` (cache-first) for instant rendering.
 
 ### Cache invalidation
 
@@ -459,7 +478,7 @@ The publication topic-list page (`PublicationPage`) has a **cache-all** button i
 | `cacheStatus` | `'idle' \| 'caching' \| 'done'` | Button appearance and disabled state |
 | `cachedCount` | `number` | Numerator for the deterministic `IonProgressBar` value |
 
-Because articles use the `performance` strategy, already-cached entries are served from the SW cache instantly and add no network traffic. Only uncached articles actually hit the API.
+Because articles use the `freshness` strategy, prefetching primes the SW cache so the articles are available offline; while online the SW still revalidates each one against the API (falling back to the cached copy only on network failure or the 3 s timeout).
 
 ---
 
@@ -481,7 +500,7 @@ stateDiagram-v2
 - **Token storage:** Access token in memory (JS ref); refresh token persisted via **Capacitor Preferences** (secure native storage on mobile; `localStorage` equivalent on web — see security note below).
 - **Role-based access:** `roles: ('user' | 'admin' | 'demo')[]` on `User`. Admin routes require `'admin'` in the array; enforced in both `adminGuard` and the NestJS API.
 - **Content group authorization:** `groups: string[]` on `User` controls which Library publications and hashtags are visible. Content tagged `groupName: 'public'` is visible to all authenticated users. Admin users bypass group filtering entirely. Groups are included in both the access token and refresh token; the admin UI allows assigning groups to users via `PATCH /api/v1/users/:id/groups`.
-- **Upload restriction:** Admin upload page accepts only `.md` and `.json` — enforced in the client `accept` prop **and** in `content.service.ts` server-side validation.
+- **Upload restriction:** Admin upload page accepts `.md` / `.json` content files plus `.jpg` / `.jpeg` / `.png` / `.gif` / `.webp` publication images — enforced in the client (`ACCEPT_PATTERN` regex in `upload.page.ts`) **and** in the API's `content.service.ts` server-side validation. Images are written to `apps/api/public/assets/images/` and served at `/assets/images/`.
 - **Server-side HTML sanitization:** `convertMarkdown()` in `apps/api/src/util/markup.ts` passes all Markdown-derived HTML through `sanitize-html` before storing or serving it. The allowlist covers only the tags and attributes the pipeline legitimately produces; `<script>`, event handlers, and `javascript:` URLs are stripped at the source.
 - **`bypassSecurityTrustHtml`:** `ArticleBodyComponent` still calls `bypassSecurityTrustHtml()` on article HTML. This is acceptable because the HTML has already been sanitized server-side before it reaches the client.
 
@@ -489,7 +508,20 @@ stateDiagram-v2
 
 ---
 
-## 10. i18n
+## 10. Theming
+
+The app ships a **teal** palette on a warm off-white background, with a class-based dark mode.
+
+- **Palette:** `src/theme/variables.scss` sets `--ion-color-primary` to deep teal (`#0a7c5c`) and `--ion-background-color` to warm off-white (`#faf7f2`); cards stay white so they lift off the page. Body copy uses **Inter** (`--ion-font-family`); article/markdown content uses a system-UI stack (`--content-font-family`). Foreign-language spans render in the primary colour; a clicked word gets a teal underline (not a highlight). Hashtag spans use the primary tint.
+- **Dark mode mechanism:** `global.scss` imports Ionic's **`dark.class.css`** palette (not `dark.system.css`), so dark mode is driven entirely by the `ion-palette-dark` class on `<html>` rather than the OS media query. `variables.scss` / `global.scss` override the dark background to a neutral `#121212` and bump shadow opacity.
+- **`ThemeService`** (`shared/theme/`) owns the choice. `theme` is a signal of `'system' | 'light' | 'dark'`, persisted under the `app.theme` key via Capacitor Preferences (→ `localStorage` on web). `setTheme()` writes the preference and calls `#apply()`, which adds/removes the `ion-palette-dark` class. In `system` mode it mirrors `prefers-color-scheme: dark` and attaches a `change` listener (torn down whenever the mode changes). The default is **light**.
+- **Settings page** (`/settings`, `authGuard`) is a thin `IonRadioGroup` over `ThemeService.theme`; selecting an option calls `setTheme()`.
+- **Modal uniformity:** a global `ion-modal` rule pins `--background` and the Ionic source theme variables to `--ion-card-background` so every modal surface (including `ion-content`'s shadow background div) resolves to the same colour in both palettes.
+- **Markdown override:** `github-markdown-css` carries its own `@media (prefers-color-scheme: dark)` block; `.markdown-body` is forced to `background: transparent` and `color: var(--ion-text-color)` so article text follows the class-based theme instead of the OS preference.
+
+---
+
+## 11. i18n
 
 Uses **ngx-translate**. Translation files are loaded at runtime from `/i18n/{lang}.json`.
 
@@ -503,7 +535,7 @@ Language preference is persisted on the `User` model and applied via `TranslateS
 
 ---
 
-## 11. Data models
+## 12. Data models
 
 **Auth**
 
@@ -518,6 +550,8 @@ classDiagram
         +string[] groups
         +string refreshToken
         +Date refreshExp
+        +boolean isSuspended
+        +Date lastAccessed
     }
 ```
 
