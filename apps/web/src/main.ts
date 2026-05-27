@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import {
-  PreloadAllModules,
+  NoPreloading,
   provideRouter,
   RouteReuseStrategy,
   withPreloading,
@@ -51,7 +51,7 @@ bootstrapApplication(AppComponent, {
     }),
     provideAppInitializer(() => firstValueFrom(inject(TranslateService).use('nl'))),
     provideHttpClient(withInterceptors([authInterceptor])),
-    provideRouter(APP_ROUTES, withPreloading(PreloadAllModules)),
+    provideRouter(APP_ROUTES, withPreloading(NoPreloading)),
     provideIonicAngular({ useSetInputAPI: true }),
     provideZonelessChangeDetection(),
   ],
