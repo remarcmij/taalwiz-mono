@@ -77,6 +77,11 @@ html.ion-palette-dark {
 .markdown-body {
   font-family: var(--content-font-family);
   background-color: transparent;
+  // github-markdown-css has its own @media (prefers-color-scheme: dark) block
+  // that sets text colour based on OS preference, independent of our class-based
+  // theme. Override it so the colour follows Ionic's --ion-text-color, which is
+  // controlled by the .ion-palette-dark class on <html>.
+  color: var(--ion-text-color);
 }
 
 span.hashtag {
