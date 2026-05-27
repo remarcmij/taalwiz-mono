@@ -75,9 +75,9 @@ glob -c "node --import tsx --no-warnings --test" "./src/__tests__/**/*.test.ts"
 ```
 
 Test files:
-- `helpers.test.ts` — `removeParenthesizedFragments()` (1 test)
-- `tokenizer.test.ts` — Tokenizer token sequences (2 tests)
-- `parser.test.ts` — TeeuwParser extraction logic (5 tests)
+- `helpers.test.ts` — `removeParenthesizedFragments()`
+- `tokenizer.test.ts` — Tokenizer token sequences
+- `parser.test.ts` — TeeuwParser extraction logic
 
 ## Known Issues
 

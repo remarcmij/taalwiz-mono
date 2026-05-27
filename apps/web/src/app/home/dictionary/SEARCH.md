@@ -40,7 +40,7 @@ After search results are returned:
 ### Suggestion Fetching
 
 1. **`ionViewWillEnter()` setup**: A `fromEvent` listener is attached to the searchbar's input element for keyup events
-2. **Debounce**: A 250ms debounce ensures API calls are not made on every keystroke
+2. **Debounce**: A 250ms debounce ensures suggestion lookups are not made on every keystroke
 3. **Switch to suggestions**: After debouncing, `getSuggestions(term)` is called via `switchMap`
 4. **Result**: `suggestions` signal is updated, and the dropdown is shown if matches are found
 
@@ -119,22 +119,22 @@ The stemmer recursively strips affixes from a word, building a set of variations
 2. **Active/common forms next**: Generated active voice or common inflections (more likely indexed)
 3. **Base/rare forms last**: Stripped roots and uncommon variants (fallback only)
 
-All variations are sent to the API as a comma-separated list.
+`DictionaryService.#searchLocal()` queries IndexedDB for each variation in order, stopping at the first one that yields keyword-flagged lemmas.
 
 **Examples of variation ordering**:
 
 - User types `diambil` (passive: "was taken")
 - Stemmer generates: `["diambil", "mengambil", "ambil"]`
   - `diambil`: original (rarely indexed)
-  - `mengambil`: active voice form (commonly indexed) ← **API finds this first**
+  - `mengambil`: active voice form (commonly indexed) ← **found first in IndexedDB**
   - `ambil`: bare root (fallback)
-- Result: API finds `mengambil` and returns all its entries
+- Result: IndexedDB returns all `mengambil` entries
 
 - User types `membaca` (active: "to read")
 - Stemmer generates: `["membaca", "baca"]`
-  - `membaca`: common form, indexed directly ← **API finds this**
+  - `membaca`: common form, indexed directly ← **found in IndexedDB**
   - `baca`: bare root (not needed)
-- Result: API finds `membaca` and returns all its entries
+- Result: IndexedDB returns all `membaca` entries
 
 ### Affixes Handled
 
@@ -270,11 +270,11 @@ The `mePrefixed` parameter prevents generating duplicate `meN-` variants when st
 
 #### Multiple Candidate Restoration
 
-When a consonant is dropped during affixation (e.g., `p` in `memotong` from `potong`), the stemmer generates both the stripped form (`otong`) and the restored form (`potong`). The dictionary API searches for both, and if either matches, the lookup succeeds.
+When a consonant is dropped during affixation (e.g., `p` in `memotong` from `potong`), the stemmer generates both the stripped form (`otong`) and the restored form (`potong`). `#searchLocal()` queries IndexedDB for both, and if either matches, the lookup succeeds.
 
 ### Testing
 
-Automated tests are located in `indonesian-stemmer.spec.ts` and cover 57 test cases organized into 12 describe blocks (word exemptions, suffix stripping, prefix stripping, meN- variants, peN- variants, circumfixes, reduplication, multi-affix words, deduplication, and documented examples from this document).
+Automated tests are located in `indonesian-stemmer.spec.ts` and cover word exemptions, suffix stripping, prefix stripping, meN- variants, peN- variants, circumfixes, reduplication, multi-affix words, deduplication, and the documented examples from this document.
 
 #### Running the Tests
 
@@ -288,7 +288,7 @@ pnpm --filter web run test
 pnpm --filter web run test:watch
 ```
 
-All 59 tests should pass. The test file uses a helper function `variations(word)` to generate stemmer output and validates the results with `.toEqual()` and `.toContain()` assertions.
+The test file uses a helper function `variations(word)` to generate stemmer output and validates the results with `.toEqual()` and `.toContain()` assertions.
 
 #### Manual Verification
 
@@ -327,17 +327,17 @@ Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, 
 
 ### Limitations & Design Tradeoffs
 
-1. **Over-stripping**: Some generated variations may not be real words (e.g., `terbang` → `bang`). This is acceptable because false variations just create extra API calls; they don't break lookups. The API simply won't find a match for them.
+1. **Over-stripping**: Some generated variations may not be real words (e.g., `terbang` → `bang`). This is acceptable because false variations just create extra IndexedDB lookups; they don't break lookups. The lookup simply won't find a match for them.
 
-2. **Ambiguous restoration**: When consonants are dropped during affixation (e.g., `potong` + `meN-` → `memotong`), we generate multiple candidates (`potong`, `otong`). Not all may be valid, but the dictionary API will find valid matches if they exist.
+2. **Ambiguous restoration**: When consonants are dropped during affixation (e.g., `potong` + `meN-` → `memotong`), we generate multiple candidates (`potong`, `otong`). Not all may be valid, but the IndexedDB lookup will find valid matches if they exist.
 
 3. **No single canonical root**: The stemmer generates a set of plausible forms rather than morphologically analyzing to a unique root. This is simpler to implement and works well for dictionary lookup without requiring advanced linguistic analysis.
 
 4. **Indonesian-specific**: This stemmer is tailored for Indonesian morphology and won't work for other languages.
 
-5. **API-dependent**: The stemmer's effectiveness depends on what forms are actually indexed in the dictionary API. If the API doesn't have certain base forms, stemming to them won't help. Conversely, if the API indexes many inflected forms, minimal stemming may suffice.
+5. **Dictionary-dependent**: The stemmer's effectiveness depends on what forms are indexed in the compiled dictionary (synced to IndexedDB). If the dictionary doesn't have certain base forms, stemming to them won't help. Conversely, if it indexes many inflected forms, minimal stemming may suffice.
 
-6. **Variation order matters**: Since the API stops searching after the first match, the order in which variations are generated affects both accuracy and performance. More commonly-indexed forms should ideally appear earlier. For example, for `diambil`, generating `mengambil` before `ambil` is beneficial because active forms are more likely to be indexed than passive base forms.
+6. **Variation order matters**: Since `#searchLocal()` stops searching after the first match, the order in which variations are generated affects both accuracy and performance. More commonly-indexed forms should ideally appear earlier. For example, for `diambil`, generating `mengambil` before `ambil` is beneficial because active forms are more likely to be indexed than passive base forms.
 
 ### Future Improvements
 
@@ -351,7 +351,7 @@ Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, 
 
 ### Why Order Matters
 
-The variations are generated in a specific order because the API searches them sequentially and **stops at the first match**. The order is designed to:
+The variations are generated in a specific order because `#searchLocal()` searches them sequentially against IndexedDB and **stops at the first match**. The order is designed to:
 1. Try the original form first (might be indexed as-is)
 2. Try more common forms next (e.g., active voice before passive)
 3. Try less common forms last (e.g., bare roots)
@@ -379,7 +379,7 @@ class LookupResult {
 
 ### Grouping by Base
 
-All lemmas in the API response are grouped by their `baseWord`:
+All lemmas in the lookup response are grouped by their `baseWord`:
 
 ```typescript
 // In makeLookupResult:
@@ -395,7 +395,7 @@ for (const lemma of response.lemmas) {
 }
 ```
 
-If the API returns 10 lemmas all with `baseWord: "membakar"` and `baseLang: "id"`, there will be one entry in `bases` (the `WordLang` "membakar") and one entry in `lemmas["membakar:id"]` with all 10 lemmas.
+If the lookup returns 10 lemmas all with `baseWord: "membakar"` and `baseLang: "id"`, there will be one entry in `bases` (the `WordLang` "membakar") and one entry in `lemmas["membakar:id"]` with all 10 lemmas.
 
 ### Display in Template
 
@@ -492,13 +492,13 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 9. **Display**: Template shows all 10+ lemmas for "membakar" grouped under the "bakar" base
 10. **Subsequent search**: User types "air" and presses Enter
     - No autocomplete match (assume "air" exists in autocomplete and user clicks it)
-    - `lookup({word: "air", lang: "id"})` → `lookupVariations("air")`
+    - `lookup({word: "air", lang: "id"})` → `searchDictionary()` → `#searchLocal()`
     - Stemmer generates `["air"]`
-    - API searches and returns 50+ lemmas for "air"
+    - IndexedDB returns all lemmas for "air"
     - Breadcrumb now shows: "dibakar" (dimmed) / "air" (bold)
 11. **Click breadcrumb**: User clicks "dibakar" in breadcrumb
     - `lookup({word: "dibakar", lang: "id"})` is called
-    - Routes to `lookupVariations("dibakar")` again (same as step 2)
+    - Routes through `searchDictionary()` → `#searchLocal()` again (same as step 2)
     - Returns same "membakar" entries (full results)
     - "dibakar" is now bold again
 
@@ -543,13 +543,13 @@ Prefix queries (autocomplete suggestions) use `IDBKeyRange.bound([lang, start], 
 
 If a user types an inflected word like "dibakar" that is NOT in the autocomplete index (unlikely, but possible):
 - Autocomplete returns no suggestions
-- User presses Enter → `lookupVariations()` is called
+- User presses Enter → `searchDictionary()` → `#searchLocal()` is called
 - Stemmer generates variations including "membakar" (active form)
-- API finds "membakar" and returns results ✓
+- IndexedDB lookup finds "membakar" and returns results ✓
 
 If the user had typed "dibakar" and it WAS in autocomplete:
 - User would click the suggestion
-- Same route: `lookup()` → `lookupVariations()` → full results ✓
+- Same route: `lookup()` → `searchDictionary()` → `#searchLocal()` → full results ✓
 
 ### 2. Word Exists Only as a Compound
 
@@ -557,9 +557,9 @@ Example: "sampah" (trash) might not have its own entry but appears as "membakar 
 
 If a user searches "sampah":
 - Autocomplete might not suggest it (if not indexed as standalone)
-- `lookupVariations("sampah")` generates variations
+- `#searchLocal()` runs the stemmer for "sampah"
 - Stemmer strips affixes (none apply to "sampah")
-- API searches for "sampah" → not found
+- IndexedDB lookup for "sampah" → not found
 - Returns empty results
 
 This is expected behavior — only words (or their variants) indexed in the dictionary are found.

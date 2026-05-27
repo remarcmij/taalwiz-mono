@@ -24,8 +24,8 @@ Angular 20 + Ionic 8 hybrid web/mobile app (Capacitor 7). Standalone components 
 ```mermaid
 graph TD
     subgraph Bootstrap
-        main["main.ts\n(bootstrapApplication)"]
-        config["app.config.ts\n(providers)"]
+        main["main.ts\n(bootstrapApplication + providers)"]
+        routes["app.routes.ts\n(route table)"]
     end
 
     subgraph Shell
@@ -47,8 +47,8 @@ graph TD
         theme["ThemeService\n(light/dark/system)"]
     end
 
-    main --> config
-    config --> app
+    main --> routes
+    main --> app
     app --> auth
     app --> home
     app --> admin
@@ -155,7 +155,7 @@ src/app/
 
 ## 3. Routing
 
-All feature routes are lazy-loaded. The router uses `IonicRouteStrategy` (route reuse) and `PreloadAllModules`.
+All feature routes are lazy-loaded. The router uses `IonicRouteStrategy` (route reuse) and `NoPreloading` — the service worker already prefetches every lazy chunk, so router-level preloading would be redundant.
 
 **Redirects**
 

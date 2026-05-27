@@ -15,7 +15,6 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
   "dependencies": {
     "glob": "^11.0.3"
   },
