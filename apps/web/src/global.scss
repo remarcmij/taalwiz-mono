@@ -103,3 +103,24 @@ ion-back-button {
 .markdown-body blockquote {
   border: none;
 }
+
+ion-modal {
+  // Ensure a uniform background across all modal elements in both modes.
+  // --ion-card-background is already correct per mode:
+  //   light: #ffffff  (set in variables.scss, floats above the warm cream page)
+  //   dark:  #1c1c1d  (set by Ionic's dark.system.css — standard elevated surface)
+  // Both the direct --background prop and the Ionic source theme variables are
+  // overridden so every child — including ion-content's shadow #background-content
+  // div — resolves to the same colour.
+  --background: var(--ion-card-background);
+  --ion-background-color: var(--ion-card-background);
+  --ion-item-background: var(--ion-card-background);
+  --ion-toolbar-background: var(--ion-card-background);
+
+  ion-toolbar,
+  ion-content,
+  ion-list,
+  ion-item {
+    --background: var(--ion-card-background);
+  }
+}

@@ -42,6 +42,7 @@ export class WordClickModalService {
                 lemmas,
                 bases: Array.from(bases),
               },
+              cssClass: 'word-click-modal',
               initialBreakpoint: 0.25,
               breakpoints: [0, 0.25, 0.5],
               handleBehavior: 'cycle',
