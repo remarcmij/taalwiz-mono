@@ -8,7 +8,7 @@ const VALID_MODES: ThemeMode[] = ['system', 'light', 'dark'];
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  readonly theme = signal<ThemeMode>('system');
+  readonly theme = signal<ThemeMode>('light');
 
   readonly #mql = window.matchMedia('(prefers-color-scheme: dark)');
   #mqlListener: ((e: MediaQueryListEvent) => void) | null = null;
@@ -29,7 +29,7 @@ export class ThemeService {
     const { value } = await Preferences.get({ key: PREFS_KEY });
     const saved: ThemeMode = VALID_MODES.includes(value as ThemeMode)
       ? (value as ThemeMode)
-      : 'system';
+      : 'light';
     this.theme.set(saved);
     this.#apply(saved);
   }
