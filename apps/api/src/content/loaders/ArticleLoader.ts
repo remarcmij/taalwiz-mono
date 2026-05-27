@@ -150,7 +150,7 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     }
     const attributes: ArticleFrontMatterAttributes = result.data;
 
-    let titleMatch = content.match(/^# *([^#][^\n]+)/m);
+    const titleMatch = content.match(/^# *([^#][^\n]+)/m);
     const title = attributes.title ?? (titleMatch ? titleMatch[1] : 'untitled');
 
     let subtitle = attributes.subtitle;
