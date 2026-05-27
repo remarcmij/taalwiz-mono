@@ -61,9 +61,10 @@
     color: var(--foreign-text-color);
 
     &.clicked {
-      background-color: yellow;
-      margin: 0 -4px;
-      padding: 0 4px;
+      text-decoration: underline;
+      text-decoration-color: var(--ion-color-primary);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 3px;
     }
   }
 
