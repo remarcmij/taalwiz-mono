@@ -14,6 +14,14 @@
   --ion-background-color: #faf7f2;
   --ion-background-color-rgb: 250, 247, 242;
 
+  // Ionic's core.css only defines --ion-text-color in the dark palette, leaving
+  // it undefined in light mode. Define it here so `color: var(--ion-text-color)`
+  // resolves instead of falling back to inherited colours (e.g. the muted grey
+  // that ion-card imposes on its content). Dark mode overrides this via the
+  // .ion-palette-dark palette.
+  --ion-text-color: #1c1c1c;
+  --ion-text-color-rgb: 28, 28, 28;
+
   // Cards are white so they lift off the warm background
   --ion-card-background: #ffffff;
 
