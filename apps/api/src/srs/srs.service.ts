@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Types } from 'mongoose';
+import { AnyBulkWriteOperation, Types } from 'mongoose';
 import VocabularyItem from '../vocabulary/models/vocabulary-item.model.js';
-import SrsRecord from './models/srs-record.model.js';
+import SrsRecord, { SrsRecordDoc } from './models/srs-record.model.js';
+
+interface SrsCardKey {
+  term: string;
+  lang: string;
+  listId: string;
+}
 
 export interface SrsItemInfo {
   term: string;
@@ -30,6 +36,21 @@ export class SrsService {
       { $setOnInsert: { interval: 1, easeFactor: 2.5, dueDate: new Date(), reps: 0, lapses: 0 } },
       { upsert: true, new: true },
     ).exec();
+  }
+
+  async createCards(userId: string, items: SrsCardKey[]): Promise<void> {
+    if (items.length === 0) return;
+    const userObjectId = new Types.ObjectId(userId);
+    const ops: AnyBulkWriteOperation<SrsRecordDoc>[] = items.map(({ term, lang, listId }) => ({
+      updateOne: {
+        filter: { userId: userObjectId, listId: new Types.ObjectId(listId), term, lang },
+        update: {
+          $setOnInsert: { interval: 1, easeFactor: 2.5, dueDate: new Date(), reps: 0, lapses: 0 },
+        },
+        upsert: true,
+      },
+    }));
+    await SrsRecord.bulkWrite(ops);
   }
 
   async deleteCard(userId: string, term: string, lang: string, listId: string): Promise<void> {

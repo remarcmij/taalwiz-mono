@@ -13,7 +13,7 @@ import {
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import { VocabularyListInfo, VocabularyService } from './vocabulary.service.js';
-import { CreateVocabularyItemDto } from './dto/create-vocabulary-item.dto.js';
+import { BulkAddVocabularyDto } from './dto/create-vocabulary-item.dto.js';
 import { CreateVocabularyListDto } from './dto/create-vocabulary-list.dto.js';
 import { RenameVocabularyListDto } from './dto/rename-vocabulary-list.dto.js';
 
@@ -61,8 +61,8 @@ export class VocabularyController {
 
   @Post()
   @HttpCode(HttpStatus.NO_CONTENT)
-  async add(@CurrentUser() user: JwtPayload, @Body() dto: CreateVocabularyItemDto) {
-    await this.vocabularyService.add(user.sub, dto.term, dto.lang, dto.listId, dto.back);
+  async add(@CurrentUser() user: JwtPayload, @Body() dto: BulkAddVocabularyDto) {
+    await this.vocabularyService.addMany(user.sub, dto.items);
   }
 
   @Delete()

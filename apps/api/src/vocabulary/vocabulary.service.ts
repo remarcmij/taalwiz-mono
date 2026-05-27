@@ -1,6 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { Types } from 'mongoose';
+import { AnyBulkWriteOperation, Types } from 'mongoose';
 import { SrsService } from '../srs/srs.service.js';
+import { CreateVocabularyItemDto } from './dto/create-vocabulary-item.dto.js';
 import VocabularyItem, { VocabularyItemDoc } from './models/vocabulary-item.model.js';
 import VocabularyList from './models/vocabulary-list.model.js';
 
@@ -72,17 +73,24 @@ export class VocabularyService {
       .exec();
   }
 
-  async add(userId: string, term: string, lang: string, listId: string, back?: string): Promise<void> {
+  async addMany(userId: string, items: CreateVocabularyItemDto[]): Promise<void> {
+    if (items.length === 0) return;
     const userObjectId = new Types.ObjectId(userId);
-    const listObjectId = new Types.ObjectId(listId);
-    const update: Record<string, unknown> = { $setOnInsert: { savedAt: new Date() } };
-    if (back !== undefined) update['$set'] = { back };
-    await VocabularyItem.findOneAndUpdate(
-      { userId: userObjectId, listId: listObjectId, term, lang },
-      update,
-      { upsert: true, new: true },
-    ).exec();
-    await this.srsService.createCard(userId, term, lang, listId);
+    const ops: AnyBulkWriteOperation<VocabularyItemDoc>[] = items.map(
+      ({ term, lang, listId, back }) => {
+        const update: Record<string, unknown> = { $setOnInsert: { savedAt: new Date() } };
+        if (back !== undefined) update['$set'] = { back };
+        return {
+          updateOne: {
+            filter: { userId: userObjectId, listId: new Types.ObjectId(listId), term, lang },
+            update,
+            upsert: true,
+          },
+        };
+      },
+    );
+    await VocabularyItem.bulkWrite(ops);
+    await this.srsService.createCards(userId, items);
   }
 
   async remove(userId: string, term: string, lang: string, listId: string): Promise<void> {

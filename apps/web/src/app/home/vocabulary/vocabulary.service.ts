@@ -75,7 +75,7 @@ export class VocabularyService {
     this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: l.count + 1 } : l)));
 
     this.#http
-      .post('/api/v1/vocabulary', { term, lang, listId, back })
+      .post('/api/v1/vocabulary', { items: [{ term, lang, listId, back }] })
       .pipe(
         catchError(() => {
           this.bookmarkedKeys.update((s) => {
@@ -101,7 +101,7 @@ export class VocabularyService {
     );
 
     this.#http
-      .post('/api/v1/vocabulary', { term, lang, listId, back })
+      .post('/api/v1/vocabulary', { items: [{ term, lang, listId, back }] })
       .pipe(
         catchError(() => {
           this.bookmarks.set(snapshot);
@@ -116,18 +116,14 @@ export class VocabularyService {
     if (!listId) return 0;
     const lang = langConfig.targetLang;
 
-    const results = await Promise.all(
-      entries.map(({ term, back }) =>
-        firstValueFrom(
-          this.#http.post('/api/v1/vocabulary', { term, lang, listId, back }).pipe(
-            map(() => true),
-            catchError(() => of(false)),
-          ),
-        ),
+    const items = entries.map(({ term, back }) => ({ term, lang, listId, back }));
+    const succeeded = await firstValueFrom(
+      this.#http.post('/api/v1/vocabulary', { items }).pipe(
+        map(() => entries.length),
+        catchError(() => of(0)),
       ),
     );
 
-    const succeeded = results.filter(Boolean).length;
     this.#loadItems(listId);
     const updatedLists = await this.#fetchLists();
     this.lists.set(updatedLists);
@@ -266,7 +262,7 @@ export class VocabularyService {
     this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: l.count + 1 } : l)));
 
     this.#http
-      .post('/api/v1/vocabulary', { term, lang, listId })
+      .post('/api/v1/vocabulary', { items: [{ term, lang, listId }] })
       .pipe(
         catchError(() => {
           this.bookmarkedKeys.update((s) => {

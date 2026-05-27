@@ -26,7 +26,7 @@ All user-facing endpoints are under `/api/v1/` and require a valid JWT (`Authori
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/v1/vocabulary?listId=<id>` | List items in the specified list, sorted by `savedAt` desc |
-| `POST` | `/api/v1/vocabulary` | Add item `{ term, lang, listId, back? }`; upsert (no-op on duplicate) |
+| `POST` | `/api/v1/vocabulary` | Add items `{ items: [{ term, lang, listId, back? }] }` (1–1000); each upserted (no-op on duplicate). Single adds send a one-element list |
 | `DELETE` | `/api/v1/vocabulary?term=&lang=&listId=<id>` | Remove an item |
 
 ### User Preferences (`/api/v1/user-preferences`)
