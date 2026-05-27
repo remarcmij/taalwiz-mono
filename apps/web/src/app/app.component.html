@@ -52,6 +52,12 @@
           </ion-item>
         </ion-menu-toggle>
         <ion-menu-toggle menu="m1">
+          <ion-item detail button lines="none" routerLink="/settings">
+            <ion-icon slot="start" name="settings-outline"></ion-icon>
+            <ion-label>{{ 'settings.title' | translate }}</ion-label>
+          </ion-item>
+        </ion-menu-toggle>
+        <ion-menu-toggle menu="m1">
           <ion-item button lines="none" (click)="reload()">
             <ion-icon slot="start" name="reload-outline"></ion-icon>
             <ion-label>{{ 'common.reload' | translate }}</ion-label>

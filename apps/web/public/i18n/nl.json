@@ -95,6 +95,13 @@
     "no-definition": "Geen definitie gevonden",
     "rating-hint": "Je beoordeling bepaalt wanneer je deze kaart terugziet"
   },
+  "settings": {
+    "title": "Instellingen",
+    "appearance": "Weergave",
+    "theme-system": "Systeemstandaard",
+    "theme-light": "Licht",
+    "theme-dark": "Donker"
+  },
   "admin": {
     "admin-tasks": "Beheerderstaken"
   },

@@ -12,6 +12,7 @@ import {
   mailOutline,
   reloadOutline,
   rocketOutline,
+  settingsOutline,
   shieldHalfOutline,
 } from 'ionicons/icons';
 
@@ -41,6 +42,7 @@ import { DictSyncService } from './home/dictionary/dict-sync.service';
 import { TocService } from './home/content/publication/article/toc.service';
 import { SpeechSynthesizerService } from './home/speech-synthesizer.service';
 import { LoggerService } from './shared/logger.service';
+import { ThemeService } from './shared/theme/theme.service';
 import { PromptUpdateService } from './sw-update/prompt-update.service';
 
 @Component({
@@ -81,6 +83,11 @@ export class AppComponent implements OnInit, OnDestroy {
   // eslint-disable-next-line no-unused-private-class-members
   #updateService = inject(PromptUpdateService);
 
+  // Injected for its construction side effect (applies saved theme on startup);
+  // intentionally never read.
+  // eslint-disable-next-line no-unused-private-class-members
+  #themeService = inject(ThemeService);
+
   protected tocService = inject(TocService);
 
   readonly currentUser = this.#authService.user;
@@ -95,6 +102,7 @@ export class AppComponent implements OnInit, OnDestroy {
       logOutOutline,
       rocketOutline,
       reloadOutline,
+      settingsOutline,
     });
   }
 

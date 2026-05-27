@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ 'settings.title' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-list-header>
+      <ion-label>{{ 'settings.appearance' | translate }}</ion-label>
+    </ion-list-header>
+    <ion-radio-group
+      [value]="themeService.theme()"
+      (ionChange)="onThemeChange($any($event.detail.value))"
+    >
+      <ion-item>
+        <ion-radio value="system" justify="space-between">
+          {{ 'settings.theme-system' | translate }}
+        </ion-radio>
+      </ion-item>
+      <ion-item>
+        <ion-radio value="light" justify="space-between">
+          {{ 'settings.theme-light' | translate }}
+        </ion-radio>
+      </ion-item>
+      <ion-item>
+        <ion-radio value="dark" justify="space-between">
+          {{ 'settings.theme-dark' | translate }}
+        </ion-radio>
+      </ion-item>
+    </ion-radio-group>
+  </ion-list>
+</ion-content>

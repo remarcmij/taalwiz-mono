@@ -39,5 +39,10 @@ export const APP_ROUTES: Routes = [
     loadComponent: () => import('./user/contact/contact.page').then((p) => p.ContactPage),
     canActivate: [authGuard],
   },
+  {
+    path: 'settings',
+    loadComponent: () => import('./settings/settings.page').then((p) => p.SettingsPage),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'auth' },
 ];

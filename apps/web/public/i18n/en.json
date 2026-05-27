@@ -95,6 +95,13 @@
     "no-definition": "No definition found",
     "rating-hint": "Your rating determines when this card reappears"
   },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "theme-system": "System default",
+    "theme-light": "Light",
+    "theme-dark": "Dark"
+  },
   "admin": {
     "admin-tasks": "Administative Tasks"
   },
