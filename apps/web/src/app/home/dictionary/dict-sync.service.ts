@@ -72,10 +72,20 @@ export class DictSyncService {
     // fetch + transform + ~270k-record IDB write runs in a dedicated worker.
     this.status$.next('downloading');
     this.progress$.next({ phase: 'downloading', loaded: 0, total: manifest.files.length });
+    const startedAt = performance.now();
     try {
       await this.#runImportInWorker({ files: manifest.files, version: manifest.version });
       this.hasCompleteDict$.next(true);
       this.status$.next('done');
+      // Wall-clock import time + post-import IDB footprint, so we can track
+      // both as the schema and import path evolve.
+      const elapsed = ((performance.now() - startedAt) / 1000).toFixed(2);
+      const { usage, quota } = await navigator.storage.estimate();
+      const mb = (n: number | undefined) =>
+        n == null ? '?' : (n / 1024 / 1024).toFixed(1) + ' MB';
+      console.log(
+        `[dict] import complete in ${elapsed}s — IDB usage ${mb(usage)} (quota ${mb(quota)})`,
+      );
     } catch {
       this.status$.next('error');
     } finally {
