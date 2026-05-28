@@ -2,7 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { CompiledDict, DictRecord, DictStoreService, transformDict } from './dict-store.service';
 
-export type SyncStatus = 'idle' | 'syncing' | 'done' | 'offline' | 'error';
+export type SyncStatus =
+  | 'idle'
+  | 'downloading'
+  | 'importing'
+  | 'done'
+  | 'offline'
+  | 'error';
 
 interface DictManifest {
   version: string;
@@ -21,7 +27,7 @@ export class DictSyncService {
   }
 
   async syncIfNeeded(): Promise<void> {
-    if (this.status$.value === 'syncing') return;
+    if (this.status$.value === 'downloading' || this.status$.value === 'importing') return;
     if (!navigator.onLine) {
       this.status$.next('offline');
       return;
@@ -47,10 +53,11 @@ export class DictSyncService {
       return;
     }
 
-    this.status$.next('syncing');
-
     try {
+      this.status$.next('downloading');
       const allLemmas = await this.#fetchAndTransformFiles(manifest.files);
+      // The files are now in memory; the slow part is writing them to IndexedDB.
+      this.status$.next('importing');
       await this.#dictStore.replaceAll(allLemmas, manifest.version);
       this.status$.next('done');
     } catch {

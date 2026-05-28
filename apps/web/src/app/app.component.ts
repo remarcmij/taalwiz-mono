@@ -129,7 +129,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.#dictSync.status$
       .pipe(
         pairwise(),
-        filter(([prev, curr]) => prev === 'syncing' && curr === 'done'),
+        filter(([prev, curr]) => prev === 'importing' && curr === 'done'),
         takeUntil(this.#destroy$),
       )
       .subscribe(() => {

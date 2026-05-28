@@ -102,6 +102,9 @@ export class DictionaryPage implements OnDestroy {
     initialValue: 'idle' as SyncStatus,
   });
   protected dictIsEmpty = signal(true);
+  protected isSyncing = computed(
+    () => this.syncStatus() === 'downloading' || this.syncStatus() === 'importing',
+  );
 
   @ViewChild('searchbarInput', { read: ElementRef }) searchbar!: ElementRef;
   @ViewChild('content', { read: ElementRef }) content!: ElementRef<IonContent>;

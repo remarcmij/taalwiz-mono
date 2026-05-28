@@ -8,20 +8,22 @@
   <ion-toolbar>
     <ion-searchbar
       #searchbarInput
-      [placeholder]="syncStatus() === 'syncing' && dictIsEmpty()
+      [placeholder]="isSyncing() && dictIsEmpty()
         ? ('dictionary.sync-wait' | translate)
         : ('common.search' | translate)"
-      [disabled]="syncStatus() === 'syncing' && dictIsEmpty()"
+      [disabled]="isSyncing() && dictIsEmpty()"
       [ngModel]="word()"
       (ngModelChange)="word.set($event)"
       (ionClear)="onClear()"
       class="searchbar"></ion-searchbar>
   </ion-toolbar>
   <div aria-live="polite" aria-atomic="true">
-    @if (syncStatus() === 'syncing') {
+    @if (isSyncing()) {
       <ion-progress-bar type="indeterminate"></ion-progress-bar>
       @if (dictIsEmpty()) {
-        <div class="sync-banner">{{ 'dictionary.sync-downloading' | translate }}</div>
+        <div class="sync-banner">
+          {{ (syncStatus() === 'importing' ? 'dictionary.sync-importing' : 'dictionary.sync-downloading') | translate }}
+        </div>
       }
     }
     @if (syncStatus() === 'offline') {
