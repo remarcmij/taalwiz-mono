@@ -46,7 +46,7 @@ import { TocService } from './home/content/publication/article/toc.service';
 import { SpeechSynthesizerService } from './home/speech-synthesizer.service';
 import { LoggerService } from './shared/logger.service';
 import { ThemeService } from './shared/theme/theme.service';
-import { PromptUpdateService } from './sw-update/prompt-update.service';
+import { PromptUpdateService, UPDATE_INSTALLED_FLAG } from './sw-update/prompt-update.service';
 
 @Component({
   selector: 'app-root',
@@ -134,6 +134,11 @@ export class AppComponent implements OnInit, OnDestroy {
     const logLevel = environment.production ? 'info' : 'silly';
     this.#logger.setLevel(logLevel);
 
+    if (sessionStorage.getItem(UPDATE_INSTALLED_FLAG) === '1') {
+      sessionStorage.removeItem(UPDATE_INSTALLED_FLAG);
+      void this.#showUpdateInstalledToast();
+    }
+
     this.#authService.user$
       .pipe(
         pairwise(),
@@ -215,6 +220,15 @@ export class AppComponent implements OnInit, OnDestroy {
   async #showSyncDoneToast() {
     const toast = await this.#toastCtrl.create({
       message: this.#translate.instant('dictionary.sync-done'),
+      duration: 3000,
+      position: 'bottom',
+    });
+    await toast.present();
+  }
+
+  async #showUpdateInstalledToast() {
+    const toast = await this.#toastCtrl.create({
+      message: this.#translate.instant('update.update-installed'),
       duration: 3000,
       position: 'bottom',
     });

@@ -54,6 +54,12 @@ export class PromptUpdateService {
   }
 
   applyUpdate(): void {
+    // sessionStorage flag is read by AppComponent after the reload to surface
+    // a confirmation toast — without it, the reload is silent and the user has
+    // no signal that the install succeeded.
+    sessionStorage.setItem(UPDATE_INSTALLED_FLAG, '1');
     document.location.reload();
   }
 }
+
+export const UPDATE_INSTALLED_FLAG = 'sw.updateInstalled';
