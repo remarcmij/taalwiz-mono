@@ -28,7 +28,7 @@ The Dictionary lets you look up Indonesian words. Type your search term in the s
 
 Each entry shows the word's lemma (base form) along with its Dutch translation and any related forms. You can tap a related form to navigate to its own entry. The app stores your recent searches so you can quickly return to words you looked up earlier.
 
-__Offline use:__ The dictionary works without an internet connection once it has been downloaded to your device. A banner at the top of the screen shows the sync status. If the dictionary is not yet downloaded, or if an update is available, the app will begin syncing automatically when you are online.
+__Offline use:__ The dictionary works without an internet connection once it has been downloaded to your device. While it is updating, a small __Updating dictionary__ chip with a live percentage appears in the top-right corner of any screen; on the first build, the Dictionary page also shows a full progress banner. If the dictionary is not yet downloaded, or if an update is available, the app will begin syncing automatically when you are online.
 
 ---
 
@@ -93,6 +93,6 @@ Open the side menu by tapping the menu icon in the top-left corner. From here yo
 
 ## Tips
 
-- The dictionary badge on the Dictionary tab icon shows when a sync is in progress or if the local dictionary is out of date.
+- While the dictionary is updating in the background, an __Updating dictionary__ chip appears in the top-right corner of every screen; tap it to jump to the Dictionary page.
 - Keyboard shortcuts work on the web version: __Space__ flips a flashcard, __1 / 2 / 3__ rate it.
 - If you added a custom note to a vocabulary entry, it is shown on the back of the flashcard instead of the dictionary definition.

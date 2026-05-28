@@ -506,7 +506,7 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 ## IndexedDB Lookup Notes
 
-**File**: `dict-store.service.ts`
+**File**: `dict-store.service.ts` (read-only) — the schema and `transformDict()` live in `dict-db.ts`; the import itself runs off the main thread in `dict-import.worker.ts` as a single atomic readwrite transaction. Search reads remain on the main thread against the shared `taalwiz-dict` database. See [ARCHITECTURE.md → Dictionary](../../../../../ARCHITECTURE.md#7-dictionary-offline-first) for the full sync flow and worker rationale.
 
 ### Variation Iteration
 

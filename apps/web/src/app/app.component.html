@@ -106,4 +106,21 @@
   </ion-menu>
 
   <ion-router-outlet id="main-content"></ion-router-outlet>
+
+  @if (isSyncing()) {
+    <button
+      type="button"
+      class="dict-sync-chip"
+      (click)="goToDictionary()"
+      [title]="'dictionary.sync-chip' | translate"
+      [attr.aria-label]="'dictionary.sync-chip' | translate"
+      role="status"
+      aria-live="polite">
+      <ion-spinner name="dots"></ion-spinner>
+      <span class="dict-sync-chip__label">{{ 'dictionary.sync-chip' | translate }}</span>
+      @if (syncProgress()) {
+        <span class="dict-sync-chip__count">{{ syncPercent() }}%</span>
+      }
+    </button>
+  }
 </ion-app>

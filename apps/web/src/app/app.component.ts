@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, NavigationStart, Router, RouterLink } from '@angular/router';
 
 import { App, AppState } from '@capacitor/app';
@@ -31,6 +32,7 @@ import {
   IonMenu,
   IonMenuToggle,
   IonRouterOutlet,
+  IonSpinner,
   IonTitle,
   IonToolbar,
   MenuController,
@@ -38,7 +40,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from './auth/auth.service';
-import { DictSyncService } from './home/dictionary/dict-sync.service';
+import { DictSyncService, SyncStatus } from './home/dictionary/dict-sync.service';
 import { TocService } from './home/content/publication/article/toc.service';
 import { SpeechSynthesizerService } from './home/speech-synthesizer.service';
 import { LoggerService } from './shared/logger.service';
@@ -62,6 +64,7 @@ import { PromptUpdateService } from './sw-update/prompt-update.service';
     IonLabel,
     IonMenuToggle,
     IonIcon,
+    IonSpinner,
     RouterLink,
     IonRouterOutlet,
     TranslatePipe,
@@ -91,6 +94,27 @@ export class AppComponent implements OnInit, OnDestroy {
   protected tocService = inject(TocService);
 
   readonly currentUser = this.#authService.user;
+  // Drives the global "Updating dictionary…" indicator chip. The chip lives in
+  // the app shell so it's visible from any tab/route — the on-page banner in
+  // the Dictionary tab only surfaces this on first build.
+  protected syncStatus = toSignal(this.#dictSync.status$, {
+    initialValue: 'idle' as SyncStatus,
+  });
+  protected syncProgress = toSignal(this.#dictSync.progress$, { initialValue: null });
+  protected isSyncing = computed(
+    () => this.syncStatus() === 'downloading' || this.syncStatus() === 'importing',
+  );
+  // Combined 0..100% across both phases. Download is network-bound and quick
+  // on Wi-Fi/5G; import is the IDB-write phase and is the bulk of perceived
+  // time. Weight 10/90 so the bar mostly reflects the actual write progress.
+  protected syncPercent = computed(() => {
+    const p = this.syncProgress();
+    if (!p || p.total === 0) return 0;
+    const frac = Math.min(1, p.loaded / p.total);
+    return p.phase === 'downloading'
+      ? Math.round(frac * 10)
+      : Math.round(10 + frac * 90);
+  });
   #destroy$ = new Subject<void>();
 
   constructor() {
@@ -164,6 +188,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onLogout() {
     this.#authService.logout();
+  }
+
+  goToDictionary() {
+    void this.#router.navigateByUrl('/home/tabs/dictionary');
   }
 
   ngOnDestroy() {

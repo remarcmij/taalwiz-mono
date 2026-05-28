@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CompiledDict, transformDict } from './dict-store.service';
+import { CompiledDict, transformDict } from './dict-db';
 
 describe('transformDict', () => {
   it('adds a lowercased wordLower key for each record while preserving the display word', () => {

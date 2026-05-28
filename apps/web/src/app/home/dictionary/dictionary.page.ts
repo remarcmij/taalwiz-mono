@@ -49,7 +49,6 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
-import { DictStoreService } from './dict-store.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
 import { DictionaryService } from './dictionary.service';
 import { HistoryModalComponent } from './history-modal/history-modal.component';
@@ -97,11 +96,15 @@ export class DictionaryPage implements OnDestroy {
   #historyService = inject(SearchHistoryService);
   #modalCtrl = inject(ModalController);
   #platform = inject(Platform);
-  #dictStore = inject(DictStoreService);
-  protected syncStatus = toSignal(inject(DictSyncService).status$, {
+  #dictSync = inject(DictSyncService);
+  protected syncStatus = toSignal(this.#dictSync.status$, {
     initialValue: 'idle' as SyncStatus,
   });
-  protected dictIsEmpty = signal(true);
+  // True once a complete dictionary has been committed (atomic version stamp).
+  // Drives the search-ready gate so we never read the store mid-import.
+  protected hasCompleteDict = toSignal(this.#dictSync.hasCompleteDict$, {
+    initialValue: false,
+  });
   protected isSyncing = computed(
     () => this.syncStatus() === 'downloading' || this.syncStatus() === 'importing',
   );
@@ -163,7 +166,9 @@ export class DictionaryPage implements OnDestroy {
   }
 
   ionViewWillEnter() {
-    this.#dictStore.count().then((n) => this.dictIsEmpty.set(n === 0));
+    // Readiness comes from `hasCompleteDict` (driven by DictSyncService) — no
+    // need to poll count() here, which would block on the IDB lock if a
+    // worker import transaction were in flight.
 
     // Ref: https://github.com/ionic-team/ionic-framework/issues/7223
     const searchInputElement: HTMLInputElement =

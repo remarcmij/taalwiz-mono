@@ -47,6 +47,7 @@
   "dictionary": {
     "sync-downloading": "Downloading dictionary for offline use…",
     "sync-importing": "Importing dictionary for offline use…",
+    "sync-chip": "Updating dictionary",
     "sync-offline": "Offline — using cached dictionary.",
     "sync-error": "Dictionary sync failed. Will retry next session.",
     "sync-wait": "Preparing dictionary…",

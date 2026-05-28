@@ -28,7 +28,7 @@ Met het Woordenboek kun je Indonesische woorden opzoeken. Typ je zoekterm in de 
 
 Elke vermelding toont de lemma (basisvorm) van het woord, samen met de Nederlandse vertaling en eventuele verwante vormen. Je kunt op een verwante vorm tikken om naar het bijbehorende item te navigeren. De app slaat je recente zoekopdrachten op, zodat je snel kunt terugkeren naar eerder opgezochte woorden.
 
-__Offline gebruik:__ Het woordenboek werkt zonder internetverbinding zodra het naar je apparaat is gedownload. Een banner bovenaan het scherm toont de synchronisatiestatus. Als het woordenboek nog niet is gedownload, of als er een update beschikbaar is, begint de app automatisch te synchroniseren zodra je online bent.
+__Offline gebruik:__ Het woordenboek werkt zonder internetverbinding zodra het naar je apparaat is gedownload. Terwijl het wordt bijgewerkt, verschijnt rechtsboven op elk scherm een kleine __Woordenboek bijwerken__-chip met een live percentage; bij de allereerste opbouw toont de Woordenboek-pagina daarnaast een volledige voortgangsbanner. Als het woordenboek nog niet is gedownload, of als er een update beschikbaar is, begint de app automatisch te synchroniseren zodra je online bent.
 
 ---
 
@@ -93,6 +93,6 @@ Open het zijmenu door op het menupictogram linksboven te tikken. Van hieruit kun
 
 ## Tips
 
-- De badge op het pictogram van het tabblad Woordenboek verschijnt wanneer een synchronisatie bezig is of als het lokale woordenboek verouderd is.
+- Terwijl het woordenboek op de achtergrond wordt bijgewerkt, verschijnt rechtsboven op elk scherm een __Woordenboek bijwerken__-chip; tik erop om naar de Woordenboek-pagina te gaan.
 - Sneltoetsen werken in de webversie: __Spatie__ draait een flashcard om, __1 / 2 / 3__ beoordeelt hem.
 - Als je een eigen aantekening aan een woordenschatitem hebt toegevoegd, wordt die getoond op de achterkant van de flashcard in plaats van de woordenboekdefinitie.

@@ -1,3 +1,44 @@
+// Global dictionary-sync indicator chip. Pinned to the top-right of the viewport
+// so it's visible from any tab/route. Tap to jump to the Dictionary tab.
+.dict-sync-chip {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  right: calc(env(safe-area-inset-right, 0px) + 8px);
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  // Translucent background lets underlying titles show through as a faint
+  // silhouette on narrow viewports where the chip overlaps page content. The
+  // text/spinner stay fully opaque (don't apply opacity to the element
+  // itself). No backdrop-filter — a blur would smudge the title's letter
+  // shapes into uniform colour, defeating the show-through effect.
+  background: rgba(var(--ion-color-primary-rgb), 0.88);
+  color: var(--ion-color-primary-contrast);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+
+  ion-spinner {
+    width: 14px;
+    height: 14px;
+  }
+
+  &__count {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary-contrast);
+    outline-offset: 2px;
+  }
+}
+
 ion-menu.toc-menu {
   ion-item {
     --min-height: 38px;

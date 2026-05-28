@@ -110,8 +110,10 @@ src/app/
 │   │       └── hashtag-modal/  # Occurrences list → article + scroll
 │   └── dictionary/           # Dictionary sub-feature
 │       ├── dictionary.service.ts
-│       ├── dict-sync.service.ts
-│       ├── dict-store.service.ts
+│       ├── dict-sync.service.ts        # spawns dict-import.worker
+│       ├── dict-store.service.ts       # read-only IDB wrapper
+│       ├── dict-db.ts                  # framework-free DB schema + transformDict
+│       ├── dict-import.worker.ts       # off-main-thread atomic import
 │       ├── search-history.service.ts
 │       ├── indonesian-stemmer.ts  # implements Stemmer interface
 │       ├── stemmer.ts             # Stemmer interface + IdentityStemmer fallback
@@ -301,7 +303,7 @@ graph TD
     DictionaryService -->|BehaviorSubject| lookupResult$
 ```
 
-`status$` values: `'idle' | 'syncing' | 'done' | 'offline' | 'error'`. `lookupResult$` type: `BehaviorSubject<LookupResult | null>`.
+`status$` values: `'idle' | 'downloading' | 'importing' | 'done' | 'offline' | 'error'`. `DictSyncService` also exposes `hasCompleteDict$` (the version-based readiness flag — true iff `meta.version` is non-null) and an optional `progress$` for a determinate bar. `lookupResult$` type: `BehaviorSubject<LookupResult | null>`.
 
 **Vocabulary & Study**
 
@@ -338,8 +340,8 @@ graph TD
 | `AuthService` | `auth/` | JWT + refresh-token management, login/logout, auto-login (Capacitor Preferences) |
 | `VocabularyService` | `home/vocabulary/` | Named list management; vocabulary item add/remove/update with optimistic UI; `addEntry()`, `updateBack()`, `addEntries()` for modal-driven input; cross-device current-list sync via `UserPreferences` API; calls `StudyService.refreshStats()` after every add/remove |
 | `StudyService` | `home/study/` | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)` and `submitReview()` observables for the SRS API |
-| `DictSyncService` | `home/dictionary/` | Fetch manifest, download & compile dict bundles, write to IndexedDB |
-| `DictStoreService` | `home/dictionary/` | IndexedDB CRUD wrapper (`taalwiz-dict` DB) |
+| `DictSyncService` | `home/dictionary/` | Fetch manifest, compare versions on the main thread, spawn `dict-import.worker` for the actual import, re-emit worker progress/status, expose `hasCompleteDict$` readiness |
+| `DictStoreService` | `home/dictionary/` | **Read-only** IndexedDB wrapper (`taalwiz-dict` DB): `open`, `getStoredVersion`, `findByWordAndLang`, `findWordsStartingWith`, `count`. All writes belong to `dict-import.worker.ts` |
 | `DictionaryService` | `home/dictionary/` | Offline lookup via `DictStoreService` using `langConfig.stemmer` (pluggable); manages `lookupResult$` |
 | `SearchHistoryService` | `home/dictionary/` | Persist search history (up to 50 entries) via Capacitor Preferences; deduplication on add |
 | `ContentService` | `home/content/` | Fetch publications & articles from API; `prefetchArticle()` for silent bulk pre-fetch (publication cache-all button); manage SW content-cache invalidation (manifest check on login, explicit bust on admin mutations and logout) |
@@ -394,28 +396,49 @@ sequenceDiagram
 sequenceDiagram
     participant authGuard
     participant DictSyncService
-    participant DictStoreService
+    participant Worker as dict-import.worker
     participant IndexedDB
     participant API
 
     authGuard->>DictSyncService: init()
+    DictSyncService->>IndexedDB: open() (read connection)
     DictSyncService->>API: GET /assets/dict-manifest.json
-    API-->>DictSyncService: manifest (version hashes per bundle)
+    API-->>DictSyncService: { version, files[] }
+    DictSyncService->>IndexedDB: getStoredVersion()
+    Note over DictSyncService: If stored == manifest.version → status = 'done', stop.
 
-    loop For each bundle that differs from stored hash
-        DictSyncService->>API: GET /assets/{bundle}.json
-        API-->>DictSyncService: CompiledDict
-        DictSyncService->>DictStoreService: replaceAll(lemmas)
-        DictStoreService->>IndexedDB: write lemmas + metadata
+    DictSyncService->>Worker: spawn + postMessage({ files, version })
+    DictSyncService-->>authGuard: status = 'downloading'
+
+    Worker->>API: fetch each /assets/{bundle}.json (Promise.all)
+    Worker-->>DictSyncService: progress { phase: 'downloading', loaded, total }
+
+    Note over Worker,IndexedDB: One atomic readwrite transaction:
+    Worker->>IndexedDB: lemmas.clear()
+    loop For each compiled file
+        Worker->>IndexedDB: lemmas.add(record) × N (sync, no awaits)
+        Worker-->>DictSyncService: progress { phase: 'importing', loaded, total }
     end
-
+    Worker->>IndexedDB: meta.put({ version }) — written LAST
+    Worker->>IndexedDB: await tx.done (atomic commit)
+    Worker-->>DictSyncService: { type: 'done' }
     DictSyncService-->>authGuard: status = 'done'
 
     Note over DictSyncService: Network unavailable → status = 'offline'
-    Note over DictSyncService: No changes → status = 'done' immediately
+    Note over DictSyncService: Manifest 404 → status = 'done' (no dict yet)
 ```
 
-`DictStoreService` opens the `taalwiz-dict` IndexedDB database (version 3) with two stores: `lemmas` (indexes: `by-lang-word ([lang, word])` for language-scoped queries, `by-word (word)` for cross-language lookups) and `meta` (stores the current dict version for delta checking).
+`DictStoreService` opens the `taalwiz-dict` IndexedDB database (version 4) for reads with two stores: `lemmas` (single index `by-lang-wordlower [lang, wordLower]` — language-scoped *and* case-insensitive; see [SEARCH.md](src/app/home/dictionary/SEARCH.md)) and `meta`. The `meta.version` record is the **atomic readiness flag**: written inside the worker's single import transaction *after* all `add()`s, so its presence (and equality with the manifest version) guarantees a complete dictionary is committed. A crash mid-import leaves no new version → next session re-syncs cleanly, with no half-built state ever observable.
+
+#### Why a Web Worker
+
+The compiled dictionary is ~270,000 word records. The import previously ran on the main thread as `clear()` + a synchronous loop of ~270k `store.add()` calls — that froze the UI for several seconds. Moving the import into a dedicated module worker (`dict-import.worker.ts`) achieves both responsiveness and consistency:
+
+- **Off the main thread** — `fetch`, `JSON.parse`, `transformDict`, and the structured-clone work of every `add()` happen in the worker. The UI never blocks.
+- **Single atomic transaction preserved** — the worker holds *one* readwrite transaction across the whole insert. All network fetches finish *before* the tx opens (awaiting a non-IDB promise inside an IDB transaction would auto-commit it early). Inside the tx the loop is fully synchronous; progress is reported with **synchronous `postMessage`** calls that don't yield control, so the tx stays open. IndexedDB isolation then guarantees readers see either the previous complete dictionary or the new one, never a partial state — no per-batch readiness gate needed.
+- **Readiness signal** — `DictSyncService.hasCompleteDict$` is derived from `meta.version` (snapshotted on `init()` and set true after a successful worker import). The search bar is disabled only while syncing *and* no committed dict exists yet (first-ever build). During a re-sync the existing dictionary stays usable (atomic swap on commit).
+- **Global chip** — a small "Updating dictionary X/Y" chip in `AppComponent` is visible from any route while `isSyncing()`, so background re-syncs aren't invisible outside the Dictionary tab. Tapping it jumps to the Dictionary tab. Driven by the same `status$` + `progress$` observables.
+- **One DB, two connections** — main (read) + worker (write) at the same schema version → no `versionchange`, they coexist. A future schema bump would need to coordinate (main closes the read connection, lets the worker upgrade, reopens).
 
 `DictionaryService` uses `langConfig.stemmer` (a pluggable `Stemmer` interface; currently `IndonesianStemmer`) to generate word variants before searching `DictStoreService`; inflected forms resolve to the correct lemma entirely offline.
 

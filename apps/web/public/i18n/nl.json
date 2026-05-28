@@ -47,6 +47,7 @@
   "dictionary": {
     "sync-downloading": "Woordenboek downloaden voor offline gebruik…",
     "sync-importing": "Woordenboek importeren voor offline gebruik…",
+    "sync-chip": "Woordenboek bijwerken",
     "sync-offline": "Offline — gecached woordenboek wordt gebruikt.",
     "sync-error": "Synchronisatie mislukt. Wordt opnieuw geprobeerd bij volgende sessie.",
     "sync-wait": "Woordenboek voorbereiden…",
