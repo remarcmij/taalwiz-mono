@@ -8,6 +8,7 @@ import { AdminSettingsModule } from './admin-settings/admin-settings.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ContentModule } from './content/content.module.js';
 import { HashtagModule } from './hashtag/hashtag.module.js';
+import { HealthModule } from './health/health.module.js';
 import { SrsModule } from './srs/srs.module.js';
 import { UserPreferencesModule } from './user-preferences/user-preferences.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -28,6 +29,7 @@ import { VocabularyModule } from './vocabulary/vocabulary.module.js';
     UserPreferencesModule,
     ContentModule,
     HashtagModule,
+    HealthModule,
     ServeStaticModule.forRoot({
       rootPath: path.join(import.meta.dirname, '..', 'public/assets'),
       serveRoot: '/assets',
