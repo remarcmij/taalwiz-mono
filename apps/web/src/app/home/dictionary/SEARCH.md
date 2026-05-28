@@ -66,7 +66,7 @@ The stemmer is pluggable via `langConfig.stemmer` (`Stemmer` interface in `stemm
 2. User clicks suggestion or presses Enter with suggestions available
 3. `lookup({word: 'air', lang: 'id'})` is called → `searchDictionary()` → `#searchLocal()`
 4. Since `lang === 'id'`, stemmer generates variations: `["air"]` (already a base form)
-5. `DictStoreService.findByWordAndLang('air', 'id')` queries the `by-lang-word` IDB index
+5. `DictStoreService.findByWordAndLang('air', 'id')` queries the `by-lang-wordlower` IDB index (case-insensitively)
 6. **Result**: Returns all lemmas for "air" including compound entries ("air abu", "air alas", etc.)
 
 ### Path 2: Manual Entry Without Autocomplete (no match)
@@ -529,11 +529,19 @@ for (const w of words) {
 
 The dictionary page search passes `keywordOnly=false`, so all lemmas are returned including compound-word entries.
 
+### Case-Insensitive Keys
+
+Lookups are case-insensitive. Each stored record carries a `wordLower` field (the lowercased `word`, added in `transformDict()`), and both query methods match against the `by-lang-wordlower` compound index `[lang, wordLower]`. The original `word` is preserved for display.
+
+This matters for proper nouns: the dictionary stores headwords with their natural casing (e.g. `Belanda`, the keyword-flagged entry for "the Netherlands"). Without case folding, a lowercase query like `belanda` could never exact-match the capitalized key, so the search would fail even though the word exists. (IndexedDB compares string keys by UTF-16 code unit, and `'B'` sorts before `'b'`.)
+
+The IDB schema (version 4) defines a single index, `by-lang-wordlower`. Both lookup methods use it, so there are no unused indexes to maintain — keeping per-record write cost low during the bulk import of the full dictionary (~270k word records).
+
 ### Exact Match
 
-The IDB query uses `IDBKeyRange.only([lang, word])` on the `by-lang-word` compound index — exact match on both fields. There is no prefix or regex matching at this layer. This is why stemming is necessary on the client side before querying IDB.
+The IDB query uses `IDBKeyRange.only([lang, word.toLowerCase()])` on the `by-lang-wordlower` compound index — exact match on `lang` plus the lowercased word. There is no prefix or regex matching at this layer. This is why stemming is necessary on the client side before querying IDB.
 
-Prefix queries (autocomplete suggestions) use `IDBKeyRange.bound([lang, start], [lang, start + '￿'])` on the same index via `DictStoreService.findWordsStartingWith()`.
+Prefix queries (autocomplete suggestions) lowercase the prefix and use `IDBKeyRange.bound([lang, start], [lang, start + '￿'])` on the same index via `DictStoreService.findWordsStartingWith()`. Results are deduplicated by `wordLower`, so `Belanda` and `belanda` collapse to one suggestion.
 
 ---
 

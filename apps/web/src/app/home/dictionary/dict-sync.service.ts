@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { CompiledDict, DictStoreService, transformDict } from './dict-store.service';
-import { ILemma } from './lemma/lemma.model';
+import { CompiledDict, DictRecord, DictStoreService, transformDict } from './dict-store.service';
 
 export type SyncStatus = 'idle' | 'syncing' | 'done' | 'offline' | 'error';
 
@@ -59,7 +58,7 @@ export class DictSyncService {
     }
   }
 
-  async #fetchAndTransformFiles(files: string[]): Promise<ILemma[]> {
+  async #fetchAndTransformFiles(files: string[]): Promise<DictRecord[]> {
     const results = await Promise.all(
       files.map(async (filename) => {
         const response = await fetch('/assets/' + filename);
@@ -70,6 +69,6 @@ export class DictSyncService {
         return transformDict(data);
       }),
     );
-    return ([] as ILemma[]).concat(...results);
+    return ([] as DictRecord[]).concat(...results);
   }
 }
