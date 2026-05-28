@@ -103,7 +103,8 @@
     "appearance": "Appearance",
     "theme-system": "System default",
     "theme-light": "Light",
-    "theme-dark": "Dark"
+    "theme-dark": "Dark",
+    "language": "Language"
   },
   "admin": {
     "admin-tasks": "Administative Tasks"

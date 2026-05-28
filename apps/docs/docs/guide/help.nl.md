@@ -75,6 +75,7 @@ Open het zijmenu door op het menupictogram linksboven te tikken. Van hieruit kun
 - __Help__ — deze pagina openen.
 - __Contact__ — een bericht sturen naar het Taalwiz-team.
 - __Verander wachtwoord__ — je accountwachtwoord bijwerken.
+- __Instellingen__ — kies je weergave (systeem/licht/donker) en de taal van de interface (Nederlands of Engels). Je taalkeuze wordt bij je account opgeslagen, zodat hij meereist naar elk apparaat waarop je aanmeldt.
 - __Opnieuw laden__ — een volledige herlaadactie van de app forceren (handig als iets verouderd lijkt).
 - __Afmelden__ — je account uitloggen.
 

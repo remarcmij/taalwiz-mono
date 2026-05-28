@@ -16,13 +16,13 @@ import {
 } from '@angular/router';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
-import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
-import { firstValueFrom } from 'rxjs';
 
 import { authInterceptor } from './app/auth/auth.interceptor';
 import { AppComponent } from './app/app.component';
 import { APP_ROUTES } from './app/app.routes';
+import { LanguageService } from './app/shared/i18n/language.service';
 import { environment } from './environments/environment';
 
 if (environment.production) {
@@ -49,7 +49,7 @@ bootstrapApplication(AppComponent, {
         useHttpBackend: true,
       }),
     }),
-    provideAppInitializer(() => firstValueFrom(inject(TranslateService).use('nl'))),
+    provideAppInitializer(() => inject(LanguageService).init()),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideRouter(APP_ROUTES, withPreloading(NoPreloading)),
     provideIonicAngular({ useSetInputAPI: true }),

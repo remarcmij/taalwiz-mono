@@ -4,8 +4,6 @@ import { Router } from '@angular/router';
 
 import { Preferences } from '@capacitor/preferences';
 
-import { TranslateService } from '@ngx-translate/core';
-
 import {
   BehaviorSubject,
   Observable,
@@ -59,7 +57,6 @@ class TokenData {
 export class AuthService implements OnDestroy {
   #http = inject(HttpClient);
   #router = inject(Router);
-  #translate = inject(TranslateService);
   #logger = inject(LoggerService);
 
   #user$ = new BehaviorSubject<User | null>(null);
@@ -71,7 +68,6 @@ export class AuthService implements OnDestroy {
   constructor() {
     this.#user$.subscribe((user) => {
       if (user) {
-        this.#translate.use(user.lang);
         this.#logger.debug(
           'AuthService',
           `user ${user.email} logged in as ${user.roles} using language ${user.lang}.`,
@@ -240,6 +236,34 @@ export class AuthService implements OnDestroy {
 
   invalidateToken(): void {
     this.#tokenData = null;
+  }
+
+  applyLangToCurrentUser(lang: string): void {
+    const current = this.#user$.value;
+    if (!current) return;
+    const updated = new User(
+      current.id,
+      current.email,
+      current.name,
+      lang,
+      current.roles,
+      current.groups,
+      current.refreshToken,
+      current.refreshExp,
+      current.created,
+      current.lastAccessed,
+      current.isSuspended,
+    );
+    this.#user$.next(updated);
+    void this.#storeAuthData(
+      current.id,
+      current.email,
+      current.name,
+      lang,
+      current.roles,
+      current.refreshToken,
+      current.refreshExp,
+    );
   }
 
   #setUserData(userData: AuthResponseData) {

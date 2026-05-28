@@ -90,6 +90,13 @@ export class UsersService {
     await User.findByIdAndUpdate(id, { isSuspended }).exec();
   }
 
+  async updateUserLang(id: string, lang: Language): Promise<void> {
+    const result = await User.findByIdAndUpdate(id, { lang }).exec();
+    if (!result) {
+      throw new NotFoundException('User not found');
+    }
+  }
+
   async adminSetPassword(id: string, newPassword: string): Promise<void> {
     const user = await User.findById(id).exec();
     if (!user) {

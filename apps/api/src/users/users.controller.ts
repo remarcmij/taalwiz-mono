@@ -21,6 +21,8 @@ import { EmailLangDto } from './dto/email-lang.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { SetSuspendedDto } from './dto/set-suspended.dto.js';
+import { UpdateLangDto } from './dto/update-lang.dto.js';
+import type { Language } from './models/user.model.js';
 import { UsersService } from './users.service.js';
 
 @Controller('users')
@@ -110,6 +112,15 @@ export class UsersController {
       changePasswordDto.password,
       changePasswordDto.newPassword,
     );
+  }
+
+  @Patch('me/lang')
+  @HttpCode(204)
+  async updateMyLang(
+    @CurrentUser() currentUser: JwtPayload,
+    @Body() dto: UpdateLangDto,
+  ): Promise<void> {
+    await this.usersService.updateUserLang(currentUser.sub, dto.lang as Language);
   }
 
   @Post('reset-password')

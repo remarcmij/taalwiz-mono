@@ -33,4 +33,21 @@
       </ion-item>
     </ion-radio-group>
   </ion-list>
+
+  <ion-list>
+    <ion-list-header>
+      <ion-label>{{ 'settings.language' | translate }}</ion-label>
+    </ion-list-header>
+    <ion-radio-group
+      [value]="languageService.language()"
+      (ionChange)="onLanguageChange($any($event.detail.value))"
+    >
+      <ion-item>
+        <ion-radio value="nl" justify="space-between">Nederlands</ion-radio>
+      </ion-item>
+      <ion-item>
+        <ion-radio value="en" justify="space-between">English</ion-radio>
+      </ion-item>
+    </ion-radio-group>
+  </ion-list>
 </ion-content>

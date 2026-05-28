@@ -15,6 +15,8 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ApiErrorAlertService } from '../shared/api-error-alert.service';
+import { AppLanguage, LanguageService } from '../shared/i18n/language.service';
 import { ThemeMode, ThemeService } from '../shared/theme/theme.service';
 
 @Component({
@@ -39,8 +41,19 @@ import { ThemeMode, ThemeService } from '../shared/theme/theme.service';
 })
 export class SettingsPage {
   protected themeService = inject(ThemeService);
+  protected languageService = inject(LanguageService);
+  readonly #apiErrorAlert = inject(ApiErrorAlertService);
 
   protected onThemeChange(value: ThemeMode): void {
     void this.themeService.setTheme(value);
+  }
+
+  protected async onLanguageChange(value: AppLanguage): Promise<void> {
+    if (value === this.languageService.language()) return;
+    try {
+      await this.languageService.setLanguage(value);
+    } catch (err) {
+      await this.#apiErrorAlert.showNetworkError(err as Error);
+    }
   }
 }

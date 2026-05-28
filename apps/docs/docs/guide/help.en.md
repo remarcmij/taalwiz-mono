@@ -87,6 +87,7 @@ Open the side menu by tapping the menu icon in the top-left corner. From here yo
 - __Help__ — open this page.
 - __Contact__ — send a message to the Taalwiz team.
 - __Change password__ — update your account password.
+- __Settings__ — choose your appearance (system/light/dark) and the interface language (Dutch or English). Your language choice is stored with your account, so it follows you to any device you sign in on.
 - __Reload__ — force a full reload of the app (useful if something seems out of date).
 - __Logout__ — sign out of your account.
 

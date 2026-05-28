@@ -77,6 +77,15 @@ All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `ne
 - **Web**: Vitest (test files: `*.spec.ts` in `src/`). Pure-logic only — no Angular component/DOM tests yet.
 - **Compiler**: Vitest (test files: `src/__tests__/**/*.test.ts`)
 
+## Internationalisation
+
+The UI is available in Dutch (`nl`) and English (`en`). Each user's preferred UI language is stored server-side as `user.lang` on the User document; it is the source of truth for both the ngx-translate locale and the language-specific content routes (`/about/{lang}`, `/help/{lang}`).
+
+- Admin selects the initial language when inviting a user; it is carried in the registration JWT and persisted on first registration.
+- An authenticated user changes their preference from the Settings page; the web client `PATCH`es `/api/v1/users/me/lang`, then updates the in-memory `User` and re-persists the cached `authData` so the menu links update reactively and survive an `autoLogin`.
+- Local Capacitor `Preferences` (key `app.lang`) is a **bootstrap cache only** so pre-login screens (login, register, password reset) render in the last-used language. On login, the server value overwrites the cache.
+- A change on one device only propagates to other devices at the next full login (refresh-token reissue does not fetch the profile).
+
 ## Security
 
 ### File uploads (admin)
