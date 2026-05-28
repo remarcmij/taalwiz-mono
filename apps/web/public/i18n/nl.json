@@ -31,7 +31,8 @@
   "update": {
     "update-available": "Update beschikbaar",
     "update-message": "Er is een nieuwe versie van TaalWiz beschikbaar. Klik op OK om nu te updaten.",
-    "update-later": "Later updaten"
+    "update-later": "Later updaten",
+    "install-update": "Update installeren"
   },
   "content": {
     "single-hashtag": "Deze hashtag komt nergens anders voor."

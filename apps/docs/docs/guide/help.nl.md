@@ -70,6 +70,7 @@ Tijdens een sessie:
 
 Open het zijmenu door op het menupictogram linksboven te tikken. Van hieruit kun je:
 
+- __Update installeren__ — verschijnt alleen wanneer er op de achtergrond een nieuwe versie van Taalwiz is gedownload. Tik erop om de app opnieuw te laden en de nieuwe versie te gebruiken. Als je de update-melding met __Later updaten__ hebt weggeklikt, kun je de update zo alsnog installeren zonder te wachten op de volgende herlaadactie.
 - __Over__ — achtergrondinformatie over Taalwiz lezen.
 - __Help__ — deze pagina openen.
 - __Contact__ — een bericht sturen naar het Taalwiz-team.

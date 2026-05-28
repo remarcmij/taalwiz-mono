@@ -14,6 +14,14 @@
             <h2>{{ user?.email ?? '' }}</h2>
           </ion-label>
         </ion-list-header>
+        @if (updateReady()) {
+          <ion-menu-toggle menu="m1">
+            <ion-item button lines="none" (click)="applyUpdate()">
+              <ion-icon slot="start" name="cloud-download-outline"></ion-icon>
+              <ion-label>{{ 'update.install-update' | translate }}</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+        }
         <ion-menu-toggle menu="m1">
           <ion-item
             detail

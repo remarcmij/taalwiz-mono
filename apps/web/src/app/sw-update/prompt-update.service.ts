@@ -1,4 +1,4 @@
-import { ApplicationRef, inject, Injectable } from '@angular/core';
+import { ApplicationRef, inject, Injectable, signal } from '@angular/core';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -11,6 +11,9 @@ export class PromptUpdateService {
   #alertCtrl = inject(AlertController);
   #translate = inject(TranslateService);
   #appRef = inject(ApplicationRef);
+
+  #updateReady = signal(false);
+  readonly updateReady = this.#updateReady.asReadonly();
 
   constructor(swUpdate: SwUpdate) {
     if (!swUpdate.isEnabled) {
@@ -29,6 +32,7 @@ export class PromptUpdateService {
     swUpdate.versionUpdates
       .pipe(filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'))
       .subscribe(async (_evt) => {
+        this.#updateReady.set(true);
         const alertEl = await this.#alertCtrl.create({
           header: this.#translate.instant('update.update-available'),
           message: this.#translate.instant('update.update-message'),
@@ -45,8 +49,11 @@ export class PromptUpdateService {
         if (data.role === 'cancel') {
           return;
         }
-        // Reload the page to update to the latest version.
-        document.location.reload();
+        this.applyUpdate();
       });
+  }
+
+  applyUpdate(): void {
+    document.location.reload();
   }
 }

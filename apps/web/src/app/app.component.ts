@@ -7,6 +7,7 @@ import { Preferences } from '@capacitor/preferences';
 
 import { addIcons } from 'ionicons';
 import {
+  cloudDownloadOutline,
   helpCircleOutline,
   informationCircleOutline,
   logOutOutline,
@@ -81,9 +82,6 @@ export class AppComponent implements OnInit, OnDestroy {
   #logger = inject(LoggerService);
   #translate = inject(TranslateService);
 
-  // Injected for its construction side effect (service worker update detection);
-  // intentionally never read.
-  // eslint-disable-next-line no-unused-private-class-members
   #updateService = inject(PromptUpdateService);
 
   // Injected for its construction side effect (applies saved theme on startup);
@@ -94,6 +92,7 @@ export class AppComponent implements OnInit, OnDestroy {
   protected tocService = inject(TocService);
 
   readonly currentUser = this.#authService.user;
+  protected updateReady = this.#updateService.updateReady;
   // Drives the global "Updating dictionary…" indicator chip. The chip lives in
   // the app shell so it's visible from any tab/route — the on-page banner in
   // the Dictionary tab only surfaces this on first build.
@@ -119,6 +118,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor() {
     addIcons({
+      cloudDownloadOutline,
       helpCircleOutline,
       informationCircleOutline,
       shieldHalfOutline,
@@ -206,6 +206,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   reload() {
     document.location.reload();
+  }
+
+  applyUpdate() {
+    this.#updateService.applyUpdate();
   }
 
   async #showSyncDoneToast() {

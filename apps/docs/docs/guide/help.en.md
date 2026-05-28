@@ -82,6 +82,7 @@ During a session:
 
 Open the side menu by tapping the menu icon in the top-left corner. From here you can:
 
+- __Install update__ — appears only when a new version of Taalwiz has been downloaded in the background. Tap it to reload the app and start using the new version. If you dismissed the update prompt with __Later__, this is how you install the update without waiting for the next reload.
 - __About__ — read background information about Taalwiz.
 - __Help__ — open this page.
 - __Contact__ — send a message to the Taalwiz team.
