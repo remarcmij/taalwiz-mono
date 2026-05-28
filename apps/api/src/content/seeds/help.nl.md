@@ -12,11 +12,11 @@ Welkom bij Taalwiz, jouw persoonlijke leerapp voor Indonesisch–Nederlands. De 
 
 ## Bibliotheek
 
-De Bibliotheek is je startpunt voor het lezen. Er wordt een lijst met boeken getoond; tik op een boek om de hoofdstukken te zien, en tik vervolgens op een hoofdstuk om het te openen.
+De Bibliotheek is je startpunt voor het lezen. Er wordt een lijst met publicaties getoond; tik op een publicatie om de artikelen te zien, en tik vervolgens op een artikel om het te openen.
 
-Lange hoofdstukken hebben een __Inhoudsopgave__ in het rechterzijmenu; tik op een kop om direct naar dat gedeelte te springen.
+Lange artikelen hebben een __Inhoudsopgave__ in het rechterzijmenu; tik op een kop om direct naar dat gedeelte te springen.
 
-Om alle artikelen van een publicatie in één keer te downloaden voor offline gebruik, open de hoofdstukkenlijst en tik op het __download__-pictogram (wolk met pijl) rechtsboven. Een voortgangsbalk toont de downloadvoortgang. Artikelen die je al eerder hebt geopend, worden meteen uit de lokale cache geladen; alleen nieuwe artikelen vereisen een netwerkverbinding.
+Om alle artikelen van een publicatie in één keer te downloaden voor offline gebruik, open de artikelenlijst en tik op het __download__-pictogram (wolk met pijl) rechtsboven. Een voortgangsbalk toont de downloadvoortgang. Artikelen die je al eerder hebt geopend, worden meteen uit de lokale cache geladen; alleen nieuwe artikelen vereisen een netwerkverbinding.
 
 Tijdens het lezen kun je op een gemarkeerd woord tikken om het woorddetailvenster te openen. De titelbalk toont het woord zoals het in de tekst staat; als de woordenboekbasisvorm afwijkt, worden beide getoond met een pijl (bijv. _dibakar → membakar_).
 
@@ -46,7 +46,7 @@ Het tabblad Woordenschat is waar je je persoonlijke woordenlijsten opbouwt en be
 
 ### Lijsten beheren
 
-Je kunt zo veel woordenlijsten aanmaken als je wilt — bijvoorbeeld één per hoofdstuk, per onderwerp of per moeilijkheidsgraad. Tik op de __+__-knop om een nieuwe lijst toe te voegen, of houd een bestaand lijsttabblad lang ingedrukt om het te hernoemen of te verwijderen.
+Je kunt zo veel woordenlijsten aanmaken als je wilt — bijvoorbeeld één per artikel, per onderwerp of per moeilijkheidsgraad. Tik op de __+__-knop om een nieuwe lijst toe te voegen, of houd een bestaand lijsttabblad lang ingedrukt om het te hernoemen of te verwijderen.
 
 ### Woorden toevoegen
 

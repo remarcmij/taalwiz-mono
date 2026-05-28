@@ -12,11 +12,11 @@ Welcome to Taalwiz, your personal Indonesian–Dutch language learning companion
 
 ## Library
 
-The Library is your starting point for reading. It shows a list of books; tap a book to see its chapters, then tap a chapter to open it.
+The Library is your starting point for reading. It shows a list of publications; tap a publication to see its articles, then tap an article to open it.
 
-Long chapters have a __Table of Contents__ in the right-hand side menu; tap any heading to jump directly to that section.
+Long articles have a __Table of Contents__ in the right-hand side menu; tap any heading to jump directly to that section.
 
-To download all articles in a publication for offline reading in one go, open the chapter list and tap the __download__ icon (cloud with arrow) in the top-right corner. A progress bar shows the download progress. Articles you have already opened are retrieved from the local cache instantly, so only new articles require a network connection.
+To download all articles in a publication for offline reading in one go, open the article list and tap the __download__ icon (cloud with arrow) in the top-right corner. A progress bar shows the download progress. Articles you have already opened are retrieved from the local cache instantly, so only new articles require a network connection.
 
 While reading, you can tap any highlighted word to open the word detail panel. The panel title shows the word as it appears in the text; if the dictionary base form differs, both are shown with an arrow (e.g. _dibakar → membakar_).
 
@@ -46,7 +46,7 @@ The Vocabulary tab is where you build and study your personal word lists.
 
 ### Managing lists
 
-You can create as many vocabulary lists as you like — for example one per chapter, per topic, or per difficulty level. Tap the __+__ button to add a new list, or long-press an existing list tab to rename or delete it.
+You can create as many vocabulary lists as you like — for example one per article, per topic, or per difficulty level. Tap the __+__ button to add a new list, or long-press an existing list tab to rename or delete it.
 
 ### Adding words
 
