@@ -554,7 +554,12 @@ Uses **ngx-translate**. Translation files are loaded at runtime from `/i18n/{lan
 | Fallback language | English (`en`) |
 | Target (learning) language | Indonesian (`id`) — `langConfig.targetLang` in `app.constants.ts` |
 
-Language preference is persisted on the `User` model and applied via `TranslateService.use(user.lang)` on login.
+`LanguageService` (`shared/i18n/language.service.ts`) owns the runtime locale. The server-side `user.lang` field is the source of truth and drives both the ngx-translate locale and the language-scoped Help/About routes.
+
+- On boot, `LanguageService.init()` runs as an `APP_INITIALIZER` and applies the value cached in Capacitor `Preferences` (key `app.lang`) so pre-login screens render in the last-used language.
+- `LanguageService` subscribes to `AuthService.user$`; when a user emits, `user.lang` is applied — the server always overrides the local cache on login.
+- The Settings page calls `LanguageService.setLanguage(lang)`, which `PATCH`es `/api/v1/users/me/lang`, applies the new locale, then calls `AuthService.applyLangToCurrentUser(lang)` to update the in-memory `User` and re-persist the cached `authData` so menu links (`/help/{lang}`, `/about/{lang}`) update reactively and survive an `autoLogin`.
+- A change on one device only reaches another device at the next *full* login — the refresh-token endpoint does not fetch the profile.
 
 ---
 
