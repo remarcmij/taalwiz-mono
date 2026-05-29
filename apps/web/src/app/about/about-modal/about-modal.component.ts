@@ -56,7 +56,7 @@ export class AboutModalComponent {
     void this.#modalCtrl.dismiss();
   }
 
-  async openGuide(): Promise<void> {
+  async openHelp(): Promise<void> {
     const lang = this.#authService.user()?.lang ?? 'en';
     await this.#modalCtrl.dismiss();
     void this.#router.navigateByUrl(`/help/${lang}`);

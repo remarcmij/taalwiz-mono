@@ -2,16 +2,15 @@
 layout: home
 hero:
   name: Taalwiz Guide
-  tagline: Documentation for the Taalwiz language learning app.
+  tagline: Documentation for Taalwiz content creators and administrators.
   actions:
-      - theme: brand
-        text: Get Started
-        link: /guide/help.en
-      - theme: alt
-        text: GitHub
-        link: https://github.com/remarcmij/taalwiz-mono
+    - theme: brand
+      text: Content & Admin Guide
+      link: /guide/content-guide
+    - theme: alt
+      text: GitHub
+      link: https://github.com/remarcmij/taalwiz-mono
 ---
 
-# Hello world.
-
-[Getting Started](./guide/help.en)
+This site documents how to author and manage Taalwiz content. End-user help is built
+into the app itself and is maintained separately.

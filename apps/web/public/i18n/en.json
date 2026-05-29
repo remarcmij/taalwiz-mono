@@ -4,7 +4,7 @@
     "version": "Version",
     "released": "Released",
     "build": "Build",
-    "guide-link": "User guide",
+    "help-link": "Help",
     "copyright": "© 2026 Jim Cramer · MIT License"
   },
   "common": {
