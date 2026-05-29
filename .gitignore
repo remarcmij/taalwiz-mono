@@ -40,5 +40,5 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-# Work in progress — not ready to publish
-INSTITUTIONAL.md
+# Temp files
+.TEMP/
