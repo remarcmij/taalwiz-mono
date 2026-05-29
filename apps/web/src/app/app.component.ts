@@ -37,9 +37,11 @@ import {
   IonTitle,
   IonToolbar,
   MenuController,
+  ModalController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { AboutModalComponent } from './about/about-modal/about-modal.component';
 import { AuthService } from './auth/auth.service';
 import { DictSyncService, SyncStatus } from './home/dictionary/dict-sync.service';
 import { TocService } from './home/content/publication/article/toc.service';
@@ -77,6 +79,7 @@ export class AppComponent implements OnInit, OnDestroy {
   #authService = inject(AuthService);
   #dictSync = inject(DictSyncService);
   #menuCtrl = inject(MenuController);
+  #modalCtrl = inject(ModalController);
   #toastCtrl = inject(ToastController);
   #speechService = inject(SpeechSynthesizerService);
   #logger = inject(LoggerService);
@@ -197,6 +200,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   goToDictionary() {
     void this.#router.navigateByUrl('/home/tabs/dictionary');
+  }
+
+  async openAbout() {
+    const modal = await this.#modalCtrl.create({ component: AboutModalComponent });
+    await modal.present();
   }
 
   ngOnDestroy() {

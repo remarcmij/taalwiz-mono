@@ -1,4 +1,12 @@
 {
+  "about": {
+    "title": "Over TaalWiz",
+    "version": "Versie",
+    "released": "Uitgebracht",
+    "build": "Build",
+    "guide-link": "Handleiding",
+    "copyright": "© 2026 Jim Cramer · MIT-licentie"
+  },
   "common": {
     "app-name": "TaalWiz",
     "about": "Over TaalWiz",

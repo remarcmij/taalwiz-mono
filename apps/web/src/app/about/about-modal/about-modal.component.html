@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'about.title' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()" [attr.aria-label]="'common.close' | translate">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="about">
+    <img
+      class="about__logo"
+      src="/icons/icon-192x192.png"
+      alt=""
+      width="96"
+      height="96" />
+    <h1 class="about__name">{{ 'common.app-name' | translate }}</h1>
+
+    <ion-list lines="full" class="about__details">
+      <ion-item>
+        <ion-label>{{ 'about.version' | translate }}</ion-label>
+        <ion-note slot="end">{{ info.version }}</ion-note>
+      </ion-item>
+      <ion-item>
+        <ion-label>{{ 'about.released' | translate }}</ion-label>
+        <ion-note slot="end">{{ info.buildDate }}</ion-note>
+      </ion-item>
+      <ion-item lines="none">
+        <ion-label>{{ 'about.build' | translate }}</ion-label>
+        <ion-note slot="end">{{ info.commit }}</ion-note>
+      </ion-item>
+    </ion-list>
+
+    <ion-button fill="clear" size="small" (click)="openGuide()">
+      <ion-icon slot="start" name="help-circle-outline"></ion-icon>
+      {{ 'about.guide-link' | translate }}
+    </ion-button>
+
+    <p class="about__copyright">{{ 'about.copyright' | translate }}</p>
+  </div>
+</ion-content>

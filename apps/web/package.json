@@ -5,10 +5,12 @@
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
-    "dev": "ng serve",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
+    "generate-version": "node scripts/generate-version.mjs",
+    "postinstall": "node scripts/generate-version.mjs",
+    "dev": "node scripts/generate-version.mjs && ng serve",
+    "start": "node scripts/generate-version.mjs && ng serve",
+    "build": "node scripts/generate-version.mjs && ng build",
+    "watch": "node scripts/generate-version.mjs && ng build --watch --configuration development",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "ng lint"

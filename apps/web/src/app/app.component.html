@@ -23,12 +23,7 @@
           </ion-menu-toggle>
         }
         <ion-menu-toggle menu="m1">
-          <ion-item
-            detail
-            button
-            lines="none"
-            [routerLink]="'/about/' + user?.lang"
-          >
+          <ion-item button lines="none" (click)="openAbout()">
             <ion-icon slot="start" name="information-circle-outline"></ion-icon>
             <ion-label>{{ 'common.about' | translate }}</ion-label>
           </ion-item>

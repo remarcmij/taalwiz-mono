@@ -25,11 +25,6 @@ export const APP_ROUTES: Routes = [
     canActivate: [adminGuard],
   },
   {
-    path: 'about/:lang',
-    loadComponent: () => import('./about/about.page').then((m) => m.AboutPage),
-    canActivate: [authGuard],
-  },
-  {
     path: 'help/:lang',
     loadComponent: () => import('./help/help.page').then((m) => m.HelpPage),
     canActivate: [authGuard],
