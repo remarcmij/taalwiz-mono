@@ -42,3 +42,6 @@ yarn-error.log*
 
 # Temp files
 .TEMP/
+
+# Local content (temp; Teeuw source & articles live in a separate private repo)
+content/
