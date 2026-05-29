@@ -178,22 +178,30 @@ export class IndonesianStemmer implements Stemmer {
       if (rest && !/^[aeiouagh]/.test(rest)) {
         results.push('k' + rest);
       }
+      // bare me- + ng-initial root (e.g. menganga → nganga)
+      results.push(word.substring(2));
     } else if (word.startsWith('meny')) {
       const rest = word.substring(4);
       results.push(rest);
       results.push('s' + rest);
+      // bare me- + ny-initial root (e.g. menyala → nyala)
+      results.push(word.substring(2));
     } else if (word.startsWith('mem')) {
       const rest = word.substring(3);
       results.push(rest);
       if (rest && !/^[bf]/.test(rest)) {
         results.push('p' + rest);
       }
+      // bare me- + m-initial root (e.g. memegakan → megakan → mega)
+      results.push(word.substring(2));
     } else if (word.startsWith('men')) {
       const rest = word.substring(3);
       results.push(rest);
       if (rest && !/^[dcjz]/.test(rest) && !rest.startsWith('sy')) {
         results.push('t' + rest);
       }
+      // bare me- + n-initial root (e.g. menilai → nilai)
+      results.push(word.substring(2));
     } else if (word.startsWith('me')) {
       results.push(word.substring(2));
     }
@@ -210,22 +218,30 @@ export class IndonesianStemmer implements Stemmer {
       if (rest && !/^[aeiouagh]/.test(rest)) {
         results.push('k' + rest);
       }
+      // bare pe- + ng-initial root
+      results.push(word.substring(2));
     } else if (word.startsWith('peny')) {
       const rest = word.substring(4);
       results.push(rest);
       results.push('s' + rest);
+      // bare pe- + ny-initial root
+      results.push(word.substring(2));
     } else if (word.startsWith('pem')) {
       const rest = word.substring(3);
       results.push(rest);
       if (rest && !/^[bf]/.test(rest)) {
         results.push('p' + rest);
       }
+      // bare pe- + m-initial root (e.g. pemalu → malu)
+      results.push(word.substring(2));
     } else if (word.startsWith('pen')) {
       const rest = word.substring(3);
       results.push(rest);
       if (rest && !/^[dcjz]/.test(rest) && !rest.startsWith('sy')) {
         results.push('t' + rest);
       }
+      // bare pe- + n-initial root (e.g. penilai → nilai)
+      results.push(word.substring(2));
     } else if (word.startsWith('pe')) {
       results.push(word.substring(2));
     }

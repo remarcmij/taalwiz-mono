@@ -107,6 +107,21 @@ describe('IndonesianStemmer', () => {
 
     it('includes stripped form without restoration: menulis includes ulis', () =>
       expect(variations('menulis')).toContain('ulis'));
+
+    it('bare me- + m-initial root: memegakan → mega', () =>
+      expect(variations('memegakan')).toContain('mega'));
+
+    it('bare me- + m-initial root: memasak → masak', () =>
+      expect(variations('memasak')).toContain('masak'));
+
+    it('bare me- + n-initial root: menilai → nilai', () =>
+      expect(variations('menilai')).toContain('nilai'));
+
+    it('bare me- + ng-initial root: menganga → nganga', () =>
+      expect(variations('menganga')).toContain('nganga'));
+
+    it('bare me- + ny-initial root: menyala → nyala', () =>
+      expect(variations('menyala')).toContain('nyala'));
   });
 
   describe('peN- prefix stripping (agentive noun)', () => {
