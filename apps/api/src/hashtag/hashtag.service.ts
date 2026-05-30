@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { PipelineStage } from 'mongoose';
+import { authorizedGroups } from '../auth/authorized-groups.js';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import Hashtag from '../content/models/hashtag.model.js';
 import { TopicDoc } from '../content/models/topic.model.js';
@@ -7,13 +8,8 @@ import { HashTagGroup } from './types/hashtag.type.js';
 
 @Injectable()
 export class HashtagService {
-  private authorizedGroups(user: JwtPayload): string[] | null {
-    if (user.roles?.includes('admin')) return null;
-    return [...(user.groups ?? []), 'public'];
-  }
-
   async getHashtagIndex(user: JwtPayload) {
-    const groups = this.authorizedGroups(user);
+    const groups = authorizedGroups(user);
     const pipeline: PipelineStage[] = [];
 
     if (groups) {
@@ -39,7 +35,7 @@ export class HashtagService {
   }
 
   async findHashtag(name: string, user: JwtPayload) {
-    const groups = this.authorizedGroups(user);
+    const groups = authorizedGroups(user);
     const query: Record<string, unknown> = { name };
     if (groups) query.groupName = { $in: groups };
 

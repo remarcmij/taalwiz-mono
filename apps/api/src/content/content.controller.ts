@@ -50,8 +50,8 @@ export class ContentController {
   }
 
   @Get('article/:filename')
-  async findArticle(@Param('filename') filename: string) {
-    const article = await this.contentService.findArticle(filename);
+  async findArticle(@Param('filename') filename: string, @CurrentUser() user: JwtPayload) {
+    const article = await this.contentService.findArticle(filename, user);
     if (!article) {
       throw new NotFoundException('Article not found');
     }

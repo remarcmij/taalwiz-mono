@@ -1,5 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import type { FilterQuery } from 'mongoose';
+import { authorizedGroups } from '../auth/authorized-groups.js';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import type { TopicDoc } from './models/topic.model.js';
 import EventEmitter from 'node:events';
@@ -24,17 +25,12 @@ export class ContentService {
   private readonly logger = new Logger(ContentService.name);
   readonly #htmlCache = new LRUCache<string, string>({ max: 500 });
 
-  private authorizedGroups(user: JwtPayload): string[] | null {
-    if (user.roles?.includes('admin')) return null;
-    return [...(user.groups ?? []), 'public'];
-  }
-
   async findPublications(user: JwtPayload) {
     const mainManifest = await Topic.findOne({ type: 'main' }).lean();
     if (!mainManifest?.groups?.length) {
       return [];
     }
-    const groups = this.authorizedGroups(user);
+    const groups = authorizedGroups(user);
     const authorizedGroupList = groups
       ? mainManifest.groups.filter((g) => groups.includes(g))
       : mainManifest.groups;
@@ -50,7 +46,7 @@ export class ContentService {
   }
 
   async findPublicationTopics(groupName: string, user: JwtPayload) {
-    const groups = this.authorizedGroups(user);
+    const groups = authorizedGroups(user);
     if (groups && !groups.includes(groupName)) {
       throw new ForbiddenException();
     }
@@ -69,10 +65,16 @@ export class ContentService {
     return [manifestTopic, ...ordered];
   }
 
-  async findArticle(filename: string) {
+  async findArticle(filename: string, user: JwtPayload) {
     const normalizedFilename = filename.endsWith('.md') ? filename : `${filename}.md`;
     const article = await Article.findOne({ filename: normalizedFilename }).select('-indexText').lean();
     if (!article) return null;
+
+    const groups = authorizedGroups(user);
+    if (groups && !groups.includes(article.groupName)) {
+      throw new ForbiddenException();
+    }
+
     const htmlText = await this.#getHtml(article.filename, article.mdText);
     const { mdText: _mdText, ...rest } = article;
     return { ...rest, htmlText };
@@ -88,7 +90,7 @@ export class ContentService {
 
   async findContentManifest(user: JwtPayload) {
     const query: FilterQuery<TopicDoc> = { type: { $in: ['article', 'manifest', 'main'] } };
-    const groups = this.authorizedGroups(user);
+    const groups = authorizedGroups(user);
     if (groups) query.groupName = { $in: groups };
     return await Topic.find(query).select('filename sha -_id').lean();
   }
