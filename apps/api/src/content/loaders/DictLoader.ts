@@ -22,7 +22,10 @@ class DictFileLoader extends BaseLoader<DictFileMeta> {
       throw new Error(`invalid dict JSON in ${filename}: ${z.prettifyError(result.error)}`);
     }
 
-    this.assertTargetLang(result.data.targetLang, filename);
+    // NOTE: dictionaries are intentionally NOT validated against the deployment
+    // target language. A dictionary's `targetLang` is its headword language,
+    // which may legitimately differ from the deployment language (e.g. a
+    // reverse-direction dictionary). The dictionary layer stays language-agnostic.
 
     const match = filename.match(/^(.+)\.[a-z]\.json$/);
     if (!match) {
