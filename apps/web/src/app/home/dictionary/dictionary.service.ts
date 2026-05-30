@@ -49,23 +49,26 @@ export class DictionaryService {
   }
 
   async #fetchSuggestionsAsync(term: string): Promise<WordLang[]> {
-    const variations = langConfig.stemmer.getWordVariations(term);
     const seen = new Set<string>();
     const results: WordLang[] = [];
 
-    for (const variation of variations) {
-      const hits = await this.#dictStore.findWordsStartingWith(
-        variation,
-        langConfig.targetLang,
-        10,
-      );
-      for (const hit of hits) {
-        const key = hit.word + '|' + hit.lang;
-        if (!seen.has(key)) {
-          seen.add(key);
-          results.push(new WordLang(hit.word, hit.lang));
-        }
-        if (results.length >= 10) break;
+    // Suggestions are a literal prefix match on what was typed -- no stemmer
+    // variations. Stemming a partially-typed word surfaces alphabetical
+    // neighbours of stripped forms (e.g. "memperbai" strips -i to "memperba"
+    // and suggests unrelated "memperba*" words), which reads as a broken filter.
+    // Inflected forms still resolve via the stemmer on the lookup path
+    // (#searchLocal), reached by tapping a word, tapping a suggestion, or
+    // pressing Enter with no matching suggestion.
+    const hits = await this.#dictStore.findWordsStartingWith(
+      term.toLowerCase(),
+      langConfig.targetLang,
+      10,
+    );
+    for (const hit of hits) {
+      const key = hit.word + '|' + hit.lang;
+      if (!seen.has(key)) {
+        seen.add(key);
+        results.push(new WordLang(hit.word, hit.lang));
       }
       if (results.length >= 10) break;
     }

@@ -48,6 +48,7 @@ import {
 
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
+import { langConfig } from '../../app.constants';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
 import { DictionaryService } from './dictionary.service';
@@ -197,6 +198,10 @@ export class DictionaryPage implements OnDestroy {
         if (keyupKey === 'Enter') {
           if (suggestions.length > 0) {
             this.onItemClicked(suggestions[0]);
+          } else if (this.word()) {
+            // No literal suggestion matched: run a full stemmer-backed lookup on
+            // the typed term so inflected forms (e.g. diambil -> ambil) resolve.
+            this.lookup(new WordLang(this.word(), langConfig.targetLang));
           }
           if (this.#platform.is('mobile')) {
             searchInputElement.blur();

@@ -44,6 +44,8 @@ After search results are returned:
 3. **Switch to suggestions**: After debouncing, `getSuggestions(term)` is called via `switchMap`
 4. **Result**: `suggestions` signal is updated, and the dropdown is shown if matches are found
 
+> **Suggestions are a literal prefix match — no stemmer.** `#fetchSuggestionsAsync()` queries `findWordsStartingWith(term)` directly on the typed text (target language first, then native language as fallback). The stemmer is deliberately **not** applied to the suggestion list: stemming a partially-typed word surfaces alphabetical neighbours of stripped forms (e.g. typing `memperbai` strips `-i` to `memperba` and suggests unrelated `memperba*` words), which reads as a broken filter. Morphological resolution of inflected forms still happens on the **lookup path** (`#searchLocal`, via the stemmer) — reached by tapping a word, tapping a suggestion, or pressing Enter with no matching suggestion (see Path 2).
+
 ### Suggestion Selection
 
 When the user clicks a suggestion or presses Enter with suggestions available:
@@ -71,9 +73,9 @@ The stemmer is pluggable via `langConfig.stemmer` (`Stemmer` interface in `stemm
 
 ### Path 2: Manual Entry Without Autocomplete (no match)
 
-1. User types "dibakar" (or other word) → no suggestions match
-2. User presses Enter
-3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `searchDictionary(new WordLang(currentTerm, targetLang))`
+1. User types "dibakar" (or other word) → no literal-prefix suggestion matches (suggestions are not stemmed)
+2. User presses Enter (on mobile this is the soft-keyboard Go/Search/Return key, which fires the same `key === 'Enter'` event)
+3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `this.lookup(new WordLang(this.word(), langConfig.targetLang))` — this is the fallback that runs the full stemmer-backed lookup on the typed term
 4. `#searchLocal()` calls `langConfig.stemmer.getWordVariations('dibakar')`:
    - `["dibakar", "membakar", "bakar"]`
    - "dibakar" = original (passive: "was burned")
