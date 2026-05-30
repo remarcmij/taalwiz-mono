@@ -9,6 +9,9 @@ This repository is a TypeScript monorepo managed by
 [Turborepo](https://turborepo.com) and [pnpm](https://pnpm.io), containing the
 backend API, the client app, a dictionary compiler, and the documentation site.
 
+For a high-level tour of what Taalwiz does and how it works, see the
+[**project overview**](docs/OVERVIEW.md).
+
 ## Apps
 
 | App | What it is |
