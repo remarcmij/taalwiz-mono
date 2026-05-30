@@ -41,9 +41,9 @@ importers:
       '@nestjs/serve-static':
         specifier: ^5.0.4
         version: 5.0.4(@nestjs/common@11.1.9(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.9)(express@5.1.0)
-      '@repo/api-types':
+      '@repo/shared':
         specifier: workspace:*
-        version: link:../../packages/api-types
+        version: link:../../packages/shared
       '@types/bcrypt':
         specifier: ^6.0.0
         version: 6.0.0
@@ -274,9 +274,9 @@ importers:
       '@ngx-translate/http-loader':
         specifier: ^17.0.0
         version: 17.0.0(@angular/common@20.3.10(@angular/core@20.3.10(@angular/compiler@20.3.10)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.10(@angular/compiler@20.3.10)(rxjs@7.8.2)(zone.js@0.15.1))
-      '@repo/api-types':
+      '@repo/shared':
         specifier: workspace:*
-        version: link:../../packages/api-types
+        version: link:../../packages/shared
       github-markdown-css:
         specifier: ^5.8.1
         version: 5.8.1
@@ -333,15 +333,6 @@ importers:
         specifier: ^4.1.5
         version: 4.1.5(@types/node@24.10.1)(jsdom@28.1.0(@noble/hashes@1.8.0))(vite@7.1.11(@types/node@24.10.1)(jiti@1.21.7)(less@4.4.0)(sass@1.90.0)(terser@5.43.1)(tsx@4.20.6))
 
-  packages/api-types:
-    devDependencies:
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../typescript-config
-      typescript:
-        specifier: 5.9.2
-        version: 5.9.2
-
   packages/eslint-config:
     devDependencies:
       '@eslint/js':
@@ -377,6 +368,15 @@ importers:
       typescript-eslint:
         specifier: ^8.46.3
         version: 8.46.3(eslint@9.39.1(jiti@1.21.7))(typescript@5.9.2)
+
+  packages/shared:
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
 
   packages/typescript-config: {}
 

@@ -13,7 +13,7 @@ import {
   IonToolbar,
   ModalController,
 } from '@ionic/angular/standalone';
-import { MIN_PASSWORD_LENGTH } from '@repo/api-types';
+import { MIN_PASSWORD_LENGTH } from '@repo/shared';
 
 @Component({
   selector: 'app-set-password-modal',

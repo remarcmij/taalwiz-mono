@@ -63,7 +63,7 @@ pnpm --filter docs run preview   # Preview the production build (port 4173)
 - **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); **primary web app**
 - **`apps/compiler`** — Standalone TypeScript utility for compiling dictionaries
 - **`apps/docs`** — VitePress static documentation site (served at `/guide`)
-- **`packages/api-types`** — Shared API type definitions consumed by `api` and `web`
+- **`packages/shared`** — Shared constants (auth codes, deployment language `TARGET_LANG`/`NATIVE_LANG`) consumed by `api` and `web`
 - **`packages/eslint-config`** — Shared ESLint configs with presets: `base`, `nest`, `angular`
 - **`packages/typescript-config`** — Shared `base.json` tsconfig (ESNext, NodeNext module, strict)
 

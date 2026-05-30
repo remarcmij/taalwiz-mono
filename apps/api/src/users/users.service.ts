@@ -16,7 +16,7 @@ import {
   EMAIL_NOT_FOUND,
   TOKEN_EXPIRED,
   TOKEN_INVALID,
-} from '@repo/api-types';
+} from '@repo/shared';
 import bcrypt from 'bcrypt';
 import type { AuthResponse } from '../auth/types/auth-response.interface.js';
 import { JwtPayload, JwtPayloadSchema } from '../auth/types/jwtpayload.interface.js';

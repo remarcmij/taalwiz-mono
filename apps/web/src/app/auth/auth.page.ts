@@ -22,7 +22,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { finalize } from 'rxjs';
 import { homeUrl } from '../home/home.routes';
-import { ACCOUNT_SUSPENDED, AUTH_FAILED, MIN_PASSWORD_LENGTH } from '@repo/api-types';
+import { ACCOUNT_SUSPENDED, AUTH_FAILED, MIN_PASSWORD_LENGTH } from '@repo/shared';
 import { AuthService } from './auth.service';
 
 @Component({

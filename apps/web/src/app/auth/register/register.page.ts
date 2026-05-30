@@ -28,7 +28,7 @@ import {
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
-import { EMAIL_EXISTS, EMAIL_MISMATCH, MIN_PASSWORD_LENGTH, TOKEN_INVALID } from '@repo/api-types';
+import { EMAIL_EXISTS, EMAIL_MISMATCH, MIN_PASSWORD_LENGTH, TOKEN_INVALID } from '@repo/shared';
 import { AuthService } from '../auth.service';
 
 @Component({

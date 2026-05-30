@@ -15,7 +15,6 @@ export interface ITopic {
   publication: string;
   publisher: string;
   subtitle: string;
-  targetLang: string;
   title: string;
   type: 'main' | 'manifest' | 'article' | 'dict';
 }

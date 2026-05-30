@@ -22,7 +22,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
-import { MIN_PASSWORD_LENGTH, TOKEN_EXPIRED, TOKEN_INVALID } from '@repo/api-types';
+import { MIN_PASSWORD_LENGTH, TOKEN_EXPIRED, TOKEN_INVALID } from '@repo/shared';
 import { AuthService } from '../auth.service';
 
 @Component({

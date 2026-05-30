@@ -1,3 +1,7 @@
+// Deployment-fixed languages — single source of truth shared by web and api.
+export const TARGET_LANG = 'id';
+export const NATIVE_LANG = 'nl';
+
 export const MIN_PASSWORD_LENGTH = 6;
 
 export const AUTH_FAILED = 'AUTH_FAILED';

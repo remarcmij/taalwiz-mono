@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { TARGET_LANG } from '@repo/shared';
 import Topic, { TopicDoc } from '../models/topic.model.js';
 
 export interface Upload<T> {
@@ -35,6 +36,22 @@ abstract class BaseLoader<T> implements Loader {
   async removeTopic(topic: TopicDoc): Promise<void> {
     await this.removeData(topic);
     return void Topic.deleteOne({ _id: topic._id }).exec();
+  }
+
+  /**
+   * Rejects an uploaded content file whose declared target language does not
+   * match this deployment's fixed target language. Guards against uploading
+   * content intended for a different language deployment.
+   */
+  protected assertTargetLang(targetLang: string | undefined, filename: string): void {
+    if (!targetLang) {
+      throw new Error(`missing required "targetLang" in ${filename}`);
+    }
+    if (targetLang !== TARGET_LANG) {
+      throw new Error(
+        `targetLang "${targetLang}" in ${filename} does not match the deployment target language "${TARGET_LANG}"`,
+      );
+    }
   }
 
   protected abstract parseContent(

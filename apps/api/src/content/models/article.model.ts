@@ -4,7 +4,6 @@ import { ExtractedHashtag } from './hashtag.model.js';
 const ArticleSchema = new Schema({
   _topic: { type: Schema.Types.ObjectId, index: true, ref: 'Topic' },
   filename: { type: String, required: true, index: true },
-  targetLang: { type: String },
   groupName: { type: String, required: true },
   mdText: { type: String, required: true },
   title: { type: String, required: true },

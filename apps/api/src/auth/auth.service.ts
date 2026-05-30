@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { ACCOUNT_SUSPENDED } from '@repo/api-types';
+import { ACCOUNT_SUSPENDED } from '@repo/shared';
 import type { Language, Role } from '../users/models/user.model.js';
 import { UsersService } from '../users/users.service.js';
 import { EnvDto } from '../util/env.dto.js';

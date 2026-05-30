@@ -103,6 +103,11 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     const attributes: ManifestFrontMatterAttributes = result.data;
 
     const isMain = group === 'main';
+    // Group manifests must declare a matching target language; the main
+    // manifest is a language-agnostic index and is exempt.
+    if (!isMain) {
+      this.assertTargetLang(attributes.targetLang, filename);
+    }
     const h1Match = body.match(/^# *([^#][^\n]+)/m);
     const title = attributes.title ?? (h1Match ? h1Match[1].trim() : (isMain ? 'Main Manifest' : group));
 
@@ -111,7 +116,6 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       filename,
       groupName: group,
       title,
-      targetLang: attributes.targetLang,
       subtitle: attributes.subtitle,
       author: attributes.author,
       copyright: attributes.copyright,
@@ -127,7 +131,6 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
 
     const article: ArticleDoc = {
       filename,
-      targetLang: attributes.targetLang,
       groupName: group,
       title,
       mdText: body,
@@ -150,6 +153,8 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     }
     const attributes: ArticleFrontMatterAttributes = result.data;
 
+    this.assertTargetLang(attributes.targetLang, filename);
+
     const titleMatch = content.match(/^# *([^#][^\n]+)/m);
     const title = attributes.title ?? (titleMatch ? titleMatch[1] : 'untitled');
 
@@ -168,7 +173,6 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     const topic: TopicDoc = {
       type: 'article',
       filename,
-      targetLang: attributes.targetLang,
       groupName: group,
       title,
       subtitle,
@@ -183,7 +187,6 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
 
     const article: ArticleDoc = {
       filename,
-      targetLang: attributes.targetLang,
       groupName: group,
       title,
       mdText: body,
@@ -220,7 +223,6 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       const articleDoc: ArticleDoc = {
         filename: stored.filename,
         groupName: stored.groupName,
-        targetLang: stored.targetLang ?? undefined,
         title: stored.title,
         mdText: stored.mdText,
         hashtags: [],
@@ -251,7 +253,6 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
       const articleDoc: ArticleDoc = {
         filename: stored.filename,
         groupName: stored.groupName,
-        targetLang: stored.targetLang ?? undefined,
         title: stored.title,
         mdText: stored.mdText,
         hashtags: [],

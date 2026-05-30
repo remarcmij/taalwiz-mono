@@ -22,6 +22,8 @@ class DictFileLoader extends BaseLoader<DictFileMeta> {
       throw new Error(`invalid dict JSON in ${filename}: ${z.prettifyError(result.error)}`);
     }
 
+    this.assertTargetLang(result.data.targetLang, filename);
+
     const match = filename.match(/^(.+)\.[a-z]\.json$/);
     if (!match) {
       throw new Error(`ill-formed filename: ${filename}`);
@@ -34,7 +36,6 @@ class DictFileLoader extends BaseLoader<DictFileMeta> {
         type: 'dict',
         groupName,
         title: groupName.charAt(0).toUpperCase() + groupName.slice(1),
-        targetLang: result.data.targetLang,
       },
       payload: { rawContent: content },
     };

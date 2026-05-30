@@ -24,7 +24,7 @@ import { first, switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { homeUrl } from '../../home/home.routes';
-import { AUTH_FAILED, DEMO_ACCOUNT, EMAIL_NOT_FOUND, MIN_PASSWORD_LENGTH } from '@repo/api-types';
+import { AUTH_FAILED, DEMO_ACCOUNT, EMAIL_NOT_FOUND, MIN_PASSWORD_LENGTH } from '@repo/shared';
 import { BackButtonComponent } from '../../shared/back-button/back-button.component';
 import { LoggerService } from '../../shared/logger.service';
 import { AuthService } from '../auth.service';

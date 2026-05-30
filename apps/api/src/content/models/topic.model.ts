@@ -15,7 +15,6 @@ const TopicSchema = new Schema({
   publisher: String,
   sha: String,
   subtitle: String,
-  targetLang: String,
   title: { type: String, required: true },
   type: { type: String, required: true, enum: ['main', 'manifest', 'article', 'dict'] },
 });
