@@ -61,3 +61,9 @@ secret/
 # Uploaded dictionary files (runtime-generated, served as static assets)
 /public/assets/dict-manifest.json
 /public/assets/*.*.json
+
+# Uploaded publication/cover images (runtime UI uploads, served as static assets).
+# Keep the directory present (so the static server has a target) but ignore its
+# contents. Some covers are copyrighted, so they stay out of version control.
+/public/assets/images/*
+!/public/assets/images/.gitkeep
