@@ -3,45 +3,142 @@
 **Repository:** https://github.com/remarcmij/taalwiz-mono  
 **Contact:** Jim Cramer, remarcmij@gmail.com  
 
----
 
 ## Overview
 
-Taalwiz is an open-source, self-hostable web application for Dutch speakers learning Indonesian. I first built it about ten years ago, out of a personal interest in both Indonesian and software development, and have kept improving it ever since. Over that time it has grown to combine structured reading, dictionary lookup, vocabulary management, and spaced-repetition review in a single workflow.
+Taalwiz is an open-source web application for learning Indonesian. I first built it about ten years ago, out of a personal interest in Indonesian and a professional interest in software development. I have kept improving the app ever since.
 
-The application is freely available under an open-source licence. There is no vendor lock-in: institutions can host it on their own infrastructure, adapt it to their content, and own their data entirely. I am now retired and happy to give my time to see it put to good use.
+At its heart is an interactive version of a dictionary. Any word can be looked up instantly, and the app resolves inflected and derived forms back to the right dictionary entry: the very step where a paper dictionary leaves an Indonesian language learner stranded. Around that dictionary I have built tools for reading Indonesian texts in which every word is tappable, for following connections between articles through hashtags, and for reviewing saved words later.
 
----
+The application is freely available under an open-source licence. Institutions can host it on infrastructure of their own choosing, adapt it to their content, and own their data entirely.
 
-## The Learning Workflow
+The dictionary forms the core of Taalwiz. It is currently set up to use the *Indonesisch-Nederlands Woordenboek* by A. Teeuw (Leiden: KITLV, 2009; ISBN 978-90-6718-100-6), which I digitised[^1] by hand[^2] from the print edition. 
 
-For me, the value of Taalwiz lies in an integrated pipeline that follows the way I believe vocabulary is best learned:
+The goal for the digitisation and the representation in the app was to reproduce as far as possible the way it looks in the printed version. The textual content is faithfully reproduced, as prof. Teeuw wrote it. No additions, deletions or alterations.
 
-1. **Read**: learners work through structured texts (articles, chapters, books) in the Library tab.
-2. **Look up**: tapping any highlighted word opens a dictionary panel showing the Dutch translation. The app resolves inflected forms to their dictionary entry (see Handling Inflected Words, below).
-3. **Bookmark**: with one tap, the word is saved to a personal vocabulary list, in context.
-4. **Review**: the Vocabulary tab presents saved words as flashcards using **Spaced Repetition (SRS)**. Cards that a learner finds difficult are shown again sooner; well-known cards are spaced further into the future. The rating scale (Again / Good / Easy) follows established SRS methodology.
+>Note that the dictionary content is not baked into the app itself. It is uploaded into the app's hosting environment once by the app administrator, using the app's admin functions.
 
-![A spaced-repetition flashcard with the Again / Good / Easy rating buttons](images/srs-card.png)
-*A spaced-repetition review card with the Again / Good / Easy ratings.*
+Access to the app is currently restricted to a small private group, and the digitised dictionary is kept in a separate, private repository: the public open-source repository holds the software only, not the dictionary data.
 
-This pipeline, from encountering a word in authentic reading material to its scheduled review, is available offline once content and the dictionary have been downloaded to the device. The app installs directly from the browser onto a phone, tablet, or computer (no app store required) and continues to work without an internet connection.
+In the next few sections the app's functionality will be described.
 
-![A reading text with a tapped word showing its dictionary translation](images/reading-lookup.png)
-*Reading view: tapping a word opens its dictionary entry.*
+## Dictionary Tab - Search Dictionary
 
----
+Figure 1 below shows the Dictionary tab and illustrates a typical dictionary search interaction. 
 
-## Handling Inflected Words
+>Note that the app works on mobile phones, tablets and PCs. For the example illustrations in this document a mobile phone representation was chosen.
+
+![A dictionary search interaction](images/search-1-2-3.png)
+<small>Figure 1: *A typical dictionary search interaction, from suggestions to headword entry.*</small>
+
+Here is a breakdown of Figure 1:
+
+1. In the first panel the user typed _bera_ in the search field. A list of suggestions drops down and includes matching words from the dictionary. These include both Indonesian and Dutch words. Although the Teeuw dictionary is unidirectional, the app also indexes the Dutch glosses for each dictionary entry.
+
+2. The second panel shows the search result after the user has tapped on the _berabang_ suggestion. The definition of the word _berabang_ is listed in the Teeuw dictionary under its headword _abang_. The button with the name of the headword (`ABANG`) can be tapped to bring up the full lemma of the headword, which includes the entry for _berabang_.
+
+3. In the third panel the results are shown after the user tapped on the ABANG headword button. This effectively results in a new search, now for the word __abang__. Note that the search extends to other lemmas where the word __abang__ is referenced.
+
+    The headword buttons for those other lemmas can again be tapped to go to their corresponding headword entries.
+
+    At the top of the panel a history is shown of recent searches. Each word in the list can be tapped to initiate a new dictionary search for that word.
+
+### Tap-to-Search
+
+A key feature in Taalwiz is that every coloured word (i.e., all Indonesian words) can be tapped to initiate a dictionary search. This is illustrated in Figure 2.
+
+![Tap-to-search](images/search-4-5.png)
+<small>Figure 2: *Tap-to-Search*</small>
+
+Breakdown:
+
+1. In the first panel showing the search results for the word _abang_ the user tapped the word _acara_. This brings up a panel that slides up from the bottom (a _bottom sheet_) with dictionary definitions for the word _acara_. Tapping anywhere outside of the bottom sheet dismisses it.
+
+    Through the magnifying glass a new search can be done for _cemara_. If the button is pressed, the bottom sheet is dismissed and the new search is initiated.
+
+2. The second panel shows the results for the word _cemara_, resulting from tapping the magnifying glass.
+
+### Reverse Lookup
+
+In addition to searching for Indonesian words the app also supports searching for Dutch words in the Teeuw dictionary, i.e. a _reverse lookup_. By indexing the Dutch glosses of every lemma, the app offers a practical Dutch-to-Indonesian path on a dictionary that was only ever built to go the other way, something a printed unidirectional dictionary cannot do at all. A search for a Dutch word returns the lemmas in which it occurs. This is not a substitute for a true bidirectional dictionary, but in practice it is genuinely useful.
+
+The reverse lookup is illustrated in Figure 3. Referring back to Figure 1, first panel, this the result of tapping on the _beraadslagen_ suggestion.
+
+![Reverse lookup](images/reverse-lookup.png)
+<small>Figure 3: *Reverse lookup for the Dutch word _beraadslagen_*</small>
+
+What the figure shows is that the word _beraadslagen_ occurs in several Teeuw lemmas, sorted alphabetically on headword. Tapping a headword button, e.g. `BICARA` in the first block, initiates a search for that headword.
+
+### Offline Use
+
+The data underpinning the dictionary search is downloaded from the app's hosting environment when the app is installed. This is done once and can take several minutes. Once done, the dictionary can be used without a network connection. For instance, with a mobile phone in _plane_ mode during air travel or in remote areas with no connection.
+
+
+## Library Tab - Publications and Articles
+
+Next to the dictionary, a major feature of the app is to browse through bilingual text content (Indonesian-Dutch) organised as publications, with each publication containing a list of articles. This content is typically created by a _content creator_ and uploaded by the admin to the app's hosting environment, using the app's admin functions.
+
+The content organisation is illustrated in Figure 4.
+
+![Library Tab](images/library.png)
+<small>Figure 4: *The Library tab: publications and their articles.*</small>
+
+### Tap-to-Search in Articles
+
+Every Indonesian word in an article text is tappable, triggering a switch to the Dictionary tab and initiating a search for the tapped word. This is illustrated in Figure 5 below.
+
+![Article tap-to-search](images/article-tap.png)
+<small>Figure 5: *Tap-to-Search in an Article*</small>
+
+In Figure 5, the word _terbesar_ was tapped. This word does not occur as a definition in the Teeuw dictionary. It only occurs in a gloss of the lemma for headword _bagi_. The search for _terbesar_ lands on its headword _besar_. This is accomplished through affix stripping as part of a search. This is detailed in Appendix I of this document.
+
+A word worth remembering can be saved to a personal vocabulary list with a second tap, keeping the example sentence it appeared in. The whole flow, from reading to lookup to saving, works offline once the content and dictionary have been downloaded: the app installs directly from the browser onto a phone, tablet, or computer (no app store required) and continues to work without an internet connection.
+
+
+## Hashtags Tab: Hashtags and Connected Articles
+
+Articles can carry hashtags that mark topics or themes. Each hashtag is a clickable link: tapping it opens an index of every article that shares the same tag, so related material is connected across the library rather than sitting in isolation. An article on cooking and one on markets might both carry the tag _food_, letting a reader move between them by topic. For a curated collection this turns a flat list of texts into a lightly cross-referenced web.
+
+The Hashtags Tab is shown in Figure 6.
+
+![Hashtag tab](images/hashtags.png)
+<small>Figure 6: *Hashtags Tab*</small>
+
+Here is a breakdown of Figure 6:
+
+1. The first panel shows the hashtags that are embedded in the articles, listed alphabetically.
+
+2. In the second panel, a bottom sheet pops up after the user tapped the hashtag `ber-`. Because a hashtag could potentially occur in more than one article the bottom sheet uses a list to select an article. In the example however there is only one article containing that hashtag. When a list item is tapped the corresponding article is loaded.
+
+3. The final, third panel shows the article containing the hashtag, positioned at the location of the hashtag.
+
+
+## Vocabulary Tab - Spaced Repetition
+
+Words saved while reading can be reviewed later as flashcards using spaced repetition: cards a learner finds difficult come back sooner, well-known ones are spaced further into the future, with a simple Again / Good / Easy rating. It is a convenience for retaining what reading turns up, not the centre of the app.
+
+To keep this document concise, no further description is given here.
+
+
+## The Dictionary and Its Rights
+
+The software is my own work and is offered freely under the permissive MIT licence. The dictionary is a separate matter. According to the printed edition the copyright rests with the KITLV (Koninklijk Instituut voor Taal-, Land- en Volkenkunde) in Leiden; how those rights stand today I do not know. I am of course aware that this question would need to be resolved before any wider use, and I do not expect to take that on myself.
+
+The copy I digitised is the sixth printing (2009), though the text itself was last revised in the fourth edition of 1996; as far as I can tell it is no longer available new, with only second-hand copies turning up online.
+
+
+[^1]: The text is held as structured, plain Markdown, a form that lends itself to future correction, revision, or extension by editors or linguists, should the rights-holder ever wish to.
+
+[^2]: This was a substantial undertaking: over the course of several weeks I scanned the pages, corrected scanning errors, and marked up the Indonesian entries so that the app can recognise and link them.
+
+
+## Appendix I - Handling Inflected Words
 
 ### How It Works
 
 Rather than committing to a single canonical root, the app generates an ordered set of plausible base-form candidates and checks them against the on-device dictionary in sequence, stopping at the first match. The ordering is deliberate: the original form is tried first (in case it is indexed directly), followed by the most common active-voice forms (which the dictionary is most likely to contain), and finally stripped roots as a last resort.
 
-**Example**: a learner taps _memperbaiki_ ("to repair"). The app peels the layers in turn (meN-, then per-, then the suffix -i) to reach the root _baik_, and shows the dictionary entry grouped under that headword. The ordering matters: per- is tried before the shorter pe-, which would otherwise mis-parse the word.
-
-![A conjugated form resolved to its dictionary headword](images/inflection-resolution.png)
-*An inflected form resolved to its root lemma.*
+**Example**: a learner taps _memperbaiki_ ("to repair"). The app peels the layers in turn (meN-, then per-, then the suffix -i) to reach the root _baik_, and shows the dictionary entry grouped under that headword. The ordering matters: per- is tried before the shorter pe-, which would otherwise mis-parse the word. (Figure 5 shows the same mechanism at work on _terbesar_ → _besar_.)
 
 ### Affixes Handled
 
@@ -54,30 +151,8 @@ The app strips a range of common affixes when generating candidate forms:
 
 Stripping is recursive, so multi-affix words are reduced step by step. Where a prefix drops or assimilates the root's initial consonant (as in _memotong_, from _potong_), the app also generates restored candidates. It is a best-effort heuristic, not a full morphological analyser, and a small exemption list covers common words that do not follow the regular patterns. The morphological handling is mine to change, and I would gladly refine it on a linguist's advice.
 
----
 
-## Searching and Reverse Lookup
-
-Besides tapping words while reading, learners can search the dictionary directly. A search returns every entry in which the word appears, not only the main lemma, so compound expressions and worked examples surface alongside the primary definition.
-
-The search also works in reverse. The Teeuw dictionary is one-directional, from Indonesian to Dutch, but typing a Dutch word finds all the Indonesian entries whose translations contain it. This gives learners a practical Dutch-to-Indonesian lookup on a dictionary that was never built to provide one.
-
-![A Dutch search term returning the Indonesian entries that contain it](images/reverse-search.png)
-*Reverse lookup: a Dutch word finds the Indonesian entries it appears in.*
-
----
-
-## The Dictionary
-
-The dictionary currently in use is based on the *Indonesisch-Nederlands Woordenboek* by A. Teeuw (Leiden: KITLV, 2009; ISBN 978-90-6718-100-6), which I digitised by hand from the print edition. This was a substantial undertaking: over several weeks I scanned the printed text and corrected the OCR output by hand, marking up the Indonesian entries so that the app can recognise and link them. The text is held as structured, plain Markdown, a form that lends itself to future correction, revision, or extension by editors or linguists, should the rights-holder ever wish to. Access to the app is currently restricted to a small private group, and the digitised dictionary is kept in a separate, private repository: the public open-source repository holds the software only, not the dictionary data.
-
-The software is my own work and is offered freely under the permissive MIT licence. The dictionary is a separate matter. According to the printed edition the copyright rests with the KITLV (Koninklijk Instituut voor Taal-, Land- en Volkenkunde) in Leiden; how those rights stand today I do not know. I am of course aware that this question would need to be resolved before any wider use, and I do not expect to take that on myself.
-
-The copy I digitised is the sixth printing (2009), though the text itself was last revised in the fourth edition of 1996; as far as I can tell it is no longer available new, with only second-hand copies turning up online.
-
----
-
-## Technical Summary
+## Appendix II: Technical Summary
 
 | Component | Technology |
 |---|---|
@@ -89,44 +164,3 @@ The copy I digitised is the sixth printing (2009), though the text itself was la
 | Licence | MIT (permissive open source) |
 
 Content, both reading articles and dictionary entries, is authored in Markdown and compiled to JSON. This means that subject-matter experts (linguists, course developers) can create and update content using familiar tools, without requiring software development skills for the authoring step itself.
-
----
-
-## Open Source and Institutional Use
-
-Taalwiz is published as an open-source project at **github.com/remarcmij/taalwiz-mono**. Institutions are free to:
-
-- Deploy and operate the platform on their own infrastructure
-- Contribute or commission improvements to the codebase
-- Adapt the content pipeline for their own course materials
-- Fork the project for specialised purposes
-
-### Setup and support
-
-I would expect the institution's own IT department to own the deployment, hosting, and day-to-day administration of the platform. I am happy to help with the initial setup and to answer technical questions during that process, and to remain reachable for the occasional question afterwards. This is not a commercial arrangement: I simply want to see the platform used well in a wider community.
-
----
-
-## What Would a Pilot Need?
-
-Taalwiz is intended as a self-directed study aid: students use it on their own initiative alongside their course, not as a managed classroom tool. The institution's role is simply to make it available; how much students use it is up to them.
-
-A first trial can be very small and needs almost nothing. I can give a lecturer and a handful of students access to my own running instance, within the private group I already maintain, so they can try it for themselves. The outcome I would value most is honest feedback on what works and what is missing.
-
-A wider or permanent deployment is a larger step, and three things would need to be in place:
-
-- **Dictionary**: the rights position for the Teeuw *Indonesisch-Nederlands Woordenboek* would need to be settled. This is best handled internally and is a prerequisite for a broad rollout, though not for a small private trial.
-- **Content**: the institution would provide its own reading materials, authored in Markdown using the existing content pipeline.
-- **Hosting**: a server or cloud instance; the application has modest requirements.
-
----
-
-## Contact
-
-I would welcome an exploratory conversation with no obligations on either side, and am happy to demonstrate the app live on request.
-
-**Jim Cramer**  
-Retired software developer  
-Amstelveen, the Netherlands  
-remarcmij@gmail.com  
-https://github.com/remarcmij/taalwiz-mono
