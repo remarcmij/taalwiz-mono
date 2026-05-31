@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { ACCOUNT_SUSPENDED } from '@repo/shared';
+import { ACCOUNT_SUSPENDED, AUTH_FAILED } from '@repo/shared';
 import type { Language, Role } from '../users/models/user.model.js';
 import { UsersService } from '../users/users.service.js';
 import { EnvDto } from '../util/env.dto.js';
@@ -60,12 +60,12 @@ export class AuthService implements OnApplicationBootstrap {
 
     if (!user) {
       this.logger.error(`User ${email} not found`);
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(AUTH_FAILED);
     }
 
     if (!(await bcrypt.compare(password, user.password))) {
       this.logger.error(`Invalid password for user ${email}`);
-      throw new UnauthorizedException();
+      throw new UnauthorizedException(AUTH_FAILED);
     }
 
     if (user.isSuspended) {
