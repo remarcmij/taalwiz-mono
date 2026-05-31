@@ -3,6 +3,8 @@
 **Repository:** https://github.com/remarcmij/taalwiz-mono  
 **Contact:** Jim Cramer, remarcmij@gmail.com  
 
+_This document need not be read end to end. The Dictionary and Library sections are the core; the remaining sections and the appendices are optional background._
+
 
 ## Overview
 
@@ -71,7 +73,7 @@ What the figure shows is that the word _beraadslagen_ occurs in several Teeuw le
 
 ### Offline Use
 
-The data underpinning the dictionary search is downloaded from the app's hosting environment when the app is installed. This is done once and can take several minutes. Once done, the dictionary can be used without a network connection. For instance, with a mobile phone in _plane_ mode during air travel or in remote areas with no connection.
+The dictionary data is downloaded once, when the app is first installed; this can take a few minutes. After that the dictionary works without a network connection, for instance on a phone in flight mode or in an area with no coverage.
 
 
 ## Library Tab - Publications and Articles
@@ -95,29 +97,9 @@ In Figure 5, the word _terbesar_ was tapped. This word does not occur as a defin
 A word worth remembering can be saved to a personal vocabulary list with a second tap, keeping the example sentence it appeared in. The whole flow, from reading to lookup to saving, works offline once the content and dictionary have been downloaded: the app installs directly from the browser onto a phone, tablet, or computer (no app store required) and continues to work without an internet connection.
 
 
-## Hashtags Tab: Hashtags and Connected Articles
-
-Articles can carry hashtags that mark topics or themes. Each hashtag is a clickable link: tapping it opens an index of every article that shares the same tag, so related material is connected across the library rather than sitting in isolation. An article on cooking and one on markets might both carry the tag _food_, letting a reader move between them by topic. For a curated collection this turns a flat list of texts into a lightly cross-referenced web.
-
-The Hashtags Tab is shown in Figure 6.
-
-![Hashtag tab](images/hashtags.png)
-<small>Figure 6: *Hashtags Tab*</small>
-
-Here is a breakdown of Figure 6:
-
-1. The first panel shows the hashtags that are embedded in the articles, listed alphabetically.
-
-2. In the second panel, a bottom sheet pops up after the user tapped the hashtag `ber-`. Because a hashtag could potentially occur in more than one article the bottom sheet uses a list to select an article. In the example however there is only one article containing that hashtag. When a list item is tapped the corresponding article is loaded.
-
-3. The final, third panel shows the article containing the hashtag, positioned at the location of the hashtag.
-
-
 ## Vocabulary Tab - Spaced Repetition
 
-Words saved while reading can be reviewed later as flashcards using spaced repetition: cards a learner finds difficult come back sooner, well-known ones are spaced further into the future, with a simple Again / Good / Easy rating. It is a convenience for retaining what reading turns up, not the centre of the app.
-
-To keep this document concise, no further description is given here.
+Words saved while reading can be reviewed later as flashcards using spaced repetition: cards a learner finds difficult come back sooner, well-known ones are spaced further into the future, with a simple Again / Good / Easy rating. It is a convenience for retaining what reading turns up, not the centre of the app, and so is not described further here.
 
 
 ## The Dictionary and Its Rights
@@ -152,7 +134,25 @@ The app strips a range of common affixes when generating candidate forms:
 Stripping is recursive, so multi-affix words are reduced step by step. Where a prefix drops or assimilates the root's initial consonant (as in _memotong_, from _potong_), the app also generates restored candidates. It is a best-effort heuristic, not a full morphological analyser, and a small exemption list covers common words that do not follow the regular patterns. The morphological handling is mine to change, and I would gladly refine it on a linguist's advice.
 
 
-## Appendix II: Technical Summary
+## Appendix II - Hashtags and Connected Articles
+
+Articles can carry hashtags that mark topics or themes. Each hashtag is a clickable link: tapping it opens an index of every article that shares the same tag, so related material is connected across the library rather than sitting in isolation. An article on cooking and one on markets might both carry the tag _food_, letting a reader move between them by topic. For a curated collection this turns a flat list of texts into a lightly cross-referenced web.
+
+The Hashtags tab is shown in Figure 6.
+
+![Hashtag tab](images/hashtags.png)
+<small>Figure 6: *Hashtags tab*</small>
+
+Here is a breakdown of Figure 6:
+
+1. The first panel shows the hashtags embedded in the articles, listed alphabetically.
+
+2. In the second panel, a bottom sheet pops up after the user tapped the hashtag `ber-`. Since a hashtag can occur in more than one article, the bottom sheet lists the articles to choose from; here only one article carries the tag. Tapping a list item loads the corresponding article.
+
+3. The third panel shows that article, positioned at the location of the hashtag.
+
+
+## Appendix III - Technical Summary
 
 | Component | Technology |
 |---|---|
