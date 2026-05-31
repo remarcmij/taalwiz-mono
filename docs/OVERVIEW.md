@@ -8,7 +8,9 @@ _Author's note: For a quick read I recommend the sections Overview, Dictionary a
 
 ## Overview
 
-Taalwiz is an open-source web application for learning Indonesian. At its heart is an interactive version of a dictionary. Any word can be looked up instantly, and the app resolves inflected and derived forms back to the right dictionary entry. A second major part is the Library. Here, publications containing bilingual articles (id-nl) can be browsed and read, and a finger tap on an Indonisian word immediately brings up a dictionary definition for that word.
+Taalwiz began with a few things that came to mind while following courses in Indonesian at the Volksuniversiteit. What if I could access my learning materials and the Teeuw dictionary directly on my phone? I might still use the study books at home, but the paper dictionary could stay on its shelf. Next came the idea to connect the learning materials to the dictionary. What if I could tap a word while reading a lesson and see its meaning at once, without losing my place in the lesson? What if I could also use it on my laptop for serious study at home? That is the vision I, as a developer with the appropriate skills, started to build.
+
+Taalwiz is the result: an open-source web application for learning Indonesian. At its heart is an interactive version of a dictionary. Any word can be looked up instantly, and the app resolves inflected and derived forms back to the right dictionary entry. A second major part is the Library, where publications containing bilingual articles (Indonesian-Dutch) can be browsed and read, and a finger tap on an Indonesian word immediately brings up a dictionary definition for that word.
 
 The application is freely available under an open-source licence. Institutions can host it on infrastructure of their own choosing, adapt it to their content, and own their data entirely.
 
@@ -90,7 +92,7 @@ Every Indonesian word in an article text is tappable, triggering a switch to the
 ![Article tap-to-search](images/article-tap.png)
 <small>Figure 5: *Tap-to-Search in an Article*</small>
 
-In Figure 5, the word _terbesar_ was tapped. This word does not occur as a definition in the Teeuw dictionary. It only occurs in a gloss of the lemma for headword _bagi_. The search for _terbesar_ lands on its headword _besar_. This is accomplished through affix stripping as part of a search. This is detailed in Appendix I of this document.
+In Figure 5, the word _terbesar_ was tapped. This word does not occur as a definition in the Teeuw dictionary. It only occurs in a gloss of the lemma for headword _bagi_. The search for _terbesar_ lands on its headword _besar_. This is accomplished through affix stripping as part of a search. The app handles a wide range of Indonesian affixes, including some subtleties of their ordering; this is detailed in Appendix I.
 
 A word worth remembering can be saved to a personal vocabulary list with a second tap, keeping the example sentence it appeared in. The whole flow, from reading to lookup to saving, works offline once the content and dictionary have been downloaded: the app installs directly from the browser onto a phone, tablet, or computer (no app store required) and continues to work without an internet connection.
 
