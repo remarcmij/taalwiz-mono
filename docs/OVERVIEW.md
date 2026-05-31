@@ -54,7 +54,7 @@ A key feature in Taalwiz is that every coloured word (i.e., all Indonesian words
 
 Breakdown:
 
-1. In the first panel showing the search results for the word _abang_ the user tapped the word _acara_. This brings up a panel that slides up from the bottom (a _bottom sheet_) with dictionary definitions for the word _acara_. Tapping anywhere outside of the bottom sheet dismisses it.
+1. In the first panel showing the search results for the word _abang_ the user tapped the word _cemara_. This brings up a panel that slides up from the bottom (a _bottom sheet_) with dictionary definitions for the word _cemara_. Tapping anywhere outside of the bottom sheet dismisses it.
 
     Through the magnifying glass a new search can be done for _cemara_. If the button is pressed, the bottom sheet is dismissed and the new search is initiated.
 
@@ -159,8 +159,8 @@ Here is a breakdown of Figure 6:
 | Backend API | NestJS 11, MongoDB, JWT authentication |
 | Web / mobile app | Angular 20, Ionic 8 |
 | Offline support | Service Worker caching; full dictionary stored on device |
-| Content format | Markdown files compiled to JSON via a purpose-built tool |
+| Content format | Markdown |
 | Deployment | Self-hosted; modest server requirements |
 | Licence | MIT (permissive open source) |
 
-Content, both reading articles and dictionary entries, is authored in Markdown and compiled to JSON. This means that subject-matter experts (linguists, course developers) can create and update content using familiar tools, without requiring software development skills for the authoring step itself.
+Content, both reading articles and dictionary entries, is authored in Markdown. This means that subject-matter experts (linguists, course developers) can create and update content using familiar tools, without requiring software development skills for the authoring step itself.
