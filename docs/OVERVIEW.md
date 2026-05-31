@@ -3,14 +3,12 @@
 **Repository:** https://github.com/remarcmij/taalwiz-mono  
 **Contact:** Jim Cramer, remarcmij@gmail.com  
 
-_This document need not be read end to end. The Dictionary and Library sections are the core; the remaining sections and the appendices are optional background._
+_Author's note: For a quick read I recommend the sections Overview, Dictionary and Library. All other sections are optional._
 
 
 ## Overview
 
-Taalwiz is an open-source web application for learning Indonesian. I first built it about ten years ago, out of a personal interest in Indonesian and a professional interest in software development. I have kept improving the app ever since.
-
-At its heart is an interactive version of a dictionary. Any word can be looked up instantly, and the app resolves inflected and derived forms back to the right dictionary entry: the very step where a paper dictionary leaves an Indonesian language learner stranded. Around that dictionary I have built tools for reading Indonesian texts in which every word is tappable, for following connections between articles through hashtags, and for reviewing saved words later.
+Taalwiz is an open-source web application for learning Indonesian. At its heart is an interactive version of a dictionary. Any word can be looked up instantly, and the app resolves inflected and derived forms back to the right dictionary entry. A second major part is the Library. Here, publications containing bilingual articles (id-nl) can be browsed and read, and a finger tap on an Indonisian word immediately brings up a dictionary definition for that word.
 
 The application is freely available under an open-source licence. Institutions can host it on infrastructure of their own choosing, adapt it to their content, and own their data entirely.
 
