@@ -49,8 +49,7 @@ export class DictionaryService {
   }
 
   async #fetchSuggestionsAsync(term: string): Promise<WordLang[]> {
-    const seen = new Set<string>();
-    const results: WordLang[] = [];
+    const prefix = term.toLowerCase();
 
     // Suggestions are a literal prefix match on what was typed -- no stemmer
     // variations. Stemming a partially-typed word surfaces alphabetical
@@ -59,36 +58,30 @@ export class DictionaryService {
     // Inflected forms still resolve via the stemmer on the lookup path
     // (#searchLocal), reached by tapping a word, tapping a suggestion, or
     // pressing Enter with no matching suggestion.
-    const hits = await this.#dictStore.findWordsStartingWith(
-      term.toLowerCase(),
-      langConfig.targetLang,
-      10,
-    );
-    for (const hit of hits) {
+    //
+    // Both languages carry equal weight: target and native hits are merged and
+    // sorted alphabetically so they interleave, rather than listing all target
+    // matches first. The user can narrow to one language simply by typing more.
+    const [targetHits, nativeHits] = await Promise.all([
+      this.#dictStore.findWordsStartingWith(prefix, langConfig.targetLang, 10),
+      this.#dictStore.findWordsStartingWith(prefix, langConfig.nativeLang, 10),
+    ]);
+
+    const seen = new Set<string>();
+    const merged: WordLang[] = [];
+    for (const hit of [...targetHits, ...nativeHits]) {
       const key = hit.word + '|' + hit.lang;
       if (!seen.has(key)) {
         seen.add(key);
-        results.push(new WordLang(hit.word, hit.lang));
-      }
-      if (results.length >= 10) break;
-    }
-
-    if (results.length < 10) {
-      const nlHits = await this.#dictStore.findWordsStartingWith(
-        term.toLowerCase(),
-        langConfig.nativeLang,
-        10 - results.length,
-      );
-      for (const hit of nlHits) {
-        const key = hit.word + '|' + hit.lang;
-        if (!seen.has(key)) {
-          seen.add(key);
-          results.push(new WordLang(hit.word, hit.lang));
-        }
+        merged.push(new WordLang(hit.word, hit.lang));
       }
     }
 
-    return results;
+    merged.sort((a, b) =>
+      a.word.toLowerCase().localeCompare(b.word.toLowerCase()),
+    );
+
+    return merged.slice(0, 10);
   }
 
   async #searchLocal(target: WordLang, searchWord?: string): Promise<LookupResult> {
