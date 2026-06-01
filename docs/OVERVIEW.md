@@ -85,6 +85,8 @@ The content organisation is illustrated in Figure 4.
 ![Library Tab](images/library.png)
 <small>Figure 4: *The Library tab: publications and their articles.*</small>
 
+>Note that the example publication shown here was generated with AI purely to illustrate the reading features — it is not curated study material. In a real deployment, an institution loads its own licensed content. This caveat concerns only the illustrative texts, not the Teeuw dictionary, which is reproduced faithfully.
+
 ### Tap-to-Search in Articles
 
 Every Indonesian word in an article text is tappable, triggering a switch to the Dictionary tab and initiating a search for the tapped word. This is illustrated in Figure 5 below.
