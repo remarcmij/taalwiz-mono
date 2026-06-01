@@ -104,14 +104,7 @@ A word worth remembering can be saved to a personal vocabulary list with a secon
 Words saved while reading can be reviewed later as flashcards using spaced repetition: cards a learner finds difficult come back sooner, well-known ones are spaced further into the future, with a simple Again / Good / Easy rating. It is a convenience for retaining what reading turns up, not the centre of the app, and so is not described further here.
 
 
-## The Dictionary and Its Rights
-
-The software is my own work and is offered freely under the permissive MIT licence. The dictionary is a separate matter. According to the printed edition the copyright rests with the KITLV (Koninklijk Instituut voor Taal-, Land- en Volkenkunde) in Leiden; how those rights stand today I do not know. I am of course aware that this question would need to be resolved before any wider use, and I do not expect to take that on myself.
-
-The copy I digitised is the sixth printing (2009), though the text itself was last revised in the fourth edition of 1996; as far as I can tell it is no longer available new, with only second-hand copies turning up online.
-
-
-[^1]: The text is held as structured, plain Markdown, a form that lends itself to future correction, revision, or extension by editors or linguists, should the rights-holder ever wish to.
+[^1]: The text is held as structured, plain Markdown, a form that lends itself to future correction, revision, or extension by editors or linguists.
 
 [^2]: This was a substantial undertaking: over the course of several weeks I scanned the pages, corrected scanning errors, and marked up the Indonesian entries so that the app can recognise and link them.
 
