@@ -36,7 +36,7 @@ graph TD
         auth["auth/\n(login, register, password)"]
         home["home/\n(tabs: content | dictionary | hashtags | vocabulary)"]
         admin["admin/\n(users, content, upload, settings)"]
-        user["user/\n(welcome, contact, about)"]
+        user["user/\n(welcome, contact)"]
     end
 
     subgraph CrossCutting ["Cross-cutting services"]
@@ -136,7 +136,7 @@ src/app/
 │   ├── welcome/
 │   └── contact/
 │
-├── about/
+├── about/                    # About modal (about-modal/), opened from the menu — not a route
 │
 ├── help/                     # Help page (markdown, per user.lang)
 │
@@ -208,10 +208,11 @@ flowchart TD
 **Standalone pages** (all require `authGuard`)
 
 - `/welcome/:lang`
-- `/about/:lang`
 - `/contact`
 - `/help/:lang`
 - `/settings`
+
+(About is presented as a modal — `AboutModalComponent`, opened via the menu — not a route.)
 
 **Guards:**
 
@@ -558,7 +559,7 @@ Uses **ngx-translate**. Translation files are loaded at runtime from `/i18n/{lan
 
 - On boot, `LanguageService.init()` runs as an `APP_INITIALIZER` and applies the value cached in Capacitor `Preferences` (key `app.lang`) so pre-login screens render in the last-used language.
 - `LanguageService` subscribes to `AuthService.user$`; when a user emits, `user.lang` is applied — the server always overrides the local cache on login.
-- The Settings page calls `LanguageService.setLanguage(lang)`, which `PATCH`es `/api/v1/users/me/lang`, applies the new locale, then calls `AuthService.applyLangToCurrentUser(lang)` to update the in-memory `User` and re-persist the cached `authData` so menu links (`/help/{lang}`, `/about/{lang}`) update reactively and survive an `autoLogin`.
+- The Settings page calls `LanguageService.setLanguage(lang)`, which `PATCH`es `/api/v1/users/me/lang`, applies the new locale, then calls `AuthService.applyLangToCurrentUser(lang)` to update the in-memory `User` and re-persist the cached `authData` so the language-dependent `/help/{lang}` menu link updates reactively and survives an `autoLogin`.
 - A change on one device only reaches another device at the next *full* login — the refresh-token endpoint does not fetch the profile.
 
 ---

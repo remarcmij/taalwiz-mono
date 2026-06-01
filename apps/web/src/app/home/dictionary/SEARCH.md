@@ -237,6 +237,8 @@ Certain common words are not stemmed because they don't follow standard patterns
 - `dia` (he/she)
 - `bukan` (not)
 - `ini` (this)
+- `nyanyi` (sing)
+- `ngaji` (study/recite Islamic texts)
 
 ### Implementation Details
 
@@ -410,42 +412,38 @@ For each base in `results.bases`, the template displays:
 
 ## Recent Searches & Breadcrumb List
 
-**Files**: `dictionary.page.ts`, `dictionary.page.html`
+**Files**: `dictionary.page.ts`, `dictionary.page.html`, `search-history.service.ts`
 
 ### Storage
 
-The `recentSearches` signal stores an array of `WordLang` objects. When a successful search completes in the `results$` observable tap:
+Search history is owned by `SearchHistoryService`, which persists it to Capacitor `Preferences` (key `taalwiz.search-history`) so it survives reloads. The service keeps up to `MAX_HISTORY` (50) entries, each `{ word, lang, searchedAt }`, most-recent first.
 
-1. `this.addRecentSearch(results.targetBase!)` is called
-2. `results.targetBase` is the **typed word** (not the found base)
-   - Example: User types "dibakar" → stored as "dibakar" (even though results are for "membakar")
+When a successful search completes in the `results$` observable tap, `this.addRecentSearch(results.targetBase!)` is called, which delegates to `historyService.add(word, lang)`. `results.targetBase` is the **typed word** (not the found base):
 
-### Insertion Order Preservation
+- Example: User types "dibakar" → stored as "dibakar" (even though results are for "membakar")
 
-The `addRecentSearch()` method implements insertion-order preservation:
+### Most-Recent-First Ordering
+
+`SearchHistoryService.add()` deduplicates and promotes to the front:
 
 ```typescript
-addRecentSearch(wordLang: WordLang) {
-  this.recentSearches.update((values) => {
-    // If word already in list, return unchanged (preserves position)
-    if (values.some((v) => v.key === wordLang.key)) {
-      return values;
-    }
-    // New word: append to end
-    const newValues = [...values, wordLang];
-    // Cap at MAX_RECENT_SEARCHES (4)
-    if (newValues.length > MAX_RECENT_SEARCHES) {
-      newValues.shift();
-    }
-    return newValues;
-  });
+add(word: string, lang: string): void {
+  const entry = { word, lang, searchedAt: new Date().toISOString() };
+  const filtered = this.history().filter((e) => !(e.word === word && e.lang === lang));
+  const updated = [entry, ...filtered].slice(0, MAX_HISTORY);
+  this.history.set(updated);
+  this.#save(updated);
 }
 ```
 
 **Behavior**:
-- Clicking an existing breadcrumb word does NOT move it to the end — it stays in place
-- Only new words are appended
-- When the list reaches 4, the oldest word is dropped
+- Any existing entry for the same word+lang is removed and the word is re-inserted at the front, so re-searching a word **does** move it to the most-recent position.
+- New words are prepended.
+- The stored history is capped at 50 entries (oldest dropped).
+
+### Breadcrumb Display
+
+The `recentSearches` signal is a `computed` derived from the stored history — it takes the first `MAX_RECENT_SEARCHES` (4) entries and `reverse()`s them, so the breadcrumb shows up to 4 words oldest-on-the-left, most-recent-on-the-right. A separate `hasMoreHistory` computed is `true` when more than 4 entries are stored.
 
 ### Visibility
 

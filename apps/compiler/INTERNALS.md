@@ -68,16 +68,13 @@ The `order` field enables efficient alphabetical searching:
 
 ## Testing
 
-Uses **Node.js built-in test runner** (`node:test`) with **tsx** for TypeScript execution.
+Uses **Vitest** (`vitest run`), run via `pnpm --filter compiler run test`.
 
-```bash
-glob -c "node --import tsx --no-warnings --test" "./src/__tests__/**/*.test.ts"
-```
-
-Test files:
+Test files (in `src/__tests__/`):
 - `helpers.test.ts` — `removeParenthesizedFragments()`
 - `tokenizer.test.ts` — Tokenizer token sequences
-- `parser.test.ts` — TeeuwParser extraction logic
+- `parser.test.ts` — `TeeuwParser` and `VanDaleParser` extraction logic
+- `compiler.test.ts` — `Compiler` integration (multi-group compilation, homonym assignment, malformed-file handling)
 
 ## Known Issues
 
@@ -85,8 +82,8 @@ Test files:
 |---|-------|----------|
 | 1 | ~~`mkdirp` listed in dependencies but never used~~ — resolved: removed from `package.json` | — |
 | 2 | ~~`ts-node` listed in devDependencies but unused (tests use `tsx`)~~ — resolved: removed from `package.json` | — |
-| 3 | No tests for `VanDaleParser` | Medium |
-| 4 | No tests for `Compiler` (integration tests) | Medium |
+| 3 | ~~No tests for `VanDaleParser`~~ — resolved: covered in `parser.test.ts` | — |
+| 4 | ~~No tests for `Compiler` (integration tests)~~ — resolved: covered in `compiler.test.ts` | — |
 | 5 | ~~`moduleResolution` commented out in `tsconfig.json`~~ — resolved: set to `nodenext` | — |
 | 6 | `tsgo` build uses experimental TypeScript Go compiler (`@typescript/native-preview`) | Medium |
 | 7 | Streaming JSON without validation — malformed output only caught downstream | Medium |
