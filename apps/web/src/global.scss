@@ -79,11 +79,17 @@ html.ion-palette-dark {
   font-family: var(--content-font-family);
 }
 
-// Teeuw supplement entries (post-1996 additions): colour their Indonesian word
-// spans amber and underline them. The underline is a second, colour-independent
-// cue so the distinction survives for colour-blind readers; supplements are
-// sparse, so this does not flood the screen with underlines.
-.text-content.teeuw-plus span {
+// Teeuw supplement entries (post-1996 additions): colour their defined
+// Indonesian headwords amber and underline them. The underline is a second,
+// colour-independent cue so the distinction survives for colour-blind readers;
+// supplements are sparse, so this does not flood the screen with underlines.
+//
+// Scoped to `strong span` (defined headwords) and NOT `em span`: the markup
+// converter wraps `**word**` keywords in <strong> and `*word*` references in
+// <em>. A supplement entry may cite an existing (core) word, e.g. "daring (van
+// *dalam jaringan*)"; those citations stay the standard teal so we only colour
+// what the supplement actually introduces, not what it references.
+.text-content.teeuw-plus strong span {
   color: var(--teeuw-plus-text-color);
   text-decoration: underline;
   text-underline-offset: 2px;

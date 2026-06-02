@@ -64,15 +64,25 @@ Provenance is automatic, not editorial, so it cannot be forgotten:
 - The flag flows through `CompiledLemma` -> `transformDict` (copied onto each
   word `DictRecord`) -> `ILemma`.
 - The lemma component binds `[class.teeuw-plus]="lemma.teeuwPlus"` on the entry
-  `div`. A CSS rule (`global.scss`) renders the Indonesian word spans inside a
-  `teeuw-plus` entry in amber (`--teeuw-plus-text-color`, with a lighter dark
-  mode value) **and underlines them**. The underline is a second, colour-
+  `div`. A CSS rule (`global.scss`) renders the defined Indonesian headwords
+  inside a `teeuw-plus` entry in amber (`--teeuw-plus-text-color`, with a lighter
+  dark mode value) **and underlines them**. The underline is a second, colour-
   independent cue for colour-blind readers; supplements are sparse, so the
   screen is not flooded with underlines.
 
 This needs no markup converter change: the spans already exist (the converter
 wraps asterisk-marked Indonesian words in `<span>`), so a descendant selector
-from the container class recolours exactly the Indonesian words.
+from the container class recolours them.
+
+### Defined headwords only, not references
+
+The rule is scoped to `.teeuw-plus strong span`, not all spans. The converter
+wraps `**word**` keywords in `<strong>` and `*word*` references in `<em>`. A
+supplement entry may **cite an existing core word**, e.g.
+`**daring** (van *dalam jaringan*)`; colouring every span would wrongly paint
+`dalam jaringan` as a new word. Scoping to `strong span` colours only what the
+supplement actually introduces (the headwords), leaving citations and example
+collocations in the standard teal.
 
 ### Why not the `Nw` editorial label?
 
