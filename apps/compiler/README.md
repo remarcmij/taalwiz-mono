@@ -1,6 +1,6 @@
 # Taalwiz Compiler
 
-A standalone TypeScript utility that compiles bilingual dictionary source files (a custom Markdown format) into the structured JSON consumed by the Taalwiz web/mobile apps. It handles the Teeuw (Indonesian → Dutch) and Van Dale (Dutch → Indonesian) dictionaries.
+A standalone TypeScript utility that compiles bilingual dictionary source files (a custom Markdown format) into the structured JSON consumed by the Taalwiz web/mobile apps. It handles the Teeuw (Indonesian → Dutch) dictionary.
 
 ## More
 

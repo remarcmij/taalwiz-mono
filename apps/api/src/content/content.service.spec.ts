@@ -104,11 +104,11 @@ describe('ContentService', () => {
     });
 
     it('cascades to dictLoader.removeTopic for a dict topic', async () => {
-      const mockTopic = { _id: 'abc', type: 'dict', filename: 'vandale.a.json' };
+      const mockTopic = { _id: 'abc', type: 'dict', filename: 'teeuw.a.json' };
       vi.mocked(Topic.findOne).mockReturnValue({ exec: vi.fn().mockResolvedValue(mockTopic) } as any);
       const removeSpy = vi.spyOn(service['dictLoader'], 'removeTopic').mockResolvedValue(undefined);
 
-      const result = await service.deleteTopic('vandale.a.json');
+      const result = await service.deleteTopic('teeuw.a.json');
 
       expect(removeSpy).toHaveBeenCalledWith(mockTopic);
       expect(result).toEqual({ deletedCount: 1 });

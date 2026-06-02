@@ -1,5 +1,4 @@
 import TeeuwParser from '../compiler/TeeuwParser.js';
-import VanDaleParser from '../compiler/VanDaleParser.js';
 
 describe('TeeuwParser', () => {
   it('**ab** I, sv busje, potje (voor het opbergen van opium).', () => {
@@ -147,58 +146,6 @@ describe('TeeuwParser', () => {
       expect(() => parser.parseLine('**~woord**')).toThrow(
         /"~" not allowed in "\*\*" fragment/
       );
-    });
-  });
-});
-
-describe('VanDaleParser', () => {
-  it('parses a line with an explicit __ heading', () => {
-    const parser = new VanDaleParser();
-    const result = parser.parseLine('__aap__, een dier');
-    expect(result.line).toBe('__aap__, een dier');
-    expect(result.sourceKeywords).toStrictEqual(new Set(['aap']));
-    expect(result.sourceWords.size).toBe(0);
-    expect(result.targetKeywords.size).toBe(0);
-  });
-
-  it('sets base to the first word in the __ fragment', () => {
-    const parser = new VanDaleParser();
-    parser.parseLine('__boom__, een plant');
-    expect(parser.base).toBe('boom');
-  });
-
-  it('prepends the tilde word as a __ heading when the line has no __', () => {
-    const parser = new VanDaleParser();
-    parser.parseLine('__boom__, een plant');
-    const result = parser.parseLine('een groot gewas');
-    expect(result.line).toBe('__boom__, een groot gewas');
-    expect(result.sourceKeywords).toStrictEqual(new Set(['boom']));
-  });
-
-  it('reset clears base and tildeWord', () => {
-    const parser = new VanDaleParser();
-    parser.parseLine('__aap__, een dier');
-    parser.reset();
-    expect(parser.base).toBeNull();
-    expect(parser.tildeWord).toBeNull();
-  });
-
-  describe('error paths', () => {
-    it('throws when line has no __ and tildeWord is not set', () => {
-      const parser = new VanDaleParser();
-      expect(() => parser.parseLine('een dier')).toThrow(/Tilde word not set/);
-    });
-
-    it('throws on an unterminated __ fragment', () => {
-      const parser = new VanDaleParser();
-      expect(() => parser.parseLine('__abc')).toThrow(
-        /unterminated "__" fragment/
-      );
-    });
-
-    it('throws on an empty __ fragment', () => {
-      const parser = new VanDaleParser();
-      expect(() => parser.parseLine('____')).toThrow(/expected word/);
     });
   });
 });

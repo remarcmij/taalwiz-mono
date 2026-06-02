@@ -3,7 +3,6 @@
 ## Dictionaries
 
 - **Teeuw** — Indonesian (`id`) → Dutch (`nl`), based on the work of A. Teeuw
-- **Van Dale** — Dutch (`nl`) → Indonesian (`id`), based on the Van Dale dictionary
 
 ## Source layout
 
@@ -14,7 +13,6 @@ src/
     Compiler.ts         ← Orchestrator: reads .md, writes .json
     ParserBase.ts       ← Abstract base with shared parsing logic
     TeeuwParser.ts      ← Indonesian-to-Dutch parser
-    VanDaleParser.ts    ← Dutch-to-Indonesian parser
     Tokenizer.ts        ← Hand-written lexer
     helpers.ts          ← Parenthesis stripping utility
     filter_data.ts      ← Dutch abbreviations & stop word filters
@@ -92,7 +90,7 @@ Uses **Vitest** (`vitest run`), run via `pnpm --filter compiler run test`.
 Test files (in `src/__tests__/`):
 - `helpers.test.ts` — `removeParenthesizedFragments()`
 - `tokenizer.test.ts` — Tokenizer token sequences
-- `parser.test.ts` — `TeeuwParser` and `VanDaleParser` extraction logic
+- `parser.test.ts` — `TeeuwParser` extraction logic
 - `compiler.test.ts` — `Compiler` integration (multi-group compilation, homonym assignment, malformed-file handling, core+supplement merge with `teeuwPlus`)
 
 ## Known Issues
@@ -101,7 +99,6 @@ Test files (in `src/__tests__/`):
 |---|-------|----------|
 | 1 | ~~`mkdirp` listed in dependencies but never used~~ — resolved: removed from `package.json` | — |
 | 2 | ~~`ts-node` listed in devDependencies but unused (tests use `tsx`)~~ — resolved: removed from `package.json` | — |
-| 3 | ~~No tests for `VanDaleParser`~~ — resolved: covered in `parser.test.ts` | — |
 | 4 | ~~No tests for `Compiler` (integration tests)~~ — resolved: covered in `compiler.test.ts` | — |
 | 5 | ~~`moduleResolution` commented out in `tsconfig.json`~~ — resolved: set to `nodenext` | — |
 | 6 | `tsgo` build uses experimental TypeScript Go compiler (`@typescript/native-preview`) | Medium |
