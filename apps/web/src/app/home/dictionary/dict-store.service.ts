@@ -39,25 +39,45 @@ export class DictStoreService {
     startString: string,
     lang: string,
     limit: number,
-  ): Promise<{ word: string; lang: string }[]> {
+  ): Promise<{ word: string; lang: string; teeuwPlus?: boolean }[]> {
     // [lang, wordLower] ordering lets the range pin lang as the primary key and
     // bound the lowercased word by prefix — IndexedDB never visits entries from
     // other languages, and matching is case-insensitive.
     const start = startString.toLowerCase();
     const range = IDBKeyRange.bound([lang, start], [lang, start + '￿']);
     const index = this.#db!.transaction('lemmas', 'readonly').store.index('by-lang-wordlower');
-    const seen = new Set<string>();
-    const results: { word: string; lang: string }[] = [];
+    const results: { word: string; lang: string; teeuwPlus?: boolean }[] = [];
 
+    // Records sharing a wordLower are consecutive in the index, so accumulate
+    // each group before emitting one suggestion. `teeuwPlus` is set only when
+    // EVERY record for the word is a supplement, so a word that also exists in
+    // core Teeuw (e.g. "aplikasi") is not marked as a new word.
     let cursor = await index.openCursor(range);
-    while (cursor && results.length < limit) {
-      const { word, wordLower } = cursor.value;
-      // Dedupe case-insensitively so "Belanda" and "belanda" yield one suggestion.
-      if (!seen.has(wordLower)) {
-        seen.add(wordLower);
-        results.push({ word, lang });
+    let curLower: string | null = null;
+    let curWord = '';
+    let curAllPlus = true;
+    let have = false;
+
+    while (cursor) {
+      const { word, wordLower, teeuwPlus } = cursor.value;
+      if (have && wordLower !== curLower) {
+        // Dedupe case-insensitively so "Belanda" and "belanda" yield one suggestion.
+        results.push({ word: curWord, lang, teeuwPlus: curAllPlus });
+        if (results.length >= limit) return results;
+        have = false;
       }
+      if (!have) {
+        curLower = wordLower;
+        curWord = word;
+        curAllPlus = true;
+        have = true;
+      }
+      curAllPlus = curAllPlus && !!teeuwPlus;
       cursor = await cursor.continue();
+    }
+
+    if (have && results.length < limit) {
+      results.push({ word: curWord, lang, teeuwPlus: curAllPlus });
     }
 
     return results;

@@ -4,7 +4,11 @@
       @for (suggestion of suggestions(); track suggestion.key) {
       <ion-item button role="option" aria-selected="false" (click)="itemClicked.emit(suggestion)">
         <ion-label
-          [ngClass]="suggestion.lang === 'id' ? 'foreign-text' : 'native-text'">
+          [ngClass]="{
+            'foreign-text': suggestion.lang === 'id' && !suggestion.teeuwPlus,
+            'new-text': suggestion.lang === 'id' && suggestion.teeuwPlus,
+            'native-text': suggestion.lang !== 'id'
+          }">
           {{ suggestion.word }}
         </ion-label>
       </ion-item>

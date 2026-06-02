@@ -74,6 +74,19 @@ This needs no markup converter change: the spans already exist (the converter
 wraps asterisk-marked Indonesian words in `<span>`), so a descendant selector
 from the container class recolours them.
 
+The same amber (but **without** the underline) is applied to two other
+surfaces, via an optional `teeuwPlus` flag on `WordLang`:
+
+- the search **suggestion** list (`searchbar-dropdown`), and
+- the **headword button** at the foot of each entry card.
+
+Both are marked only when the word is **wholly new**: every sense / record for
+that word is a supplement. A word that also exists in core Teeuw (e.g.
+`aplikasi`, which has both the textile sense and the modern "app" sense) stays
+the standard teal in these two surfaces, even though its new senses are amber in
+the entry body. `findWordsStartingWith` computes this per word; `makeLookupResult`
+computes it per base.
+
 ### Defined headwords only, not references
 
 The rule is scoped to `.teeuw-plus strong span`, not all spans. The converter
@@ -108,3 +121,8 @@ dict version string when the updated content is published.
 - `apps/web/src/app/home/dictionary/lemma/lemma.model.ts` (`ILemma`)
 - `apps/web/src/app/home/dictionary/lemma/lemma.component.html` (class binding)
 - `apps/web/src/global.scss` (colour variable + underline rule)
+- `apps/web/src/app/home/dictionary/word-lang.model.ts` (`teeuwPlus` flag)
+- `apps/web/src/app/home/dictionary/dict-store.service.ts` (per-word `teeuwPlus`)
+- `apps/web/src/app/home/dictionary/dictionary.service.ts` (per-base `teeuwPlus`)
+- `apps/web/src/app/home/dictionary/searchbar-dropdown/` (suggestion amber)
+- `apps/web/src/app/home/dictionary/dictionary.page.html` + `.scss` (button amber)

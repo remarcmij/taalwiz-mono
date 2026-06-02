@@ -73,7 +73,7 @@ export class DictionaryService {
       const key = hit.word + '|' + hit.lang;
       if (!seen.has(key)) {
         seen.add(key);
-        merged.push(new WordLang(hit.word, hit.lang));
+        merged.push(new WordLang(hit.word, hit.lang, hit.teeuwPlus));
       }
     }
 
@@ -136,6 +136,13 @@ function makeLookupResult(response: LookupResponse) {
       newResult.bases.push(base);
     }
     newResult.lemmas[key].push(lemma);
+  }
+
+  // Mark a base as new only when every lemma under it is a supplement, so a
+  // headword that also exists in core Teeuw (e.g. "aplikasi") stays unmarked.
+  for (const base of newResult.bases) {
+    const lemmas = newResult.lemmas[base.key];
+    base.teeuwPlus = lemmas.length > 0 && lemmas.every((l) => l.teeuwPlus);
   }
 
   return newResult;

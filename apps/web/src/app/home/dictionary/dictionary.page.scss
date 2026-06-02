@@ -38,4 +38,10 @@ ion-breadcrumb {
 .lemma-button {
   float: right;
   text-transform: uppercase;
+
+  // Wholly-new (post-1996) headword: amber, matching the entry view. No
+  // underline (reserved for the entry text).
+  &.new-word {
+    --color: var(--teeuw-plus-text-color);
+  }
 }

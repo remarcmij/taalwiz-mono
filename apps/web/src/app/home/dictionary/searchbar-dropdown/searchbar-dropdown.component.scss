@@ -25,6 +25,13 @@
   color: var(--ion-color-primary);
 }
 
+// Wholly-new (post-1996) Indonesian headwords: amber, matching the entry view.
+// No underline here (the user reserves the underline for the entry text).
+.new-text {
+  font-weight: bold;
+  color: var(--teeuw-plus-text-color);
+}
+
 .native-text {
   color: inherit;
 }
