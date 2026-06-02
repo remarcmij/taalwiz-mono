@@ -77,15 +77,6 @@ describe('Compiler', () => {
     expect(adat.words).toContainEqual(
       expect.objectContaining({ word: 'gebruik', lang: 'nl', keyword: 1 })
     );
-
-    // order values must increase across lemma groups
-    const abadOrder = abad1.words.find(
-      (w: { keyword: number }) => w.keyword === 1
-    )?.order;
-    const adatOrder = adat.words.find(
-      (w: { keyword: number }) => w.keyword === 1
-    )?.order;
-    expect(adatOrder).toBeGreaterThan(abadOrder);
   });
 
   it('assigns homonym index 1 when the same base appears in consecutive groups', async () => {

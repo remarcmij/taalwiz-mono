@@ -39,7 +39,6 @@ export interface CompiledWord {
   word: string;
   lang: string;
   keyword: number;
-  order: number;
 }
 
 export interface CompiledLemma {

@@ -10,7 +10,7 @@ describe('transformDict', () => {
           text: 'Belanda, Nederland(s)',
           base: 'Belanda',
           homonym: 0,
-          words: [{ word: 'Belanda', lang: 'id', keyword: 1, order: 0 }],
+          words: [{ word: 'Belanda', lang: 'id', keyword: 1 }],
         },
       ],
     };

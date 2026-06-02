@@ -6,14 +6,6 @@ import { finished } from 'node:stream/promises';
 import { Parser, ParserResult } from './ParserBase.js';
 import { parserRegistry } from './parser-registry.js';
 
-// Order distance between letter chapters of the dictionary,
-// assuming no more than 50,000 lemmas per chapter
-const CHAPTER_DISTANCE = 50_000; // 50,000 * 26 = 1,300,000 < 2,000,000
-
-// Offset to be added to the current order for reference words (keyword=0)
-// and also for native keywords.
-const ORDER_OFFSET = 2_000_000;
-
 interface LineItem {
   lineIndex: number;
   line: string;
@@ -23,7 +15,6 @@ interface Word {
   word: string;
   lang: string;
   keyword: number;
-  order: number;
 }
 
 interface Lemma {
@@ -56,15 +47,12 @@ export class Compiler {
       }
 
       const dictName = match[1];
-      const letter = match[2];
 
       const entry = parserRegistry.find(({ prefix }) => dictName.startsWith(prefix));
       if (!entry) {
         throw new Error(`Skipping unrecognized file: ${inFileBaseName}`);
       }
       this.parser = entry.factory();
-
-      let order = (letter.charCodeAt(0) - 'a'.charCodeAt(0)) * CHAPTER_DISTANCE;
 
       const fsIn = fs.createReadStream(this.inFile);
       fsOut = fs.createWriteStream(this.outFile);
@@ -89,7 +77,7 @@ export class Compiler {
             }
             needComma = true;
 
-            order = this.compileLineItems(fsOut, lineItems, order);
+            this.compileLineItems(fsOut, lineItems);
             lineItems = [];
             this.parser.reset();
           }
@@ -101,7 +89,7 @@ export class Compiler {
 
       if (lineItems.length > 0) {
         fsOut.write(', ');
-        this.compileLineItems(fsOut, lineItems, order);
+        this.compileLineItems(fsOut, lineItems);
       }
 
       fsOut.write(']}\n');
@@ -133,30 +121,23 @@ export class Compiler {
     }
   }
 
-  compileLineItems(
-    fsOut: WriteStream,
-    lineItems: LineItem[],
-    order: number
-  ): number {
+  compileLineItems(fsOut: WriteStream, lineItems: LineItem[]): void {
     const lemmas: Lemma[] = [];
 
     for (const { lineIndex, line } of lineItems) {
       try {
         const result = this.parser!.parseLine(line);
-        const lemma = this.buildLemma(result, order);
+        const lemma = this.buildLemma(result);
         lemmas.push(lemma);
       } catch (err: any) {
         throw new Error(`[${lineIndex + 1}] ${err.message}`);
       }
-      order += 1;
     }
 
     this.dumpLemmas(fsOut, lemmas);
-
-    return order;
   }
 
-  buildLemma(result: ParserResult, order: number): Lemma {
+  buildLemma(result: ParserResult): Lemma {
     const parser = this.parser!;
 
     if (!parser.base) {
@@ -175,7 +156,6 @@ export class Compiler {
         word,
         lang: parser.sourceLang,
         keyword: 1,
-        order,
       });
     }
 
@@ -189,7 +169,6 @@ export class Compiler {
           word,
           lang: parser.sourceLang,
           keyword: 0,
-          order: word === parser.tildeWord ? order : order + ORDER_OFFSET,
         });
       }
     }
@@ -199,7 +178,6 @@ export class Compiler {
         word,
         lang: parser.targetLang,
         keyword: 1,
-        order,
       });
     }
 
