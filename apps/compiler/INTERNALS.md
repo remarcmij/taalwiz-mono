@@ -24,7 +24,7 @@ src/
 
 1. `index.ts` finds all `dict/**/*.md` files via `glob`
 2. `Compiler` reads `.md` line-by-line, groups entries by blank lines
-3. Parser extracts lemmas with words, language tags, keyword flags, and sort order
+3. Parser extracts lemmas with words, language tags, and keyword flags
 4. Streams JSON output to `json/*.json`
 
 ### Input Format
@@ -52,19 +52,19 @@ Custom markup syntax:
       "base": "ab",
       "homonym": 0,
       "words": [
-        { "word": "ab", "lang": "id", "keyword": 1, "order": 0 },
-        { "word": "busje", "lang": "nl", "keyword": 1, "order": 0 },
-        { "word": "potje", "lang": "nl", "keyword": 1, "order": 0 }
+        { "word": "ab", "lang": "id", "keyword": 1 },
+        { "word": "busje", "lang": "nl", "keyword": 1 },
+        { "word": "potje", "lang": "nl", "keyword": 1 }
       ]
     }
   ]
 }
 ```
 
-The `order` field enables efficient alphabetical searching:
-- `(letter_code - 'a') * 50,000` as the chapter base
-- Incremented by 1 per lemma within the chapter
-- `ORDER_OFFSET` (2,000,000) added for non-keyword source words
+Lookups are resolved on the client by the `[lang, wordLower]` IndexedDB index
+(case-insensitive prefix search) and ordered for display by `homonym`; the
+keyword/reference distinction is carried by the `keyword` flag. The compiler
+therefore emits no positional sort key.
 
 ## Testing
 
@@ -88,4 +88,4 @@ Test files (in `src/__tests__/`):
 | 6 | `tsgo` build uses experimental TypeScript Go compiler (`@typescript/native-preview`) | Medium |
 | 7 | Streaming JSON without validation — malformed output only caught downstream | Medium |
 | 8 | ~~Partially-written JSON on parse errors (lenient error handling continues processing)~~ — resolved: failures now abort file processing and delete the malformed JSON | — |
-| 9 | Magic numbers: `CHAPTER_DISTANCE` (50,000), `ORDER_OFFSET` (2,000,000) | Low |
+| 9 | ~~Magic numbers: `CHAPTER_DISTANCE` (50,000), `ORDER_OFFSET` (2,000,000)~~ — resolved: the `order` field and its constants were removed; the client sorts by `homonym` and the `[lang, wordLower]` index | — |
