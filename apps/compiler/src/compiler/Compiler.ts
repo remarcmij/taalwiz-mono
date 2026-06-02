@@ -25,12 +25,12 @@ interface Lemma {
   // Present only for lemmas sourced from a supplement (`teeuw.a+.md`) file, so
   // the client can mark post-1996 additions distinctly. Omitted for core
   // entries, keeping their JSON byte-identical to a single-file compile.
-  teeuwPlus?: true;
+  isSupplement?: true;
 }
 
 // Captures the dictionary name (group 1) and chapter letter (group 2). A
 // trailing `+` (group 3) marks a supplement file (`teeuw.a+.md`), whose lemmas
-// compile into the same chapter JSON as the core file and carry `teeuwPlus`.
+// compile into the same chapter JSON as the core file and carry `isSupplement`.
 const fileNameRegExp = /[\\/]([a-z]+)\.([a-z])(\+?)\.md$/;
 
 export class Compiler {
@@ -38,7 +38,7 @@ export class Compiler {
   private inFiles: string[];
   private outFile: string;
   // Set per input file in run(); buildLemma() reads it to stamp supplements.
-  private teeuwPlus = false;
+  private isSupplement = false;
 
   constructor(inFiles: string | string[], outFile: string) {
     this.inFiles = Array.isArray(inFiles) ? inFiles : [inFiles];
@@ -73,7 +73,7 @@ export class Compiler {
       let needComma = false;
       for (const inFile of this.inFiles) {
         currentBaseName = path.basename(inFile);
-        this.teeuwPlus = /\+\.md$/i.test(inFile);
+        this.isSupplement = /\+\.md$/i.test(inFile);
         needComma = await this.compileFile(inFile, fsOut, needComma);
       }
 
@@ -182,8 +182,8 @@ export class Compiler {
       words: [],
     };
 
-    if (this.teeuwPlus) {
-      lemma.teeuwPlus = true;
+    if (this.isSupplement) {
+      lemma.isSupplement = true;
     }
 
     for (const word of result.sourceKeywords) {

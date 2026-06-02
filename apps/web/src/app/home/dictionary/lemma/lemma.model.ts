@@ -9,5 +9,5 @@ export interface ILemma {
   homonym: number;
   // True when this entry comes from a Teeuw supplement (`teeuw.a+.md`) file, so
   // the UI can mark post-1996 additions distinctly. Absent for core entries.
-  teeuwPlus?: boolean;
+  isSupplement?: boolean;
 }

@@ -47,7 +47,7 @@ export interface CompiledLemma {
   homonym: number;
   words: CompiledWord[];
   // Present only for lemmas from a Teeuw supplement (`teeuw.a+.md`) file.
-  teeuwPlus?: boolean;
+  isSupplement?: boolean;
 }
 
 export interface CompiledDict {
@@ -68,7 +68,7 @@ export function transformDict(data: CompiledDict): DictRecord[] {
         baseLang: data.targetLang,
         text: lemma.text,
         homonym: lemma.homonym,
-        ...(lemma.teeuwPlus ? { teeuwPlus: true } : {}),
+        ...(lemma.isSupplement ? { isSupplement: true } : {}),
       });
     }
   }

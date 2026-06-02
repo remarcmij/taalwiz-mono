@@ -5,8 +5,8 @@
       <ion-item button role="option" aria-selected="false" (click)="itemClicked.emit(suggestion)">
         <ion-label
           [ngClass]="{
-            'foreign-text': suggestion.lang === 'id' && !suggestion.teeuwPlus,
-            'new-text': suggestion.lang === 'id' && suggestion.teeuwPlus,
+            'foreign-text': suggestion.lang === 'id' && !suggestion.isSupplement,
+            'new-text': suggestion.lang === 'id' && suggestion.isSupplement,
             'native-text': suggestion.lang !== 'id'
           }">
           {{ suggestion.word }}

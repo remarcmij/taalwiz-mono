@@ -27,7 +27,7 @@ src/
    and streams them all into one output (reusing the parser across files so
    homonym numbering carries across the core -> supplement boundary)
 3. Parser extracts lemmas with words, language tags, and keyword flags; lemmas
-   read from a `+` supplement file are stamped `teeuwPlus: true`
+   read from a `+` supplement file are stamped `isSupplement: true`
 4. Streams JSON output to `json/*.json`
 
 ### Input Format
@@ -50,7 +50,7 @@ A chapter may have an optional supplement file alongside the core file, named
 with a `+` before the extension: `teeuw.a+.md` next to `teeuw.a.md`. It uses the
 exact same markup and lets linguists add post-1996 words **without editing the
 digitized originals**. Both files compile into the same chapter JSON, and every
-lemma from the `+` file is flagged `teeuwPlus: true` so the client can mark
+lemma from the `+` file is flagged `isSupplement: true` so the client can mark
 modern additions distinctly. See [TEEUW_SUPPLEMENT.md](./TEEUW_SUPPLEMENT.md)
 for the full design.
 
@@ -79,7 +79,7 @@ Lookups are resolved on the client by the `[lang, wordLower]` IndexedDB index
 keyword/reference distinction is carried by the `keyword` flag. The compiler
 therefore emits no positional sort key.
 
-Lemmas from a supplement file additionally carry `"teeuwPlus": true` at the
+Lemmas from a supplement file additionally carry `"isSupplement": true` at the
 lemma level (omitted for core lemmas, so their JSON is byte-identical to a
 single-file compile).
 
@@ -91,7 +91,7 @@ Test files (in `src/__tests__/`):
 - `helpers.test.ts` — `removeParenthesizedFragments()`
 - `tokenizer.test.ts` — Tokenizer token sequences
 - `parser.test.ts` — `TeeuwParser` extraction logic
-- `compiler.test.ts` — `Compiler` integration (multi-group compilation, homonym assignment, malformed-file handling, core+supplement merge with `teeuwPlus`)
+- `compiler.test.ts` — `Compiler` integration (multi-group compilation, homonym assignment, malformed-file handling, core+supplement merge with `isSupplement`)
 
 ## Known Issues
 

@@ -42,6 +42,6 @@ ion-breadcrumb {
   // Wholly-new (post-1996) headword: amber, matching the entry view. No
   // underline (reserved for the entry text).
   &.new-word {
-    --color: var(--teeuw-plus-text-color);
+    --color: var(--supplement-text-color);
   }
 }

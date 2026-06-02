@@ -102,7 +102,7 @@ describe('Compiler', () => {
     expect(lemmas[1].homonym).toBe(1);
   });
 
-  it('merges a core and supplement file into one JSON, stamping teeuwPlus on supplements', async () => {
+  it('merges a core and supplement file into one JSON, stamping isSupplement on supplements', async () => {
     const core = ['**abad** I, eeuw, tijdperk', '', '**adat**, gewoonte, gebruik'].join('\n');
     const plus = '**akun**, account, gebruikersaccount';
 
@@ -120,15 +120,15 @@ describe('Compiler', () => {
     expect(lemmas).toHaveLength(3);
     const [abad, adat, akun] = lemmas;
 
-    // Core entries are unchanged and carry no teeuwPlus marker.
+    // Core entries are unchanged and carry no isSupplement marker.
     expect(abad.base).toBe('abad');
-    expect(abad.teeuwPlus).toBeUndefined();
+    expect(abad.isSupplement).toBeUndefined();
     expect(adat.base).toBe('adat');
-    expect(adat.teeuwPlus).toBeUndefined();
+    expect(adat.isSupplement).toBeUndefined();
 
     // The supplement entry is present in the same JSON and flagged.
     expect(akun.base).toBe('akun');
-    expect(akun.teeuwPlus).toBe(true);
+    expect(akun.isSupplement).toBe(true);
     expect(akun.words).toContainEqual(
       expect.objectContaining({ word: 'akun', lang: 'id', keyword: 1 })
     );
@@ -154,12 +154,12 @@ describe('Compiler', () => {
     expect(lemmas).toHaveLength(2);
     expect(lemmas[0].base).toBe('adat');
     expect(lemmas[0].homonym).toBe(0);
-    expect(lemmas[0].teeuwPlus).toBeUndefined();
+    expect(lemmas[0].isSupplement).toBeUndefined();
     // The parser is shared across the file boundary, so the repeated headword
     // continues as homonym 1 rather than resetting to 0.
     expect(lemmas[1].base).toBe('adat');
     expect(lemmas[1].homonym).toBe(1);
-    expect(lemmas[1].teeuwPlus).toBe(true);
+    expect(lemmas[1].isSupplement).toBe(true);
   });
 
   it('deletes the output file when a parse error occurs', async () => {

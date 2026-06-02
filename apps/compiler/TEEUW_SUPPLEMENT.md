@@ -55,17 +55,17 @@ than continuing. New headwords (the common case) are unaffected. If continuing
 arbitrary existing headwords ever becomes a real need, it requires switching
 homonym tracking from `_prevBase` to a global base -> count map.
 
-## Attribution: the automatic `teeuwPlus` flag
+## Attribution: the automatic `isSupplement` flag
 
 Provenance is automatic, not editorial, so it cannot be forgotten:
 
-- The compiler stamps `teeuwPlus: true` on every lemma sourced from a `+` file
+- The compiler stamps `isSupplement: true` on every lemma sourced from a `+` file
   (omitted for core lemmas, keeping their JSON byte-identical).
 - The flag flows through `CompiledLemma` -> `transformDict` (copied onto each
   word `DictRecord`) -> `ILemma`.
-- The lemma component binds `[class.teeuw-plus]="lemma.teeuwPlus"` on the entry
+- The lemma component binds `[class.is-supplement]="lemma.isSupplement"` on the entry
   `div`. A CSS rule (`global.scss`) renders the defined Indonesian headwords
-  inside a `teeuw-plus` entry in amber (`--teeuw-plus-text-color`, with a lighter
+  inside a `is-supplement` entry in amber (`--supplement-text-color`, with a lighter
   dark mode value) **and underlines them**. The underline is a second, colour-
   independent cue for colour-blind readers; supplements are sparse, so the
   screen is not flooded with underlines.
@@ -75,7 +75,7 @@ wraps asterisk-marked Indonesian words in `<span>`), so a descendant selector
 from the container class recolours them.
 
 The same amber (but **without** the underline) is applied to two other
-surfaces, via an optional `teeuwPlus` flag on `WordLang`:
+surfaces, via an optional `isSupplement` flag on `WordLang`:
 
 - the search **suggestion** list (`searchbar-dropdown`), and
 - the **headword button** at the foot of each entry card.
@@ -89,7 +89,7 @@ computes it per base.
 
 ### Defined headwords only, not references
 
-The rule is scoped to `.teeuw-plus strong span`, not all spans. The converter
+The rule is scoped to `.is-supplement strong span`, not all spans. The converter
 wraps `**word**` keywords in `<strong>` and `*word*` references in `<em>`. A
 supplement entry may **cite an existing core word**, e.g.
 `**daring** (van *dalam jaringan*)`; colouring every span would wrongly paint
@@ -104,25 +104,25 @@ An earlier plan reused Teeuw's "Hoofdletters" convention with a new `Nw`
 relies on the editor remembering it, gives no colour affordance, and `N` is
 already taken (Nederlands). The automatic flag supersedes it. A linguist may
 still add origin labels (`P`, `J`, ...) as usual; they are independent of the
-`teeuwPlus` mechanism.
+`isSupplement` mechanism.
 
 ## Re-import note
 
-`teeuwPlus` is a new field on stored records, so existing installs only show the
+`isSupplement` is a new field on stored records, so existing installs only show the
 colour after the dictionary is re-imported. That is triggered by bumping the
 dict version string when the updated content is published.
 
 ## Touched files
 
 - `apps/compiler/src/index.ts` (grouping)
-- `apps/compiler/src/compiler/Compiler.ts` (multi-file merge, `teeuwPlus`,
+- `apps/compiler/src/compiler/Compiler.ts` (multi-file merge, `isSupplement`,
   filename regex)
 - `apps/web/src/app/home/dictionary/dict-db.ts` (`CompiledLemma`, `transformDict`)
 - `apps/web/src/app/home/dictionary/lemma/lemma.model.ts` (`ILemma`)
 - `apps/web/src/app/home/dictionary/lemma/lemma.component.html` (class binding)
 - `apps/web/src/global.scss` (colour variable + underline rule)
-- `apps/web/src/app/home/dictionary/word-lang.model.ts` (`teeuwPlus` flag)
-- `apps/web/src/app/home/dictionary/dict-store.service.ts` (per-word `teeuwPlus`)
-- `apps/web/src/app/home/dictionary/dictionary.service.ts` (per-base `teeuwPlus`)
+- `apps/web/src/app/home/dictionary/word-lang.model.ts` (`isSupplement` flag)
+- `apps/web/src/app/home/dictionary/dict-store.service.ts` (per-word `isSupplement`)
+- `apps/web/src/app/home/dictionary/dictionary.service.ts` (per-base `isSupplement`)
 - `apps/web/src/app/home/dictionary/searchbar-dropdown/` (suggestion amber)
 - `apps/web/src/app/home/dictionary/dictionary.page.html` + `.scss` (button amber)

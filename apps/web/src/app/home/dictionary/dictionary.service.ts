@@ -73,7 +73,7 @@ export class DictionaryService {
       const key = hit.word + '|' + hit.lang;
       if (!seen.has(key)) {
         seen.add(key);
-        merged.push(new WordLang(hit.word, hit.lang, hit.teeuwPlus));
+        merged.push(new WordLang(hit.word, hit.lang, hit.isSupplement));
       }
     }
 
@@ -142,7 +142,7 @@ function makeLookupResult(response: LookupResponse) {
   // headword that also exists in core Teeuw (e.g. "aplikasi") stays unmarked.
   for (const base of newResult.bases) {
     const lemmas = newResult.lemmas[base.key];
-    base.teeuwPlus = lemmas.length > 0 && lemmas.every((l) => l.teeuwPlus);
+    base.isSupplement = lemmas.length > 0 && lemmas.every((l) => l.isSupplement);
   }
 
   return newResult;
