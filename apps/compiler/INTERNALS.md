@@ -22,9 +22,14 @@ src/
 
 ## How It Works
 
-1. `index.ts` finds all `dict/**/*.md` files via `glob`
-2. `Compiler` reads `.md` line-by-line, groups entries by blank lines
-3. Parser extracts lemmas with words, language tags, and keyword flags
+1. `index.ts` finds all `dict/**/*.md` files via `glob`, then groups them by
+   output chapter so a core file (`teeuw.a.md`) and its optional supplement
+   (`teeuw.a+.md`) compile together into a single `teeuw.a.json`
+2. `Compiler` reads each source file line-by-line, groups entries by blank lines,
+   and streams them all into one output (reusing the parser across files so
+   homonym numbering carries across the core -> supplement boundary)
+3. Parser extracts lemmas with words, language tags, and keyword flags; lemmas
+   read from a `+` supplement file are stamped `teeuwPlus: true`
 4. Streams JSON output to `json/*.json`
 
 ### Input Format
@@ -40,6 +45,16 @@ Custom markup syntax:
 | `->` | Cross-reference separator |
 | Blank line | Entry delimiter |
 | `1`, `2`, etc. | Sub-sense of previous headword |
+
+### Supplement files
+
+A chapter may have an optional supplement file alongside the core file, named
+with a `+` before the extension: `teeuw.a+.md` next to `teeuw.a.md`. It uses the
+exact same markup and lets linguists add post-1996 words **without editing the
+digitized originals**. Both files compile into the same chapter JSON, and every
+lemma from the `+` file is flagged `teeuwPlus: true` so the client can mark
+modern additions distinctly. See [TEEUW_SUPPLEMENT.md](./TEEUW_SUPPLEMENT.md)
+for the full design.
 
 ### Output Format
 
@@ -66,6 +81,10 @@ Lookups are resolved on the client by the `[lang, wordLower]` IndexedDB index
 keyword/reference distinction is carried by the `keyword` flag. The compiler
 therefore emits no positional sort key.
 
+Lemmas from a supplement file additionally carry `"teeuwPlus": true` at the
+lemma level (omitted for core lemmas, so their JSON is byte-identical to a
+single-file compile).
+
 ## Testing
 
 Uses **Vitest** (`vitest run`), run via `pnpm --filter compiler run test`.
@@ -74,7 +93,7 @@ Test files (in `src/__tests__/`):
 - `helpers.test.ts` — `removeParenthesizedFragments()`
 - `tokenizer.test.ts` — Tokenizer token sequences
 - `parser.test.ts` — `TeeuwParser` and `VanDaleParser` extraction logic
-- `compiler.test.ts` — `Compiler` integration (multi-group compilation, homonym assignment, malformed-file handling)
+- `compiler.test.ts` — `Compiler` integration (multi-group compilation, homonym assignment, malformed-file handling, core+supplement merge with `teeuwPlus`)
 
 ## Known Issues
 
