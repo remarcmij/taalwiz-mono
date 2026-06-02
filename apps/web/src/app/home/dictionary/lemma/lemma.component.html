@@ -1,6 +1,7 @@
 @for (lemma of lemmas(); let idx = $index; track idx) {
   <div
     class="noselect markdown-body text-content"
+    [class.teeuw-plus]="lemma.teeuwPlus"
     [innerHTML]="convertMarkdown(lemma.text)"
     (click)="clicked.emit($event)"
   ></div>

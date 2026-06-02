@@ -102,6 +102,66 @@ describe('Compiler', () => {
     expect(lemmas[1].homonym).toBe(1);
   });
 
+  it('merges a core and supplement file into one JSON, stamping teeuwPlus on supplements', async () => {
+    const core = ['**abad** I, eeuw, tijdperk', '', '**adat**, gewoonte, gebruik'].join('\n');
+    const plus = '**akun**, account, gebruikersaccount';
+
+    const coreFile = path.join(tmpDir, 'teeuw.a.md');
+    const plusFile = path.join(tmpDir, 'teeuw.a+.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(coreFile, core, 'utf8');
+    fs.writeFileSync(plusFile, plus, 'utf8');
+
+    // Core before supplement, as index.ts orders them.
+    await new Compiler([coreFile, plusFile], outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+
+    expect(lemmas).toHaveLength(3);
+    const [abad, adat, akun] = lemmas;
+
+    // Core entries are unchanged and carry no teeuwPlus marker.
+    expect(abad.base).toBe('abad');
+    expect(abad.teeuwPlus).toBeUndefined();
+    expect(adat.base).toBe('adat');
+    expect(adat.teeuwPlus).toBeUndefined();
+
+    // The supplement entry is present in the same JSON and flagged.
+    expect(akun.base).toBe('akun');
+    expect(akun.teeuwPlus).toBe(true);
+    expect(akun.words).toContainEqual(
+      expect.objectContaining({ word: 'akun', lang: 'id', keyword: 1 })
+    );
+    expect(akun.words).toContainEqual(
+      expect.objectContaining({ word: 'account', lang: 'nl', keyword: 1 })
+    );
+  });
+
+  it('continues homonym numbering when a supplement repeats the core boundary headword', async () => {
+    const core = '**adat**, gewoonte, gebruik';
+    const plus = '**adat** II, nieuwe zede';
+
+    const coreFile = path.join(tmpDir, 'teeuw.a.md');
+    const plusFile = path.join(tmpDir, 'teeuw.a+.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(coreFile, core, 'utf8');
+    fs.writeFileSync(plusFile, plus, 'utf8');
+
+    await new Compiler([coreFile, plusFile], outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+
+    expect(lemmas).toHaveLength(2);
+    expect(lemmas[0].base).toBe('adat');
+    expect(lemmas[0].homonym).toBe(0);
+    expect(lemmas[0].teeuwPlus).toBeUndefined();
+    // The parser is shared across the file boundary, so the repeated headword
+    // continues as homonym 1 rather than resetting to 0.
+    expect(lemmas[1].base).toBe('adat');
+    expect(lemmas[1].homonym).toBe(1);
+    expect(lemmas[1].teeuwPlus).toBe(true);
+  });
+
   it('deletes the output file when a parse error occurs', async () => {
     const input = '**unclosed\n';
     const inFile = path.join(tmpDir, 'teeuw.a.md');

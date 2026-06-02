@@ -1,13 +1,13 @@
-# Teeuw Supplement (`+` files) — Design Note
+# Teeuw Supplement (`+` files)
 
-> Status: proposal, not yet implemented. Captured for future consideration.
+> Status: implemented. See `feat/teeuw-supplement-files`.
 
 ## Goal
 
 Let linguists extend the Teeuw dictionary with words that entered Indonesian
 after Teeuw's last revision (1996) **without ever modifying the digitized
 originals**. Teeuw's original work stays byte-for-byte untouched; the additions
-live in separate files.
+live in separate files and are visually marked as modern additions.
 
 ## Source layout
 
@@ -22,78 +22,79 @@ dict/teeuw/
   ...
 ```
 
-A linguist only ever creates and edits the `+` files. The core files are
-read-only as far as this feature is concerned.
+A linguist only ever creates and edits the `+` files, in the ordinary Teeuw
+markup. No special per-entry annotation is required (see "Attribution" below).
+The core files are read-only as far as this feature is concerned.
+
+> Note: `dict/` is gitignored (it holds the copyrighted Teeuw content), so the
+> demo `teeuw.a+.md` shipped for the Arps walkthrough lives on disk only. Use
+> `git add -f` if you ever want to track a specific supplement file.
 
 ## Compilation
 
 `teeuw.a.md` and `teeuw.a+.md` compile into a **single** `teeuw.a.json`. The
 asset layer and the Angular client are unchanged: still 26 `teeuw.{a-z}.json`
-files, same loader, same IndexedDB schema, same lookup path. The supplement is
-invisible to everything downstream of the compiler.
+files, same loader, same IndexedDB schema, same lookup path.
 
-The same `TeeuwParser` is reused as-is; it operates on content, not filenames.
+- `index.ts` groups source files by output chapter (the basename with any
+  trailing `+` stripped) and orders each group **core before supplement**.
+- `Compiler` accepts the ordered list of files and streams them into one output,
+  reusing a single parser instance so homonym numbering carries across the
+  core -> supplement boundary.
+- `TeeuwParser` is reused unchanged; it operates on content, not filenames.
 
-## Attribution: the `Nw` label
+### Homonym numbering across the boundary
 
-Teeuw already marks entries with capital-letter origin codes (the "Hoofdletters"
-legend), e.g. `P` = Populair, `J` = Jakartaans, `N` = Nederlands. Post-1996
-additions reuse this same convention with a new code:
+Homonyms are assigned by comparing each headword to the immediately preceding
+group's base (`_prevBase` in `ParserBase`). Because the parser is shared and not
+reset between files, a brand-new supplement headword gets `homonym: 0`, and a
+supplement entry that repeats the **last** core headword continues as the next
+homonym index. The one unsupported case is a supplement adding a new sense of an
+existing word that is **not** the last core entry: it would restart at 0 rather
+than continuing. New headwords (the common case) are unaffected. If continuing
+arbitrary existing headwords ever becomes a real need, it requires switching
+homonym tracking from `_prevBase` to a global base -> count map.
 
-```
-Nw   (na 1996) nieuw
-```
+## Attribution: the automatic `teeuwPlus` flag
 
-`Nw` was chosen because:
+Provenance is automatic, not editorial, so it cannot be forgotten:
 
-- It follows Teeuw's own two-letter style (`Jp`, `Jv`, `Ml`).
-- It mirrors the Dutch-expansion convention (`N` = Nederlands, `O` = Ouder
-  Maleis, etc.); `Nw` = nieuw.
-- `N` (Nederlands) and the single capital `X` are both already taken; `X` in
-  particular is the Roman numeral 10 used for sense numbering.
+- The compiler stamps `teeuwPlus: true` on every lemma sourced from a `+` file
+  (omitted for core lemmas, keeping their JSON byte-identical).
+- The flag flows through `CompiledLemma` -> `transformDict` (copied onto each
+  word `DictRecord`) -> `ILemma`.
+- The lemma component binds `[class.teeuw-plus]="lemma.teeuwPlus"` on the entry
+  `div`. A CSS rule (`global.scss`) renders the Indonesian word spans inside a
+  `teeuw-plus` entry in amber (`--teeuw-plus-text-color`, with a lighter dark
+  mode value) **and underlines them**. The underline is a second, colour-
+  independent cue for colour-blind readers; supplements are sparse, so the
+  screen is not flooded with underlines.
 
-This means attribution costs **no schema change and no badge logic**: the marker
-lives in the entry text exactly the way Teeuw's own labels do, and it renders in
-the dictionary's own visual language. A reader sees the `Nw` label and knows the
-word is a modern addition, not part of Teeuw's original work.
+This needs no markup converter change: the spans already exist (the converter
+wraps asterisk-marked Indonesian words in `<span>`), so a descendant selector
+from the container class recolours exactly the Indonesian words.
 
-## Scope
+### Why not the `Nw` editorial label?
 
-Supplement entries are **structurally identical** to regular entries. They may
-introduce brand-new headwords or new senses of existing headwords; there is no
-special field or code path distinguishing them. The only thing that sets them
-apart is the editorial `Nw` label.
+An earlier plan reused Teeuw's "Hoofdletters" convention with a new `Nw`
+(= nieuw) capital-letter label, typed by the linguist per entry. Rejected: it
+relies on the editor remembering it, gives no colour affordance, and `N` is
+already taken (Nederlands). The automatic flag supersedes it. A linguist may
+still add origin labels (`P`, `J`, ...) as usual; they are independent of the
+`teeuwPlus` mechanism.
 
-## Implementation checklist (for when this is built)
+## Re-import note
 
-1. **`index.ts`**: change the file -> output mapping from 1:1 to "group by
-   output stem." Derive the JSON name from the letter (strip the `+`), group the
-   core and supplement inputs under it, ordered **core before supplement**.
-2. **`Compiler.run()`**: accept the ordered list of input files and stream them
-   into one output. Flush the pending lemma group at each file boundary, but
-   **carry the parser's homonym state across the boundary** so a supplemented
-   sense of an existing headword continues numbering correctly (core entries
-   first, then the supplement's next homonym index).
-3. **Filename regex**: today's `([a-z])` letter group does not match `a+`; widen
-   it to recognize the `+` variant.
-4. **`filter_data.ts`**: add `Nw` to `ABBREVIATIONS_NL` so it is filtered out of
-   keyword extraction exactly like `P`/`J`/`N` (otherwise the marker itself
-   becomes a searchable Dutch "word").
-5. **Hoofdletters legend**: document `Nw` where Teeuw's own codes are listed.
-6. **Verify**: confirm the `Nw` label survives into the displayed `text` rather
-   than being stripped.
+`teeuwPlus` is a new field on stored records, so existing installs only show the
+colour after the dictionary is re-imported. That is triggered by bumping the
+dict version string when the updated content is published.
 
-## Why this is now a small change
+## Touched files
 
-The `order` field (and its `CHAPTER_DISTANCE` / `ORDER_OFFSET` math) was removed
-from the compiler in a prior refactor. That eliminated the one thing that would
-have complicated merging two source files into one JSON (there is no longer any
-positional sort key to continue or offset across the file boundary). Lookups are
-resolved client-side by the `[lang, wordLower]` index and ordered for display by
-`homonym`.
-
-## Alternative considered
-
-A single capital letter such as `B` (= baru, Indonesian for "new") instead of
-`Nw`. Rejected in favour of `Nw` for consistency with Teeuw's Dutch-expansion,
-two-letter style.
+- `apps/compiler/src/index.ts` (grouping)
+- `apps/compiler/src/compiler/Compiler.ts` (multi-file merge, `teeuwPlus`,
+  filename regex)
+- `apps/web/src/app/home/dictionary/dict-db.ts` (`CompiledLemma`, `transformDict`)
+- `apps/web/src/app/home/dictionary/lemma/lemma.model.ts` (`ILemma`)
+- `apps/web/src/app/home/dictionary/lemma/lemma.component.html` (class binding)
+- `apps/web/src/global.scss` (colour variable + underline rule)

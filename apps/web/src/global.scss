@@ -42,6 +42,9 @@
 :root {
   --foreign-text-color: var(--ion-color-primary);
   --native-text-color: var(--ion-text-color);
+  // Post-1996 supplement words (`teeuw.a+.md`): a warm amber, distinct from the
+  // teal --foreign-text-color, so additions stand out from core Teeuw content.
+  --teeuw-plus-text-color: #b45309;
   --box-shadow-md:
     0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14),
     0 1px 5px 0 rgba(0, 0, 0, 0.12);
@@ -51,6 +54,8 @@ html.ion-palette-dark {
   --box-shadow-md:
     0 3px 1px -2px rgba(0, 0, 0, 0.4), 0 2px 2px 0 rgba(0, 0, 0, 0.28),
     0 1px 5px 0 rgba(0, 0, 0, 0.24);
+  // Lighter amber for legibility on the dark background.
+  --teeuw-plus-text-color: #fbbf24;
 }
 
 .text-content {
@@ -72,6 +77,16 @@ html.ion-palette-dark {
   }
 
   font-family: var(--content-font-family);
+}
+
+// Teeuw supplement entries (post-1996 additions): colour their Indonesian word
+// spans amber and underline them. The underline is a second, colour-independent
+// cue so the distinction survives for colour-blind readers; supplements are
+// sparse, so this does not flood the screen with underlines.
+.text-content.teeuw-plus span {
+  color: var(--teeuw-plus-text-color);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .markdown-body {

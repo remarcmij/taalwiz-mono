@@ -22,74 +22,59 @@ interface Lemma {
   base: string;
   homonym: number;
   words: Word[];
+  // Present only for lemmas sourced from a supplement (`teeuw.a+.md`) file, so
+  // the client can mark post-1996 additions distinctly. Omitted for core
+  // entries, keeping their JSON byte-identical to a single-file compile.
+  teeuwPlus?: true;
 }
 
-const fileNameRegExp = /[\\/]([a-z]+)\.([a-z]).md$/;
+// Captures the dictionary name (group 1) and chapter letter (group 2). A
+// trailing `+` (group 3) marks a supplement file (`teeuw.a+.md`), whose lemmas
+// compile into the same chapter JSON as the core file and carry `teeuwPlus`.
+const fileNameRegExp = /[\\/]([a-z]+)\.([a-z])(\+?)\.md$/;
 
 export class Compiler {
   private parser: Parser | undefined;
-  private inFile: string;
+  private inFiles: string[];
   private outFile: string;
+  // Set per input file in run(); buildLemma() reads it to stamp supplements.
+  private teeuwPlus = false;
 
-  constructor(inFile: string, outFile: string) {
-    this.inFile = inFile;
+  constructor(inFiles: string | string[], outFile: string) {
+    this.inFiles = Array.isArray(inFiles) ? inFiles : [inFiles];
     this.outFile = outFile;
   }
 
   async run(): Promise<void> {
     let fsOut: WriteStream | null = null;
-    const inFileBaseName = path.basename(this.inFile);
+    // Tracks the file currently being read so error messages stay specific when
+    // a chapter is compiled from more than one source file (core + supplement).
+    let currentBaseName = path.basename(this.inFiles[0]);
 
     try {
-      const match = this.inFile.toLowerCase().match(fileNameRegExp);
-      if (!match || match.length < 3) {
-        throw new Error(`ill-formed filename: ${inFileBaseName}`);
+      const match = this.inFiles[0].toLowerCase().match(fileNameRegExp);
+      if (!match || match.length < 4) {
+        throw new Error(`ill-formed filename: ${currentBaseName}`);
       }
 
       const dictName = match[1];
 
       const entry = parserRegistry.find(({ prefix }) => dictName.startsWith(prefix));
       if (!entry) {
-        throw new Error(`Skipping unrecognized file: ${inFileBaseName}`);
+        throw new Error(`Skipping unrecognized file: ${currentBaseName}`);
       }
       this.parser = entry.factory();
 
-      const fsIn = fs.createReadStream(this.inFile);
       fsOut = fs.createWriteStream(this.outFile);
-
       fsOut.write(`{"targetLang": "${this.parser.sourceLang}", "lemmas": [\n`);
 
-      const rl = readline.createInterface({
-        input: fsIn,
-        crlfDelay: Infinity,
-      });
-
-      let lineNum = 0;
-      let lineItems: LineItem[] = [];
+      // Compile each source file into the same stream, sharing the parser so
+      // homonym numbering carries across the core -> supplement boundary.
       let needComma = false;
-
-      for await (let line of rl) {
-        line = line.trim();
-        if (!line) {
-          if (lineItems.length > 0) {
-            if (needComma) {
-              fsOut.write(', ');
-            }
-            needComma = true;
-
-            this.compileLineItems(fsOut, lineItems);
-            lineItems = [];
-            this.parser.reset();
-          }
-        } else {
-          lineItems.push({ line, lineIndex: lineNum });
-        }
-        lineNum += 1;
-      }
-
-      if (lineItems.length > 0) {
-        fsOut.write(', ');
-        this.compileLineItems(fsOut, lineItems);
+      for (const inFile of this.inFiles) {
+        currentBaseName = path.basename(inFile);
+        this.teeuwPlus = /\+\.md$/i.test(inFile);
+        needComma = await this.compileFile(inFile, fsOut, needComma);
       }
 
       fsOut.write(']}\n');
@@ -97,12 +82,12 @@ export class Compiler {
       await finished(fsOut);
       fsOut = null;
 
-      console.log(inFileBaseName);
+      console.log(this.inFiles.map((f) => path.basename(f)).join(' + '));
     } catch (err: any) {
       if (err instanceof Error) {
-        console.error(`Error processing file '${inFileBaseName}': ${err.message}`);
+        console.error(`Error processing file '${currentBaseName}': ${err.message}`);
       } else {
-        console.error(`Unknown error processing file '${inFileBaseName}'`);
+        console.error(`Unknown error processing file '${currentBaseName}'`);
       }
       if (fsOut) {
         fsOut.end();
@@ -119,6 +104,52 @@ export class Compiler {
         fsOut.end();
       }
     }
+  }
+
+  // Reads one source file, streaming its lemma groups into the shared output.
+  // `needComma` is threaded in and out so commas are placed correctly across
+  // group and file boundaries. The parser is intentionally NOT recreated, so a
+  // supplement entry continuing the previous file's headword keeps numbering.
+  private async compileFile(
+    inFile: string,
+    fsOut: WriteStream,
+    needComma: boolean,
+  ): Promise<boolean> {
+    const rl = readline.createInterface({
+      input: fs.createReadStream(inFile),
+      crlfDelay: Infinity,
+    });
+
+    let lineNum = 0;
+    let lineItems: LineItem[] = [];
+
+    const flush = () => {
+      if (needComma) {
+        fsOut.write(', ');
+      }
+      needComma = true;
+      this.compileLineItems(fsOut, lineItems);
+      lineItems = [];
+      this.parser!.reset();
+    };
+
+    for await (let line of rl) {
+      line = line.trim();
+      if (!line) {
+        if (lineItems.length > 0) {
+          flush();
+        }
+      } else {
+        lineItems.push({ line, lineIndex: lineNum });
+      }
+      lineNum += 1;
+    }
+
+    if (lineItems.length > 0) {
+      flush();
+    }
+
+    return needComma;
   }
 
   compileLineItems(fsOut: WriteStream, lineItems: LineItem[]): void {
@@ -150,6 +181,10 @@ export class Compiler {
       homonym: parser.homonym,
       words: [],
     };
+
+    if (this.teeuwPlus) {
+      lemma.teeuwPlus = true;
+    }
 
     for (const word of result.sourceKeywords) {
       lemma.words.push({
