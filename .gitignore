@@ -42,7 +42,3 @@ yarn-error.log*
 
 # Temp files
 .TEMP/
-
-# Local content (temp; Teeuw source & articles live in a separate private repo)
-# Anchored to the repo root so it does NOT match nested dirs like apps/api/src/content/.
-/content/
