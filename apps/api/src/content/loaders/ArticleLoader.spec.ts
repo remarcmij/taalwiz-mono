@@ -75,6 +75,11 @@ describe('applyHashtagSpans', () => {
     expect(html.startsWith('# Topic ')).toBe(true);
   });
 
+  it('wraps a braced hashtag containing an embedded comma', () => {
+    const html = applyHashtagSpans('Listing #{een, twee, drie} here.', file);
+    expect(html).toContain(tagFrag('een, twee, drie'));
+  });
+
   it('does not treat the bare heading marker as a hashtag', () => {
     const html = applyHashtagSpans('# Greetings', file);
     expect(html).toBe('# Greetings');

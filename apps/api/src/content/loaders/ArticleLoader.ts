@@ -34,7 +34,7 @@ interface ExtractHashtagResult {
   hashtags: ExtractedHashtag[];
 }
 
-const createHashtagRegExp = () => /\\?#(?:\{([-\p{L}0-9 ]{2,})\}|([-\p{L}0-9]{2,}))/gu;
+const createHashtagRegExp = () => /\\?#(?:\{([-\p{L}0-9, ]{2,})\}|([-\p{L}0-9]{2,}))/gu;
 
 function deterministicHashtagId(filename: string, tagname: string, occurrence: number): string {
   return crypto.createHash('sha256').update(`${filename}:${tagname}:${occurrence}`).digest('hex').slice(0, 24);
@@ -71,7 +71,7 @@ export function applyHashtagSpans(body: string, filename: string): string {
         if (fullMatch.startsWith('\\')) return fullMatch;
         // Display keeps the author's original casing (e.g. `#Verkeersborden`);
         // the indexed/anchored name is canonical lowercase. The regex only
-        // admits letters/digits/hyphen/space, so `display` needs no escaping.
+        // admits letters/digits/hyphen/comma/space, so `display` needs no escaping.
         const display = (bracedName ?? plainName ?? '').trim();
         const tagname = display.toLowerCase();
         const occ = occurrenceMap.get(tagname) ?? 0;
@@ -80,8 +80,8 @@ export function applyHashtagSpans(body: string, filename: string): string {
         // never has to parse the visible text. The `#` is a trailing superscript
         // annotation in its own span: de-emphasised, hidden from assistive tech,
         // and free to be restyled without affecting lookups. Display keeps the
-        // author's casing; the regex admits no HTML-special chars, so the
-        // interpolations need no escaping.
+        // author's casing; the regex admits no HTML-special chars (comma is
+        // inert in HTML text), so the interpolations need no escaping.
         return `<span id="_${deterministicHashtagId(filename, tagname, occ)}_" class="hashtag" role="button" tabindex="0" data-tag="${tagname}">${display}<span class="hash-sign" aria-hidden="true">#</span></span>`;
       });
       return prefix + replaced;
