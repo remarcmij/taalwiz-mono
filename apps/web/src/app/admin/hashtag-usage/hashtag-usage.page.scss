@@ -18,6 +18,8 @@ ion-searchbar {
   --placeholder-color: var(--ion-color-medium);
   --icon-color: var(--ion-color-medium);
   --clear-button-color: var(--ion-color-medium);
+  // A little breathing room between the input and the toolbar's bottom edge.
+  padding-bottom: 10px;
 }
 
 .count {
