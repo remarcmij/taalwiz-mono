@@ -80,14 +80,27 @@ export class ArticlePage {
     }
 
     if (event.target.classList.contains('hashtag')) {
-      // The span keeps the author's original casing for display, but tags are
-      // indexed/stored lowercase, so normalise before looking up occurrences.
-      const hashtagName = event.target.textContent?.substring(1).toLowerCase();
-      if (hashtagName) {
-        this.openHashtagModal(hashtagName);
-      }
+      this.#openHashtag(event.target);
     } else {
       this.#wordClickModalService.onClicked(event);
+    }
+  }
+
+  onKeydown(event: KeyboardEvent) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (!(event.target instanceof HTMLSpanElement)) return;
+    if (!event.target.classList.contains('hashtag')) return;
+    // Activate a focused tag like a button; prevent Space from scrolling.
+    event.preventDefault();
+    this.#openHashtag(event.target);
+  }
+
+  #openHashtag(span: HTMLSpanElement) {
+    // The canonical lowercase tag lives in data-tag, so the lookup is independent
+    // of how the visible text (casing, the decorative '#') is rendered.
+    const hashtagName = span.dataset['tag'];
+    if (hashtagName) {
+      this.openHashtagModal(hashtagName);
     }
   }
 

@@ -23,7 +23,8 @@
     @if (articleValue) {
     <app-article-body
       [article]="articleValue"
-      (clicked)="onClicked($event)"></app-article-body>
+      (clicked)="onClicked($event)"
+      (keyPressed)="onKeydown($event)"></app-article-body>
     }
   </div>
 </ion-content>

@@ -112,6 +112,17 @@ html.ion-palette-dark {
 span.hashtag {
   color: var(--hashtag-text-color);
   cursor: pointer;
+
+  // The `#` trails the word as a small superscript annotation: fainter than the
+  // tag, raised, and transparent to pointer events so a tap always lands on the
+  // tag itself.
+  .hash-sign {
+    font-size: 0.7em;
+    vertical-align: super;
+    opacity: 0.6;
+    margin-left: 0.05em;
+    pointer-events: none;
+  }
 }
 
 .noselect {

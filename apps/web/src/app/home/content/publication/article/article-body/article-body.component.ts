@@ -21,6 +21,7 @@ export class ArticleBodyComponent implements OnInit {
 
   article = input.required<IArticle>();
   clicked = output<MouseEvent>();
+  keyPressed = output<KeyboardEvent>();
 
   safeHtml = signal<SafeHtml | null>(null);
 

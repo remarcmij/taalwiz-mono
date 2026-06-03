@@ -40,21 +40,29 @@ describe('ArticleLoader targetLang validation', () => {
 describe('applyHashtagSpans', () => {
   const file = 'indonesian.greetings.md';
 
+  // The rendered tag: a button-role span carrying the canonical name in
+  // data-tag, the display word (original casing preserved), then a de-emphasised,
+  // aria-hidden trailing `#`.
+  const tagFrag = (display: string, tag = display.toLowerCase()) =>
+    `class="hashtag" role="button" tabindex="0" data-tag="${tag}">${display}<span class="hash-sign" aria-hidden="true">#</span></span>`;
+
   it('wraps an inline hashtag in body text', () => {
     const html = applyHashtagSpans('The word #selamat means "greetings".', file);
-    expect(html).toMatch(/<span id="_[a-f0-9]{24}_" class="hashtag">#selamat<\/span>/);
+    expect(html).toContain(tagFrag('selamat'));
+    expect(html).toMatch(/id="_[a-f0-9]{24}_" class="hashtag"/);
   });
 
   it('wraps a hashtag inside a heading while keeping the heading marker', () => {
     const html = applyHashtagSpans('## Greetings #selamat', file);
-    expect(html).toMatch(/^## Greetings <span id="_[a-f0-9]{24}_" class="hashtag">#selamat<\/span>$/);
+    expect(html.startsWith('## Greetings <span id="_')).toBe(true);
+    expect(html.endsWith(tagFrag('selamat'))).toBe(true);
   });
 
   it('preserves the original casing in display but lowercases the anchor id', () => {
     const mixed = applyHashtagSpans('## 4.5 #Verkeersborden', file);
     const lower = applyHashtagSpans('## 4.5 #verkeersborden', file);
     // Display keeps the author's casing...
-    expect(mixed).toContain('class="hashtag">#Verkeersborden</span>');
+    expect(mixed).toContain(tagFrag('Verkeersborden'));
     // ...but the occurrence-numbered id is computed from the lowercase name,
     // so it matches the id the indexer stores for the same tag.
     const idOf = (html: string) => /id="_([a-f0-9]{24})_"/.exec(html)?.[1];
@@ -63,7 +71,7 @@ describe('applyHashtagSpans', () => {
 
   it('wraps a braced multi-word hashtag inside a heading', () => {
     const html = applyHashtagSpans('# Topic #{selamat pagi}', file);
-    expect(html).toContain('class="hashtag">#selamat pagi</span>');
+    expect(html).toContain(tagFrag('selamat pagi'));
     expect(html.startsWith('# Topic ')).toBe(true);
   });
 
@@ -87,7 +95,8 @@ describe('applyHashtagSpans', () => {
 
   it('keeps the hashtag span inside the rendered heading element', async () => {
     const html = await renderArticleHtml('## Greetings #selamat', file);
-    // The span must survive marked + sanitize-html and stay within the <h2>.
-    expect(html).toMatch(/<h2[^>]*>.*class="hashtag">#selamat<\/span>.*<\/h2>/s);
+    // The tag span (button role, data-tag, nested #) must survive marked +
+    // sanitize-html and stay within the <h2>.
+    expect(html).toMatch(/<h2[^>]*>.*class="hashtag"[^>]*data-tag="selamat".*<\/h2>/s);
   });
 });

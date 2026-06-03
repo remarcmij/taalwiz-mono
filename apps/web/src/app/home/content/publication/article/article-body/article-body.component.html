@@ -1,4 +1,5 @@
 <article
   class="text-content markdown-body ion-padding"
   [innerHTML]="safeHtml()"
-  (click)="clicked.emit($event)"></article>
+  (click)="clicked.emit($event)"
+  (keydown)="keyPressed.emit($event)"></article>

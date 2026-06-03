@@ -76,7 +76,13 @@ export function applyHashtagSpans(body: string, filename: string): string {
         const tagname = display.toLowerCase();
         const occ = occurrenceMap.get(tagname) ?? 0;
         occurrenceMap.set(tagname, occ + 1);
-        return `<span id="_${deterministicHashtagId(filename, tagname, occ)}_" class="hashtag">#${display}</span>`;
+        // `data-tag` holds the canonical lowercase name so the click/TOC logic
+        // never has to parse the visible text. The `#` is a trailing superscript
+        // annotation in its own span: de-emphasised, hidden from assistive tech,
+        // and free to be restyled without affecting lookups. Display keeps the
+        // author's casing; the regex admits no HTML-special chars, so the
+        // interpolations need no escaping.
+        return `<span id="_${deterministicHashtagId(filename, tagname, occ)}_" class="hashtag" role="button" tabindex="0" data-tag="${tagname}">${display}<span class="hash-sign" aria-hidden="true">#</span></span>`;
       });
       return prefix + replaced;
     })

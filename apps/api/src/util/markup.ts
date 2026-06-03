@@ -18,7 +18,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     'a':       ['href', 'title', 'target', 'id', 'aria-describedby', 'aria-label', 'data-footnote-ref', 'data-footnote-backref'],
     'img':     ['src', 'alt', 'title'],
     'table':   ['class'],
-    'span':    ['id', 'class'],
+    'span':    ['id', 'class', 'role', 'tabindex', 'aria-hidden', 'data-tag'],
     'sup':     ['id'],
     'li':      ['id'],
     'section': ['class', 'data-footnotes'],
