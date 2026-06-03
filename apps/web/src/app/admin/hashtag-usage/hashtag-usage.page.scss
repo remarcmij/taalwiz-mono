@@ -1,3 +1,10 @@
+// Narrow just this page's content column (the tag table is only three slim
+// columns). The header toolbars live outside .content-container, so they keep the
+// app-wide width. This component-scoped rule overrides the global 768px cap.
+.content-container {
+  max-width: 576px;
+}
+
 .count {
   color: var(--ion-color-medium);
   font-size: 0.85rem;
