@@ -94,14 +94,16 @@ export class HashtagUsagePage implements OnInit {
 
   #toText(): string {
     const rows = this.usage();
-    const width = rows.reduce((max, r) => Math.max(max, r.name.length), 0) + 2;
-    const lines = rows.map(
-      (r) =>
-        `${r.name.padEnd(width)}${String(r.articles).padStart(3)} article(s)` +
-        `${String(r.occurrences).padStart(5)} use(s)`,
-    );
     const date = new Date().toISOString().slice(0, 10);
-    return [`Taalwiz hashtags (${rows.length} tags), ${date}`, '', ...lines, ''].join('\n');
+    const lines = rows.map((r) => `${r.name} (${r.articles}, ${r.occurrences})`);
+    return [
+      `Taalwiz hashtags (${rows.length} tags), ${date}`,
+      '',
+      'Format: hashtag (articles, uses)',
+      '',
+      ...lines,
+      '',
+    ].join('\n');
   }
 
   #toPrintHtml(): string {
