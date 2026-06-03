@@ -10,7 +10,8 @@ This repository is a TypeScript monorepo managed by
 backend API, the client app, a dictionary compiler, and the documentation site.
 
 For a high-level tour of what Taalwiz does and how it works, see the
-[**project overview**](docs/OVERVIEW.md).
+[**project overview**](apps/docs/docs/guide/overview.md) (also published online at
+[taalwiz.nl/guide/overview](https://taalwiz.nl/guide/overview)).
 
 ## Apps
 

@@ -9,6 +9,7 @@
     "preview": "vitepress preview docs --port 4173"
   },
   "devDependencies": {
+    "markdown-it-footnote": "^4.0.0",
     "vitepress": "^1.6.3"
   }
 }

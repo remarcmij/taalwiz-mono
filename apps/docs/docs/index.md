@@ -5,7 +5,10 @@ hero:
   tagline: Documentation for Taalwiz content creators and administrators.
   actions:
     - theme: brand
-      text: Content & Admin Guide
+      text: Project Overview
+      link: /guide/overview
+    - theme: alt
+      text: Content Management Guide
       link: /guide/content-guide
     - theme: alt
       text: GitHub

@@ -214,6 +214,9 @@ importers:
 
   apps/docs:
     devDependencies:
+      markdown-it-footnote:
+        specifier: ^4.0.0
+        version: 4.0.0
       vitepress:
         specifier: ^1.6.3
         version: 1.6.4(@algolia/client-search@5.35.0)(@types/node@24.10.1)(less@4.4.0)(postcss@8.5.15)(sass@1.90.0)(search-insights@2.17.3)(terser@5.46.1)(typescript@6.0.3)
@@ -6689,6 +6692,9 @@ packages:
 
   mark.js@8.11.1:
     resolution: {integrity: sha512-1I+1qpDt4idfgLQG+BNWmrqku+7/2bi5nLf4YwF8y8zXvmfiTBY3PV3ZibfrjBueCByROpuBjLLFCajqkgYoLQ==}
+
+  markdown-it-footnote@4.0.0:
+    resolution: {integrity: sha512-WYJ7urf+khJYl3DqofQpYfEYkZKbmXmwxQV8c8mO/hGIhgZ1wOe7R4HLFNwqx7TjILbnC98fuyeSsin19JdFcQ==}
 
   marked-footnote@1.4.0:
     resolution: {integrity: sha512-fZTxAhI1TcLEs5UOjCfYfTHpyKGaWQevbxaGTEA68B51l7i87SctPFtHETYqPkEN0ka5opvy4Dy1l/yXVC+hmg==}
@@ -16984,6 +16990,8 @@ snapshots:
     optional: true
 
   mark.js@8.11.1: {}
+
+  markdown-it-footnote@4.0.0: {}
 
   marked-footnote@1.4.0(marked@17.0.0):
     dependencies:
