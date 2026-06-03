@@ -171,6 +171,21 @@ Tags work anywhere in the text, **including inside headings**. A heading's own l
 
 Hashtag extraction requires the group manifest to exist in the database. If articles are uploaded before their group manifest, hashtags are not extracted at that point. When the group manifest is subsequently uploaded, the system automatically reprocesses all existing articles in the group and extracts their hashtags. No manual re-upload of articles is needed.
 
+### Reviewing hashtag usage (admin only)
+
+To keep tags consistent, it helps to see which hashtags already exist before inventing a new one. **Admin → Hashtag Usage** (under the **Hashtags** section of the admin sidebar) shows a glossary of every hashtag currently in use across all content. _This page requires admin rights._
+
+The page lists each tag alphabetically with two counts:
+
+| Column | Meaning |
+|---|---|
+| Articles | Number of distinct articles that contain the tag |
+| Uses | Total number of occurrences across all articles |
+
+A search box filters the list as you type. You can **copy** the full glossary to the clipboard, **download** it as `taalwiz-hashtags.txt`, or **print** it. The export and print actions always use the complete list, not the filtered view, so you get the whole glossary regardless of any active filter.
+
+Use this glossary to spot near-duplicates (for example `#verb` versus `#verbs`) and reuse an existing tag rather than creating a variant.
+
 ---
 
 ## Upload Workflow
