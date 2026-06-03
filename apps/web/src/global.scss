@@ -133,9 +133,13 @@ span.hashtag {
   user-select: none;
 }
 
-.plt-desktop .content-container {
-  width: 768px !important;
-  margin: auto;
+// Constrain page content to a consistent column on wide screens; stays full
+// width on small screens (max-width does not force narrower than the viewport).
+// Applies on all platforms, not just `.plt-desktop`, so the cap is reliable
+// everywhere (e.g. touch laptops where the desktop platform class is absent).
+.content-container {
+  max-width: 768px;
+  margin-inline: auto;
 }
 
 ion-back-button {
