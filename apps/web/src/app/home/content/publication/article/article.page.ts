@@ -80,7 +80,9 @@ export class ArticlePage {
     }
 
     if (event.target.classList.contains('hashtag')) {
-      const hashtagName = event.target.textContent?.substring(1);
+      // The span keeps the author's original casing for display, but tags are
+      // indexed/stored lowercase, so normalise before looking up occurrences.
+      const hashtagName = event.target.textContent?.substring(1).toLowerCase();
       if (hashtagName) {
         this.openHashtagModal(hashtagName);
       }

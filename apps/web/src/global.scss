@@ -45,6 +45,9 @@
   // Post-1996 supplement words (`teeuw.a+.md`): a warm amber, distinct from the
   // teal --foreign-text-color, so additions stand out from core Teeuw content.
   --supplement-text-color: #b45309;
+  // Article hashtags: same warm amber, to set tags apart from the teal of
+  // clickable Indonesian words. (Tags and supplement words never co-occur.)
+  --hashtag-text-color: #b45309;
   --box-shadow-md:
     0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14),
     0 1px 5px 0 rgba(0, 0, 0, 0.12);
@@ -56,6 +59,7 @@ html.ion-palette-dark {
     0 1px 5px 0 rgba(0, 0, 0, 0.24);
   // Lighter amber for legibility on the dark background.
   --supplement-text-color: #fbbf24;
+  --hashtag-text-color: #fbbf24;
 }
 
 .text-content {
@@ -106,7 +110,7 @@ html.ion-palette-dark {
 }
 
 span.hashtag {
-  color: var(--ion-color-primary-tint);
+  color: var(--hashtag-text-color);
   cursor: pointer;
 }
 

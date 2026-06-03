@@ -50,6 +50,17 @@ describe('applyHashtagSpans', () => {
     expect(html).toMatch(/^## Greetings <span id="_[a-f0-9]{24}_" class="hashtag">#selamat<\/span>$/);
   });
 
+  it('preserves the original casing in display but lowercases the anchor id', () => {
+    const mixed = applyHashtagSpans('## 4.5 #Verkeersborden', file);
+    const lower = applyHashtagSpans('## 4.5 #verkeersborden', file);
+    // Display keeps the author's casing...
+    expect(mixed).toContain('class="hashtag">#Verkeersborden</span>');
+    // ...but the occurrence-numbered id is computed from the lowercase name,
+    // so it matches the id the indexer stores for the same tag.
+    const idOf = (html: string) => /id="_([a-f0-9]{24})_"/.exec(html)?.[1];
+    expect(idOf(mixed)).toBe(idOf(lower));
+  });
+
   it('wraps a braced multi-word hashtag inside a heading', () => {
     const html = applyHashtagSpans('# Topic #{selamat pagi}', file);
     expect(html).toContain('class="hashtag">#selamat pagi</span>');

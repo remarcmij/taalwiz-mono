@@ -69,10 +69,14 @@ export function applyHashtagSpans(body: string, filename: string): string {
       const { prefix, text } = splitHeadingPrefix(line);
       const replaced = text.replace(createHashtagRegExp(), (fullMatch, bracedName: string | undefined, plainName: string | undefined) => {
         if (fullMatch.startsWith('\\')) return fullMatch;
-        const tagname = (bracedName ?? plainName ?? '').toLowerCase().trim();
+        // Display keeps the author's original casing (e.g. `#Verkeersborden`);
+        // the indexed/anchored name is canonical lowercase. The regex only
+        // admits letters/digits/hyphen/space, so `display` needs no escaping.
+        const display = (bracedName ?? plainName ?? '').trim();
+        const tagname = display.toLowerCase();
         const occ = occurrenceMap.get(tagname) ?? 0;
         occurrenceMap.set(tagname, occ + 1);
-        return `<span id="_${deterministicHashtagId(filename, tagname, occ)}_" class="hashtag">#${tagname}</span>`;
+        return `<span id="_${deterministicHashtagId(filename, tagname, occ)}_" class="hashtag">#${display}</span>`;
       });
       return prefix + replaced;
     })

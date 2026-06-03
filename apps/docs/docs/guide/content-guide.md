@@ -163,7 +163,7 @@ Multi-word tag, wrap in curly braces:
 The phrase #{selamat pagi} means "good morning".
 ```
 
-Tags are **case-insensitive** and are stored in lowercase. Tags must be at least two characters long.
+Tags are **case-insensitive**: they are stored and indexed in lowercase (so the Hashtags tab always shows them lowercase), but the rendered tag keeps the casing you wrote, so `#Verkeersborden` displays as written while still matching `#verkeersborden`. Tags must be at least two characters long.
 
 Tags work anywhere in the text, **including inside headings**. A heading's own leading `#`/`##` marker is never treated as a tag; only `#tag` words within the heading text are indexed (use the `#{...}` braces form for a multi-word tag in a heading).
 
