@@ -4,6 +4,24 @@ import { HomePage } from './home.page';
 
 export const homeUrl = '/home/tabs/content';
 
+/** Bottom-tab segments under /home/tabs. */
+export const HOME_TABS = ['content', 'dictionary', 'hashtags', 'bookmarks'] as const;
+export type HomeTab = (typeof HOME_TABS)[number];
+
+/** Preferences key holding the last active tab, restored on a cold start. */
+export const LAST_TAB_KEY = 'lastTab';
+
+/** Build the URL for a tab. */
+export function tabUrl(tab: HomeTab): string {
+  return `/home/tabs/${tab}`;
+}
+
+/** Extract the active tab from a URL, or null if it is not a home-tab URL. */
+export function tabFromUrl(url: string): HomeTab | null {
+  const tab = url.match(/^\/home\/tabs\/([^/?#]+)/)?.[1];
+  return tab && (HOME_TABS as readonly string[]).includes(tab) ? (tab as HomeTab) : null;
+}
+
 export const HOME_ROUTES: Routes = [
   {
     path: 'tabs',

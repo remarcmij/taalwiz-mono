@@ -11,7 +11,7 @@ export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
   const logger = inject(LoggerService);
 
-  const obs$ = authService.user() ? of(true) : authService.autoLogin();
+  const obs$ = authService.user() ? of(true) : authService.autoLogin(true);
   return obs$.pipe(
     tap((isAuthenticated) => {
       if (!isAuthenticated) {

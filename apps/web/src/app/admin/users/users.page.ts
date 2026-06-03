@@ -1,7 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import {
-  IonBackButton,
   IonBadge,
   IonButton,
   IonButtons,
@@ -27,6 +26,7 @@ import { keyOutline, peopleOutline, trash } from 'ionicons/icons';
 
 import { User } from '../../auth/user.model';
 import { ApiErrorAlertService } from '../../shared/api-error-alert.service';
+import { BackButtonComponent } from '../../shared/back-button/back-button.component';
 import { AdminService } from '../admin.service';
 import { GroupsModalComponent } from './groups-modal/groups-modal.component';
 import { SetPasswordModalComponent } from './set-password-modal/set-password-modal.component';
@@ -38,7 +38,7 @@ import { SetPasswordModalComponent } from './set-password-modal/set-password-mod
     IonHeader,
     IonToolbar,
     IonButtons,
-    IonBackButton,
+    BackButtonComponent,
     IonTitle,
     IonContent,
     IonList,

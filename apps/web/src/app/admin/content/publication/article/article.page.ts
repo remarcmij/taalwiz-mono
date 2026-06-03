@@ -4,7 +4,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   AlertController,
-  IonBackButton,
   IonButton,
   IonButtons,
   IonContent,
@@ -15,6 +14,7 @@ import {
 
 import { type IArticle } from '../../../../home/content/publication/article/article.model';
 import { AdminService } from '../../../admin.service';
+import { BackButtonComponent } from '../../../../shared/back-button/back-button.component';
 
 @Component({
   selector: 'app-article',
@@ -23,7 +23,7 @@ import { AdminService } from '../../../admin.service';
     IonHeader,
     IonToolbar,
     IonButtons,
-    IonBackButton,
+    BackButtonComponent,
     IonTitle,
     IonButton,
     IonContent,

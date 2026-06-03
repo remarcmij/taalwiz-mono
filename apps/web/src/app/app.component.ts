@@ -51,6 +51,7 @@ import { AboutModalComponent } from './about/about-modal/about-modal.component';
 import { AdminService } from './admin/admin.service';
 import { AuthService } from './auth/auth.service';
 import { DictSyncService, SyncStatus } from './home/dictionary/dict-sync.service';
+import { LAST_TAB_KEY, tabFromUrl } from './home/home.routes';
 import { TocService } from './home/content/publication/article/toc.service';
 import { SpeechSynthesizerService } from './home/speech-synthesizer.service';
 import { LoggerService } from './shared/logger.service';
@@ -196,16 +197,23 @@ export class AppComponent implements OnInit, OnDestroy {
         (document.activeElement as HTMLElement)?.blur();
       });
 
-    // Save last url to preferences so that we can land on the same url
-    // after a restart.
+    // Remember the active tab so a cold start reopens where the user left off.
+    // Only the tab name is stored (never a full URL), so restore can never drop
+    // the user onto a deep page (e.g. an admin route) with no clear way back.
     this.#router.events
       .pipe(
         takeUntil(this.#destroy$),
         filter((event) => event instanceof NavigationEnd),
       )
-      .subscribe(async (event) => {
-        await Preferences.set({ key: 'lastUrl', value: event.url });
+      .subscribe((event) => {
+        const tab = tabFromUrl((event as NavigationEnd).urlAfterRedirects);
+        if (tab) {
+          void Preferences.set({ key: LAST_TAB_KEY, value: tab });
+        }
       });
+
+    // One-time cleanup of the superseded full-URL key.
+    void Preferences.remove({ key: 'lastUrl' });
   }
 
   onLogout() {

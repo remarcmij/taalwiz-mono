@@ -22,7 +22,7 @@ import {
 } from 'rxjs';
 
 import { toSignal } from '@angular/core/rxjs-interop';
-import { homeUrl } from '../home/home.routes';
+import { HOME_TABS, HomeTab, LAST_TAB_KEY, homeUrl, tabUrl } from '../home/home.routes';
 import { LoggerService } from '../shared/logger.service';
 import { Role, User } from './user.model';
 
@@ -133,19 +133,23 @@ export class AuthService implements OnDestroy {
     return this.#refreshInFlight$;
   }
 
-  autoLogin() {
-    let lastUrl = homeUrl;
-    return from(Preferences.get({ key: 'lastUrl' })).pipe(
-      map((value) => {
-        if (value && value.value) {
-          lastUrl = value.value;
-          this.#logger.debug('AuthService', `lastUrl: ${lastUrl}`);
-        }
+  // restoreTab is true only on a cold start (via the auth guard): the app then
+  // reopens the tab the user left off on. On a resume re-auth it is false, so
+  // autoLogin re-validates the session without hijacking the current route.
+  autoLogin(restoreTab = false) {
+    return from(Preferences.get({ key: LAST_TAB_KEY })).pipe(
+      map(({ value }) => {
+        const isTab = !!value && (HOME_TABS as readonly string[]).includes(value);
+        return isTab ? tabUrl(value as HomeTab) : homeUrl;
       }),
-      switchMap(() => from(Preferences.get({ key: 'authData' }))),
-      map((storedData) => {
+      switchMap((landingUrl) =>
+        from(Preferences.get({ key: 'authData' })).pipe(
+          map((storedData) => ({ landingUrl, storedData })),
+        ),
+      ),
+      map(({ landingUrl, storedData }) => {
         if (!storedData || !storedData.value) {
-          return null;
+          return { user: null as User | null, landingUrl };
         }
         const parsedData = JSON.parse(storedData.value) as User;
 
@@ -162,17 +166,17 @@ export class AuthService implements OnDestroy {
         if (parsedData.name) {
           user.name = parsedData.name;
         }
-        return user;
+        return { user, landingUrl };
       }),
-      tap((user) => {
+      tap(({ user, landingUrl }) => {
         if (user) {
           this.#user$.next(user);
-          this.#router.navigateByUrl(lastUrl);
+          if (restoreTab) {
+            this.#router.navigateByUrl(landingUrl);
+          }
         }
       }),
-      map((user) => {
-        return !!user;
-      }),
+      map(({ user }) => !!user),
     );
   }
 

@@ -3,7 +3,6 @@ import { HttpClient, HttpEventType } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import {
   AlertController,
-  IonBackButton,
   IonButton,
   IonButtons,
   IonCol,
@@ -23,6 +22,7 @@ import { alertOutline, checkmarkOutline, closeOutline } from 'ionicons/icons';
 import { Subscription } from 'rxjs';
 
 import { ContentService } from '../../../home/content/content.service';
+import { BackButtonComponent } from '../../../shared/back-button/back-button.component';
 
 type UploadStatus = 'pending' | 'uploading' | 'success' | 'error' | 'cancelled';
 
@@ -45,7 +45,7 @@ const ACCEPT_PATTERN = /\.(md|json|jpe?g|png|gif|webp)$/i;
     IonHeader,
     IonToolbar,
     IonButtons,
-    IonBackButton,
+    BackButtonComponent,
     IonTitle,
     IonProgressBar,
     IonContent,
