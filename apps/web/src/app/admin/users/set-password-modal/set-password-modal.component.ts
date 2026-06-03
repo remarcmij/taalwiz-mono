@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   IonButton,
@@ -40,7 +40,7 @@ export class SetPasswordModalComponent {
   newPassword = signal('');
   readonly minLength = MIN_PASSWORD_LENGTH;
 
-  #modalCtrl = new ModalController();
+  #modalCtrl = inject(ModalController);
 
   save() {
     if (this.newPassword().length < this.minLength) return;

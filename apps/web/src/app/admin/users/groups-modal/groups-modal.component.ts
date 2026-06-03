@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -38,7 +38,7 @@ export class GroupsModalComponent implements OnInit {
 
   selectedGroups = signal<string[]>([]);
 
-  #modalCtrl = new ModalController();
+  #modalCtrl = inject(ModalController);
 
   ngOnInit() {
     this.selectedGroups.set([...this.initialGroups()]);
