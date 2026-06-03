@@ -13,14 +13,6 @@ import {
 import { environment } from '../../environments/environment';
 import { LoggerService } from '../shared/logger.service';
 
-interface SpeechSynthesisVoice {
-  voiceURI: string;
-  name: string;
-  lang: string;
-  localService?: boolean;
-  default?: boolean;
-}
-
 interface SpeakOptions {
   pause: number;
   volume: number;
@@ -39,7 +31,7 @@ export class SpeechSynthesizerService {
   private _hasSpoken = false;
   isCancelling = false;
   speechSubscription?: Subscription;
-  utterance: any;
+  utterance!: SpeechSynthesisUtterance;
   private _speechEnabled = false;
 
   private logger!: LoggerService;
@@ -188,14 +180,13 @@ export class SpeechSynthesizerService {
         this.utterance = new SpeechSynthesisUtterance();
         this.utterance.text = text;
         this.utterance.voice = voice;
-        this.utterance.voiceURI = voice.voiceURI;
         this.utterance.lang = voice.lang;
         this.utterance.rate = options.rate || 1;
         this.utterance.volume = typeof options.volume === 'number' ? options.volume : 1;
 
         const onEndHandler = () => {
           this._hasSpoken = true;
-          observer.next(this.utterance);
+          observer.next();
           observer.complete();
         };
 
@@ -205,8 +196,9 @@ export class SpeechSynthesizerService {
         this.utterance.addEventListener('error', onEndHandler);
 
         window.speechSynthesis.speak(this.utterance);
-      } catch (err: any) {
-        this.logger.error('SpeechSynthesizerService.speakObservable', err.message);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        this.logger.error('SpeechSynthesizerService.speakObservable', message);
         observer.error(err);
       }
     });

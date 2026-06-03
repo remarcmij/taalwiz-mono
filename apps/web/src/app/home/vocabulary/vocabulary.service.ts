@@ -59,7 +59,11 @@ export class VocabularyService {
 
   toggle(term: string, lang: string): void {
     if (!this.currentListId()) return;
-    this.isBookmarked(term, lang) ? this.#remove(term, lang) : this.#add(term, lang);
+    if (this.isBookmarked(term, lang)) {
+      this.#remove(term, lang);
+    } else {
+      this.#add(term, lang);
+    }
   }
 
   addEntry(term: string, back?: string): void {
