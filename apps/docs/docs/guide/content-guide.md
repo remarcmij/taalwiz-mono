@@ -165,7 +165,7 @@ The phrase #{selamat pagi} means "good morning".
 
 Tags are **case-insensitive** and are stored in lowercase. Tags must be at least two characters long.
 
-Tags inside heading lines (lines beginning with `#`) are **not** indexed; they are treated as part of the heading.
+Tags work anywhere in the text, **including inside headings**. A heading's own leading `#`/`##` marker is never treated as a tag; only `#tag` words within the heading text are indexed (use the `#{...}` braces form for a multi-word tag in a heading).
 
 ### Requirements
 

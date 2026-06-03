@@ -40,19 +40,41 @@ function deterministicHashtagId(filename: string, tagname: string, occurrence: n
   return crypto.createHash('sha256').update(`${filename}:${tagname}:${occurrence}`).digest('hex').slice(0, 24);
 }
 
+// An ATX heading marker (`#`..`######` followed by whitespace). We keep the
+// marker intact but still scan the heading *text* for hashtags, so a tag can
+// live inside a heading. Splitting the marker off first stops the marker itself
+// from being mistaken for a hashtag.
+const HEADING_PREFIX_RE = /^(#{1,6}\s+)([\s\S]*)$/;
+
+function splitHeadingPrefix(line: string): { prefix: string; text: string } {
+  const match = HEADING_PREFIX_RE.exec(line);
+  return match ? { prefix: match[1], text: match[2] } : { prefix: '', text: line };
+}
+
+// Reduce hashtag markup to its bare word(s) for use as a plain section label:
+// `#selamat` -> `selamat`, `#{selamat pagi}` -> `selamat pagi`.
+function stripHashtagMarkup(text: string): string {
+  return text
+    .replace(createHashtagRegExp(), (fullMatch, bracedName: string | undefined, plainName: string | undefined) =>
+      fullMatch.startsWith('\\') ? fullMatch : (bracedName ?? plainName ?? fullMatch),
+    )
+    .trim();
+}
+
 export function applyHashtagSpans(body: string, filename: string): string {
   const occurrenceMap = new Map<string, number>();
   return body
     .split('\n')
     .map((line) => {
-      if (/^#/.test(line)) return line;
-      return line.replace(createHashtagRegExp(), (fullMatch, bracedName: string | undefined, plainName: string | undefined) => {
+      const { prefix, text } = splitHeadingPrefix(line);
+      const replaced = text.replace(createHashtagRegExp(), (fullMatch, bracedName: string | undefined, plainName: string | undefined) => {
         if (fullMatch.startsWith('\\')) return fullMatch;
         const tagname = (bracedName ?? plainName ?? '').toLowerCase().trim();
         const occ = occurrenceMap.get(tagname) ?? 0;
         occurrenceMap.set(tagname, occ + 1);
         return `<span id="_${deterministicHashtagId(filename, tagname, occ)}_" class="hashtag">#${tagname}</span>`;
       });
+      return prefix + replaced;
     })
     .join('\n');
 }
@@ -308,24 +330,26 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     let sectionHeader = '';
 
     for (const line of body.split('\n')) {
-      if (/^#/.test(line)) {
-        sectionHeader = line.replace(/^#+/, '').trim();
-      } else {
-        line.replace(createHashtagRegExp(), (fullMatch, bracedName: string | undefined, plainName: string | undefined) => {
-          if (fullMatch.startsWith('\\')) return fullMatch;
-          const tagname = (bracedName ?? plainName ?? '').toLowerCase().trim();
-          const occ = occurrenceMap.get(tagname) ?? 0;
-          occurrenceMap.set(tagname, occ + 1);
-          hashtags.push({
-            tagname,
-            id: deterministicHashtagId(article.filename, tagname, occ),
-            publicationTitle: manifestTopic.title,
-            articleTitle: article.title,
-            sectionHeader,
-          });
-          return fullMatch;
-        });
+      const { prefix, text } = splitHeadingPrefix(line);
+      // A heading both updates the current section label and may itself carry a
+      // hashtag, so we set the label first, then scan the same text below.
+      if (prefix) {
+        sectionHeader = stripHashtagMarkup(text);
       }
+      text.replace(createHashtagRegExp(), (fullMatch, bracedName: string | undefined, plainName: string | undefined) => {
+        if (fullMatch.startsWith('\\')) return fullMatch;
+        const tagname = (bracedName ?? plainName ?? '').toLowerCase().trim();
+        const occ = occurrenceMap.get(tagname) ?? 0;
+        occurrenceMap.set(tagname, occ + 1);
+        hashtags.push({
+          tagname,
+          id: deterministicHashtagId(article.filename, tagname, occ),
+          publicationTitle: manifestTopic.title,
+          articleTitle: article.title,
+          sectionHeader,
+        });
+        return fullMatch;
+      });
     }
 
     return { hashtags };
