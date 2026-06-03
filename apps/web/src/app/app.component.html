@@ -73,25 +73,31 @@
           </ion-item>
         </ion-menu-toggle>
         @if (user?.roles?.includes('admin')) {
+          <div class="admin-separator" role="separator"></div>
+
           <ion-list-header>
-            <ion-label><h2>Administrator Only</h2></ion-label>
+            <ion-label><h2>Users</h2></ion-label>
           </ion-list-header>
+          <ion-menu-toggle menu="m1">
+            <ion-item detail button lines="none" routerLink="/admin/users">
+              <ion-icon slot="start" name="people-outline"></ion-icon>
+              <ion-label>Manage Users</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
           <ion-menu-toggle menu="m1">
             <ion-item detail button lines="none" routerLink="/admin/new-user">
               <ion-icon slot="start" name="person-add-outline"></ion-icon>
               <ion-label>Invite New User</ion-label>
             </ion-item>
           </ion-menu-toggle>
+
+          <ion-list-header>
+            <ion-label><h2>Content</h2></ion-label>
+          </ion-list-header>
           <ion-menu-toggle menu="m1">
             <ion-item detail button lines="none" routerLink="/admin/content">
               <ion-icon slot="start" name="library-outline"></ion-icon>
               <ion-label>Manage Content</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
-          <ion-menu-toggle menu="m1">
-            <ion-item detail button lines="none" routerLink="/admin/users">
-              <ion-icon slot="start" name="people-outline"></ion-icon>
-              <ion-label>Manage Users</ion-label>
             </ion-item>
           </ion-menu-toggle>
           <ion-menu-toggle menu="m1">
@@ -100,12 +106,10 @@
               <ion-label>Upload Content</ion-label>
             </ion-item>
           </ion-menu-toggle>
-          <ion-menu-toggle menu="m1">
-            <ion-item detail button lines="none" routerLink="/admin/system-settings">
-              <ion-icon slot="start" name="settings-outline"></ion-icon>
-              <ion-label>System Settings</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
+
+          <ion-list-header>
+            <ion-label><h2>Hashtags</h2></ion-label>
+          </ion-list-header>
           <ion-menu-toggle menu="m1">
             <ion-item detail button lines="none" routerLink="/admin/hashtag-usage">
               <ion-icon slot="start" name="pricetags-outline"></ion-icon>
@@ -116,6 +120,16 @@
             <ion-item button lines="none" (click)="reprocessHashtags()">
               <ion-icon slot="start" name="refresh-outline"></ion-icon>
               <ion-label>Reprocess Hashtags</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-list-header>
+            <ion-label><h2>System</h2></ion-label>
+          </ion-list-header>
+          <ion-menu-toggle menu="m1">
+            <ion-item detail button lines="none" routerLink="/admin/system-settings">
+              <ion-icon slot="start" name="settings-outline"></ion-icon>
+              <ion-label>System Settings</ion-label>
             </ion-item>
           </ion-menu-toggle>
         }

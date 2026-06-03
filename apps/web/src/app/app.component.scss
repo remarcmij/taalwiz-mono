@@ -39,6 +39,15 @@
   }
 }
 
+// Thin rule that sets the admin section apart from the regular menu items
+// (replaces the former "Administrator Only" header; the items below are still
+// admin-gated and now carry their own group subheaders).
+.admin-separator {
+  height: 1px;
+  margin: 12px 16px 0;
+  background: var(--ion-color-step-150, rgba(0, 0, 0, 0.12));
+}
+
 ion-menu.toc-menu {
   ion-item {
     --min-height: 38px;
