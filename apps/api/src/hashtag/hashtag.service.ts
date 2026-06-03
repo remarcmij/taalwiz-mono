@@ -4,7 +4,7 @@ import { authorizedGroups } from '../auth/authorized-groups.js';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
 import Hashtag from '../content/models/hashtag.model.js';
 import { TopicDoc } from '../content/models/topic.model.js';
-import { HashTagGroup } from './types/hashtag.type.js';
+import { HashTagGroup, HashtagUsage } from './types/hashtag.type.js';
 
 @Injectable()
 export class HashtagService {
@@ -32,6 +32,30 @@ export class HashtagService {
       group.tags.sort((a, b) => a.name.localeCompare(b.name));
     });
     return hashtagGroups;
+  }
+
+  // Admin-only, global (no group filter): every tag in use with how many distinct
+  // articles carry it and how many total occurrences, alphabetical. Backs the
+  // admin "Hashtag usage" page that helps content creators reuse existing tags.
+  async getHashtagUsage(): Promise<HashtagUsage[]> {
+    return Hashtag.aggregate<HashtagUsage>([
+      {
+        $group: {
+          _id: '$name',
+          occurrences: { $sum: 1 },
+          topics: { $addToSet: '$_topic' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: '$_id',
+          occurrences: 1,
+          articles: { $size: '$topics' },
+        },
+      },
+      { $sort: { name: 1 } },
+    ]).exec();
   }
 
   async findHashtag(name: string, user: JwtPayload) {

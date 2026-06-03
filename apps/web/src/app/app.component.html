@@ -107,6 +107,12 @@
             </ion-item>
           </ion-menu-toggle>
           <ion-menu-toggle menu="m1">
+            <ion-item detail button lines="none" routerLink="/admin/hashtag-usage">
+              <ion-icon slot="start" name="pricetags-outline"></ion-icon>
+              <ion-label>Hashtag Usage</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+          <ion-menu-toggle menu="m1">
             <ion-item button lines="none" (click)="reprocessHashtags()">
               <ion-icon slot="start" name="refresh-outline"></ion-icon>
               <ion-label>Reprocess Hashtags</ion-label>

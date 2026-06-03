@@ -16,6 +16,7 @@ import {
   mailOutline,
   peopleOutline,
   personAddOutline,
+  pricetagsOutline,
   refreshOutline,
   reloadOutline,
   settingsOutline,
@@ -142,6 +143,7 @@ export class AppComponent implements OnInit, OnDestroy {
       peopleOutline,
       cloudUploadOutline,
       refreshOutline,
+      pricetagsOutline,
     });
   }
 

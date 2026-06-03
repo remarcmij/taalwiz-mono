@@ -1,0 +1,36 @@
+.count {
+  color: var(--ion-color-medium);
+  font-size: 0.85rem;
+  margin: 12px 0;
+}
+
+table.usage {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    text-align: left;
+    padding: 6px 12px 6px 0;
+    border-bottom: 1px solid var(--ion-color-light-shade, #e0e0e0);
+  }
+
+  th.num,
+  td.num {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: var(--ion-background-color);
+  }
+
+  td.empty {
+    color: var(--ion-color-medium);
+    text-align: center;
+    padding: 24px 0;
+  }
+}

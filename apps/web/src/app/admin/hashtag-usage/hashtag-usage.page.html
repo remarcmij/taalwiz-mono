@@ -1,0 +1,59 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="tertiary">
+    <ion-buttons slot="start">
+      <app-back-button></app-back-button>
+    </ion-buttons>
+    <ion-title>Hashtag Usage</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="copy()" title="Copy list to clipboard">
+        <ion-icon slot="icon-only" name="copy-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="download()" title="Download as text file">
+        <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="print()" title="Print">
+        <ion-icon slot="icon-only" name="print-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar color="tertiary">
+    <ion-searchbar
+      placeholder="Filter tags"
+      [debounce]="150"
+      (ionInput)="onSearch($any($event.target).value)"></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    <p class="count">
+      @if (filter()) {
+        Showing {{ filtered().length }} of {{ usage().length }} tags
+      } @else {
+        {{ usage().length }} tags
+      }
+    </p>
+    <table class="usage">
+      <thead>
+        <tr>
+          <th>Tag</th>
+          <th class="num">Articles</th>
+          <th class="num">Uses</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (tag of filtered(); track tag.name) {
+          <tr>
+            <td>{{ tag.name }}</td>
+            <td class="num">{{ tag.articles }}</td>
+            <td class="num">{{ tag.occurrences }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3" class="empty">No hashtags found.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</ion-content>
