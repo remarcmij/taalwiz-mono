@@ -71,7 +71,8 @@ export class ArticlePage {
     if (!hashtagId) return;
     this.#tocService.scrollToId.set(null);
     const spanEl = document.querySelector(`#_${hashtagId}_`);
-    spanEl?.scrollIntoView({ block: 'start', inline: 'start', behavior: 'instant' });
+    // Vertical scroll only; `inline: 'nearest'` avoids a sideways jump.
+    spanEl?.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'instant' });
   }
 
   onClicked(event: MouseEvent) {

@@ -119,6 +119,9 @@ span.hashtag {
   .hash-sign {
     font-size: 0.7em;
     vertical-align: super;
+    // Inherit the tag's amber; without this the `.text-content span` rule would
+    // colour it like a foreign word.
+    color: inherit;
     opacity: 0.6;
     margin-left: 0.05em;
     pointer-events: none;
