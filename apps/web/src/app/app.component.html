@@ -77,9 +77,39 @@
             <ion-label><h2>Administrator Only</h2></ion-label>
           </ion-list-header>
           <ion-menu-toggle menu="m1">
-            <ion-item detail button lines="none" routerLink="admin">
-              <ion-icon slot="start" name="rocket-outline"></ion-icon>
-              <ion-label>Administrative Tasks</ion-label>
+            <ion-item detail button lines="none" routerLink="/admin/new-user">
+              <ion-icon slot="start" name="person-add-outline"></ion-icon>
+              <ion-label>Invite New User</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+          <ion-menu-toggle menu="m1">
+            <ion-item detail button lines="none" routerLink="/admin/content">
+              <ion-icon slot="start" name="library-outline"></ion-icon>
+              <ion-label>Manage Content</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+          <ion-menu-toggle menu="m1">
+            <ion-item detail button lines="none" routerLink="/admin/users">
+              <ion-icon slot="start" name="people-outline"></ion-icon>
+              <ion-label>Manage Users</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+          <ion-menu-toggle menu="m1">
+            <ion-item detail button lines="none" routerLink="/admin/upload">
+              <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+              <ion-label>Upload Content</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+          <ion-menu-toggle menu="m1">
+            <ion-item detail button lines="none" routerLink="/admin/system-settings">
+              <ion-icon slot="start" name="settings-outline"></ion-icon>
+              <ion-label>System Settings</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+          <ion-menu-toggle menu="m1">
+            <ion-item button lines="none" (click)="reprocessHashtags()">
+              <ion-icon slot="start" name="refresh-outline"></ion-icon>
+              <ion-label>Reprocess Hashtags</ion-label>
             </ion-item>
           </ion-menu-toggle>
         }

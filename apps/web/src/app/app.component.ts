@@ -8,12 +8,16 @@ import { Preferences } from '@capacitor/preferences';
 import { addIcons } from 'ionicons';
 import {
   cloudDownloadOutline,
+  cloudUploadOutline,
   helpCircleOutline,
   informationCircleOutline,
+  libraryOutline,
   logOutOutline,
   mailOutline,
+  peopleOutline,
+  personAddOutline,
+  refreshOutline,
   reloadOutline,
-  rocketOutline,
   settingsOutline,
   shieldHalfOutline,
 } from 'ionicons/icons';
@@ -36,12 +40,14 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
+  AlertController,
   MenuController,
   ModalController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AboutModalComponent } from './about/about-modal/about-modal.component';
+import { AdminService } from './admin/admin.service';
 import { AuthService } from './auth/auth.service';
 import { DictSyncService, SyncStatus } from './home/dictionary/dict-sync.service';
 import { TocService } from './home/content/publication/article/toc.service';
@@ -77,6 +83,8 @@ import { PromptUpdateService, UPDATE_INSTALLED_FLAG } from './sw-update/prompt-u
 export class AppComponent implements OnInit, OnDestroy {
   #router = inject(Router);
   #authService = inject(AuthService);
+  #adminService = inject(AdminService);
+  #alertCtrl = inject(AlertController);
   #dictSync = inject(DictSyncService);
   #menuCtrl = inject(MenuController);
   #modalCtrl = inject(ModalController);
@@ -127,9 +135,13 @@ export class AppComponent implements OnInit, OnDestroy {
       shieldHalfOutline,
       mailOutline,
       logOutOutline,
-      rocketOutline,
       reloadOutline,
       settingsOutline,
+      personAddOutline,
+      libraryOutline,
+      peopleOutline,
+      cloudUploadOutline,
+      refreshOutline,
     });
   }
 
@@ -223,6 +235,27 @@ export class AppComponent implements OnInit, OnDestroy {
 
   applyUpdate() {
     this.#updateService.applyUpdate();
+  }
+
+  reprocessHashtags() {
+    this.#adminService.reprocessHashtags().subscribe({
+      next: async () => {
+        const alert = await this.#alertCtrl.create({
+          header: 'Done',
+          message: 'Hashtags reprocessed successfully.',
+          buttons: ['OK'],
+        });
+        await alert.present();
+      },
+      error: async (err) => {
+        const alert = await this.#alertCtrl.create({
+          header: 'Error',
+          message: err?.error?.message ?? 'Reprocess failed.',
+          buttons: ['OK'],
+        });
+        await alert.present();
+      },
+    });
   }
 
   async #showSyncDoneToast() {

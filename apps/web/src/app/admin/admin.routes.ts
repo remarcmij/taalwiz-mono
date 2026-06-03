@@ -1,11 +1,10 @@
 import { Routes } from '@angular/router';
 
-import { AdminPage } from './admin.page';
-
 export const ADMIN_ROUTES: Routes = [
   {
     path: '',
-    component: AdminPage,
+    redirectTo: 'users',
+    pathMatch: 'full',
   },
   {
     path: 'users',
