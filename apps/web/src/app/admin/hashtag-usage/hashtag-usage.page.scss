@@ -1,8 +1,23 @@
 // Narrow just this page's content column (the tag table is only three slim
 // columns). The header toolbars live outside .content-container, so they keep the
 // app-wide width. This component-scoped rule overrides the global 768px cap.
+// Horizontal padding keeps the table off the screen edges (other pages get this
+// from ion-item; this page uses a raw table).
 .content-container {
   max-width: 576px;
+  padding-inline: 16px;
+}
+
+// The searchbar sits on the tertiary (purple) toolbar, which tints the input so
+// it looks disabled. Give the field a proper editable surface: white in light
+// mode (card background) / dark elevated surface in dark mode, with a legible
+// placeholder and icons.
+ion-searchbar {
+  --background: var(--ion-card-background);
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+  --icon-color: var(--ion-color-medium);
+  --clear-button-color: var(--ion-color-medium);
 }
 
 .count {

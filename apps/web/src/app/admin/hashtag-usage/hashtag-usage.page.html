@@ -18,6 +18,7 @@
   </ion-toolbar>
   <ion-toolbar color="tertiary">
     <ion-searchbar
+      mode="md"
       placeholder="Filter tags"
       [debounce]="150"
       (ionInput)="onSearch($any($event.target).value)"></ion-searchbar>
