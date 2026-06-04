@@ -35,6 +35,13 @@ ion-breadcrumb {
   font-weight: bold;
 }
 
+// The horizontal ellipsis glyph sits on the baseline, making it look low next
+// to the word crumbs. Nudge it up so it optically centres with them.
+.ellipsis-crumb {
+  display: inline-block;
+  transform: translateY(-0.18em);
+}
+
 .lemma-button {
   float: right;
   text-transform: uppercase;

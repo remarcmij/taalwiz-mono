@@ -45,15 +45,18 @@
   <div class="content-container">
     @if (recentSearches().length > 1) {
     <ion-breadcrumbs color="primary">
+      @if (hasMoreHistory()) {
+        <ion-breadcrumb
+          [separator]="false"
+          (click)="openHistory(); $event.stopPropagation()"
+          ><span class="ellipsis-crumb">…</span></ion-breadcrumb>
+      }
       @for (wordLang of recentSearches(); track wordLang.key) {
         <ion-breadcrumb
-          (click)="lookup(wordLang); $event.stopPropagation()"
+          (click)="onBreadcrumbClicked(wordLang); $event.stopPropagation()"
           [ngClass]="{'active-breadcrumb': wordLang.key === currentTarget()?.key}">
           {{ wordLang.word }}
         </ion-breadcrumb>
-      }
-      @if (hasMoreHistory()) {
-        <ion-breadcrumb (click)="openHistory(); $event.stopPropagation()">···</ion-breadcrumb>
       }
     </ion-breadcrumbs>
     }

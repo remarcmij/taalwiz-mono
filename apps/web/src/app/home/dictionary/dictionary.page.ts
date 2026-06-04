@@ -58,7 +58,7 @@ import { SearchHistoryService } from './search-history.service';
 import { SearchbarDropdownComponent } from './searchbar-dropdown/searchbar-dropdown.component';
 import { WordLang } from './word-lang.model';
 
-const MAX_RECENT_SEARCHES = 4;
+const MAX_RECENT_SEARCHES = 3;
 
 @Component({
   selector: 'app-dictionary',
@@ -130,12 +130,21 @@ export class DictionaryPage implements OnDestroy {
 
   #destroy$ = new Subject<void>();
 
+  // Set when a lookup originates from a breadcrumb click so the result handler
+  // skips re-adding the word to history. Clicking a breadcrumb is back-navigation
+  // within the trail; the word should stay in place rather than jump to the end.
+  #suppressHistoryAdd = false;
+
   results$ = this.#dictionaryService.lookupResult$.pipe(
     filter(Boolean),
     tap((results) => {
+      const suppressHistoryAdd = this.#suppressHistoryAdd;
+      this.#suppressHistoryAdd = false;
       this.currentTarget.set(results.targetBase);
       if (results.bases.length > 0) {
-        this.addRecentSearch(results.targetBase!);
+        if (!suppressHistoryAdd) {
+          this.addRecentSearch(results.targetBase!);
+        }
         this.word.set('');
       } else {
         this.word.set(results.targetBase!.word);
@@ -150,6 +159,11 @@ export class DictionaryPage implements OnDestroy {
 
   lookup(target: WordLang): void {
     this.#dictionaryService.lookup(target);
+  }
+
+  onBreadcrumbClicked(target: WordLang): void {
+    this.#suppressHistoryAdd = true;
+    this.lookup(target);
   }
 
   async openHistory(): Promise<void> {
