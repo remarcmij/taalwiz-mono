@@ -85,6 +85,7 @@ The UI is available in Dutch (`nl`) and English (`en`). Each user's preferred UI
 - An authenticated user changes their preference from the Settings page; the web client `PATCH`es `/api/v1/users/me/lang`, then updates the in-memory `User` and re-persists the cached `authData` so the menu links update reactively and survive an `autoLogin`.
 - Local Capacitor `Preferences` (key `app.lang`) is a **bootstrap cache only** so pre-login screens (login, register, password reset) render in the last-used language. On login, the server value overwrites the cache.
 - A change on one device only propagates to other devices at the next full login (refresh-token reissue does not fetch the profile).
+- The `/help/{lang}` pages are backed by `help.en.md` / `help.nl.md` in `apps/api/src/content/seeds/`, which are the **source of truth**. They are copied into `dist/` as Nest build assets (`nest-cli.json`) and seeded into the database on startup (`ContentService.onApplicationBootstrap`), idempotently via an MD5 checksum (unchanged file is a no-op; an edit refreshes the stored copy on the next restart). Edit the seed files to change help content; do **not** rely on a one-off admin upload, which a later restart would overwrite. The `help` group is exempt from the deployment `targetLang` check in `ArticleLoader` because help is UI-language documentation, not target-language (Indonesian) content.
 
 ## Security
 

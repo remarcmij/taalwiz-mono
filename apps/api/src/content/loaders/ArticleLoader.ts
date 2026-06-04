@@ -185,7 +185,13 @@ class ArticleLoader extends BaseLoader<ArticleDoc> {
     }
     const attributes: ArticleFrontMatterAttributes = result.data;
 
-    this.assertTargetLang(attributes.targetLang, filename);
+    // `help` articles are app documentation keyed by UI language (en/nl), not
+    // Indonesian learning-content, so they are language-agnostic with respect
+    // to the deployment target language and exempt from the target check
+    // (cf. the `main` manifest exemption in parseManifest).
+    if (group !== 'help') {
+      this.assertTargetLang(attributes.targetLang, filename);
+    }
 
     const titleMatch = content.match(/^# *([^#][^\n]+)/m);
     const title = attributes.title ?? (titleMatch ? titleMatch[1] : 'untitled');

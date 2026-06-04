@@ -106,7 +106,7 @@ Read endpoints are scoped to the calling user's authorized content groups. See [
 
 The API supports uploading content article files in markdown format. The content files are expected to be in the format of `group.name.md`, where `group` is a string that represents the group of the article, and `name` is a string that represents the name of the article. For example, `english.hello-world.md` would be an article in the `english` group with the name `hello-world`.
 
-**Help articles:** `help.en.md` and `help.nl.md` live in `src/content/seeds/` and must be uploaded manually via the admin interface. Re-uploading an unchanged file is a no-op (detected via MD5 checksum).
+**Help articles:** `help.en.md` and `help.nl.md` live in `src/content/seeds/` and are the source of truth for the `/help/{lang}` pages. They are copied into `dist/` as build assets (`nest-cli.json`) and seeded into the database automatically on startup (`ContentService.onApplicationBootstrap`), so a fresh or reset database always has working help pages without a manual upload. Seeding is idempotent via an MD5 checksum: an unchanged file is a no-op, and editing a seed file refreshes the stored copy on the next restart. To change help content, edit these files (not via a one-off admin upload, which a later restart would overwrite).
 
 ### Dictionary Files
 

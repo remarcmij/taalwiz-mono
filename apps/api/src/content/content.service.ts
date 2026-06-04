@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import type { FilterQuery } from 'mongoose';
 import { authorizedGroups } from '../auth/authorized-groups.js';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
@@ -16,14 +16,44 @@ import Topic from './models/topic.model.js';
 const IMAGE_EXT_PATTERN = /\.(jpe?g|png|gif|webp)$/i;
 const IMAGES_DIR = path.join(import.meta.dirname, '..', '..', 'public/assets/images');
 
+// Help articles bundled with the app. They are copied into dist as build
+// assets (see nest-cli.json) and seeded into the DB on boot so a fresh
+// deployment or post-reset database always has working /help/{lang} pages
+// without a manual admin upload.
+const SEEDS_DIR = path.join(import.meta.dirname, 'seeds');
+const HELP_SEED_FILES = ['help.en.md', 'help.nl.md'];
+
 @Injectable()
-export class ContentService {
+export class ContentService implements OnApplicationBootstrap {
   public readonly uploadEventEmitter = new EventEmitter();
   private readonly articleLoader = new ArticleLoader();
   private readonly dictLoader = new DictLoader();
   private uploadChain: Promise<void> = Promise.resolve();
   private readonly logger = new Logger(ContentService.name);
   readonly #htmlCache = new LRUCache<string, string>({ max: 500 });
+
+  async onApplicationBootstrap(): Promise<void> {
+    await this.#seedHelpArticles();
+  }
+
+  // Idempotent: ArticleLoader.importUpload no-ops when the file's MD5 matches
+  // the stored topic, so this only writes on a fresh DB or when the bundled
+  // help text actually changed in a deploy. A missing seed file is logged and
+  // skipped rather than crashing startup.
+  async #seedHelpArticles(): Promise<void> {
+    for (const filename of HELP_SEED_FILES) {
+      try {
+        const content = await fs.readFile(path.join(SEEDS_DIR, filename), 'utf8');
+        const changed = await this.articleLoader.importUpload(content, filename);
+        this.logger.log(
+          changed ? `seeded help article '${filename}'` : `help article '${filename}' already up to date`,
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'unknown error';
+        this.logger.warn(`could not seed help article '${filename}': ${message}`);
+      }
+    }
+  }
 
   async findPublications(user: JwtPayload) {
     const mainManifest = await Topic.findOne({ type: 'main' }).lean();
