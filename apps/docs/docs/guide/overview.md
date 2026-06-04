@@ -73,7 +73,7 @@ What the figure shows is that the word _beraadslagen_ occurs in several Teeuw le
 
 ### Offline Use
 
-The dictionary data is downloaded once, when the app is first installed; this can take a few minutes. After that the dictionary works without a network connection, for instance on a phone in flight mode or in an area with no coverage.
+The dictionary data is downloaded once, when the app is first installed; this can take up to a minute. After that the dictionary works without a network connection, for instance on a phone in flight mode or in an area with no coverage.
 
 
 ## Library Tab - Publications and Articles
