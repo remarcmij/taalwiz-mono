@@ -30,6 +30,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { EMAIL_EXISTS, EMAIL_MISMATCH, MIN_PASSWORD_LENGTH, TOKEN_INVALID } from '@repo/shared';
 import { AuthService } from '../auth.service';
+import { homeUrl } from '../../home/home.routes';
 
 @Component({
   selector: 'app-auth',
@@ -101,9 +102,7 @@ export class RegisterPage implements OnInit {
       )
       .subscribe({
         next: () => {
-          this.#router.navigateByUrl(`/welcome/${this.#lang}`, {
-            replaceUrl: true,
-          });
+          this.showWelcome();
         },
         error: (errResp) => {
           switch (errResp.error.message) {
@@ -130,6 +129,18 @@ export class RegisterPage implements OnInit {
 
     const { password } = form.value;
     this.register(password);
+  }
+
+  private async showWelcome() {
+    const alertEl = await this.#alertCtrl.create({
+      header: this.#translate.instant('user.welcome'),
+      message: this.#translate.instant('user.welcome-message', { name: this.name() }),
+      buttons: [this.#translate.instant('common.ok')],
+    });
+    alertEl.onDidDismiss().then(() => {
+      this.#router.navigateByUrl(homeUrl, { replaceUrl: true });
+    });
+    await alertEl.present();
   }
 
   private showAlert(message: string) {

@@ -15,11 +15,6 @@ export const APP_ROUTES: Routes = [
   },
 
   {
-    path: 'welcome/:lang',
-    loadComponent: () => import('./user/welcome/welcome.page').then((p) => p.WelcomePage),
-    canActivate: [authGuard],
-  },
-  {
     path: 'admin',
     loadChildren: () => import('./admin/admin.routes').then((r) => r.ADMIN_ROUTES),
     canActivate: [adminGuard],

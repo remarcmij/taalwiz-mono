@@ -48,6 +48,7 @@
   },
   "user": {
     "welcome": "Welcome",
+    "welcome-message": "Welcome to TaalWiz, {{name}}! Your account is ready.",
     "contact": "Contact TaalWiz",
     "contact-header": "Please use this form to submit suggestions for improvement or to report issues you may have encountered with using TaalWiz.",
     "contact-placeholder": "Enter your message here.",
