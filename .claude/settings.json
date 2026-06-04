@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:4200)",
+      "Bash(curl -s http://localhost:3000/api/v1/health)",
+      "Read(//private/tmp/**)",
+      "Bash(kill -9 53194)",
+      "Bash(pkill -f \"nest start\")",
+      "Bash(pkill -f \"ng serve\")",
+      "Bash(pkill -f \"vite\")",
+      "Bash(xargs kill)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl -s https://raw.githubusercontent.com/ariefrahmansyah/stemmer/master/stemmer.go)",
+      "mcp__mongodb-mcp-server__list-databases",
+      "mcp__mongodb-mcp-server__list-collections",
+      "mcp__mongodb-mcp-server__collection-schema",
+      "mcp__mongodb-mcp-server__find",
+      "Bash(node_modules/.bin/tsc --project tsconfig.json --noEmit)",
+      "Bash(node_modules/.bin/tsc --project tsconfig.json)",
+      "Bash(echo \"Exit code: $?\")",
+      "Read(//Volumes/Crucial2TB/xdev/xdev/node/taalwiz-mono/apps/taalwiz-web/src/app/home/content/publication/article/**)",
+      "Bash(awk '{print $NF}')",
+      "Bash(gh api *)",
+      "Read(//Volumes/Curious2TB/xdev/node/taalwiz-mono/apps/taalwiz-api/src/vocabulary/**)",
+      "Bash(mongosh taalwiz *)",
+      "WebFetch(domain:marked.js.org)",
+      "Bash(npm view *)",
+      "WebFetch(domain:github.com)",
+      "Bash(npx ng *)",
+      "Bash(grep \"\\\\.ts$\\\\|\\\\.html$\")",
+      "Bash(sed -n '35,45p' apps/web/src/app/home/speech-synthesizer.service.ts)",
+      "Bash(sed -n '85,100p' apps/web/src/app/app.component.ts)",
+      "Bash(grep -rn \"^[[:space:]]*//.*[^\\\\\\\\']'\\\\$\\\\|^[[:space:]]*//.*[\\);}]$\\\\|^[[:space:]]*// import\" apps/api/src apps/web/src --include=\"*.ts\")",
+      "Bash(npx prettier *)",
+      "Bash(sed -n '15,35p' apps/api/src/user-preferences/user-preferences.service.ts)",
+      "Bash(sed -n '50,65p' apps/api/src/vocabulary/vocabulary.service.ts)",
+      "Bash(sed -n '75,90p' apps/api/src/vocabulary/vocabulary.service.ts)"
+    ]
+  }
+}

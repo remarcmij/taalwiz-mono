@@ -33,9 +33,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Claude Code — ignore local config, but track shared skills
+# Claude Code — track shared config (settings.json, skills); ignore personal
+# overrides (settings.local.json) and transient local state.
 .claude/*
 !.claude/skills/
+!.claude/settings.json
 
 # Misc
 .DS_Store
