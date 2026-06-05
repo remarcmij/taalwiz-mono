@@ -141,6 +141,8 @@ export class StudyModalComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.selectedListId.set(this.defaultListId());
+    // Open with up-to-date due counts in the picker.
+    void this.#studyService.refreshStats();
     const { value } = await Preferences.get({ key: 'study.ratingHintDismissed' });
     if (!value) {
       this.showRatingHint.set(true);
@@ -253,6 +255,9 @@ export class StudyModalComponent implements OnInit {
   }
 
   close(): void {
+    // A session may have rescheduled cards; refresh so the due-count badges
+    // (picker and the vocabulary-page Study button) reflect reality.
+    void this.#studyService.refreshStats();
     this.#modalCtrl.dismiss();
   }
 }
