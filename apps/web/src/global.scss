@@ -128,6 +128,63 @@ span.hashtag {
   }
 }
 
+// Quiz blanks: authored as `~~...~~` strikethrough, rendered to <del>. A blank
+// with no `|` is a single-answer recall reveal; one containing `|` is multiple
+// choice (options split on `|`, the `=` one correct), expanded client-side into
+// .quiz-option chips. Interaction lives in ArticlePage.onClicked.
+.text-content del {
+  cursor: pointer;
+  // Kill the browser default strikethrough; here it reads as a fill-in blank.
+  text-decoration: none;
+}
+
+// Before reveal/expand, collapse the answer text and draw a fixed-width
+// placeholder so the answer's length is not leaked.
+.text-content del:not(.revealed):not(.expanded) {
+  font-size: 0;
+
+  &::before {
+    content: '_____';
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: var(--ion-color-medium);
+  }
+}
+
+// Revealed single-answer recall blank.
+.text-content del.revealed {
+  color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+.text-content del .quiz-option {
+  display: inline-block;
+  margin: 0 0.15em;
+  padding: 0.1em 0.6em;
+  border: 1px solid var(--ion-color-medium);
+  border-radius: 1em;
+  // Out-specify the generic `.text-content span { color: ... }` rule.
+  color: var(--ion-text-color);
+  cursor: pointer;
+}
+
+.text-content del .quiz-option.correct {
+  background-color: var(--ion-color-success);
+  border-color: var(--ion-color-success);
+  color: var(--ion-color-success-contrast);
+}
+
+.text-content del .quiz-option.incorrect {
+  background-color: var(--ion-color-danger);
+  border-color: var(--ion-color-danger);
+  color: var(--ion-color-danger-contrast);
+}
+
+.text-content del.locked .quiz-option {
+  cursor: default;
+  pointer-events: none;
+}
+
 .noselect {
   -webkit-user-select: none;
   user-select: none;

@@ -76,15 +76,91 @@ export class ArticlePage {
   }
 
   onClicked(event: MouseEvent) {
-    if (!(event.target instanceof HTMLSpanElement)) {
+    const target = event.target;
+
+    // Quiz blanks are authored as `~~...~~` strikethrough, which renders to a
+    // <del>. Because strikethrough text is never wrapped in a word-span (those
+    // only appear inside emphasis), it cannot collide with tap-to-search.
+    if (target instanceof HTMLElement && target.tagName === 'DEL') {
+      this.#onQuizBlankClicked(target);
       return;
     }
 
-    if (event.target.classList.contains('hashtag')) {
-      this.#openHashtag(event.target);
+    if (!(target instanceof HTMLSpanElement)) {
+      return;
+    }
+
+    // A tapped multiple-choice option (a chip created client-side inside a
+    // <del>); checked before the word-lookup branch since it is also a span.
+    if (target.classList.contains('quiz-option')) {
+      this.#answerQuizOption(target);
+    } else if (target.classList.contains('hashtag')) {
+      this.#openHashtag(target);
     } else {
       this.#wordClickModalService.onClicked(event);
     }
+  }
+
+  #onQuizBlankClicked(del: HTMLElement) {
+    // Multiple-choice blanks are expanded into chips on first tap and then
+    // become inert at the container level; option taps are handled separately.
+    if (del.classList.contains('expanded') || del.classList.contains('locked')) {
+      return;
+    }
+
+    const text = del.textContent ?? '';
+    if (text.includes('|')) {
+      this.#expandQuizOptions(del, text);
+    } else {
+      // Single-answer recall blank: toggle the answer in and out of view.
+      del.classList.toggle('revealed');
+    }
+  }
+
+  #expandQuizOptions(del: HTMLElement, text: string) {
+    const options = text
+      .split('|')
+      .map((option) => option.trim())
+      .filter((option) => option.length > 0)
+      .map((option) => {
+        // The correct option is flagged with a leading '='; strip the marker.
+        const isCorrect = option.startsWith('=');
+        return { label: isCorrect ? option.slice(1).trim() : option, isCorrect };
+      });
+
+    // Shuffle (Fisher-Yates) so the correct option's source position is hidden.
+    for (let i = options.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+
+    del.replaceChildren(
+      ...options.map(({ label, isCorrect }) => {
+        // textContent (not innerHTML) keeps the label escaped.
+        const span = document.createElement('span');
+        span.className = 'quiz-option';
+        span.dataset['correct'] = String(isCorrect);
+        span.textContent = label;
+        return span;
+      }),
+    );
+    del.classList.add('expanded');
+  }
+
+  #answerQuizOption(option: HTMLSpanElement) {
+    const del = option.closest('del');
+    if (!del || del.classList.contains('locked')) {
+      return;
+    }
+
+    // One-shot: mark the chosen chip, reveal the correct one on a wrong guess,
+    // then lock the blank so it can no longer be answered.
+    const isCorrect = option.dataset['correct'] === 'true';
+    option.classList.add(isCorrect ? 'correct' : 'incorrect');
+    if (!isCorrect) {
+      del.querySelector('.quiz-option[data-correct="true"]')?.classList.add('correct');
+    }
+    del.classList.add('locked');
   }
 
   onKeydown(event: KeyboardEvent) {
