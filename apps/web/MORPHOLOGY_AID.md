@@ -39,70 +39,19 @@ supplement mechanism (see section 6), never conjured by the code.
 
 ---
 
-## 2. How the compiler derives `base` (headword) vs `keyword`
+## 2. Where `base` (headword) vs `keyword` comes from
 
 The aid's root-vs-derived test (section 3) rests entirely on the dictionary's
-`base`/`keyword` structure, so it is worth knowing where that structure comes from. It is
-**not a manual annotation** and **not a parser heuristic** — it is a mechanical encoding of
-Teeuw's own printed typography.
+`base`/`keyword` structure. The short version: it is a mechanical encoding of Teeuw's own
+**printed indentation** (a headword sits at the left margin; its derived run-on forms are
+indented beneath it), and the compiler preserves it — the first `**bold**` word of a
+blank-line-delimited block becomes the `base` (headword), and every later `**bold**` word in
+that block becomes a `keyword` _under_ that base. So `keyword != base` means "derived form",
+and it is editorial typography, not a parser heuristic.
 
-### 2.1 It mirrors the print's indentation
-
-In the printed Teeuw, a headword sits at the **left margin**, and its derived run-on forms
-are **indented beneath it**. For example, under the headword `indah`:
-
-```
-indah I, fraai, mooi, ...
-    memperindah(kan), verfraaien enz;
-    keindahan, schoonheid; ...
-    pengindahan, verfraaiing;
-    pengindah, sier(plant, enz);
-```
-
-`indah` is the headword (root); `memperindah`, `keindahan`, `pengindahan`, `pengindah` are
-indented derived forms _under_ it. The markdown source encodes this indentation in a
-parsable way: a **blank line** marks the return to the left margin, i.e. the start of a new
-headword block. So the headword/derived distinction the aid relies on is Teeuw's editorial
-layout, preserved mechanically — not something we inferred.
-
-### 2.2 The compiler algorithm (verified against the source)
-
-- **Block = the lines between blank lines.** A blank line triggers the parser's `reset()`
-  (`apps/compiler/src/Compiler.ts`, the read loop; `TeeuwParser.ts` `reset()`), which saves
-  the current base as `_prevBase` and clears `_base = null`.
-- **The first `**bold**` word of a block becomes the `base` (headword).** It is set once per
-  block, guarded by `if (!this._base) this.setBase(word)` (`TeeuwParser.ts`). The base then
-  **persists for the entire block**.
-- **Every later `**bold**` word in the same block becomes `keyword: 1` _under that same
-  base_** — it does not start a new headword, because the `if (!_base)` guard is already
-  false. This is the mechanism that makes a derived run-on form (`memukul`, `keindahan`) a
-  keyword sharing its root's `base`.
-- **The `keyword` flag** (`Compiler.ts`; `TeeuwParser.ts`): `**bold**` words before a `->`
-  cross-reference arrow, plus the Dutch translation words, get `keyword: 1`; `*italic*`
-  words, `**bold**` words _after_ a `->`, and the bare base-as-word get `keyword: 0`.
-- **Homonym numbering** (`ParserBase.ts` `setBase()`): not a within-block marker. When the
-  _same_ base reappears in a later block, `_homonym` increments (same headword, next sense);
-  a different base resets it to 0. Roman numerals (`I`, `II`) in the source are just text.
-
-Worked example, the `babak` block (one base, three keywords):
-
-```
-**babak** I, 1 bedrijf (toneelstuk, ed);   -> base "babak", keyword 1
-2 fase, stadium;                           -> still base "babak"
-**babakan**, periode, ...;                 -> base "babak", keyword 1 (NOT a new base)
-**pembabakan**, indeling in bedrijven ...  -> base "babak", keyword 1
-```
-
-And two blocks of `bab` give `homonym` 0 then 1:
-
-```
-**bab** I, 1 hoofdstuk, ...    -> base "bab", homonym 0
-                               (blank line: reset)
-**bab** II A, poort, deur.     -> base "bab", homonym 1
-```
-
-> `apps/compiler/INTERNALS.md` lists the markup table but understates that only the _first_
-> bold word of a block is the base. This document is the precise statement.
+The full algorithm (blank-line blocks, the `if (!_base)` guard, homonym numbering, the
+`keyword` flag, worked examples) lives with the compiler it describes:
+**[../compiler/TEEUW_PARSER.md, Part 1](../compiler/TEEUW_PARSER.md)**.
 
 ---
 
@@ -170,7 +119,7 @@ same chapter JSON, flagged `isSupplement`, rendered amber/underlined in the dict
 segmenter never invents such a form. In fact, the segmenter quietly _wanting_ an unattested
 intermediate is a useful signal: it is a candidate list for the curator to consider adding to
 `a+` — the linguist-collaboration hook, with no "help us improve" nagging. See
-`apps/compiler/TEEUW_SUPPLEMENT.md`.
+[../compiler/TEEUW_PARSER.md, Part 2](../compiler/TEEUW_PARSER.md).
 
 ---
 
@@ -214,6 +163,7 @@ over-generates candidate variations rather than stemming); a rename is tracked s
 
 ## See also
 
-- `apps/compiler/TEEUW_SUPPLEMENT.md` — the `a+` supplement mechanism (the gap channel).
-- `apps/compiler/INTERNALS.md` — the dictionary markup and parser.
+- [../compiler/TEEUW_PARSER.md](../compiler/TEEUW_PARSER.md) — the markdown to JSON parsing
+  (Part 1: base/keyword/homonym) and the `a+` supplement mechanism (Part 2, the gap channel).
+- `apps/compiler/INTERNALS.md` — the compiler pipeline overview and markup table.
 - `apps/web/ARCHITECTURE.md` — the dictionary subsystem and the word-click modal.

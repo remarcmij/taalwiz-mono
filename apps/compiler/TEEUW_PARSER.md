@@ -1,15 +1,93 @@
-# Teeuw Supplement (`+` files)
+# Teeuw Parser
+
+How the Teeuw dictionary markdown source (`dict/teeuw/*.md`) is compiled into the chapter
+JSON (`json/teeuw.*.json`) the app loads. Two things live here:
+
+- **Part 1** — how the parser derives each word's role from the markup: headword (`base`) vs
+  `keyword`, and the `homonym` number.
+- **Part 2** — how the optional `+` supplement files let linguists add post-1996 words
+  without touching the digitized originals.
+
+For the higher-level pipeline overview and the markup table, see [INTERNALS.md](./INTERNALS.md).
+
+---
+
+## Part 1 — Markdown to JSON: headwords, keywords, homonyms
+
+The whole dictionary, and features built on it (e.g. the morphology aid, see
+[../web/MORPHOLOGY_AID.md](../web/MORPHOLOGY_AID.md)), rest on the `base`/`keyword`
+distinction. It is **not a manual annotation** and **not a parser heuristic** — it is a
+mechanical encoding of Teeuw's own printed typography.
+
+### 1.1 It mirrors the print's indentation
+
+In the printed Teeuw, a headword sits at the **left margin**, and its derived run-on forms
+are **indented beneath it**. For example, under the headword `indah`:
+
+```
+indah I, fraai, mooi, ...
+    memperindah(kan), verfraaien enz;
+    keindahan, schoonheid; ...
+    pengindahan, verfraaiing;
+    pengindah, sier(plant, enz);
+```
+
+`indah` is the headword (root); `memperindah`, `keindahan`, `pengindahan`, `pengindah` are
+indented derived forms _under_ it. The markdown source encodes this indentation in a
+parsable way: a **blank line** marks the return to the left margin, i.e. the start of a new
+headword block. So the headword/derived distinction is Teeuw's editorial layout, preserved
+mechanically — not something we inferred.
+
+### 1.2 The algorithm (verified against the source)
+
+- **Block = the lines between blank lines.** A blank line triggers the parser's `reset()`
+  (`src/compiler/Compiler.ts`, the read loop; `TeeuwParser.ts` `reset()`), which saves the
+  current base as `_prevBase` and clears `_base = null`.
+- **The first `**bold**` word of a block becomes the `base` (headword).** It is set once per
+  block, guarded by `if (!this._base) this.setBase(word)` (`TeeuwParser.ts`). The base then
+  **persists for the entire block**.
+- **Every later `**bold**` word in the same block becomes `keyword: 1` _under that same
+  base_** — it does not start a new headword, because the `if (!_base)` guard is already
+  false. This is the mechanism that makes a derived run-on form (`memukul`, `keindahan`) a
+  keyword sharing its root's `base`.
+- **The `keyword` flag** (`Compiler.ts`; `TeeuwParser.ts`): `**bold**` words before a `->`
+  cross-reference arrow, plus the Dutch translation words, get `keyword: 1`; `*italic*`
+  words, `**bold**` words _after_ a `->`, and the bare base-as-word get `keyword: 0`.
+- **Homonym numbering** (`ParserBase.ts` `setBase()`): not a within-block marker. When the
+  _same_ base reappears in a later block, `_homonym` increments (same headword, next sense);
+  a different base resets it to 0. Roman numerals (`I`, `II`) in the source are just text.
+
+Worked example, the `babak` block (one base, three keywords):
+
+```
+**babak** I, 1 bedrijf (toneelstuk, ed);   -> base "babak", keyword 1
+2 fase, stadium;                           -> still base "babak"
+**babakan**, periode, ...;                 -> base "babak", keyword 1 (NOT a new base)
+**pembabakan**, indeling in bedrijven ...  -> base "babak", keyword 1
+```
+
+And two blocks of `bab` give `homonym` 0 then 1:
+
+```
+**bab** I, 1 hoofdstuk, ...    -> base "bab", homonym 0
+                               (blank line: reset)
+**bab** II A, poort, deur.     -> base "bab", homonym 1
+```
+
+---
+
+## Part 2 — Supplement (`+`) files
 
 > Status: implemented. See `feat/teeuw-supplement-files`.
 
-## Goal
+### Goal
 
 Let linguists extend the Teeuw dictionary with words that entered Indonesian
 after Teeuw's last revision (1996) **without ever modifying the digitized
 originals**. Teeuw's original work stays byte-for-byte untouched; the additions
 live in separate files and are visually marked as modern additions.
 
-## Source layout
+### Source layout
 
 One supplement file per letter, mirroring the core set:
 
@@ -30,7 +108,7 @@ The core files are read-only as far as this feature is concerned.
 > demo `teeuw.a+.md` shipped for the Arps walkthrough lives on disk only. Use
 > `git add -f` if you ever want to track a specific supplement file.
 
-## Compilation
+### Compilation
 
 `teeuw.a.md` and `teeuw.a+.md` compile into a **single** `teeuw.a.json`. The
 asset layer and the Angular client are unchanged: still 26 `teeuw.{a-z}.json`
@@ -43,7 +121,7 @@ files, same loader, same IndexedDB schema, same lookup path.
   core -> supplement boundary.
 - `TeeuwParser` is reused unchanged; it operates on content, not filenames.
 
-### Homonym numbering across the boundary
+#### Homonym numbering across the boundary
 
 Homonyms are assigned by comparing each headword to the immediately preceding
 group's base (`_prevBase` in `ParserBase`). Because the parser is shared and not
@@ -55,7 +133,7 @@ than continuing. New headwords (the common case) are unaffected. If continuing
 arbitrary existing headwords ever becomes a real need, it requires switching
 homonym tracking from `_prevBase` to a global base -> count map.
 
-## Attribution: the automatic `isSupplement` flag
+### Attribution: the automatic `isSupplement` flag
 
 Provenance is automatic, not editorial, so it cannot be forgotten:
 
@@ -87,7 +165,7 @@ the standard teal in these two surfaces, even though its new senses are amber in
 the entry body. `findWordsStartingWith` computes this per word; `makeLookupResult`
 computes it per base.
 
-### Defined headwords only, not references
+#### Defined headwords only, not references
 
 The rule is scoped to `.is-supplement strong span`, not all spans. The converter
 wraps `**word**` keywords in `<strong>` and `*word*` references in `<em>`. A
@@ -97,7 +175,7 @@ supplement entry may **cite an existing core word**, e.g.
 supplement actually introduces (the headwords), leaving citations and example
 collocations in the standard teal.
 
-### Why not the `Nw` editorial label?
+#### Why not the `Nw` editorial label?
 
 An earlier plan reused Teeuw's "Hoofdletters" convention with a new `Nw`
 (= nieuw) capital-letter label, typed by the linguist per entry. Rejected: it
@@ -106,13 +184,13 @@ already taken (Nederlands). The automatic flag supersedes it. A linguist may
 still add origin labels (`P`, `J`, ...) as usual; they are independent of the
 `isSupplement` mechanism.
 
-## Re-import note
+### Re-import note
 
 `isSupplement` is a new field on stored records, so existing installs only show the
 colour after the dictionary is re-imported. That is triggered by bumping the
 dict version string when the updated content is published.
 
-## Touched files
+### Touched files
 
 - `apps/compiler/src/index.ts` (grouping)
 - `apps/compiler/src/compiler/Compiler.ts` (multi-file merge, `isSupplement`,

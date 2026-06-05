@@ -5,5 +5,5 @@ A standalone TypeScript utility that compiles bilingual dictionary source files 
 ## More
 
 - [INTERNALS.md](./INTERNALS.md) — source layout, input/output formats, and known issues
-- [TEEUW_SUPPLEMENT.md](./TEEUW_SUPPLEMENT.md) — extending Teeuw with post-1996 words via `+` supplement files
+- [TEEUW_PARSER.md](./TEEUW_PARSER.md) — how the markdown compiles to JSON (base/keyword/homonym) and the `+` supplement file mechanism
 - [CLAUDE.md](../../CLAUDE.md) — development commands & conventions

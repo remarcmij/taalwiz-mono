@@ -36,13 +36,16 @@ Custom markup syntax:
 
 | Syntax | Meaning |
 |--------|---------|
-| `**word**` | Headword (source keyword) |
-| `*word*` | Derived/related form |
-| `~` | Shorthand for current headword |
+| `**word**` | Source keyword (`keyword: 1`). The *first* bold word of a blank-line block is the headword (`base`); later bold words are keywords under that base |
+| `*word*` | Reference or example form (`keyword: 0`), not searchable |
+| `~` | Shorthand for the current headword (`base`) |
 | `+` | Space (in compound words) |
-| `->` | Cross-reference separator |
-| Blank line | Entry delimiter |
-| `1`, `2`, etc. | Sub-sense of previous headword |
+| `->` | Cross-reference separator (bold words after it are `keyword: 0`) |
+| Blank line | Entry delimiter (resets the `base`) |
+| `1`, `2`, etc. | Sub-sense of the current headword |
+
+See [TEEUW_PARSER.md, Part 1](./TEEUW_PARSER.md) for the exact base/keyword/homonym
+derivation and worked examples.
 
 ### Supplement files
 
@@ -51,8 +54,8 @@ with a `+` before the extension: `teeuw.a+.md` next to `teeuw.a.md`. It uses the
 exact same markup and lets linguists add post-1996 words **without editing the
 digitized originals**. Both files compile into the same chapter JSON, and every
 lemma from the `+` file is flagged `isSupplement: true` so the client can mark
-modern additions distinctly. See [TEEUW_SUPPLEMENT.md](./TEEUW_SUPPLEMENT.md)
-for the full design.
+modern additions distinctly. See [TEEUW_PARSER.md](./TEEUW_PARSER.md)
+for the full design (Part 2).
 
 ### Output Format
 
