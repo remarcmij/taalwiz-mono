@@ -138,8 +138,10 @@ span.hashtag {
   text-decoration: none;
 }
 
-// Before reveal/expand, collapse the answer text and draw a fixed-width
-// placeholder so the answer's length is not leaked.
+// Before reveal/expand, collapse the answer text and draw a fixed-width `_____`
+// placeholder so the answer's length is not leaked. It is coloured teal, the
+// app's established "tappable" cue, so it reads as interactive without a heavier
+// affordance like a pill or border.
 .text-content del:not(.revealed):not(.expanded) {
   font-size: 0;
 
@@ -147,7 +149,8 @@ span.hashtag {
     content: '_____';
     font-size: 1rem;
     letter-spacing: 1px;
-    color: var(--ion-color-medium);
+    font-weight: 600;
+    color: var(--foreign-text-color);
   }
 }
 
