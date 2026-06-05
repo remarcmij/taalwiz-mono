@@ -4,9 +4,9 @@ author: Jim Cramer
 publicationYear: 2026
 ---
 
-# Taalwiz — Help
+# Taalwiz Help
 
-Welkom bij Taalwiz, jouw persoonlijke leerapp voor Indonesisch–Nederlands. De app is ingedeeld in vier hoofdtabbladen onderaan het scherm, plus een zijmenu voor account- en ondersteuningsopties.
+Welkom bij Taalwiz, jouw persoonlijke leerapp voor Indonesisch-Nederlands. De app is ingedeeld in vier hoofdtabbladen onderaan het scherm, plus een zijmenu voor account- en ondersteuningsopties.
 
 ---
 
@@ -46,7 +46,7 @@ Het tabblad Woordenschat is waar je je persoonlijke woordenlijsten opbouwt en be
 
 ### Lijsten beheren
 
-Je kunt zo veel woordenlijsten aanmaken als je wilt — bijvoorbeeld één per artikel, per onderwerp of per moeilijkheidsgraad. Tik op de __+__-knop om een nieuwe lijst toe te voegen — de nieuwe lijst wordt meteen de actieve lijst — of houd een bestaand lijsttabblad lang ingedrukt om het te hernoemen of te verwijderen.
+Je kunt zo veel woordenlijsten aanmaken als je wilt, bijvoorbeeld één per artikel, per onderwerp of per moeilijkheidsgraad. Tik op de __+__-knop om een nieuwe lijst toe te voegen (de nieuwe lijst wordt meteen de actieve lijst), of houd een bestaand lijsttabblad lang ingedrukt om het te hernoemen of te verwijderen.
 
 ### Woorden toevoegen
 
@@ -73,8 +73,8 @@ Tik op de knop __Studeren__ bij een woordenlijst om een flashcardsessie te start
 Tijdens een sessie:
 
 - De voorkant van de kaart wordt als eerste getoond. Tik op de kaart (of druk op __Spatie__) om de achterkant te onthullen.
-- Bij een woord dat je vanuit een artikel hebt opgeslagen, toont de achterkant de __voorbeeldzin__ waaruit het komt, met daaronder de woordenboekvertaling. Elk Indonesisch woord in de zin is aantikbaar (in teal weergegeven): tik erop om het volledige woordenboekartikel te openen en het te laten uitspreken — het losse woord of de hele zin — zonder de sessie te verlaten.
-- Beoordeel hoe goed je het antwoord kende: __Opnieuw__ (wist het niet — de kaart komt later in dezelfde sessie terug), __Goed__ (gelukt met enige moeite), of __Makkelijk__ (wist het meteen). Je kunt ook de sneltoetsen __1__, __2__, __3__ gebruiken.
+- Bij een woord dat je vanuit een artikel hebt opgeslagen, toont de achterkant de __voorbeeldzin__ waaruit het komt, met daaronder de woordenboekvertaling. Elk Indonesisch woord in de zin is aantikbaar (in teal weergegeven): tik erop om het volledige woordenboekartikel te openen en het te laten uitspreken (het losse woord of de hele zin) zonder de sessie te verlaten.
+- Beoordeel hoe goed je het antwoord kende: __Opnieuw__ (wist het niet; de kaart komt later in dezelfde sessie terug), __Goed__ (gelukt met enige moeite), of __Makkelijk__ (wist het meteen). Je kunt ook de sneltoetsen __1__, __2__, __3__ gebruiken.
 - Een badge op de knop Studeren toont hoeveel kaarten er vandaag ter herhaling klaarstaan.
 
 Om een lijst te herhalen wanneer je maar wilt, tik je op __Oefenen__ (of __Toch oefenen__ als er niets klaarstaat). Oefenen loopt in willekeurige volgorde door alle kaarten van de lijst en verandert het herhalingsschema **niet**, dus het is een vrijblijvende manier om een lijst nog eens door te nemen zonder je spaced-repetition-voortgang te verstoren.
@@ -85,12 +85,12 @@ Om een lijst te herhalen wanneer je maar wilt, tik je op __Oefenen__ (of __Toch 
 
 Open het zijmenu door op het menupictogram linksboven te tikken. Van hieruit kun je:
 
-- __Over__ — achtergrondinformatie over Taalwiz lezen.
-- __Help__ — deze pagina openen.
-- __Contact__ — een bericht sturen naar het Taalwiz-team.
-- __Verander wachtwoord__ — je accountwachtwoord bijwerken.
-- __Opnieuw laden__ — een volledige herlaadactie van de app forceren (handig als iets verouderd lijkt).
-- __Afmelden__ — je account uitloggen.
+- __Over__: achtergrondinformatie over Taalwiz lezen.
+- __Help__: deze pagina openen.
+- __Contact__: een bericht sturen naar het Taalwiz-team.
+- __Verander wachtwoord__: je accountwachtwoord bijwerken.
+- __Opnieuw laden__: een volledige herlaadactie van de app forceren (handig als iets verouderd lijkt).
+- __Afmelden__: je account uitloggen.
 
 ---
 
