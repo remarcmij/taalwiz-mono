@@ -74,7 +74,7 @@ During a session:
 
 - The front of the card is shown first. Tap the card (or press __Space__) to reveal the back.
 - For a word saved from an article, the back shows the __example sentence__ it came from, with the dictionary translation beneath it. Every Indonesian word in the sentence is tappable (shown in teal): tap one to open its full dictionary entry and hear it pronounced — the single word or the whole sentence — without leaving the session.
-- Rate how well you knew the answer: __Again__ (didn't know it), __Good__ (got it with some effort), or __Easy__ (knew it immediately). You can also use the keyboard shortcuts __1__, __2__, __3__.
+- Rate how well you knew the answer: __Again__ (didn't know it — the card comes back later in the same session), __Good__ (got it with some effort), or __Easy__ (knew it immediately). You can also use the keyboard shortcuts __1__, __2__, __3__.
 - A badge on the Study button shows how many cards are due for review today.
 
 To go over a list whenever you like, tap __Practice__ (or __Practice anyway__ when nothing is due). Practice runs through every card in the list in random order and does **not** change the review schedule, so it is a no-pressure way to revisit a deck without disturbing your spaced-repetition progress.

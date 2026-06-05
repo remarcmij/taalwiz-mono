@@ -74,7 +74,7 @@ Tijdens een sessie:
 
 - De voorkant van de kaart wordt als eerste getoond. Tik op de kaart (of druk op __Spatie__) om de achterkant te onthullen.
 - Bij een woord dat je vanuit een artikel hebt opgeslagen, toont de achterkant de __voorbeeldzin__ waaruit het komt, met daaronder de woordenboekvertaling. Elk Indonesisch woord in de zin is aantikbaar (in teal weergegeven): tik erop om het volledige woordenboekartikel te openen en het te laten uitspreken — het losse woord of de hele zin — zonder de sessie te verlaten.
-- Beoordeel hoe goed je het antwoord kende: __Opnieuw__ (wist het niet), __Goed__ (gelukt met enige moeite), of __Makkelijk__ (wist het meteen). Je kunt ook de sneltoetsen __1__, __2__, __3__ gebruiken.
+- Beoordeel hoe goed je het antwoord kende: __Opnieuw__ (wist het niet — de kaart komt later in dezelfde sessie terug), __Goed__ (gelukt met enige moeite), of __Makkelijk__ (wist het meteen). Je kunt ook de sneltoetsen __1__, __2__, __3__ gebruiken.
 - Een badge op de knop Studeren toont hoeveel kaarten er vandaag ter herhaling klaarstaan.
 
 Om een lijst te herhalen wanneer je maar wilt, tik je op __Oefenen__ (of __Toch oefenen__ als er niets klaarstaat). Oefenen loopt in willekeurige volgorde door alle kaarten van de lijst en verandert het herhalingsschema **niet**, dus het is een vrijblijvende manier om een lijst nog eens door te nemen zonder je spaced-repetition-voortgang te verstoren.

@@ -60,7 +60,7 @@
     @case ('card') {
       @let card = currentCard()!;
       <div class="card-container">
-        <p class="card-progress">{{ reviewedCount() + 1 }} / {{ queue().length + reviewedCount() }}</p>
+        <p class="card-progress">{{ reviewedCount() + 1 }} / {{ queue().length }}</p>
 
         <div class="flashcard"
              [class.flipped]="flipped()"
@@ -135,7 +135,7 @@
       <div class="center-state">
         <h2>{{ 'study.session-complete' | translate }}</h2>
         <p>{{ 'study.cards-reviewed' | translate: { count: reviewedCount() } }}</p>
-        <ion-button (click)="startPractice()">{{ 'study.practice-again' | translate }}</ion-button>
+        <ion-button (click)="startPractice()">{{ 'study.practice' | translate }}</ion-button>
         <ion-button fill="outline" (click)="close()">{{ 'common.close' | translate }}</ion-button>
       </div>
     }

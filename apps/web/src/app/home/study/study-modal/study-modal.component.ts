@@ -104,7 +104,7 @@ export class StudyModalComponent implements OnInit {
   // stays plain — exactly as when reading the article.
   readonly sourceSentenceHtml = computed(() => this.sourceSentence());
   readonly progress = computed(() => {
-    const total = this.queue().length + this.reviewedCount();
+    const total = this.queue().length;
     return total > 0 ? this.reviewedCount() / total : 0;
   });
   listsWithStats = computed(() =>
@@ -211,6 +211,10 @@ export class StudyModalComponent implements OnInit {
     if (!card || this.practiceMode()) return;
 
     this.#studyService.submitReview(card.term, card.lang, card.listId, rating).subscribe();
+    // "Again" keeps the card due (server sets dueDate=now): re-queue it so it comes
+    // back later this session to be re-rated, rather than ending the session with a
+    // still-due card.
+    if (rating === 'again') this.queue.update((q) => [...q, card]);
     this.#advance();
   }
 
