@@ -111,6 +111,9 @@
     "no-definition": "No definition found",
     "rating-hint": "Your rating determines when this card reappears"
   },
+  "morphology": {
+    "nasal-rule": "{{archiphoneme}} before {{letter}}: surfaces as {{surface}}, and the root's initial {{letter}} drops"
+  },
   "settings": {
     "title": "Settings",
     "appearance": "Appearance",

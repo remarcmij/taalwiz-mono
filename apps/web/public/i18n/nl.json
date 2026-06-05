@@ -111,6 +111,9 @@
     "no-definition": "Geen definitie gevonden",
     "rating-hint": "Je beoordeling bepaalt wanneer je deze kaart terugziet"
   },
+  "morphology": {
+    "nasal-rule": "{{archiphoneme}} vóór {{letter}}: wordt {{surface}}, waarbij de beginletter {{letter}} van het grondwoord wegvalt"
+  },
   "settings": {
     "title": "Instellingen",
     "appearance": "Weergave",

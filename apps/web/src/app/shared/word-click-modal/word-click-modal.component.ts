@@ -26,6 +26,8 @@ import { addIcons } from 'ionicons';
 import {
   bookmark,
   bookmarkOutline,
+  chevronDownOutline,
+  chevronUpOutline,
   playOutline,
   searchOutline,
   volumeHighOutline,
@@ -35,7 +37,16 @@ import { MarkdownService } from '../../home/content/markdown.service';
 import { DictionaryService } from '../../home/dictionary/dictionary.service';
 import { type ILemma } from '../../home/dictionary/lemma/lemma.model';
 import { WordLang } from '../../home/dictionary/word-lang.model';
+import { segmentIndonesian, type SegmentResult } from '../../home/dictionary/indonesian-segmenter';
 import { SpeechSynthesizerService } from '../../home/speech-synthesizer.service';
+import { langConfig } from '../../app.constants';
+
+/** One homonym group: its rendered definition plus an optional affix breakdown. */
+interface HomonymView {
+  definition: SafeHtml;
+  /** Present only for derived readings (keyword word != base); null for roots. */
+  breakdown: SegmentResult | null;
+}
 
 @Component({
   selector: 'app-word-click-modal',
@@ -51,6 +62,7 @@ import { SpeechSynthesizerService } from '../../home/speech-synthesizer.service'
     TranslatePipe,
   ],
   templateUrl: './word-click-modal.component.html',
+  styleUrl: './word-click-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WordClickModalComponent implements OnInit {
@@ -75,7 +87,9 @@ export class WordClickModalComponent implements OnInit {
   /** When true (e.g. opened from SRS review) hide the bookmark and dictionary-lookup
    * actions, leaving a view-only modal (definition + audio). */
   hideActions = input<boolean>(false);
-  safeHomonyms = signal<SafeHtml[]>([]);
+  homonyms = signal<HomonymView[]>([]);
+  /** Indices whose nasal-allomorphy rule note is expanded. */
+  expanded = signal<Set<number>>(new Set());
 
   protected isBookmarked = computed(() =>
     this.vocabularyService.isBookmarked(this.clickedWord(), this.lang()),
@@ -96,7 +110,7 @@ export class WordClickModalComponent implements OnInit {
       homonymMap.set(key, [...(homonymMap.get(key) ?? []), lemma]);
     }
 
-    const safeHomonyms: SafeHtml[] = [];
+    const homonyms: HomonymView[] = [];
 
     for (const lemmas of homonymMap.values()) {
       let first = true;
@@ -111,12 +125,36 @@ export class WordClickModalComponent implements OnInit {
         return text.replace(regexp, '$1');
       });
       const homonymText = this.#markdownService.tinyMarkdown(texts.join(' ').replace(/;$/, '.'));
+      const definition = this.#sanitizer.bypassSecurityTrustHtml(homonymText);
 
-      const homonymHtml = this.#sanitizer.bypassSecurityTrustHtml(homonymText);
-      safeHomonyms.push(homonymHtml);
+      homonyms.push({ definition, breakdown: this.#breakdownFor(lemmas[0].baseWord) });
     }
 
-    this.safeHomonyms.set(safeHomonyms);
+    this.homonyms.set(homonyms);
+  }
+
+  /**
+   * Affix breakdown for a reading, or null. Only derived readings (the keyword word
+   * differs from its dictionary base) of target-language words get one; root readings
+   * (base == clicked word) and native-language words get nothing. The root is the
+   * lemma's `baseWord`, already attested by Teeuw, so this is pure synchronous work.
+   */
+  #breakdownFor(baseWord: string): SegmentResult | null {
+    if (this.lang() !== langConfig.targetLang) return null;
+    if (baseWord === this.clickedWord()) return null;
+    return segmentIndonesian(this.clickedWord(), baseWord);
+  }
+
+  toggleExpanded(index: number) {
+    this.expanded.update((set) => {
+      const next = new Set(set);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
   }
 
   dictionaryLookup() {
@@ -138,6 +176,14 @@ export class WordClickModalComponent implements OnInit {
   }
 
   constructor() {
-    addIcons({ bookmark, bookmarkOutline, playOutline, volumeHighOutline, searchOutline });
+    addIcons({
+      bookmark,
+      bookmarkOutline,
+      playOutline,
+      volumeHighOutline,
+      searchOutline,
+      chevronDownOutline,
+      chevronUpOutline,
+    });
   }
 }

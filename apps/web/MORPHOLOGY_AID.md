@@ -1,0 +1,219 @@
+# Morphology aid
+
+When a learner taps an inflected Indonesian word, the word-click modal already resolves it
+to its dictionary root and shows `surface -> root` in the title (e.g. `menyapukan -> sapu`)
+plus the definition. The **morphology aid** adds one small line that shows _how_ the word
+breaks into morphemes:
+
+```
+menyapukan -> sapu
+meN- + sapu + -kan
+menyapukan, vegen(, strijken) met enz; vegen voor enz.
+```
+
+It is an **aid, not a quiz**: passive, on-demand, no scoring, no new interaction. It simply
+annotates a lookup the user is already doing. (A quiz variant that asks the learner to
+decompose a word themselves is deliberately deferred until we have worked out how it relates
+to the in-article quiz and the SRS scheduler.)
+
+This document explains how the aid is grounded in the Teeuw dictionary, because that
+grounding is the whole point: it is what lets us show automated morphology without ever
+making a claim a linguist could fault.
+
+---
+
+## 1. Teeuw is the single source of truth
+
+We only ever display forms Teeuw attests. We never invent a word, even one that genuinely
+exists in the wild. Two layers are stacked in each breakdown line, and only one of them is
+ours:
+
+- **The words** (the root, and in editorial cases the surface form too) and **the fact that
+  one derives from the other** come from Teeuw. Authoritative, never guessed.
+- **The affix cut** between them (`meN- + ... + -i`) is _our automated annotation_. It is
+  rendered in muted grey precisely to mark it as the derived, machine-added layer, distinct
+  from the authoritative dictionary text.
+
+If a genuinely missing form would be needed, it is filled by curation through the `a+`
+supplement mechanism (see section 6), never conjured by the code.
+
+---
+
+## 2. How the compiler derives `base` (headword) vs `keyword`
+
+The aid's root-vs-derived test (section 3) rests entirely on the dictionary's
+`base`/`keyword` structure, so it is worth knowing where that structure comes from. It is
+**not a manual annotation** and **not a parser heuristic** — it is a mechanical encoding of
+Teeuw's own printed typography.
+
+### 2.1 It mirrors the print's indentation
+
+In the printed Teeuw, a headword sits at the **left margin**, and its derived run-on forms
+are **indented beneath it**. For example, under the headword `indah`:
+
+```
+indah I, fraai, mooi, ...
+    memperindah(kan), verfraaien enz;
+    keindahan, schoonheid; ...
+    pengindahan, verfraaiing;
+    pengindah, sier(plant, enz);
+```
+
+`indah` is the headword (root); `memperindah`, `keindahan`, `pengindahan`, `pengindah` are
+indented derived forms _under_ it. The markdown source encodes this indentation in a
+parsable way: a **blank line** marks the return to the left margin, i.e. the start of a new
+headword block. So the headword/derived distinction the aid relies on is Teeuw's editorial
+layout, preserved mechanically — not something we inferred.
+
+### 2.2 The compiler algorithm (verified against the source)
+
+- **Block = the lines between blank lines.** A blank line triggers the parser's `reset()`
+  (`apps/compiler/src/Compiler.ts`, the read loop; `TeeuwParser.ts` `reset()`), which saves
+  the current base as `_prevBase` and clears `_base = null`.
+- **The first `**bold**` word of a block becomes the `base` (headword).** It is set once per
+  block, guarded by `if (!this._base) this.setBase(word)` (`TeeuwParser.ts`). The base then
+  **persists for the entire block**.
+- **Every later `**bold**` word in the same block becomes `keyword: 1` _under that same
+  base_** — it does not start a new headword, because the `if (!_base)` guard is already
+  false. This is the mechanism that makes a derived run-on form (`memukul`, `keindahan`) a
+  keyword sharing its root's `base`.
+- **The `keyword` flag** (`Compiler.ts`; `TeeuwParser.ts`): `**bold**` words before a `->`
+  cross-reference arrow, plus the Dutch translation words, get `keyword: 1`; `*italic*`
+  words, `**bold**` words _after_ a `->`, and the bare base-as-word get `keyword: 0`.
+- **Homonym numbering** (`ParserBase.ts` `setBase()`): not a within-block marker. When the
+  _same_ base reappears in a later block, `_homonym` increments (same headword, next sense);
+  a different base resets it to 0. Roman numerals (`I`, `II`) in the source are just text.
+
+Worked example, the `babak` block (one base, three keywords):
+
+```
+**babak** I, 1 bedrijf (toneelstuk, ed);   -> base "babak", keyword 1
+2 fase, stadium;                           -> still base "babak"
+**babakan**, periode, ...;                 -> base "babak", keyword 1 (NOT a new base)
+**pembabakan**, indeling in bedrijven ...  -> base "babak", keyword 1
+```
+
+And two blocks of `bab` give `homonym` 0 then 1:
+
+```
+**bab** I, 1 hoofdstuk, ...    -> base "bab", homonym 0
+                               (blank line: reset)
+**bab** II A, poort, deur.     -> base "bab", homonym 1
+```
+
+> `apps/compiler/INTERNALS.md` lists the markup table but understates that only the _first_
+> bold word of a block is the base. This document is the precise statement.
+
+---
+
+## 3. Root vs derived: read it off the topology, no part-of-speech needed
+
+Teeuw records no part-of-speech, but it does not need to. Each lemma carries a keyword word
+and a `base`, and that relationship alone tells us what we need:
+
+- **keyword word == its `base`** -> this reading is a **root**. Show **no** breakdown.
+- **keyword word != its `base`** -> this reading is a **derived form**. Break it down,
+  labelling the affixes that bridge keyword -> base. The root (`base`) is handed to us by
+  Teeuw, so the segmenter only has to name the bridge.
+
+### Co-presentation, never disambiguation
+
+A surface string can have several readings; the modal lists them all. The breakdown is a
+property of each _reading_, not of the string, so ambiguous words resolve cleanly without
+guessing. `beruang` returns two keyword readings:
+
+| Reading | `base` | keyword vs base | Breakdown |
+| --- | --- | --- | --- |
+| bear (the animal) | `beruang` | equal | none (it is a root) |
+| "to have money" | `uang` | different | `ber- + uang` |
+
+We show both. The learner's reading context decides which is meant — that is the human's
+job, and the one thing we must not fake.
+
+---
+
+## 4. Flat, never layered
+
+The breakdown is **flat**: root plus affix labels in surface order (`meN- + per- + baik +
+-i`). We do **not** render a derivation chain through intermediate forms
+(`baik -> perbaiki -> memperbaiki`), because an intermediate like `perbaiki` is often **not**
+a Teeuw keyword. Verified: under base `baik`, Teeuw lists `memperbaiki` but not `perbaiki`.
+Asserting `perbaiki` would break section 1. Flat output only ever names the two attested
+endpoints (root and, in editorial cases, the surface form) and labels the affixes between
+them.
+
+---
+
+## 5. Two tiers of confidence (both safe)
+
+The aid shows a breakdown in two situations, rendered identically:
+
+1. **Editorial.** Teeuw lists the surface form itself as a keyword sublemma (`memperbaiki`,
+   `pemukul`, `keindahan`). Both ends are attested; the segmenter only labels the affixes.
+2. **Productive.** Teeuw _deliberately omits_ a fully-regular inflection because it is
+   predictable: the `di-` passive (`dipukul`), the `ter-` superlative (`terbesar`),
+   pronominal clitics (`-ku`, `-mu`, `-nya`). Here the root is attested and the affix is a
+   closed-class rule. The **principled absence is itself the licence** to label it.
+
+The only nuance to keep straight: in the editorial tier the _whole surface form_ is
+Teeuw-attested; in the productive tier only the _root_ is, and the surface form is our
+regular-inflection analysis over that attested root. Both are defensible; the second is a
+slightly weaker footing, not an unsafe one.
+
+---
+
+## 6. Gaps go through `a+`, not automation
+
+If a derivational form is genuinely missing from Teeuw and worth having, that is an
+**editorial decision** made through the `teeuw.a+.md` supplement files (compiled into the
+same chapter JSON, flagged `isSupplement`, rendered amber/underlined in the dictionary). The
+segmenter never invents such a form. In fact, the segmenter quietly _wanting_ an unattested
+intermediate is a useful signal: it is a candidate list for the curator to consider adding to
+`a+` — the linguist-collaboration hook, with no "help us improve" nagging. See
+`apps/compiler/TEEUW_SUPPLEMENT.md`.
+
+---
+
+## 7. The segmenter
+
+`apps/web/src/app/home/dictionary/indonesian-segmenter.ts` exports:
+
+```ts
+segmentIndonesian(surface: string, root: string): SegmentResult | null
+```
+
+It is a pure, synchronous, root-anchored search: given the surface word and the **known**
+root (the lemma's `baseWord`), it peels recognised affixes from both ends until the form
+equals the root, then returns the morphemes in surface order. Key properties:
+
+- **It never invents a root.** The root is a fixed input; if no affix path reaches it, the
+  function returns `null` and the modal shows no line.
+- **Nasal allomorphy** (meN-/peN-) is reconstructed so the path lands exactly on the root
+  (e.g. `menyapu` -> `sapu`, restoring the elided `s`). When a root consonant is restored, a
+  `ruleNote` is emitted; the modal offers a small chevron that reveals it
+  ("meN- before s: surfaces as meny-, and the root's initial s drops"). This is the headline
+  teaching payload: it explains why `menyapukan` does not visibly contain its root `sapu`.
+- **Labels use the archiphoneme** `meN-`/`peN-`, not the surface allomorph `mem-`/`meny-`.
+- **Ambiguity is silence.** Among successful paths it prefers the fewest-morpheme analysis;
+  if a genuine tie remains between materially different breakdowns, it returns `null`. (The
+  known-root anchor makes such ties very rare in practice.)
+- **Casing is meaningful.** The surface is lowercased (it is tapped text), but the root keeps
+  its dictionary casing. A capitalised base is a proper noun, e.g. `Besar` (the calendar
+  month) versus `besar` ("big"); a lowercase surface cannot derive from it, so `terbesar`
+  yields a breakdown over the `besar` reading but **not** over the `Besar` one. The side
+  effect is that genuine derivations of proper nouns (e.g. `mengindonesiakan` from
+  `Indonesia`) get no breakdown either, which is acceptable: silence is safe, and such forms
+  are rare.
+
+The nasal rules are a hand-port of the production lookup stemmer
+(`indonesian-stemmer.ts`); the two must not drift, which `indonesian-segmenter.spec.ts`
+guards with a cross-check test. Note that "stemmer" is a misnomer for that lookup code (it
+over-generates candidate variations rather than stemming); a rename is tracked separately.
+
+---
+
+## See also
+
+- `apps/compiler/TEEUW_SUPPLEMENT.md` — the `a+` supplement mechanism (the gap channel).
+- `apps/compiler/INTERNALS.md` — the dictionary markup and parser.
+- `apps/web/ARCHITECTURE.md` — the dictionary subsystem and the word-click modal.

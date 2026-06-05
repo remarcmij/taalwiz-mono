@@ -59,10 +59,37 @@
   </ion-toolbar>
   <ion-content>
     <ion-list lines="none">
-      @for (homonym of safeHomonyms(); track $index) {
+      @for (h of homonyms(); track $index) {
         <ion-item>
           <ion-label>
-            <div [innerHTML]="homonym" class="homonym"></div>
+            @if (h.breakdown) {
+              <div class="affix-breakdown">
+                <span>{{ h.breakdown.display }}</span>
+                @if (h.breakdown.ruleNote) {
+                  <ion-icon
+                    class="affix-expand"
+                    [name]="expanded().has($index) ? 'chevron-up-outline' : 'chevron-down-outline'"
+                    (click)="toggleExpanded($index)"
+                    role="button"
+                    aria-label="explain"
+                  ></ion-icon>
+                }
+              </div>
+              @if (h.breakdown.ruleNote && expanded().has($index)) {
+                <div class="affix-rule">
+                  {{
+                    "morphology.nasal-rule"
+                      | translate
+                        : {
+                            archiphoneme: h.breakdown.ruleNote.archiphoneme,
+                            surface: h.breakdown.ruleNote.surface,
+                            letter: h.breakdown.ruleNote.letter
+                          }
+                  }}
+                </div>
+              }
+            }
+            <div [innerHTML]="h.definition" class="homonym"></div>
           </ion-label>
         </ion-item>
       }
