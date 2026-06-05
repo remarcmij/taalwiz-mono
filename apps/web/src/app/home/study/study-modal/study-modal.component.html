@@ -22,7 +22,7 @@
         <ion-radio-group [value]="selectedListId()" (ionChange)="selectList($any($event).detail.value)">
           <ion-list>
             @for (entry of listsWithStats(); track entry.list.id) {
-              <ion-item>
+              <ion-item button [detail]="false" (click)="selectList(entry.list.id)">
                 <ion-radio slot="start" [value]="entry.list.id"></ion-radio>
                 <ion-label>{{ entry.list.name }}</ion-label>
                 <ion-badge slot="end" [color]="entry.due > 0 ? 'primary' : 'medium'">
@@ -34,6 +34,9 @@
         </ion-radio-group>
         <ion-button expand="block" class="start-button" (click)="startSession()">
           {{ 'study.start' | translate }}
+        </ion-button>
+        <ion-button expand="block" fill="outline" (click)="startPractice()">
+          {{ 'study.practice' | translate }}
         </ion-button>
       </div>
     }
@@ -47,6 +50,9 @@
     @case ('no-due') {
       <div class="center-state">
         <p>{{ 'study.no-cards-due' | translate }}</p>
+        @if (!practiceMode()) {
+          <ion-button (click)="startPractice()">{{ 'study.practice-anyway' | translate }}</ion-button>
+        }
         <ion-button fill="outline" (click)="close()">{{ 'common.close' | translate }}</ion-button>
       </div>
     }
@@ -70,11 +76,22 @@
             </div>
           } @else {
             <div class="card-face card-back">
+              @if (sourceSentence()) {
+                <p
+                  class="source-sentence"
+                  [innerHTML]="sourceSentenceHtml()"
+                  (click)="onWordClick($event); $event.stopPropagation()"
+                ></p>
+              }
               @if (baseWordNote()) {
                 <p class="base-word-note">→ {{ baseWordNote() }}</p>
               }
               @if (definition()) {
-                <p class="definition markdown-body text-content" [innerHTML]="definitionHtml()"></p>
+                <p
+                  class="definition markdown-body text-content"
+                  [innerHTML]="definitionHtml()"
+                  (click)="onWordClick($event); $event.stopPropagation()"
+                ></p>
               } @else {
                 <p class="no-definition">{{ 'study.no-definition' | translate }}</p>
               }
@@ -83,25 +100,33 @@
         </div>
 
         @if (flipped()) {
-          @if (showRatingHint()) {
-            <div class="rating-hint">
-              <span>{{ 'study.rating-hint' | translate }}</span>
-              <ion-button fill="clear" size="small" (click)="dismissRatingHint()" [attr.aria-label]="'common.close' | translate">
-                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+          @if (practiceMode()) {
+            <div class="rating-buttons">
+              <ion-button color="primary" fill="outline" (click)="next()">
+                {{ 'study.next' | translate }}
+              </ion-button>
+            </div>
+          } @else {
+            @if (showRatingHint()) {
+              <div class="rating-hint">
+                <span>{{ 'study.rating-hint' | translate }}</span>
+                <ion-button fill="clear" size="small" (click)="dismissRatingHint()" [attr.aria-label]="'common.close' | translate">
+                  <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+                </ion-button>
+              </div>
+            }
+            <div class="rating-buttons">
+              <ion-button color="danger" fill="outline" (click)="rate('again')">
+                {{ 'study.again' | translate }}<span class="key-hint">1</span>
+              </ion-button>
+              <ion-button color="success" fill="outline" (click)="rate('good')">
+                {{ 'study.good' | translate }}<span class="key-hint">2</span>
+              </ion-button>
+              <ion-button color="primary" fill="outline" (click)="rate('easy')">
+                {{ 'study.easy' | translate }}<span class="key-hint">3</span>
               </ion-button>
             </div>
           }
-          <div class="rating-buttons">
-            <ion-button color="danger" fill="outline" (click)="rate('again')">
-              {{ 'study.again' | translate }}<span class="key-hint">1</span>
-            </ion-button>
-            <ion-button color="success" fill="outline" (click)="rate('good')">
-              {{ 'study.good' | translate }}<span class="key-hint">2</span>
-            </ion-button>
-            <ion-button color="primary" fill="outline" (click)="rate('easy')">
-              {{ 'study.easy' | translate }}<span class="key-hint">3</span>
-            </ion-button>
-          </div>
         }
       </div>
     }
@@ -110,7 +135,8 @@
       <div class="center-state">
         <h2>{{ 'study.session-complete' | translate }}</h2>
         <p>{{ 'study.cards-reviewed' | translate: { count: reviewedCount() } }}</p>
-        <ion-button (click)="close()">{{ 'common.close' | translate }}</ion-button>
+        <ion-button (click)="startPractice()">{{ 'study.practice-again' | translate }}</ion-button>
+        <ion-button fill="outline" (click)="close()">{{ 'common.close' | translate }}</ion-button>
       </div>
     }
 

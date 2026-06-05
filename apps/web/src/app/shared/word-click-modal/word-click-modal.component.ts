@@ -67,8 +67,14 @@ export class WordClickModalComponent implements OnInit {
   word = input.required<string>();
   lang = input.required<string>();
   sentence = input.required<string>();
+  /** Marked-up form of the sentence (target words wrapped in <span>), stored as the
+   * flashcard's source-sentence so the card can reuse the same tappable words. */
+  sentenceHtml = input<string>('');
   lemmas = input.required<ILemma[]>();
   bases = input.required<string[]>();
+  /** When true (e.g. opened from SRS review) hide the bookmark and dictionary-lookup
+   * actions, leaving a view-only modal (definition + audio). */
+  hideActions = input<boolean>(false);
   safeHomonyms = signal<SafeHtml[]>([]);
 
   protected isBookmarked = computed(() =>

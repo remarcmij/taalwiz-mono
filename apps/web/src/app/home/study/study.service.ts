@@ -8,6 +8,7 @@ export interface SrsItem {
   lang: string;
   listId: string;
   back?: string;
+  sourceSentence?: string;
   interval: number;
   easeFactor: number;
   dueDate: string;
@@ -50,10 +51,10 @@ export class StudyService {
     this.stats.set(data);
   }
 
-  getDueCards(listId: string): Observable<SrsItem[]> {
-    return this.#http
-      .get<SrsItem[]>('/api/v1/srs/due', { params: { listId } })
-      .pipe(catchError(() => EMPTY));
+  getDueCards(listId: string, all = false): Observable<SrsItem[]> {
+    const params: Record<string, string> = { listId };
+    if (all) params['all'] = 'true';
+    return this.#http.get<SrsItem[]>('/api/v1/srs/due', { params }).pipe(catchError(() => EMPTY));
   }
 
   submitReview(

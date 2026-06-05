@@ -105,7 +105,7 @@ A content creator can embed lightweight practice questions directly in an articl
 
 ## Vocabulary Tab - Spaced Repetition
 
-Words saved while reading can be reviewed later as flashcards using spaced repetition: cards a learner finds difficult come back sooner, well-known ones are spaced further into the future, with a simple Again / Good / Easy rating. It is a convenience for retaining what reading turns up, not the centre of the app, and so is not described further here.
+Words saved while reading can be reviewed later as flashcards using spaced repetition: cards a learner finds difficult come back sooner, well-known ones are spaced further into the future, with a simple Again / Good / Easy rating. A card carries the sentence the word was saved from, so it is reviewed in its original context, with each word in that sentence tappable for a quick lookup. It is a convenience for retaining what reading turns up, not the centre of the app, and so is not described further here.
 
 
 [^1]: The text is held as structured, plain Markdown, a form that lends itself to future correction, revision, or extension by editors or linguists.

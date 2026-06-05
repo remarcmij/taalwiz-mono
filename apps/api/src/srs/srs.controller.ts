@@ -12,8 +12,9 @@ export class SrsController {
   async getDueCards(
     @CurrentUser() user: JwtPayload,
     @Query('listId') listId: string,
+    @Query('all') all?: string,
   ): Promise<SrsItemInfo[]> {
-    return this.srsService.getDueCards(user.sub, listId);
+    return this.srsService.getDueCards(user.sub, listId, all === 'true');
   }
 
   @Get('stats')

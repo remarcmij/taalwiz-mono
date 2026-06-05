@@ -77,8 +77,10 @@ export class VocabularyService {
     if (items.length === 0) return;
     const userObjectId = new Types.ObjectId(userId);
     const ops: AnyBulkWriteOperation<VocabularyItemDoc>[] = items.map(
-      ({ term, lang, listId, back }) => {
-        const update: Record<string, unknown> = { $setOnInsert: { savedAt: new Date() } };
+      ({ term, lang, listId, back, sourceSentence }) => {
+        const setOnInsert: Record<string, unknown> = { savedAt: new Date() };
+        if (sourceSentence !== undefined) setOnInsert['sourceSentence'] = sourceSentence;
+        const update: Record<string, unknown> = { $setOnInsert: setOnInsert };
         if (back !== undefined) update['$set'] = { back };
         return {
           updateOne: {

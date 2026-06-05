@@ -6,6 +6,7 @@ const VocabularyItemSchema = new Schema({
   term: { type: String, required: true },
   lang: { type: String, required: true },
   back: { type: String },
+  sourceSentence: { type: String },
   savedAt: { type: Date, default: Date.now },
 });
 

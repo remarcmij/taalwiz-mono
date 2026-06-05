@@ -29,22 +29,32 @@
           ></ion-icon>
         </ion-button>
       }
-      @if (vocabularyService.isEnabled()) {
-        <ion-button (click)="vocabularyService.toggle(clickedWord(), lang())">
+      @if (!hideActions()) {
+        @if (vocabularyService.isEnabled()) {
+          <ion-button
+            (click)="
+              vocabularyService.toggle(
+                clickedWord(),
+                lang(),
+                sentence() !== clickedWord() && sentenceHtml() ? sentenceHtml() : undefined
+              )
+            "
+          >
+            <ion-icon
+              slot="icon-only"
+              [name]="isBookmarked() ? 'bookmark' : 'bookmark-outline'"
+              aria-label="bookmark"
+            ></ion-icon>
+          </ion-button>
+        }
+        <ion-button (click)="dictionaryLookup()">
           <ion-icon
             slot="icon-only"
-            [name]="isBookmarked() ? 'bookmark' : 'bookmark-outline'"
-            aria-label="bookmark"
+            name="search-outline"
+            aria-label="lookup"
           ></ion-icon>
         </ion-button>
       }
-      <ion-button (click)="dictionaryLookup()">
-        <ion-icon
-          slot="icon-only"
-          name="search-outline"
-          aria-label="lookup"
-        ></ion-icon>
-      </ion-button>
     </ion-buttons>
   </ion-toolbar>
   <ion-content>

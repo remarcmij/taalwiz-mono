@@ -46,13 +46,13 @@ The Vocabulary tab is where you build and study your personal word lists.
 
 ### Managing lists
 
-You can create as many vocabulary lists as you like — for example one per article, per topic, or per difficulty level. Tap the __+__ button to add a new list, or long-press an existing list tab to rename or delete it.
+You can create as many vocabulary lists as you like — for example one per article, per topic, or per difficulty level. Tap the __+__ button to add a new list — the new list immediately becomes the active one — or long-press an existing list tab to rename or delete it.
 
 ### Adding words
 
 Words can be added to a list in two ways:
 
-- From an __article__: tap a highlighted word, then tap the bookmark icon in the word detail panel. The word is saved in the form it appeared in the text (e.g. _dibakar_, not the base form _membakar_).
+- From an __article__: tap a highlighted word, then tap the bookmark icon in the word detail panel. The word is saved in the form it appeared in the text (e.g. _dibakar_, not the base form _membakar_), along with the sentence it came from, so you can review it in context.
 - Directly in the Vocabulary tab: tap the __+__ button inside a list and type the word manually.
 
 Each entry has a __back__ field where you can write your own definition, example sentence, or translation note. Tap an entry to edit it.
@@ -73,8 +73,11 @@ Tap the __Study__ button on any vocabulary list to start a flashcard session. Th
 During a session:
 
 - The front of the card is shown first. Tap the card (or press __Space__) to reveal the back.
+- For a word saved from an article, the back shows the __example sentence__ it came from, with the dictionary translation beneath it. Every Indonesian word in the sentence is tappable (shown in teal): tap one to open its full dictionary entry and hear it pronounced — the single word or the whole sentence — without leaving the session.
 - Rate how well you knew the answer: __Again__ (didn't know it), __Good__ (got it with some effort), or __Easy__ (knew it immediately). You can also use the keyboard shortcuts __1__, __2__, __3__.
 - A badge on the Study button shows how many cards are due for review today.
+
+To go over a list whenever you like, tap __Practice__ (or __Practice anyway__ when nothing is due). Practice runs through every card in the list in random order and does **not** change the review schedule, so it is a no-pressure way to revisit a deck without disturbing your spaced-repetition progress.
 
 ---
 

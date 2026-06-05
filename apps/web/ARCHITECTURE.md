@@ -258,8 +258,9 @@ graph LR
     Vocabulary --> WordList["Saved items\n(swipe to remove)"]
     Vocabulary --> StudyBtn["Study button\n(due-count badge)"]
     StudyBtn --> StudyModal["StudyModal\n(list picker → flashcard → rating)"]
-    StudyModal --> DictSvc["DictionaryService\n(fetchWordLemmas — fallback when back is absent)"]
+    StudyModal --> DictSvc["DictionaryService\n(fetchWordLemmas — translation; fallback when back is absent)"]
     StudyModal --> StudySvc["StudyService\n(SRS API calls)"]
+    StudyModal --> WordModal["WordClickModalService.openForTerm\n(view-only in-context lookup of a tapped sentence/head word)"]
 ```
 
 **Article flow:** `ArticleResolver` pre-fetches the article. `MarkdownService` converts `mdText` to HTML, wrapping foreign-language spans. Headings are extracted by `extract-headings.util.ts` and stored in `TocService`. Clicking a word opens `WordClickModalComponent` via `WordClickModalService`, which calls `DictionaryService` for lemma lookup.
@@ -350,7 +351,7 @@ graph TD
 | `TocService` | `home/content/…/article/` | Extract headings, scroll-to signal |
 | `HashtagsService` | `home/content/hashtags/` | Hashtag index fetching; `findHashtag()` lists occurrences for the hashtag modal |
 | `SpeechSynthesizerService` | `home/` | Web Speech API wrapper (single word + full sentence) |
-| `WordClickModalService` | `shared/` | Coordinate word taps → dictionary lookup → modal display |
+| `WordClickModalService` | `shared/` | Coordinate word taps → dictionary lookup → modal display; `onClicked()` for article DOM taps, `openForTerm()` for a known word (e.g. an SRS card) opening a view-only modal (bookmark/lookup actions hidden) |
 | `ApiErrorAlertService` | `shared/` | Display Ionic alert on HTTP errors |
 | `LoggerService` | `shared/` | Levelled logging (dev: `silly`, prod: `info`) |
 | `PromptUpdateService` | `sw-update/` | PWA version-update detection and reload prompt |
@@ -653,6 +654,7 @@ classDiagram
         +string lang
         +string listId
         +string back
+        +string sourceSentence
         +string savedAt
     }
 
@@ -665,6 +667,7 @@ classDiagram
         +string lang
         +string listId
         +string back
+        +string sourceSentence
         +number interval
         +number easeFactor
         +string dueDate

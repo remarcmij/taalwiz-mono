@@ -32,10 +32,21 @@ import { closeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
 import { MarkdownService } from '../../content/markdown.service';
 import { DictionaryService } from '../../dictionary/dictionary.service';
+import { WordClickModalService } from '../../../shared/word-click-modal/word-click-modal.service';
 import { VocabularyService } from '../../vocabulary/vocabulary.service';
 import { SrsItem, SrsRating, StudyService } from '../study.service';
 
 type Screen = 'picker' | 'loading' | 'card' | 'no-due' | 'complete';
+
+/** Fisher-Yates shuffle (returns a new array), used to randomise practice order. */
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
 
 @Component({
   selector: 'app-study-modal',
@@ -67,6 +78,7 @@ export class StudyModalComponent implements OnInit {
   #studyService = inject(StudyService);
   #dictionaryService = inject(DictionaryService);
   #markdownService = inject(MarkdownService);
+  #wordClickModalService = inject(WordClickModalService);
   protected vocabularyService = inject(VocabularyService);
 
   readonly screen = signal<Screen>('picker');
@@ -75,14 +87,22 @@ export class StudyModalComponent implements OnInit {
   readonly currentIndex = signal<number>(0);
   readonly flipped = signal<boolean>(false);
   readonly definition = signal<string>('');
+  readonly sourceSentence = signal<string>('');
   readonly baseWordNote = signal<string | null>(null);
   readonly reviewedCount = signal<number>(0);
   readonly showRatingHint = signal<boolean>(false);
+  // Practice ("cram") session: review every card in the list regardless of due date,
+  // flip-and-next, without submitting reviews — the SRS schedule is left untouched.
+  readonly practiceMode = signal<boolean>(false);
 
   readonly currentCard = computed(() => this.queue()[this.currentIndex()] ?? null);
   readonly definitionHtml = computed(() =>
     this.definition() ? this.#markdownService.convertMarkdown(this.definition()) : '',
   );
+  // The source sentence is stored with its original markup (target words wrapped in
+  // <span>), so it is rendered as-is: only those words are teal/tappable, native text
+  // stays plain — exactly as when reading the article.
+  readonly sourceSentenceHtml = computed(() => this.sourceSentence());
   readonly progress = computed(() => {
     const total = this.queue().length + this.reviewedCount();
     return total > 0 ? this.reviewedCount() / total : 0;
@@ -106,6 +126,11 @@ export class StudyModalComponent implements OnInit {
       if (key === ' ') {
         event.preventDefault();
         void this.flipCard();
+      }
+    } else if (this.practiceMode()) {
+      if (key === ' ' || key === 'Enter') {
+        event.preventDefault();
+        this.next();
       }
     } else {
       if (key === '1') this.rate('again');
@@ -132,13 +157,25 @@ export class StudyModalComponent implements OnInit {
   }
 
   async startSession(): Promise<void> {
+    this.practiceMode.set(false);
+    await this.#loadSession(false);
+  }
+
+  /** On-demand practice: review the whole list now, in random order, without
+   * affecting the SRS schedule (no reviews are submitted). */
+  async startPractice(): Promise<void> {
+    this.practiceMode.set(true);
+    await this.#loadSession(true);
+  }
+
+  async #loadSession(all: boolean): Promise<void> {
     this.screen.set('loading');
-    const cards = await firstValueFrom(this.#studyService.getDueCards(this.selectedListId()));
-    this.queue.set(cards ?? []);
+    const cards = (await firstValueFrom(this.#studyService.getDueCards(this.selectedListId(), all))) ?? [];
+    this.queue.set(all ? shuffle(cards) : cards);
     this.currentIndex.set(0);
     this.reviewedCount.set(0);
     this.flipped.set(false);
-    this.screen.set(cards && cards.length > 0 ? 'card' : 'no-due');
+    this.screen.set(cards.length > 0 ? 'card' : 'no-due');
   }
 
   async flipCard(): Promise<void> {
@@ -146,6 +183,13 @@ export class StudyModalComponent implements OnInit {
     const card = this.currentCard();
     if (!card) return;
 
+    // Source sentence (word-tap cards) is shown as context alongside the answer.
+    this.sourceSentence.set(card.sourceSentence ?? '');
+
+    // The translation is the gradeable answer the rating buttons act on, so it
+    // is always resolved: a stored back, otherwise the dictionary's first line
+    // (the "View full entry" button reveals the full Teeuw entry when that is
+    // not enough).
     if (card.back) {
       this.definition.set(card.back);
       this.baseWordNote.set(null);
@@ -162,20 +206,50 @@ export class StudyModalComponent implements OnInit {
 
   rate(rating: SrsRating): void {
     const card = this.currentCard();
-    if (!card) return;
+    if (!card || this.practiceMode()) return;
 
     this.#studyService.submitReview(card.term, card.lang, card.listId, rating).subscribe();
+    this.#advance();
+  }
 
+  /** Practice mode: move to the next card without rescheduling. */
+  next(): void {
+    if (!this.currentCard() || !this.practiceMode()) return;
+    this.#advance();
+  }
+
+  #advance(): void {
     this.reviewedCount.update((n) => n + 1);
     const nextIndex = this.currentIndex() + 1;
     if (nextIndex < this.queue().length) {
       this.currentIndex.set(nextIndex);
       this.flipped.set(false);
       this.definition.set('');
+      this.sourceSentence.set('');
       this.baseWordNote.set(null);
     } else {
       this.screen.set('complete');
     }
+  }
+
+  /** Tapping a target word — any preserved <span>, whether in the example sentence
+   * or in the definition gloss (head-word `**bold**` or example `*italic*`) — opens
+   * the view-only word modal for that word, with the sentence as spoken context.
+   * Native (non-span) words are not tappable. */
+  onWordClick(event: MouseEvent): void {
+    const card = this.currentCard();
+    if (!card) return;
+    const span = (event.target as HTMLElement).closest('span');
+    if (!span) return;
+    const word = (span.textContent ?? '').toLowerCase().trim();
+    if (word) this.#wordClickModalService.openForTerm(word, card.lang, this.#sourceSentenceText());
+  }
+
+  /** Plain-text form of the stored (marked-up) source sentence, for speech. */
+  #sourceSentenceText(): string {
+    const div = document.createElement('div');
+    div.innerHTML = this.sourceSentence();
+    return div.textContent ?? '';
   }
 
   close(): void {

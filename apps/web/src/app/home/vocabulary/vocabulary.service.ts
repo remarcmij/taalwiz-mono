@@ -11,6 +11,7 @@ export interface VocabularyEntry {
   lang: string;
   listId: string;
   back?: string;
+  sourceSentence?: string;
   savedAt: string;
 }
 
@@ -57,12 +58,12 @@ export class VocabularyService {
     return this.bookmarkedKeys().has(`${term}:${lang}`);
   }
 
-  toggle(term: string, lang: string): void {
+  toggle(term: string, lang: string, sourceSentence?: string): void {
     if (!this.currentListId()) return;
     if (this.isBookmarked(term, lang)) {
       this.#remove(term, lang);
     } else {
-      this.#add(term, lang);
+      this.#add(term, lang, sourceSentence);
     }
   }
 
@@ -148,9 +149,9 @@ export class VocabularyService {
       .pipe(catchError(() => EMPTY))
       .subscribe((list) => {
         this.lists.update((ls) => [...ls, list]);
-        if (this.currentListId() === null) {
-          this.setCurrentList(list.id);
-        }
+        // Creating a list switches to it — users expect the list they just made
+        // to become the active one.
+        this.setCurrentList(list.id);
       });
   }
 
@@ -255,10 +256,10 @@ export class VocabularyService {
       });
   }
 
-  #add(term: string, lang: string): void {
+  #add(term: string, lang: string, sourceSentence?: string): void {
     const listId = this.currentListId()!;
     const key = `${term}:${lang}`;
-    const entry: VocabularyEntry = { term, lang, listId, savedAt: new Date().toISOString() };
+    const entry: VocabularyEntry = { term, lang, listId, sourceSentence, savedAt: new Date().toISOString() };
     const listsSnapshot = this.lists();
 
     this.bookmarkedKeys.update((s) => new Set([...s, key]));
@@ -266,7 +267,7 @@ export class VocabularyService {
     this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: l.count + 1 } : l)));
 
     this.#http
-      .post('/api/v1/vocabulary', { items: [{ term, lang, listId }] })
+      .post('/api/v1/vocabulary', { items: [{ term, lang, listId, sourceSentence }] })
       .pipe(
         catchError(() => {
           this.bookmarkedKeys.update((s) => {
