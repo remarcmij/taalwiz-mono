@@ -247,6 +247,7 @@ The body of every file supports standard Markdown:
 - Blockquotes (`>`)
 - Horizontal rules (`---`)
 - Links: `[text](url)`
+- Strikethrough doubles as a **fill-in-the-blank quiz blank**, see below
 
 HTML is not permitted in article bodies.
 
@@ -264,3 +265,31 @@ Taalwiz overloads Markdown emphasis to mark **clickable dictionary lookup words*
 Rule of thumb: **asterisks for target-language words you want learners to tap and look up; underscores for everything else.**
 
 Getting this wrong is silent and easy to miss: an asterisk on a Dutch or English word produces a clickable word whose dictionary lookup is meaningless, and an underscore on an Indonesian word denies the learner a lookup they would expect. When in doubt, for any non-target-language emphasis, use underscores.
+
+### Fill-in-the-blank quiz blanks
+
+Markdown **strikethrough** (`~~ ~~`) doubles as an interactive quiz blank inside an article. The hidden answer renders as a placeholder; the learner taps it to reveal or to answer. There are two modes, chosen automatically by whether the strikethrough text contains a `|`:
+
+**Recall blank (no `|`)** — a single hidden answer the learner tries to recall, then taps to reveal (tapping again hides it):
+
+```markdown
+Hij is geen student: Dia ~~bukan~~ mahasiswa.
+```
+
+**Multiple choice (`|`-separated options)** — the learner taps one of several options. Mark the correct option with a leading `=` and separate options with `|`. The app strips the `=`, **shuffles** the options, and renders them as tappable chips. The first tap is final: the chosen chip turns green if correct or red if wrong (with the correct option highlighted), then the blank locks.
+
+```markdown
+De actieve vorm is ~~=membuka|buka|terbuka|dibuka|membukakan~~.
+```
+
+**Rules and notes:**
+
+| Markdown | Behaviour |
+|---|---|
+| `~~answer~~` | Recall blank: tap to reveal/hide the answer |
+| `~~=correct\|wrong\|wrong~~` | Multiple choice: tap an option; `=` marks the correct one |
+
+- The `=` marker is **only** for multiple choice; a recall blank never needs it.
+- Quiz blanks do **not** interfere with tap-to-search: the hidden text is never a clickable dictionary word. Conversely, keep the answer and options as **plain words**, do not put emphasis inside a blank (write `~~=membuka|buka~~`, not `~~=*membuka*|buka~~`), otherwise the emphasised word is treated as a separate lookup word.
+- Answers and options may be more than one word (e.g. `~~tidak ada~~`, `~~=tidak ada|belum ada~~`).
+- The answer's length is not leaked: the placeholder is a fixed width regardless of how long the answer is.

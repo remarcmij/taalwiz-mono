@@ -98,6 +98,10 @@ In Figure 5, the word _terbesar_ was tapped. This word does not occur as a defin
 
 A word worth remembering can be saved to a personal vocabulary list with a second tap, keeping the example sentence it appeared in. The whole flow, from reading to lookup to saving, works offline once the content and dictionary have been downloaded: the app installs directly from the browser onto a phone, tablet, or computer (no app store required) and continues to work without an internet connection.
 
+### Fill-in-the-blank exercises
+
+A content creator can embed lightweight practice questions directly in an article by hiding an answer behind a blank. The learner taps the blank to reveal a single answer (recall), or, when several options are offered, taps the option they think is right and sees it confirmed in green or corrected in red. This reuses the same reading surface: ordinary words stay tappable for dictionary lookup, while the blanks respond independently. The authoring syntax (Markdown strikethrough) is described in the [Content Management Guide](./content-guide#fill-in-the-blank-quiz-blanks).
+
 
 ## Vocabulary Tab - Spaced Repetition
 
