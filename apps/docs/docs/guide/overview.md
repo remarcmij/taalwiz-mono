@@ -105,7 +105,9 @@ A content creator can embed lightweight practice questions directly in an articl
 
 ## Vocabulary Tab - Spaced Repetition
 
-Words saved while reading can be reviewed later as flashcards using spaced repetition: cards a learner finds difficult come back sooner, well-known ones are spaced further into the future, with a simple Again / Good / Easy rating. A card carries the sentence the word was saved from, so it is reviewed in its original context, with each word in that sentence tappable for a quick lookup. It is a convenience for retaining what reading turns up, not the centre of the app, and so is not described further here.
+Words saved while reading can be reviewed later as flashcards using spaced repetition (the well-established SM-2 algorithm): cards a learner finds difficult come back sooner, well-known ones are spaced further into the future, with a simple Again / Good / Easy rating. A card carries the sentence the word was saved from, so it is reviewed in its original context, with each word in that sentence tappable for a quick lookup against the dictionary. This is what closes the loop the rest of the app opens: read a real text, look a word up, save it, and later retain it in the context it came from, rather than losing it once the lesson is over. A built-in practice mode lets a learner run through a list on demand without disturbing the review schedule.
+
+Reading and the Teeuw dictionary remain the heart of Taalwiz; spaced repetition is the retention half that makes the vocabulary you meet there stick.
 
 
 [^1]: The text is held as structured, plain Markdown, a form that lends itself to future correction, revision, or extension by editors or linguists.
