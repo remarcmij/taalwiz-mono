@@ -89,7 +89,10 @@ export class StudyModalComponent implements OnInit {
   readonly definition = signal<string>('');
   readonly sourceSentence = signal<string>('');
   readonly baseWordNote = signal<string | null>(null);
-  readonly reviewedCount = signal<number>(0);
+  // Distinct cards in the session, fixed at start; `completed` counts cards that have
+  // graduated (Good/Easy, or practice Next). An "Again" re-queue never inflates these.
+  readonly sessionSize = signal<number>(0);
+  readonly completed = signal<number>(0);
   readonly showRatingHint = signal<boolean>(false);
   // Practice ("cram") session: review every card in the list regardless of due date,
   // flip-and-next, without submitting reviews — the SRS schedule is left untouched.
@@ -104,8 +107,8 @@ export class StudyModalComponent implements OnInit {
   // stays plain — exactly as when reading the article.
   readonly sourceSentenceHtml = computed(() => this.sourceSentence());
   readonly progress = computed(() => {
-    const total = this.queue().length;
-    return total > 0 ? this.reviewedCount() / total : 0;
+    const total = this.sessionSize();
+    return total > 0 ? this.completed() / total : 0;
   });
   listsWithStats = computed(() =>
     this.vocabularyService.lists().map((list) => ({
@@ -174,8 +177,9 @@ export class StudyModalComponent implements OnInit {
     this.screen.set('loading');
     const cards = (await firstValueFrom(this.#studyService.getDueCards(this.selectedListId(), all))) ?? [];
     this.queue.set(all ? shuffle(cards) : cards);
+    this.sessionSize.set(cards.length);
     this.currentIndex.set(0);
-    this.reviewedCount.set(0);
+    this.completed.set(0);
     this.flipped.set(false);
     this.screen.set(cards.length > 0 ? 'card' : 'no-due');
   }
@@ -211,21 +215,24 @@ export class StudyModalComponent implements OnInit {
     if (!card || this.practiceMode()) return;
 
     this.#studyService.submitReview(card.term, card.lang, card.listId, rating).subscribe();
-    // "Again" keeps the card due (server sets dueDate=now): re-queue it so it comes
-    // back later this session to be re-rated, rather than ending the session with a
-    // still-due card.
-    if (rating === 'again') this.queue.update((q) => [...q, card]);
+    if (rating === 'again') {
+      // "Again" keeps the card due (server sets dueDate=now): re-queue it so it comes
+      // back later this session to be re-rated. It is not counted as completed.
+      this.queue.update((q) => [...q, card]);
+    } else {
+      this.completed.update((n) => n + 1);
+    }
     this.#advance();
   }
 
   /** Practice mode: move to the next card without rescheduling. */
   next(): void {
     if (!this.currentCard() || !this.practiceMode()) return;
+    this.completed.update((n) => n + 1);
     this.#advance();
   }
 
   #advance(): void {
-    this.reviewedCount.update((n) => n + 1);
     const nextIndex = this.currentIndex() + 1;
     if (nextIndex < this.queue().length) {
       this.currentIndex.set(nextIndex);
