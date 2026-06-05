@@ -1,9 +1,9 @@
 import { NATIVE_LANG, TARGET_LANG } from '@repo/shared';
-import { IndonesianStemmer } from './home/dictionary/indonesian-stemmer';
-import type { Stemmer } from './home/dictionary/stemmer';
+import { IndonesianVariationGenerator } from './home/dictionary/indonesian-variation-generator';
+import type { VariationGenerator } from './home/dictionary/variation-generator';
 
 export const langConfig = {
   targetLang: TARGET_LANG,
   nativeLang: NATIVE_LANG,
-  stemmer: new IndonesianStemmer() as Stemmer,
+  variationGenerator: new IndonesianVariationGenerator() as VariationGenerator,
 };

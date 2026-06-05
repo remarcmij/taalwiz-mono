@@ -1,10 +1,10 @@
 # Dictionary Search Flow
 
-This document describes the complete search and display flow in the dictionary module, including focus management, suggestions, stemming, and breadcrumb tracking.
+This document describes the complete search and display flow in the dictionary module, including focus management, suggestions, variation generation, and breadcrumb tracking.
 
 ## Overview
 
-The search feature allows users to find dictionary entries for Indonesian and Dutch words. Indonesian searches support morphological stemming to find base forms when inflected words are entered. Results are displayed with related compound words grouped under their base forms, and recent searches are tracked in a breadcrumb list.
+The search feature allows users to find dictionary entries for Indonesian and Dutch words. Indonesian searches support morphological variation generation to find base forms when inflected words are entered. Results are displayed with related compound words grouped under their base forms, and recent searches are tracked in a breadcrumb list.
 
 ---
 
@@ -44,7 +44,7 @@ After search results are returned:
 3. **Switch to suggestions**: After debouncing, `getSuggestions(term)` is called via `switchMap`
 4. **Result**: `suggestions` signal is updated, and the dropdown is shown if matches are found
 
-> **Suggestions are a literal prefix match — no stemmer.** `#fetchSuggestionsAsync()` queries `findWordsStartingWith(term)` directly on the typed text. Both languages carry **equal weight**: target-language and native-language hits (up to 10 each) are merged, de-duplicated, and sorted alphabetically (case-insensitive), so Indonesian and Dutch suggestions **interleave** rather than listing all target matches first. The list is then capped at 10; the user narrows to one language simply by typing another letter or two. The stemmer is deliberately **not** applied to the suggestion list: stemming a partially-typed word surfaces alphabetical neighbours of stripped forms (e.g. typing `memperbai` strips `-i` to `memperba` and suggests unrelated `memperba*` words), which reads as a broken filter. Morphological resolution of inflected forms still happens on the **lookup path** (`#searchLocal`, via the stemmer) — reached by tapping a word, tapping a suggestion, or pressing Enter with no matching suggestion (see Path 2).
+> **Suggestions are a literal prefix match — no variation generator.** `#fetchSuggestionsAsync()` queries `findWordsStartingWith(term)` directly on the typed text. Both languages carry **equal weight**: target-language and native-language hits (up to 10 each) are merged, de-duplicated, and sorted alphabetically (case-insensitive), so Indonesian and Dutch suggestions **interleave** rather than listing all target matches first. The list is then capped at 10; the user narrows to one language simply by typing another letter or two. The variation generator is deliberately **not** applied to the suggestion list: generating variations of a partially-typed word surfaces alphabetical neighbours of stripped forms (e.g. typing `memperbai` strips `-i` to `memperba` and suggests unrelated `memperba*` words), which reads as a broken filter. Morphological resolution of inflected forms still happens on the **lookup path** (`#searchLocal`, via the variation generator) — reached by tapping a word, tapping a suggestion, or pressing Enter with no matching suggestion (see Path 2).
 
 ### Suggestion Selection
 
@@ -54,29 +54,29 @@ When the user clicks a suggestion or presses Enter with suggestions available:
 
 ---
 
-## Search Paths & Stemming
+## Search Paths & Variation Generation
 
-**Files**: `dictionary.service.ts`, `indonesian-stemmer.ts`, `stemmer.ts`
+**Files**: `dictionary.service.ts`, `indonesian-variation-generator.ts`, `variation-generator.ts`
 
 All dictionary searches run entirely offline against IndexedDB — there are no API calls during lookup. The compiled dictionary is synced to IDB on login (`DictSyncService`) and queried by `DictStoreService`.
 
-The stemmer is pluggable via `langConfig.stemmer` (`Stemmer` interface in `stemmer.ts`; currently `IndonesianStemmer`). `DictionaryService.#searchLocal()` iterates over the variations returned by `langConfig.stemmer.getWordVariations()`, calling `DictStoreService.findByWordAndLang()` for each, and stops at the first variation that yields keyword-flagged lemmas.
+The variation generator is pluggable via `langConfig.variationGenerator` (`VariationGenerator` interface in `variation-generator.ts`; currently `IndonesianVariationGenerator`). `DictionaryService.#searchLocal()` iterates over the variations returned by `langConfig.variationGenerator.getWordVariations()`, calling `DictStoreService.findByWordAndLang()` for each, and stops at the first variation that yields keyword-flagged lemmas.
 
 ### Path 1: Autocomplete Suggestion (with match)
 
 1. User types → autocomplete finds match (e.g., "air")
 2. User clicks suggestion or presses Enter with suggestions available
 3. `lookup({word: 'air', lang: 'id'})` is called → `searchDictionary()` → `#searchLocal()`
-4. Since `lang === 'id'`, stemmer generates variations: `["air"]` (already a base form)
+4. Since `lang === 'id'`, variation generator produces variations: `["air"]` (already a base form)
 5. `DictStoreService.findByWordAndLang('air', 'id')` queries the `by-lang-wordlower` IDB index (case-insensitively)
 6. **Result**: Returns all lemmas for "air" including compound entries ("air abu", "air alas", etc.)
 
 ### Path 2: Manual Entry Without Autocomplete (no match)
 
-1. User types "dibakar" (or other word) → no literal-prefix suggestion matches (suggestions are not stemmed)
+1. User types "dibakar" (or other word) → no literal-prefix suggestion matches (suggestions are not expanded into variations)
 2. User presses Enter (on mobile this is the soft-keyboard Go/Search/Return key, which fires the same `key === 'Enter'` event)
-3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `this.lookup(new WordLang(this.word(), langConfig.targetLang))` — this is the fallback that runs the full stemmer-backed lookup on the typed term
-4. `#searchLocal()` calls `langConfig.stemmer.getWordVariations('dibakar')`:
+3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `this.lookup(new WordLang(this.word(), langConfig.targetLang))` — this is the fallback that runs the full variation-generator-backed lookup on the typed term
+4. `#searchLocal()` calls `langConfig.variationGenerator.getWordVariations('dibakar')`:
    - `["dibakar", "membakar", "bakar"]`
    - "dibakar" = original (passive: "was burned")
    - "membakar" = active voice form (meN- + bakar, where 'b' initial → mem-)
@@ -90,24 +90,24 @@ The stemmer is pluggable via `langConfig.stemmer` (`Stemmer` interface in `stemm
 
 1. User clicks "dibakar" from the breadcrumb list (from a previous Path 2 search)
 2. `lookup({word: 'dibakar', lang: 'id'})` is called → same path as Path 2
-3. Stemmer generates variations and IDB search proceeds as in Path 2
+3. The variation generator produces variations and IDB search proceeds as in Path 2
 4. **Result**: Same as Path 2 — full "membakar" entries returned
 
 ---
 
-## Indonesian Stemmer
+## Indonesian Variation Generator
 
-**File**: `indonesian-stemmer.ts` (implements the `Stemmer` interface from `stemmer.ts`)
+**File**: `indonesian-variation-generator.ts` (implements the `VariationGenerator` interface from `variation-generator.ts`)
 
 ### Purpose
 
 Indonesian uses a rich system of prefixes, suffixes, and circumfixes to modify root words. The compiled dictionary indexes various word forms directly (e.g., it has entries for both `membaca` and `baca`), but not all morphological variants are indexed—particularly passive forms with `di-` prefix.
 
-The stemmer **increases the likelihood of finding a match** by generating alternative forms of a search query. This is essential for user experience:
+The variation generator **increases the likelihood of finding a match** by generating alternative forms of a search query. This is essential for user experience:
 
-- When a user searches for an **inflected word** like `dibakar` (passive: "was burned"), the stemmer generates variations including `membakar` (active form, more likely indexed)
+- When a user searches for an **inflected word** like `dibakar` (passive: "was burned"), the variation generator produces variations including `membakar` (active form, more likely indexed)
 - `DictionaryService.#searchLocal()` tries each variation against IndexedDB in order and **stops at the first match**
-- Without stemming, `dibakar` would return zero results, forcing the user to guess the base form manually
+- Without variation generation, `dibakar` would return zero results, forcing the user to guess the base form manually
 
 **Key Design Principle**: Generate a set of plausible variations rather than a single canonical root. Extra candidates (false positives) just create additional IDB lookups; missing the actual match (false negative) is the real problem.
 
@@ -115,7 +115,7 @@ The stemmer **increases the likelihood of finding a match** by generating altern
 
 ### How It Works
 
-The stemmer recursively strips affixes from a word, building a set of variations. The variations are ordered strategically to maximize match likelihood:
+The variation generator recursively strips affixes from a word, building a set of variations. The variations are ordered strategically to maximize match likelihood:
 
 1. **Original form first**: The input word as-is (might be indexed directly)
 2. **Active/common forms next**: Generated active voice or common inflections (more likely indexed)
@@ -126,14 +126,14 @@ The stemmer recursively strips affixes from a word, building a set of variations
 **Examples of variation ordering**:
 
 - User types `diambil` (passive: "was taken")
-- Stemmer generates: `["diambil", "mengambil", "ambil"]`
+- Variation generator generates: `["diambil", "mengambil", "ambil"]`
   - `diambil`: original (rarely indexed)
   - `mengambil`: active voice form (commonly indexed) ← **found first in IndexedDB**
   - `ambil`: bare root (fallback)
 - Result: IndexedDB returns all `mengambil` entries
 
 - User types `membaca` (active: "to read")
-- Stemmer generates: `["membaca", "baca"]`
+- Variation generator generates: `["membaca", "baca"]`
   - `membaca`: common form, indexed directly ← **found in IndexedDB**
   - `baca`: bare root (not needed)
 - Result: IndexedDB returns all `membaca` entries
@@ -173,7 +173,7 @@ The stemmer recursively strips affixes from a word, building a set of variations
 
 #### meN- Prefix Variants (Active Voice)
 
-The `meN-` prefix adapts based on the initial consonant of the root. The stemmer strips all forms and restores dropped consonants where possible:
+The `meN-` prefix adapts based on the initial consonant of the root. The variation generator strips all forms and restores dropped consonants where possible:
 
 | Initial | Prefix + Root | Stripped | Restored |
 |---------|---------------|----------|----------|
@@ -227,7 +227,7 @@ Repeated words are reduced to the singular form:
 
 ### Word Exemptions
 
-Certain common words are not stemmed because they don't follow standard patterns or are already base forms:
+Certain common words are not expanded into variations because they don't follow standard patterns or are already base forms:
 
 - `aku` (I)
 - `ilmu` (knowledge)
@@ -244,7 +244,7 @@ Certain common words are not stemmed because they don't follow standard patterns
 
 #### Recursive Variation Building
 
-The stemmer uses a recursive approach to strip affixes in sequence:
+The variation generator uses a recursive approach to strip affixes in sequence:
 
 ```
 getVariations(word) {
@@ -274,11 +274,11 @@ The `mePrefixed` parameter prevents generating duplicate `meN-` variants when st
 
 #### Multiple Candidate Restoration
 
-When a consonant is dropped during affixation (e.g., `p` in `memotong` from `potong`), the stemmer generates both the stripped form (`otong`) and the restored form (`potong`). `#searchLocal()` queries IndexedDB for both, and if either matches, the lookup succeeds.
+When a consonant is dropped during affixation (e.g., `p` in `memotong` from `potong`), the variation generator generates both the stripped form (`otong`) and the restored form (`potong`). `#searchLocal()` queries IndexedDB for both, and if either matches, the lookup succeeds.
 
 ### Testing
 
-Automated tests are located in `indonesian-stemmer.spec.ts` and cover word exemptions, suffix stripping, prefix stripping, meN- variants, peN- variants, circumfixes, reduplication, multi-affix words, deduplication, and the documented examples from this document.
+Automated tests are located in `indonesian-variation-generator.spec.ts` and cover word exemptions, suffix stripping, prefix stripping, meN- variants, peN- variants, circumfixes, reduplication, multi-affix words, deduplication, and the documented examples from this document.
 
 #### Running the Tests
 
@@ -292,15 +292,15 @@ pnpm --filter web run test
 pnpm --filter web run test:watch
 ```
 
-The test file uses a helper function `variations(word)` to generate stemmer output and validates the results with `.toEqual()` and `.toContain()` assertions.
+The test file uses a helper function `variations(word)` to generate variation generator output and validates the results with `.toEqual()` and `.toContain()` assertions.
 
 #### Manual Verification
 
-You can also verify the stemmer manually in the browser console:
+You can also verify the variation generator manually in the browser console:
 
 ```typescript
-const stemmer = new IndonesianStemmer();
-const vars = stemmer.getWordVariations('membaca');
+const variation generator = new IndonesianVariationGenerator();
+const vars = variation generator.getWordVariations('membaca');
 console.log(vars.includes('baca'));  // true
 console.log(vars.includes('membaca'));  // true
 ```
@@ -335,23 +335,25 @@ Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, 
 
 2. **Ambiguous restoration**: When consonants are dropped during affixation (e.g., `potong` + `meN-` → `memotong`), we generate multiple candidates (`potong`, `otong`). Not all may be valid, but the IndexedDB lookup will find valid matches if they exist.
 
-3. **No single canonical root**: The stemmer generates a set of plausible forms rather than morphologically analyzing to a unique root. This is simpler to implement and works well for dictionary lookup without requiring advanced linguistic analysis.
+3. **No single canonical root**: The variation generator generates a set of plausible forms rather than morphologically analyzing to a unique root. This is simpler to implement and works well for dictionary lookup without requiring advanced linguistic analysis.
 
-4. **Indonesian-specific**: This stemmer is tailored for Indonesian morphology and won't work for other languages.
+4. **Indonesian-specific**: This variation generator is tailored for Indonesian morphology and won't work for other languages.
 
-5. **Dictionary-dependent**: The stemmer's effectiveness depends on what forms are indexed in the compiled dictionary (synced to IndexedDB). If the dictionary doesn't have certain base forms, stemming to them won't help. Conversely, if it indexes many inflected forms, minimal stemming may suffice.
+5. **Dictionary-dependent**: The variation generator's effectiveness depends on what forms are indexed in the compiled dictionary (synced to IndexedDB). If the dictionary doesn't have certain base forms, variation generation to them won't help. Conversely, if it indexes many inflected forms, minimal variation generation may suffice.
 
 6. **Variation order matters**: Since `#searchLocal()` stops searching after the first match, the order in which variations are generated affects both accuracy and performance. More commonly-indexed forms should ideally appear earlier. For example, for `diambil`, generating `mengambil` before `ambil` is beneficial because active forms are more likely to be indexed than passive base forms.
 
 ### Future Improvements
 
-- **Expand word exemptions list based on user feedback** — Common words that don't follow standard morphological patterns (e.g., `aku`, `ilmu`, `bukan`) are currently hardcoded; this list can grow as users encounter words that stem incorrectly or unnecessarily.
+- **Expand word exemptions list based on user feedback** — Common words that don't follow standard morphological patterns (e.g., `aku`, `ilmu`, `bukan`) are currently hardcoded; this list can grow as users encounter words that produce incorrect or unnecessary variations.
 
 - **Add more sophisticated consonant restoration heuristics** — The current restoration rules use a guard `/^[aeiouagh]/` on the stripped remainder (`rest`) to decide whether to attempt `k`-restoration for `meng-` prefixes. This correctly blocks restoration for vowel-initial rests (e.g., `mengambil` → `rest='ambil'` → no `kambil` generated), and allows it for consonant-initial rests (e.g., `mengritik` → `rest='ritik'` → `kritik` is generated). More sophisticated heuristics could improve precision by: (i) tighter consonant-dropping guards to exclude cases like `mengkritik` (malformed input), and (ii) minimum base-form length filters to exclude very short stripped forms (< 4 chars) that are almost never valid roots.
 
-- **Integrate a proper Indonesian morphological analyzer if performance becomes critical** — "Performance" here means **match quality** (recall/precision), not execution speed. The rule-based approach may miss unusual but valid base forms that a full analyzer would identify, or fail to generate the canonical form the dictionary indexes. Known options: **Nazief–Adriani** (1996, the classic Indonesian stemming algorithm) or **ECS (Enhanced Confix Stripping)**, the basis of the **`@sastrawi/sastrawi`** npm package (JavaScript port of the Sastrawi PHP stemmer). Sastrawi validates against a ~29,000-word root dictionary and returns a single canonical root. The trigger would be observable lookup failures on correctly-spelled Indonesian words that the current stemmer fails to resolve.
+- **A stemmer is NOT the upgrade path for *this* module — its value is in a different feature.** It is worth being explicit, because it is easy to confuse. A stemmer (e.g. **Nazief–Adriani**, 1996; or **ECS / Enhanced Confix Stripping**, the basis of the **`@sastrawi/sastrawi`** npm package) reduces a word to a **single** canonical root. For *dictionary lookup* that adds little: Teeuw already returns the canonical root (`baseWord`) on every hit, and this module already generates the root **plus** sideways forms (e.g. passive `dibakar` → active `membakar`) that a stemmer would never produce. So a stemmer is largely redundant here — at best a marginal extra candidate for the rare word the rule-based generator mis-strips.
 
-- **Add configurable stripping depth to trade recall for precision** — Currently the stemmer recursively strips all possible affixes. For some use cases, stopping after stripping just the most common affixes (e.g., person markers, `-nya`, tense markers) might improve precision by avoiding over-generated false positives, at the cost of lower recall for heavily affixed words.
+  The genuine future home for a stemmer is a feature the app does **not** have yet: **free-text search over article content** (an inverted index). There you normalize *both* the query and every word in the indexed text to a shared root key, so searching `memukul` matches an article containing `dipukul`. That is the textbook stemming use case, and it is a different problem from single-word dictionary lookup (many-to-many text matching; can't afford a Teeuw lookup per token at index scale). Even then, Teeuw-backed lemmatization is an accuracy-favouring alternative to a fast stemmer. **Trigger: building content search — not lookup failures here.**
+
+- **Add configurable stripping depth to trade recall for precision** — Currently the variation generator recursively strips all possible affixes. For some use cases, stopping after stripping just the most common affixes (e.g., person markers, `-nya`, tense markers) might improve precision by avoiding over-generated false positives, at the cost of lower recall for heavily affixed words.
 
 ### Why Order Matters
 
@@ -478,7 +480,7 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 1. **Keystroke detection**: The `ionViewWillEnter()` keyup listener fires, debounces, finds no suggestions
 2. **Enter handling**: `searchDictionary(new WordLang('dibakar', 'id'))` is called
-3. **Stemming**: `langConfig.stemmer.getWordVariations('dibakar')` generates `["dibakar", "membakar", "bakar"]`
+3. **Variation generation**: `langConfig.variationGenerator.getWordVariations('dibakar')` generates `["dibakar", "membakar", "bakar"]`
 4. **IDB lookup**: `#searchLocal()` iterates variations:
    - `findByWordAndLang('dibakar', 'id')` → `[]` (passive forms rarely indexed)
    - `findByWordAndLang('membakar', 'id')` → **found** — returns lemmas with `word: "membakar"`, `baseWord: "bakar"`
@@ -493,7 +495,7 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 10. **Subsequent search**: User types "air" and presses Enter
     - No autocomplete match (assume "air" exists in autocomplete and user clicks it)
     - `lookup({word: "air", lang: "id"})` → `searchDictionary()` → `#searchLocal()`
-    - Stemmer generates `["air"]`
+    - Variation generator generates `["air"]`
     - IndexedDB returns all lemmas for "air"
     - Breadcrumb now shows: "dibakar" (dimmed) / "air" (bold)
 11. **Click breadcrumb**: User clicks "dibakar" in breadcrumb
@@ -510,7 +512,7 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 ### Variation Iteration
 
-`DictionaryService.#searchLocal()` iterates the stemmer's variation array and calls `DictStoreService.findByWordAndLang(w, lang)` for each. It stops at the first variation that returns keyword-flagged lemmas (`keyword === 1`). This mirrors the "stop at first match" design that was previously handled server-side.
+`DictionaryService.#searchLocal()` iterates the variation generator's variation array and calls `DictStoreService.findByWordAndLang(w, lang)` for each. It stops at the first variation that returns keyword-flagged lemmas (`keyword === 1`). This mirrors the "stop at first match" design that was previously handled server-side.
 
 ```typescript
 for (const w of words) {
@@ -539,7 +541,7 @@ The IDB schema (version 4) defines a single index, `by-lang-wordlower`. Both loo
 
 ### Exact Match
 
-The IDB query uses `IDBKeyRange.only([lang, word.toLowerCase()])` on the `by-lang-wordlower` compound index — exact match on `lang` plus the lowercased word. There is no prefix or regex matching at this layer. This is why stemming is necessary on the client side before querying IDB.
+The IDB query uses `IDBKeyRange.only([lang, word.toLowerCase()])` on the `by-lang-wordlower` compound index — exact match on `lang` plus the lowercased word. There is no prefix or regex matching at this layer. This is why variation generation is necessary on the client side before querying IDB.
 
 Prefix queries (autocomplete suggestions) lowercase the prefix and use `IDBKeyRange.bound([lang, start], [lang, start + '￿'])` on the same index via `DictStoreService.findWordsStartingWith()`. Results are deduplicated by `wordLower`, so `Belanda` and `belanda` collapse to one suggestion.
 
@@ -552,7 +554,7 @@ Prefix queries (autocomplete suggestions) lowercase the prefix and use `IDBKeyRa
 If a user types an inflected word like "dibakar" that is NOT in the autocomplete index (unlikely, but possible):
 - Autocomplete returns no suggestions
 - User presses Enter → `searchDictionary()` → `#searchLocal()` is called
-- Stemmer generates variations including "membakar" (active form)
+- The variation generator produces variations including "membakar" (active form)
 - IndexedDB lookup finds "membakar" and returns results ✓
 
 If the user had typed "dibakar" and it WAS in autocomplete:
@@ -565,8 +567,8 @@ Example: "sampah" (trash) might not have its own entry but appears as "membakar 
 
 If a user searches "sampah":
 - Autocomplete might not suggest it (if not indexed as standalone)
-- `#searchLocal()` runs the stemmer for "sampah"
-- Stemmer strips affixes (none apply to "sampah")
+- `#searchLocal()` runs the variation generator for "sampah"
+- Variation generator strips affixes (none apply to "sampah")
 - IndexedDB lookup for "sampah" → not found
 - Returns empty results
 
@@ -577,7 +579,7 @@ This is expected behavior — only words (or their variants) indexed in the dict
 The breadcrumb stores **the typed word** (e.g., "dibakar"), not the found base (e.g., "membakar"). This means:
 
 - User sees what they typed in the breadcrumb ✓
-- Clicking the breadcrumb re-runs the stemmer and finds the correct base again ✓
+- Clicking the breadcrumb re-runs the variation generator and finds the correct base again ✓
 - No inconsistency where "membakar" gets bold-highlighted but the breadcrumb shows "dibakar"
 
 ---
@@ -586,6 +588,6 @@ The breadcrumb stores **the typed word** (e.g., "dibakar"), not the found base (
 
 1. **Expand word exemptions**: Some words don't follow standard patterns and are currently hardcoded
 2. **Smarter consonant restoration**: Current rules generate some phonetically implausible candidates
-3. **Integrate a full morphological analyzer**: If performance/accuracy becomes critical, use Nazief–Adriani or Sastrawi
+3. **Free-text article search (inverted index)**: A future content-search feature would call for a single-root stemmer such as Nazief–Adriani or Sastrawi (see the detailed note above for why a stemmer fits content search but not dictionary lookup)
 4. **Configurable stripping depth**: Trade recall for precision by limiting affix stripping
-5. **Store detailed search metadata**: Track which stemmed variant was found, for more intelligent breadcrumb handling
+5. **Store detailed search metadata**: Track which variation was found, for more intelligent breadcrumb handling

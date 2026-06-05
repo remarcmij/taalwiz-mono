@@ -154,10 +154,10 @@ equals the root, then returns the morphemes in surface order. Key properties:
   `Indonesia`) get no breakdown either, which is acceptable: silence is safe, and such forms
   are rare.
 
-The nasal rules are a hand-port of the production lookup stemmer
-(`indonesian-stemmer.ts`); the two must not drift, which `indonesian-segmenter.spec.ts`
-guards with a cross-check test. Note that "stemmer" is a misnomer for that lookup code (it
-over-generates candidate variations rather than stemming); a rename is tracked separately.
+The nasal rules are a hand-port of the production lookup `IndonesianVariationGenerator`
+(`indonesian-variation-generator.ts`), which over-generates candidate forms for dictionary
+lookup; the two must not drift, which `indonesian-segmenter.spec.ts` guards with a
+cross-check test.
 
 ---
 

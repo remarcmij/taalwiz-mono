@@ -68,7 +68,7 @@ graph TD
 src/app/
 ├── app.component.ts          # Root shell (Ionic side-menu + outlet)
 ├── app.routes.ts             # Top-level route table
-├── app.constants.ts          # langConfig (targetLang, nativeLang, stemmer)
+├── app.constants.ts          # langConfig (targetLang, nativeLang, variationGenerator)
 │
 ├── auth/                     # Auth feature
 │   ├── auth.service.ts
@@ -115,8 +115,9 @@ src/app/
 │       ├── dict-db.ts                  # framework-free DB schema + transformDict
 │       ├── dict-import.worker.ts       # off-main-thread atomic import
 │       ├── search-history.service.ts
-│       ├── indonesian-stemmer.ts  # implements Stemmer interface
-│       ├── stemmer.ts             # Stemmer interface + IdentityStemmer fallback
+│       ├── indonesian-variation-generator.ts  # implements VariationGenerator
+│       ├── variation-generator.ts  # VariationGenerator interface + IdentityVariationGenerator
+│       ├── indonesian-segmenter.ts  # affix breakdown for the morphology aid
 │       ├── word-lang.model.ts
 │       ├── history-modal/
 │       ├── searchbar-dropdown/
@@ -269,7 +270,7 @@ graph LR
 
 ### 4.3 Dictionary
 
-Offline-first. On first load the dict manifest is fetched from `/assets/dict-manifest.json`; new or updated bundles are compiled and stored in IndexedDB (`taalwiz-dict`). `DictionaryService` wraps `DictStoreService` with pluggable stemming (via `langConfig.stemmer`) for fuzzy lookup — all searches run entirely offline against IndexedDB.
+Offline-first. On first load the dict manifest is fetched from `/assets/dict-manifest.json`; new or updated bundles are compiled and stored in IndexedDB (`taalwiz-dict`). `DictionaryService` wraps `DictStoreService` with a pluggable variation generator (via `langConfig.variationGenerator`) for fuzzy lookup — all searches run entirely offline against IndexedDB.
 
 ### 4.4 Admin
 
@@ -344,7 +345,7 @@ graph TD
 | `StudyService` | `home/study/` | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)` and `submitReview()` observables for the SRS API |
 | `DictSyncService` | `home/dictionary/` | Fetch manifest, compare versions on the main thread, spawn `dict-import.worker` for the actual import, re-emit worker progress/status, expose `hasCompleteDict$` readiness |
 | `DictStoreService` | `home/dictionary/` | **Read-only** IndexedDB wrapper (`taalwiz-dict` DB): `open`, `getStoredVersion`, `findByWordAndLang`, `findWordsStartingWith`, `count`. All writes belong to `dict-import.worker.ts` |
-| `DictionaryService` | `home/dictionary/` | Offline lookup via `DictStoreService` using `langConfig.stemmer` (pluggable); manages `lookupResult$` |
+| `DictionaryService` | `home/dictionary/` | Offline lookup via `DictStoreService` using `langConfig.variationGenerator` (pluggable); manages `lookupResult$` |
 | `SearchHistoryService` | `home/dictionary/` | Persist search history (up to 50 entries) via Capacitor Preferences; deduplication on add |
 | `ContentService` | `home/content/` | Fetch publications & articles from API; `prefetchArticle()` for silent bulk pre-fetch (publication cache-all button); manage SW content-cache invalidation (manifest check on login, explicit bust on admin mutations and logout) |
 | `MarkdownService` | `home/content/` | Markdown → HTML with foreign-language span injection |
@@ -442,7 +443,7 @@ The compiled dictionary is ~270,000 word records. The import previously ran on t
 - **Global chip** — a small "Updating dictionary X/Y" chip in `AppComponent` is visible from any route while `isSyncing()`, so background re-syncs aren't invisible outside the Dictionary tab. Tapping it jumps to the Dictionary tab. Driven by the same `status$` + `progress$` observables.
 - **One DB, two connections** — main (read) + worker (write) at the same schema version → no `versionchange`, they coexist. A future schema bump would need to coordinate (main closes the read connection, lets the worker upgrade, reopens).
 
-`DictionaryService` uses `langConfig.stemmer` (a pluggable `Stemmer` interface; currently `IndonesianStemmer`) to generate word variants before searching `DictStoreService`; inflected forms resolve to the correct lemma entirely offline.
+`DictionaryService` uses `langConfig.variationGenerator` (a pluggable `VariationGenerator` interface; currently `IndonesianVariationGenerator`) to generate word variants before searching `DictStoreService`; inflected forms resolve to the correct lemma entirely offline.
 
 ---
 

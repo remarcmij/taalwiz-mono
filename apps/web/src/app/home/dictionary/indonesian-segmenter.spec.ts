@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { IndonesianStemmer } from './indonesian-stemmer';
+import { IndonesianVariationGenerator } from './indonesian-variation-generator';
 import { segmentIndonesian } from './indonesian-segmenter';
 
 describe('segmentIndonesian', () => {
@@ -113,10 +113,10 @@ describe('segmentIndonesian', () => {
   });
 
   // Anti-drift guard: the segmenter's nasal allomorphy is a hand-port of the
-  // production stemmer (indonesian-stemmer.ts). If someone edits the stemmer's
+  // variation generator (indonesian-variation-generator.ts). If someone edits its
   // rules, this fails and signals the segmenter table needs the same edit.
-  describe('consistency with IndonesianStemmer', () => {
-    const stemmer = new IndonesianStemmer();
+  describe('consistency with IndonesianVariationGenerator', () => {
+    const generator = new IndonesianVariationGenerator();
     const pairs: [string, string][] = [
       ['memperbaiki', 'baik'],
       ['menyapukan', 'sapu'],
@@ -131,8 +131,8 @@ describe('segmentIndonesian', () => {
     ];
 
     for (const [surface, root] of pairs) {
-      it(`stemmer variations of ${surface} include ${root}`, () => {
-        expect(stemmer.getWordVariations(surface)).toContain(root);
+      it(`variations of ${surface} include ${root}`, () => {
+        expect(generator.getWordVariations(surface)).toContain(root);
       });
     }
   });

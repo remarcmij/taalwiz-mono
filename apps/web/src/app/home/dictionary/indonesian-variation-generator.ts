@@ -1,4 +1,4 @@
-import type { Stemmer } from './stemmer';
+import type { VariationGenerator } from './variation-generator';
 
 const WordExemptions: string[] = [
   'aku',
@@ -13,7 +13,7 @@ const WordExemptions: string[] = [
   'ngaji',
 ];
 
-export class IndonesianStemmer implements Stemmer {
+export class IndonesianVariationGenerator implements VariationGenerator {
   getWordVariations(word: string): string[] {
     const variations: Set<string> = new Set();
     this.getVariations(word, variations, false);

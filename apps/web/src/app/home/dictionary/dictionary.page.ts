@@ -213,7 +213,7 @@ export class DictionaryPage implements OnDestroy {
           if (suggestions.length > 0) {
             this.onItemClicked(suggestions[0]);
           } else if (this.word()) {
-            // No literal suggestion matched: run a full stemmer-backed lookup on
+            // No literal suggestion matched: run a full variation-backed lookup on
             // the typed term so inflected forms (e.g. diambil -> ambil) resolve.
             this.lookup(new WordLang(this.word(), langConfig.targetLang));
           }

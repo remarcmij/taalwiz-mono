@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { IndonesianStemmer } from './indonesian-stemmer';
+import { IndonesianVariationGenerator } from './indonesian-variation-generator';
 
-describe('IndonesianStemmer', () => {
-  let stemmer: IndonesianStemmer;
+describe('IndonesianVariationGenerator', () => {
+  let generator: IndonesianVariationGenerator;
 
   beforeEach(() => {
-    stemmer = new IndonesianStemmer();
+    generator = new IndonesianVariationGenerator();
   });
 
-  const variations = (word: string) => stemmer.getWordVariations(word);
+  const variations = (word: string) => generator.getWordVariations(word);
 
   describe('word exemptions', () => {
     it('returns only the word itself for exempt words', () => {

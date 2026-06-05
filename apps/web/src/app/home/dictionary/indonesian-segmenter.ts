@@ -5,16 +5,17 @@
  * (e.g. "sapu"), produce a FLAT morphological breakdown: prefixes, the root, and
  * suffixes in surface order, e.g. ["meN-", "sapu", "-kan"].
  *
- * This is deliberately NOT a stemmer. The production `IndonesianStemmer`
- * (./indonesian-stemmer.ts) over-generates an unordered Set of candidate roots to
- * make dictionary lookup succeed. This segmenter does the opposite: the root is a
- * fixed input (the lemma's `baseWord`, already attested by Teeuw), and we find the
+ * This is deliberately NOT a stemmer. The production `IndonesianVariationGenerator`
+ * (./indonesian-variation-generator.ts) over-generates an unordered Set of candidate
+ * roots to make dictionary lookup succeed. This segmenter does the opposite: the root
+ * is a fixed input (the lemma's `baseWord`, already attested by Teeuw), and we find the
  * single best ordered affix path from surface down to exactly that root. It never
  * invents a root; failure yields `null`.
  *
- * The meN-/peN- nasal allomorphy below is a faithful hand-port of the production
- * stemmer's `stripMeN` (indonesian-stemmer.ts L172-210), `stripPeN` (L212-250) and
- * the assimilation guards in `prefixWithMeng` (L252-278). Keep the two consistent:
+ * The meN-/peN- nasal allomorphy below is a faithful hand-port of the variation
+ * generator's `stripMeN` (indonesian-variation-generator.ts L172-210), `stripPeN`
+ * (L212-250) and the assimilation guards in `prefixWithMeng` (L252-278). Keep the two
+ * consistent:
  * `indonesian-segmenter.spec.ts` has a cross-check test that fails if they drift.
  *
  * See apps/web/MORPHOLOGY_AID.md for the design and its grounding in Teeuw.
@@ -47,7 +48,7 @@ interface SimpleAffix {
 
 // Suffixes (peeled from the right). Clitics/particles are outermost; the
 // derivational suffixes -kan/-an/-i are innermost. The {N,} guards mirror the
-// stemmer's remainder-length guards (e.g. -an requires a 3+ char remainder).
+// variation generator's remainder-length guards (e.g. -an requires a 3+ char remainder).
 const SUFFIXES: SimpleAffix[] = [
   { label: '-nya', match: /^(.{2,})nya$/ },
   { label: '-ku', match: /^(.{2,})ku$/ },

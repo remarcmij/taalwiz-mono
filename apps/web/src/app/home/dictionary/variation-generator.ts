@@ -1,8 +1,8 @@
-export interface Stemmer {
+export interface VariationGenerator {
   getWordVariations(word: string): string[];
 }
 
-export class IdentityStemmer implements Stemmer {
+export class IdentityVariationGenerator implements VariationGenerator {
   getWordVariations(word: string): string[] {
     return [word];
   }

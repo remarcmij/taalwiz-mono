@@ -51,11 +51,12 @@ export class DictionaryService {
   async #fetchSuggestionsAsync(term: string): Promise<WordLang[]> {
     const prefix = term.toLowerCase();
 
-    // Suggestions are a literal prefix match on what was typed -- no stemmer
-    // variations. Stemming a partially-typed word surfaces alphabetical
-    // neighbours of stripped forms (e.g. "memperbai" strips -i to "memperba"
-    // and suggests unrelated "memperba*" words), which reads as a broken filter.
-    // Inflected forms still resolve via the stemmer on the lookup path
+    // Suggestions are a literal prefix match on what was typed -- no variation
+    // generation. Generating variations of a partially-typed word surfaces
+    // alphabetical neighbours of stripped forms (e.g. "memperbai" strips -i to
+    // "memperba" and suggests unrelated "memperba*" words), which reads as a
+    // broken filter. Inflected forms still resolve via the variation generator
+    // on the lookup path
     // (#searchLocal), reached by tapping a word, tapping a suggestion, or
     // pressing Enter with no matching suggestion.
     //
@@ -92,7 +93,7 @@ export class DictionaryService {
     const words =
       target.lang === langConfig.nativeLang
         ? word.split(',').map((w) => w.trim())
-        : langConfig.stemmer.getWordVariations(word);
+        : langConfig.variationGenerator.getWordVariations(word);
 
     for (const w of words) {
       const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
@@ -110,7 +111,7 @@ export class DictionaryService {
     const variations =
       lang === langConfig.nativeLang
         ? word.split(',').map((w) => w.trim())
-        : langConfig.stemmer.getWordVariations(word);
+        : langConfig.variationGenerator.getWordVariations(word);
     for (const keywordOnly of [true, false]) {
       for (const w of variations) {
         const lemmas = await this.#dictStore.findByWordAndLang(w, lang, keywordOnly);
