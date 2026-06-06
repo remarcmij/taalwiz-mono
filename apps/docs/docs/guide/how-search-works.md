@@ -66,7 +66,7 @@ The generator knows the regular affix system. The parts most relevant to lookup:
 
 The linguistically interesting part is the **nasal prefix _meN-_** (and its noun
 counterpart _peN-_). The capital _N_ stands for the nasal element, which surfaces as
-_me-_, _mem-_, _men-_, _meng-_ or _meny-_ depending on the base's first sound. For one
+_me-_, _mem-_, _men-_, _meng-_ or _meny-_ depending on the bases first sound. For one
 class of bases, those beginning with a voiceless consonant (_p, t, s, k_), that initial
 consonant is **lost** when the prefix attaches:
 
@@ -130,9 +130,14 @@ needed.
 ### 2. Stopping at a derivation, not the base: _kepunyaanku_
 
 The user types _kepunyaanku_ ("my possession"), which is _ke-_ + _punya_ ("to own") +
-_-an_ + the possessive clitic _-ku_. The generator strips the clitic and would peel the
-circumfix all the way to the base, but the _ke-...-an_ noun _kepunyaan_ is itself a Teeuw
-headword, so the lookup stops there.
+_-an_ + the possessive clitic _-ku_. The generator has no notion of what the base is. It
+applies its stripping rules mechanically and runs them to exhaustion, emitting every form
+the rules yield, some that would be valid words for _other_ inputs, most of them nonsense
+here. It does not stop when it happens to produce a real word. What stops early is the
+_lookup_: _kepunyaan_, with just the _-ku_ clitic removed, is a Teeuw headword, so the
+search halts there. The generator proposes; the dictionary disposes.
+
+The exact list of candidates that the generator produces for _kepunyaanku_ is: _kepunyaanku_, _kepunyaan_, _kepunya_, _kepu_, _pu_, _punya_, _punyaan_, _punyaanku_. Here is how it resolves against Teeuw:
 
 ```mermaid
 sequenceDiagram
@@ -144,8 +149,8 @@ sequenceDiagram
 
     U->>S: look up "kepunyaanku"
     S->>G: generate variations
-    Note over G: strip the -ku clitic to "kepunyaan",<br/>then peel ke-...-an toward the base "punya"
-    G-->>S: [kepunyaanku, kepunyaan, kepunya, kepu, pu, punya, punyaan, punyaanku]
+    Note over G: emit the input unchanged first,<br/>then strip affixes by rule, with no notion of a base
+    G-->>S: [kepunyaanku, kepunyaan ... punyaanku]
     S->>D: "kepunyaanku"?
     D-->>S: no entry (clitic form not indexed)
     S->>D: "kepunyaan"?
@@ -154,16 +159,16 @@ sequenceDiagram
     S-->>U: entry shown for "kepunyaan"
 ```
 
-The point: the search stops at the first form Teeuw indexes, which here is the
-derivation _kepunyaan_, not the bare base _punya_. The generator would reach _punya_
-eventually (it is candidate six), but it never needs to. This is what the ordering buys:
-the most likely headwords are tried first, so the first hit is usually the most useful
-one.
+The point: the search stops at _kepunyaan_, a derivation, rather than the bare base
+_punya_, because that is the first form Teeuw indexes. And of the eight candidates only
+two are queried (_kepunyaanku_, then _kepunyaan_); the rest are never even looked up. The
+ordering keeps the junk from being reached, and any junk that _is_ reached before a hit,
+as in the next example, Teeuw rejects. Liberal generation does no harm from either side.
 
 ### 3. A multi-affix form with rejected non-words: _dipekerjakan_
 
 Now the user types _dipekerjakan_ ("was employed"), a passive built on the circumfix
-_per-...-kan_ around the base _kerja_ ("work"). The generator's attempts to rebuild an
+_per-...-kan_ around the base _kerja_ ("work"). The generators attempts to rebuild an
 active form here produce several shapes that are not Indonesian words. Each is dutifully
 looked up and rejected before a real headword, the _pe-_ noun _pekerja_ ("worker", the
 person who does the _ber-_ verb _bekerja_), is reached.
