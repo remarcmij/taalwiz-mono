@@ -19,6 +19,8 @@
     "search-alert-message": "An error occurred while searching the dictionary. Please try again later.",
     "close": "Close",
     "continue": "Continue",
+    "action-tap": "Tap",
+    "action-click": "Click",
     "pronounce": "Pronounce",
     "bookmark": "Bookmark",
     "remove-bookmark": "Remove bookmark",
@@ -71,7 +73,7 @@
     "clear-history": "Clear history"
   },
   "bookmarks": {
-    "empty": "No items in your vocabulary yet. Tap the bookmark icon while viewing a dictionary entry.",
+    "empty": "No items in your vocabulary yet. {{action}} the bookmark icon while viewing a dictionary entry.",
     "no-lists": "Create a list to start building your vocabulary.",
     "create-list": "Create List",
     "list-name-placeholder": "List name",
@@ -104,7 +106,7 @@
     "practice-anyway": "Practice anyway",
     "next": "Next",
     "no-cards-due": "No cards due — well done!",
-    "show-answer": "Tap to reveal",
+    "show-answer": "{{action}} to reveal",
     "again": "Again",
     "good": "Good",
     "easy": "Easy",
@@ -116,7 +118,7 @@
   },
   "morphology": {
     "nasal-rule": "{{archiphoneme}} before {{letter}}: surfaces as {{surface}}, and the root's initial {{letter}} drops",
-    "reveal-prompt": "Tap to reveal the decomposition",
+    "reveal-prompt": "{{action}} to reveal the decomposition",
     "show-breakdown": "Show the decomposition",
     "quiz-breakdown": "Quiz the decomposition"
   },

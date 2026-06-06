@@ -33,6 +33,7 @@ import { firstValueFrom } from 'rxjs';
 import { MarkdownService } from '../../content/markdown.service';
 import { DictionaryService } from '../../dictionary/dictionary.service';
 import { WordClickModalService } from '../../../shared/word-click-modal/word-click-modal.service';
+import { PointerService } from '../../../shared/pointer.service';
 import { VocabularyService } from '../../vocabulary/vocabulary.service';
 import { SrsItem, SrsRating, StudyService } from '../study.service';
 
@@ -80,6 +81,7 @@ export class StudyModalComponent implements OnInit {
   #markdownService = inject(MarkdownService);
   #wordClickModalService = inject(WordClickModalService);
   protected vocabularyService = inject(VocabularyService);
+  protected pointer = inject(PointerService);
 
   readonly screen = signal<Screen>('picker');
   readonly selectedListId = signal<string>('');

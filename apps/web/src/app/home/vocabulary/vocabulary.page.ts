@@ -38,6 +38,7 @@ import { StudyModalComponent } from '../study/study-modal/study-modal.component'
 import { StudyService } from '../study/study.service';
 import { VocabularyEntryModalComponent } from './vocabulary-entry-modal/vocabulary-entry-modal.component';
 import { VocabularyEntry, VocabularyList, VocabularyService } from './vocabulary.service';
+import { PointerService } from '../../shared/pointer.service';
 
 @Component({
   selector: 'app-bookmarks',
@@ -67,6 +68,7 @@ import { VocabularyEntry, VocabularyList, VocabularyService } from './vocabulary
 })
 export class VocabularyPage {
   protected vocabularyService = inject(VocabularyService);
+  protected pointer = inject(PointerService);
   #studyService = inject(StudyService);
   #dictionaryService = inject(DictionaryService);
   #router = inject(Router);

@@ -63,9 +63,13 @@
                   class="affix-quiz"
                   (click)="reveal($index)"
                   role="button"
-                  [attr.aria-label]="'morphology.reveal-prompt' | translate"
+                  [attr.aria-label]="
+                    'morphology.reveal-prompt' | translate: { action: pointer.actionKey() | translate }
+                  "
                 >
-                  {{ "morphology.reveal-prompt" | translate }}
+                  {{
+                    "morphology.reveal-prompt" | translate: { action: pointer.actionKey() | translate }
+                  }}
                 </div>
               } @else {
                 <div class="affix-breakdown">

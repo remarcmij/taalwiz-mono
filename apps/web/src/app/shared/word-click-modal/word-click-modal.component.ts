@@ -40,6 +40,7 @@ import { WordLang } from '../../home/dictionary/word-lang.model';
 import { segmentIndonesian, type SegmentResult } from '../../home/dictionary/indonesian-segmenter';
 import { SpeechSynthesizerService } from '../../home/speech-synthesizer.service';
 import { MorphologyModeService } from '../morphology/morphology-mode.service';
+import { PointerService } from '../pointer.service';
 import { langConfig } from '../../app.constants';
 
 /** One homonym group: its rendered definition plus an optional affix breakdown. */
@@ -76,6 +77,7 @@ export class WordClickModalComponent implements OnInit {
 
   protected vocabularyService = inject(VocabularyService);
   protected morphologyMode = inject(MorphologyModeService);
+  protected pointer = inject(PointerService);
 
   clickedWord = input.required<string>();
   word = input.required<string>();

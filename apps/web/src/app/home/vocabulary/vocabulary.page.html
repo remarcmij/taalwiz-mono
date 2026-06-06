@@ -46,7 +46,7 @@
         <ion-button (click)="openCreateListAlert()">{{ 'bookmarks.create-list' | translate }}</ion-button>
       </div>
     } @else if (vocabularyService.bookmarks().length === 0) {
-      <p class="empty-state">{{ 'bookmarks.empty' | translate }}</p>
+      <p class="empty-state">{{ 'bookmarks.empty' | translate: { action: pointer.actionKey() | translate } }}</p>
     } @else {
       <ion-list lines="full">
         @for (entry of vocabularyService.bookmarks(); track entry.term + ':' + entry.lang) {

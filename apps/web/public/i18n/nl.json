@@ -19,6 +19,8 @@
     "search-alert-message": "Er is een fout opgetreden bij het zoeken in het woordenboek. Probeer het later nog eens.",
     "close": "Gereed",
     "continue": "Doorgaan",
+    "action-tap": "Tik",
+    "action-click": "Klik",
     "pronounce": "Uitspreken",
     "bookmark": "Bladwijzer toevoegen",
     "remove-bookmark": "Bladwijzer verwijderen",
@@ -71,7 +73,7 @@
     "clear-history": "Geschiedenis wissen"
   },
   "bookmarks": {
-    "empty": "Nog geen items in uw woordenschat. Tik op het bladwijzerpictogram bij een woordenboekresultaat.",
+    "empty": "Nog geen items in uw woordenschat. {{action}} op het bladwijzerpictogram bij een woordenboekresultaat.",
     "no-lists": "Maak een lijst aan om uw woordenschat op te bouwen.",
     "create-list": "Lijst aanmaken",
     "list-name-placeholder": "Lijstnaam",
@@ -104,7 +106,7 @@
     "practice-anyway": "Toch oefenen",
     "next": "Volgende",
     "no-cards-due": "Geen kaarten meer voor vandaag — goed gedaan!",
-    "show-answer": "Tik om het antwoord te tonen",
+    "show-answer": "{{action}} om het antwoord te tonen",
     "again": "Opnieuw",
     "good": "Goed",
     "easy": "Makkelijk",
@@ -116,7 +118,7 @@
   },
   "morphology": {
     "nasal-rule": "{{archiphoneme}} vóór {{letter}}: wordt {{surface}}, waarbij de beginletter {{letter}} van het grondwoord wegvalt",
-    "reveal-prompt": "Tik om de woordopbouw te tonen",
+    "reveal-prompt": "{{action}} om de woordopbouw te tonen",
     "show-breakdown": "Toon de woordopbouw",
     "quiz-breakdown": "Oefen de woordopbouw"
   },
