@@ -78,7 +78,6 @@ export class WordClickModalService {
     hideActions?: boolean;
     onDismiss?: () => void;
   }): void {
-    const bases = new Set(opts.lemmas.map((lemma) => lemma.baseWord));
     this.#modalCtrl
       .create({
         component: WordClickModalComponent,
@@ -89,7 +88,6 @@ export class WordClickModalService {
           sentence: opts.sentence,
           sentenceHtml: opts.sentenceHtml ?? '',
           lemmas: opts.lemmas,
-          bases: Array.from(bases),
           hideActions: opts.hideActions ?? false,
         },
         cssClass: 'word-click-modal',

@@ -83,7 +83,6 @@ export class WordClickModalComponent implements OnInit {
    * flashcard's source-sentence so the card can reuse the same tappable words. */
   sentenceHtml = input<string>('');
   lemmas = input.required<ILemma[]>();
-  bases = input.required<string[]>();
   /** When true (e.g. opened from SRS review) hide the bookmark and dictionary-lookup
    * actions, leaving a view-only modal (definition + audio). */
   hideActions = input<boolean>(false);
@@ -96,10 +95,18 @@ export class WordClickModalComponent implements OnInit {
   );
 
   protected titleLabel = computed(() => {
-    const bases = this.bases();
+    // The arrow shows the single most informative hop from the clicked word to the
+    // headword whose definition is on screen:
+    //  - If the lookup *resolved* to a different form (a passive matched via its
+    //    active sibling), show that hop: dipercaya → mempercaya. The root stays on
+    //    the breakdown line (di- + percaya).
+    //  - Otherwise the clicked word matched directly; if it is an inflection, point
+    //    at its root headword: mengambil → ambil. A bare root shows no arrow.
     const clicked = this.clickedWord();
-    const basesStr = bases.join(', ');
-    return bases.includes(clicked) ? basesStr : `${clicked} → ${basesStr}`;
+    const word = this.word();
+    if (word !== clicked) return `${clicked} → ${word}`;
+    const bases = [...new Set(this.lemmas().map((lemma) => lemma.baseWord))];
+    return bases.includes(clicked) ? clicked : `${clicked} → ${bases.join(', ')}`;
   });
 
   ngOnInit() {
