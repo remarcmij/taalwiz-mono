@@ -161,6 +161,30 @@ cross-check test.
 
 ---
 
+## 8. Known gap: compounds (and reduplication) — deferred
+
+The segmenter is anchored to a **single** root (the lemma's `baseWord`). When the real stem
+is a **compound of two roots**, it dead-ends and shows no line. Example: `mencampuradukkan`
+is `meN- + campur + aduk + -kan`, where `campur aduk` ("mix" + "stir" = jumble) is a
+compound. Teeuw files the entry under the single base `campur`, so the segmenter peels
+`meN-` and `-kan`, lands on the residual `campuraduk`, finds it `!= campur`, and returns
+`null`. Working as designed (silence-when-unsure), but the user reasonably expects a
+breakdown.
+
+The data to do it _right_ exists: `aduk` is its own Teeuw headword. A **compound-aware**
+extension would, after peeling affixes to a residual that is not the base, try to split that
+residual into `base + one or more additional attested roots`, validating each extra piece
+against the dictionary; render only if every piece is a real headword, else fall back to
+`null`. The same residual-is-more-than-the-base machinery is what **reduplication**
+(`campur-campur`) needs, so the two are worth designing together.
+
+The architectural cost is the reason it is deferred: the segmenter is today **pure and
+synchronous with no dictionary access**, and compound validation needs a root-existence
+lookup (an injected `isRoot(word)` predicate over the IndexedDB dictionary). Until we commit
+to that dependency, compounds and reduplication both return `null`.
+
+---
+
 ## See also
 
 - [../compiler/TEEUW_PARSER.md](../compiler/TEEUW_PARSER.md) — the markdown to JSON parsing

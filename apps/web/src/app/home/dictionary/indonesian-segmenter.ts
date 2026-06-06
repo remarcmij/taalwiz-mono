@@ -149,6 +149,16 @@ interface Solution {
  * genuinely ambiguous between materially different breakdowns of the same minimal
  * length (silence is safer than a confident guess). Reduplication is out of scope
  * for v1 (returns null).
+ *
+ * DEFERRED — compounds: this is anchored to a SINGLE root, so a compound stem of two
+ * roots dead-ends and returns null. E.g. `mencampuradukkan` = meN- + campur + aduk +
+ * -kan, but Teeuw files it under the single base `campur`; peeling meN-/-kan lands on
+ * the residual `campuraduk` != `campur` -> null. A compound-aware version would split
+ * the residual into base + further ATTESTED roots (`aduk` is its own headword),
+ * validating each against the dictionary. That needs a root-existence predicate, which
+ * would break this function's pure/synchronous, no-dictionary-access property — hence
+ * deferred, alongside reduplication, which needs the same machinery. See
+ * apps/web/MORPHOLOGY_AID.md section 8.
  */
 export function segmentIndonesian(surface: string, root: string): SegmentResult | null {
   // The surface is user-tapped text, so normalise it to lowercase. The root keeps
