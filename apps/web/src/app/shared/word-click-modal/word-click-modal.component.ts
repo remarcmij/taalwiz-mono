@@ -29,7 +29,6 @@ import {
   chevronDownOutline,
   chevronUpOutline,
   playOutline,
-  searchOutline,
   volumeHighOutline,
 } from 'ionicons/icons';
 import { VocabularyService } from '../../home/vocabulary/vocabulary.service';
@@ -94,20 +93,6 @@ export class WordClickModalComponent implements OnInit {
     this.vocabularyService.isBookmarked(this.clickedWord(), this.lang()),
   );
 
-  protected titleLabel = computed(() => {
-    // The arrow shows the single most informative hop from the clicked word to the
-    // headword whose definition is on screen:
-    //  - If the lookup *resolved* to a different form (a passive matched via its
-    //    active sibling), show that hop: dipercaya → mempercaya. The root stays on
-    //    the breakdown line (di- + percaya).
-    //  - Otherwise the clicked word matched directly; if it is an inflection, point
-    //    at its root headword: mengambil → ambil. A bare root shows no arrow.
-    const clicked = this.clickedWord();
-    const word = this.word();
-    if (word !== clicked) return `${clicked} → ${word}`;
-    const bases = [...new Set(this.lemmas().map((lemma) => lemma.baseWord))];
-    return bases.includes(clicked) ? clicked : `${clicked} → ${bases.join(', ')}`;
-  });
 
   ngOnInit() {
     // Group lemmas by homonym
@@ -164,6 +149,12 @@ export class WordClickModalComponent implements OnInit {
     });
   }
 
+  // Invoked by the `→ word` hop link. Navigates to the full dictionary entry for the
+  // resolved headword (`word`). The hop is shown even when `word === clickedWord`
+  // (a plain root): it is NOT a no-op, because the modal body is the CONDENSED entry
+  // (keyword senses only) while the dictionary page is the FULL entry with all derived
+  // sub-lemmas. So "→ word" universally means "open the full entry" — do not suppress
+  // it in the self-reference case.
   dictionaryLookup() {
     this.#modalCtrl.dismiss(null, 'close');
     this.#router.navigate(['home/tabs/dictionary']);
@@ -188,7 +179,6 @@ export class WordClickModalComponent implements OnInit {
       bookmarkOutline,
       playOutline,
       volumeHighOutline,
-      searchOutline,
       chevronDownOutline,
       chevronUpOutline,
     });

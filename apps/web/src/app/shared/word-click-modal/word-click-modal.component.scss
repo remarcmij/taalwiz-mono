@@ -10,6 +10,37 @@
   margin-bottom: 0.15rem;
 }
 
+// The clicked-word -> headword hop. Dimmed (same provenance signal as the affix
+// breakdown: an automated relationship, not authored content). Right-aligned to snap to
+// the border, echoing Teeuw's cross-reference arrows and separating it from the
+// left-aligned breakdown.
+.resolution-hop {
+  text-align: right;
+  padding: 0.25rem 1rem 0;
+  font-size: 0.9em;
+}
+
+// The headword is the search target, made directly tappable (it does exactly what the
+// old magnifying glass did). Teal is the app-wide tap-to-look-up signal — kept at full
+// opacity (no parent dimming) so it reads as a live link.
+.hop-link {
+  color: var(--ion-color-primary);
+  cursor: pointer;
+}
+
+// View-only (SRS): non-tappable, so dim it like the other automated annotations.
+.hop-static {
+  opacity: 0.55;
+}
+
+// Ionic items default to a 48px min-height meant for tap targets; here the rows are
+// read-only text, so collapse the slack for a tighter hop / breakdown / definition stack.
+ion-item {
+  --min-height: auto;
+  --padding-top: 0.15rem;
+  --padding-bottom: 0.35rem;
+}
+
 .affix-expand {
   font-size: 1rem;
   cursor: pointer;

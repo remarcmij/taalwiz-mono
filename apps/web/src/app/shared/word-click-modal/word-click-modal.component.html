@@ -8,7 +8,7 @@
 } @else {
   <ion-toolbar>
     <ion-label slot="start" class="ion-padding-start clicked-word">
-      {{ titleLabel() }}
+      {{ clickedWord() }}
     </ion-label>
     <ion-buttons slot="end">
       @if (canSpeak()) {
@@ -47,13 +47,6 @@
             ></ion-icon>
           </ion-button>
         }
-        <ion-button (click)="dictionaryLookup()">
-          <ion-icon
-            slot="icon-only"
-            name="search-outline"
-            aria-label="lookup"
-          ></ion-icon>
-        </ion-button>
       }
     </ion-buttons>
   </ion-toolbar>
@@ -94,5 +87,12 @@
         </ion-item>
       }
     </ion-list>
+    <div class="resolution-hop">
+      @if (hideActions()) {
+        <span class="hop-static">→ {{ word() }}</span>
+      } @else {
+        <span class="hop-link" (click)="dictionaryLookup()">→ {{ word() }}</span>
+      }
+    </div>
   </ion-content>
 }
