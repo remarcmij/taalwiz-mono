@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular/standalone';
 import { langConfig } from '../../app.constants';
 import { DictionaryService } from '../../home/dictionary/dictionary.service';
@@ -13,6 +14,7 @@ const removeAccents = (str: string) => str.normalize('NFD').replace(/[\u0300-\u0
 })
 export class WordClickModalService {
   #dictionaryService = inject(DictionaryService);
+  #router = inject(Router);
   #modalCtrl = inject(ModalController);
 
   onClicked(event: MouseEvent) {
@@ -20,31 +22,40 @@ export class WordClickModalService {
     event.stopPropagation();
     const target = event.target as HTMLInputElement;
 
+    const wordLang = this.getWordClickParams(target);
+    if (!wordLang) return;
+
+    // Desktop accelerator: Cmd-click (Mac) / Ctrl-click (Win/Linux) skips the modal and
+    // searches the word directly in the dictionary, which resolves inflected forms via
+    // the same variation generator the modal uses. Touch has no modifier keys, so this
+    // is naturally desktop-only.
+    if (event.metaKey || event.ctrlKey) {
+      void this.#router.navigate(['home/tabs/dictionary']);
+      this.#dictionaryService.lookup(wordLang);
+      return;
+    }
+
     const { text: sentence, html: sentenceHtml } = this.#extractSentence(target);
 
-    const wordLang = this.getWordClickParams(target);
+    target.classList.add('clicked');
 
-    if (wordLang) {
-      target.classList.add('clicked');
-
-      this.fetchLemmas(removeAccents(wordLang.word), wordLang.lang).subscribe({
-        next: (response) => {
-          const { word, lang, lemmas } = response;
-          this.#present({
-            clickedWord: wordLang.word,
-            word,
-            lang,
-            sentence,
-            sentenceHtml,
-            lemmas,
-            onDismiss: () => target.classList.remove('clicked'),
-          });
-        },
-        error: () => {
-          target.classList.remove('clicked');
-        },
-      });
-    }
+    this.fetchLemmas(removeAccents(wordLang.word), wordLang.lang).subscribe({
+      next: (response) => {
+        const { word, lang, lemmas } = response;
+        this.#present({
+          clickedWord: wordLang.word,
+          word,
+          lang,
+          sentence,
+          sentenceHtml,
+          lemmas,
+          onDismiss: () => target.classList.remove('clicked'),
+        });
+      },
+      error: () => {
+        target.classList.remove('clicked');
+      },
+    });
   }
 
   /**
