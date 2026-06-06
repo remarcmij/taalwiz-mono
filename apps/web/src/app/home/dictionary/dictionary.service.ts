@@ -108,30 +108,45 @@ export class DictionaryService {
     }
 
     if (fromGenerator) {
-      // Demo/debug trace (intentionally kept in production): the variation
-      // generator's output, with the matched variation flagged by a leading '='
-      // -- the same marker the multiple-choice quiz uses for the correct option.
-      const marked = words.map((w) => (w === foundWord ? `=${w}` : w));
-      console.log(`${word} -> [${marked.map((w) => `'${w}'`).join(', ')}]`);
+      this.#logVariations(word, words, foundWord);
     }
 
     return found ?? result;
   }
 
   async #fetchWordLemmasAsync(word: string, lang: string): Promise<LookupResponse> {
-    const variations =
-      lang === langConfig.nativeLang
-        ? word.split(',').map((w) => w.trim())
-        : langConfig.variationGenerator.getWordVariations(word);
+    const fromGenerator = lang !== langConfig.nativeLang;
+    const variations = fromGenerator
+      ? langConfig.variationGenerator.getWordVariations(word)
+      : word.split(',').map((w) => w.trim());
+
+    let result: LookupResponse | null = null;
     for (const keywordOnly of [true, false]) {
       for (const w of variations) {
         const lemmas = await this.#dictStore.findByWordAndLang(w, lang, keywordOnly);
         if (lemmas.length > 0) {
-          return { word: w, lang, lemmas, haveMore: false };
+          result = { word: w, lang, lemmas, haveMore: false };
+          break;
         }
       }
+      if (result) break;
     }
-    return { word, lang, lemmas: [], haveMore: false };
+
+    if (fromGenerator) {
+      this.#logVariations(word, variations, result?.word ?? null);
+    }
+
+    return result ?? { word, lang, lemmas: [], haveMore: false };
+  }
+
+  // Demo/debug trace (intentionally kept in production): the variation generator's
+  // output for a target-language lookup, with the matched variation flagged by a
+  // leading '=' -- the same marker the multiple-choice quiz uses for the correct
+  // option. Used by both the search box (#searchLocal) and the word-click modal
+  // (#fetchWordLemmasAsync).
+  #logVariations(word: string, variations: string[], foundWord: string | null) {
+    const marked = variations.map((w) => (w === foundWord ? `=${w}` : w));
+    console.log(`${word} -> [${marked.map((w) => `'${w}'`).join(', ')}]`);
   }
 }
 
