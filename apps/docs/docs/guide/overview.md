@@ -56,9 +56,9 @@ Breakdown:
 
 1. In the first panel showing the search results for the word _abang_ the user tapped the word _cemara_. This brings up a panel that slides up from the bottom (a _bottom sheet_) with dictionary definitions for the word _cemara_. Tapping anywhere outside of the bottom sheet dismisses it.
 
-    Through the magnifying glass a new search can be done for _cemara_. If the button is pressed, the bottom sheet is dismissed and the new search is initiated.
+    At the bottom of the sheet a _→ cemara_ link points to the dictionary entry the definition belongs to. Tapping it dismisses the sheet and opens the full entry. On a laptop, Cmd-click (Mac) or Ctrl-click (Windows/Linux) on a word does the same in a single step, without opening the sheet.
 
-2. The second panel shows the results for the word _cemara_, resulting from tapping the magnifying glass.
+2. The second panel shows the full entry for _cemara_, after tapping the _→ cemara_ link.
 
 ### Reverse Lookup
 
@@ -96,7 +96,24 @@ Every Indonesian word in an article text is tappable, triggering a switch to the
 
 In Figure 5, the word _terbesar_ was tapped. This word does not occur as a definition in the Teeuw dictionary. It only occurs in a gloss of the lemma for headword _bagi_. The search for _terbesar_ lands on its headword _besar_. This is accomplished through affix stripping as part of a search. The app handles a wide range of Indonesian affixes, including some subtleties of their ordering; this is detailed in Appendix I.
 
+The word panel also shows the word's **decomposition**, _ter- + besar_, just above the definition, and a _→ besar_ link that opens the full dictionary entry. The next section looks at this decomposition feature more closely.
+
 A word worth remembering can be saved to a personal vocabulary list with a second tap, keeping the example sentence it appeared in. The whole flow, from reading to lookup to saving, works offline once the content and dictionary have been downloaded: the app installs directly from the browser onto a phone, tablet, or computer (no app store required) and continues to work without an internet connection.
+
+### Word Structure
+
+Beyond finding the right entry, the app can show _how_ an inflected word is built. When a tapped word is a derived form, the word panel adds a short grey line with its **decomposition**, the affixes and the root in order. For _menyapukan_ ("to sweep with"), it shows _meN- + sapu + -kan_.
+
+This is deliberately not a free guess. The root is the one Teeuw itself records for that entry, since the dictionary groups derived forms under an editorial headword, so the app only has to name the affixes that bridge the surface form to that attested root. Where it cannot do so with confidence, it shows nothing rather than assert a structure Teeuw does not support. A word with two readings carries one line per reading: _beruang_ appears both as the root "bear" (no decomposition) and as _ber- + uang_ ("to have money"), and the reader's context decides which is meant.
+
+A small expandable note explains the trickier sound changes. In _menyapukan_ the prefix meN- before an _s_ surfaces as _meny-_ and the root's initial _s_ drops, which is why the root _sapu_ is not visible on the surface. This is the kind of detail a learner rarely gets from a dictionary alone.
+
+The decomposition doubles as a quick self-test. A toggle in the panel switches it between _show_ and _quiz_: in quiz mode the line is hidden behind a "tap to reveal" prompt, so the learner can try to break the word down first and then check. It adds no separate exercise and no scoring; it simply turns a lookup the reader is already doing into a moment of active recall.
+
+The morphological handling is mine to change, and I would welcome a linguist's guidance on extending it. Compound words and reduplication, for instance, are recorded by the dictionary but not yet decomposed in this view.
+
+![Word structure](images/decomposition.png)
+<small>Figure 6: *The decomposition of _menyapukan_, the sound-change note, and quiz mode.*</small>
 
 ### Fill-in-the-blank exercises
 
@@ -134,17 +151,26 @@ The app strips a range of common affixes when generating candidate forms:
 
 Stripping is recursive, so multi-affix words are reduced step by step. Where a prefix drops or assimilates the root's initial consonant (as in _memotong_, from _potong_), the app also generates restored candidates. It is a best-effort heuristic, not a full morphological analyser, and a small exemption list covers common words that do not follow the regular patterns. The morphological handling is mine to change, and I would gladly refine it on a linguist's advice.
 
+### Two kinds of morphology
+
+The decomposition shown in the word panel (see _Word Structure_ above) is a separate mechanism from the lookup just described, with the opposite design goal:
+
+- **Lookup** over-generates candidate forms so that a search succeeds. It favours recall: a spurious candidate simply fails to match and costs nothing.
+- **Decomposition** starts from the root Teeuw already records for the entry and only labels the affixes in between. It favours precision: it never invents a root, and it stays silent when it cannot give a confident answer.
+
+Keeping the two apart is what lets the visible decomposition stay defensible: the user-facing claim is only ever the affix labelling over a root the dictionary itself attests.
+
 
 ## Appendix II - Hashtags and Connected Articles
 
 Articles can carry hashtags that mark topics or themes. Each hashtag is a clickable link: tapping it opens an index of every article that shares the same tag, so related material is connected across the library rather than sitting in isolation. An article on cooking and one on markets might both carry the tag _food_, letting a reader move between them by topic. For a curated collection this turns a flat list of texts into a lightly cross-referenced web.
 
-The Hashtags tab is shown in Figure 6.
+The Hashtags tab is shown in Figure 7.
 
 ![Hashtag tab](images/hashtags.png)
-<small>Figure 6: *Hashtags tab*</small>
+<small>Figure 7: *Hashtags tab*</small>
 
-Here is a breakdown of Figure 6:
+Here is a breakdown of Figure 7:
 
 1. The first panel shows the hashtags embedded in the articles, listed alphabetically.
 

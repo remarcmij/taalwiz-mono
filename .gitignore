@@ -43,5 +43,5 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-# Temp files
-.TEMP/
+# Working notes / TODO scratch (private, not for the repo)
+.TODO/

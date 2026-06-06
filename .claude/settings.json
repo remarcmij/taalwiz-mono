@@ -34,7 +34,9 @@
       "Bash(npx prettier *)",
       "Bash(sed -n '15,35p' apps/api/src/user-preferences/user-preferences.service.ts)",
       "Bash(sed -n '50,65p' apps/api/src/vocabulary/vocabulary.service.ts)",
-      "Bash(sed -n '75,90p' apps/api/src/vocabulary/vocabulary.service.ts)"
+      "Bash(sed -n '75,90p' apps/api/src/vocabulary/vocabulary.service.ts)",
+      "Bash(grep \"\\\\.md$\")",
+      "Bash(python3 -c \"import os; print\\(os.path.exists\\('src/app/home/dictionary/SEARCH.md'\\)\\)\")"
     ]
   }
 }
