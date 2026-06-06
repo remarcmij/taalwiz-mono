@@ -213,10 +213,18 @@ Mechanics:
 - In SRS view-only mode (`hideActions`) the toggle button is hidden, but a globally-on quiz
   mode still hides the breakdown behind the (still tappable) reveal prompt.
 
-**Deferred (the heavier quiz):** tile / word-bank assembly, where the learner arranges
-scrambled morpheme tiles plus targeted distractors (`me-` vs `meN-`, minted by the variation
-generator) and the result is auto-graded against the segmenter. Variant A ships first to prove
-the interaction before investing in grading and distractor UI.
+**Dropped (the heavier graded quiz), 2026-06-06.** Tile / word-bank assembly with
+auto-grading against the segmenter was considered and declined after a concrete walk-through.
+The reasoning: for visible-affix words (`ber-`, `ter-`, `di-`) ordering the tiles is a
+no-brainer, nothing to test. The one genuinely non-obvious thing is the nasal allomorphy where
+the surface hides the root (`menyapu` -> `sapu`), but a "which root?" item only has teeth if
+every choice is a **real, familiar word** — otherwise recognition picks the known stem and the
+rule is never exercised. Cases where two real roots collide behind one surface (`memerah` <-
+`perah` or `merah`) do force the rule, but they are rare and need **hand-prepared content**, at
+which point the free auto-generation that was the whole appeal is gone. Separately, Taalwiz's
+edge over Duolingo is **explanation, not drilling** (the user opens Taalwiz precisely to find
+the stem Duolingo won't teach); a graded quiz bolts drilling onto the one thing that was
+winning by not doing that. Variant A's reveal-and-self-grade stays as the only quiz form.
 
 ---
 

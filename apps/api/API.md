@@ -43,7 +43,7 @@ All endpoints are under the global prefix `/api/v1/`. By default they require a 
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/v1/vocabulary?listId=<id>` | List items in the specified list, sorted by `savedAt` desc |
-| `POST` | `/api/v1/vocabulary` | Add items `{ items: [{ term, lang, listId, back? }] }` (1–1000); each upserted (no-op on duplicate). Single adds send a one-element list |
+| `POST` | `/api/v1/vocabulary` | Add items `{ items: [{ term, lang, listId, back? }] }` (1–1000); each upserted (no-op on duplicate). Single adds send a one-element list (204) |
 | `DELETE` | `/api/v1/vocabulary?term=&lang=&listId=<id>` | Remove an item |
 
 ### User Preferences (`/api/v1/user-preferences`)
@@ -90,6 +90,7 @@ Read endpoints are scoped to the calling user's authorized content groups. See [
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/v1/hashtags` | Hashtag index across the current user's authorized articles |
+| `GET` | `/api/v1/hashtags/usage` | **Admin.** Hashtag usage counts across all articles |
 | `GET` | `/api/v1/hashtags/:name` | Articles carrying the given hashtag |
 
 ### Health (`/api/v1/health`)

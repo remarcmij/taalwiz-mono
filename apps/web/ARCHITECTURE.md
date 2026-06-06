@@ -36,7 +36,7 @@ graph TD
         auth["auth/\n(login, register, password)"]
         home["home/\n(tabs: content | dictionary | hashtags | vocabulary)"]
         admin["admin/\n(users, content, upload, settings)"]
-        user["user/\n(welcome, contact)"]
+        user["user/\n(contact)"]
     end
 
     subgraph CrossCutting ["Cross-cutting services"]
@@ -134,7 +134,6 @@ src/app/
 │   └── system-settings/
 │
 ├── user/                     # Standalone user pages
-│   ├── welcome/
 │   └── contact/
 │
 ├── about/                    # About modal (about-modal/), opened from the menu — not a route
@@ -209,7 +208,6 @@ flowchart TD
 
 **Standalone pages** (all require `authGuard`)
 
-- `/welcome/:lang`
 - `/contact`
 - `/help/:lang`
 - `/settings`

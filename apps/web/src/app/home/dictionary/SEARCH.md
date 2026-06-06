@@ -299,8 +299,8 @@ The test file uses a helper function `variations(word)` to generate variation ge
 You can also verify the variation generator manually in the browser console:
 
 ```typescript
-const variation generator = new IndonesianVariationGenerator();
-const vars = variation generator.getWordVariations('membaca');
+const variationGenerator = new IndonesianVariationGenerator();
+const vars = variationGenerator.getWordVariations('membaca');
 console.log(vars.includes('baca'));  // true
 console.log(vars.includes('membaca'));  // true
 ```
@@ -508,7 +508,7 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 ## IndexedDB Lookup Notes
 
-**File**: `dict-store.service.ts` (read-only) — the schema and `transformDict()` live in `dict-db.ts`; the import itself runs off the main thread in `dict-import.worker.ts` as a single atomic readwrite transaction. Search reads remain on the main thread against the shared `taalwiz-dict` database. See [ARCHITECTURE.md → Dictionary](../../../../../ARCHITECTURE.md#7-dictionary-offline-first) for the full sync flow and worker rationale.
+**File**: `dict-store.service.ts` (read-only) — the schema and `transformDict()` live in `dict-db.ts`; the import itself runs off the main thread in `dict-import.worker.ts` as a single atomic readwrite transaction. Search reads remain on the main thread against the shared `taalwiz-dict` database. See [ARCHITECTURE.md → Dictionary](../../../../ARCHITECTURE.md#7-dictionary-offline-first) for the full sync flow and worker rationale.
 
 ### Variation Iteration
 
