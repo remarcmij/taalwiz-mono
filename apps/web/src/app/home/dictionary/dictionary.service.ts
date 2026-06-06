@@ -90,21 +90,32 @@ export class DictionaryService {
     result.targetBase = target;
 
     const word = searchWord ?? target.word;
-    const words =
-      target.lang === langConfig.nativeLang
-        ? word.split(',').map((w) => w.trim())
-        : langConfig.variationGenerator.getWordVariations(word);
+    const fromGenerator = target.lang !== langConfig.nativeLang;
+    const words = fromGenerator
+      ? langConfig.variationGenerator.getWordVariations(word)
+      : word.split(',').map((w) => w.trim());
 
+    let foundWord: string | null = null;
+    let found: LookupResult | null = null;
     for (const w of words) {
       const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
       if (lemmas.some((l) => (l.keyword ?? 1) === 1)) {
-        const found = makeLookupResult({ word: w, lang: target.lang, lemmas, haveMore: false });
+        foundWord = w;
+        found = makeLookupResult({ word: w, lang: target.lang, lemmas, haveMore: false });
         found.targetBase = target;
-        return found;
+        break;
       }
     }
 
-    return result;
+    if (fromGenerator) {
+      // Demo/debug trace (intentionally kept in production): the variation
+      // generator's output, with the matched variation flagged by a leading '='
+      // -- the same marker the multiple-choice quiz uses for the correct option.
+      const marked = words.map((w) => (w === foundWord ? `=${w}` : w));
+      console.log(`${word} -> [${marked.map((w) => `'${w}'`).join(', ')}]`);
+    }
+
+    return found ?? result;
   }
 
   async #fetchWordLemmasAsync(word: string, lang: string): Promise<LookupResponse> {
