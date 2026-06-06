@@ -28,7 +28,8 @@ import {
   bookmarkOutline,
   chevronDownOutline,
   chevronUpOutline,
-  playOutline,
+  eyeOutline,
+  schoolOutline,
   volumeHighOutline,
 } from 'ionicons/icons';
 import { VocabularyService } from '../../home/vocabulary/vocabulary.service';
@@ -38,6 +39,7 @@ import { type ILemma } from '../../home/dictionary/lemma/lemma.model';
 import { WordLang } from '../../home/dictionary/word-lang.model';
 import { segmentIndonesian, type SegmentResult } from '../../home/dictionary/indonesian-segmenter';
 import { SpeechSynthesizerService } from '../../home/speech-synthesizer.service';
+import { MorphologyModeService } from '../morphology/morphology-mode.service';
 import { langConfig } from '../../app.constants';
 
 /** One homonym group: its rendered definition plus an optional affix breakdown. */
@@ -73,6 +75,7 @@ export class WordClickModalComponent implements OnInit {
   #speechService = inject(SpeechSynthesizerService);
 
   protected vocabularyService = inject(VocabularyService);
+  protected morphologyMode = inject(MorphologyModeService);
 
   clickedWord = input.required<string>();
   word = input.required<string>();
@@ -88,6 +91,9 @@ export class WordClickModalComponent implements OnInit {
   homonyms = signal<HomonymView[]>([]);
   /** Indices whose nasal-allomorphy rule note is expanded. */
   expanded = signal<Set<number>>(new Set());
+  /** Indices whose breakdown has been revealed in quiz mode. Starts empty on each
+   * open (the modal is recreated per tap), so quiz mode always hides first. */
+  revealed = signal<Set<number>>(new Set());
 
   protected isBookmarked = computed(() =>
     this.vocabularyService.isBookmarked(this.clickedWord(), this.lang()),
@@ -165,22 +171,34 @@ export class WordClickModalComponent implements OnInit {
     return this.#speechService.canSpeakLanguage(this.lang());
   }
 
-  speakWord() {
-    this.#speechService.speakSingle(this.clickedWord(), this.lang()).subscribe({ error: () => {} });
-  }
-
+  // One audio button now covers both cases: it speaks the sentence the word was tapped
+  // in, which falls back to the bare word when there is no surrounding sentence
+  // (sentence() === clickedWord()). So a standalone tap still pronounces the word.
   speakSentence() {
     this.#speechService.speakSingle(this.sentence(), this.lang()).subscribe({ error: () => {} });
+  }
+
+  toggleQuizMode() {
+    // Reset any reveals so flipping back into quiz mode hides the breakdown again
+    // (a revealed answer must not survive a Show -> Quiz round trip).
+    this.revealed.set(new Set());
+    void this.morphologyMode.toggle();
+  }
+
+  /** Reveal a breakdown that quiz mode is hiding (self-grade after guessing). */
+  reveal(index: number) {
+    this.revealed.update((set) => new Set(set).add(index));
   }
 
   constructor() {
     addIcons({
       bookmark,
       bookmarkOutline,
-      playOutline,
       volumeHighOutline,
       chevronDownOutline,
       chevronUpOutline,
+      eyeOutline,
+      schoolOutline,
     });
   }
 }

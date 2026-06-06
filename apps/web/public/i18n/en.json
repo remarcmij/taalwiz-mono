@@ -19,6 +19,9 @@
     "search-alert-message": "An error occurred while searching the dictionary. Please try again later.",
     "close": "Close",
     "continue": "Continue",
+    "pronounce": "Pronounce",
+    "bookmark": "Bookmark",
+    "remove-bookmark": "Remove bookmark",
     "word-not-found": "Not found in dictionary:",
     "something-went-wrong": "Something went wrong. Please try again later.",
     "send": "Send",
@@ -112,7 +115,10 @@
     "rating-hint": "Your rating determines when this card reappears"
   },
   "morphology": {
-    "nasal-rule": "{{archiphoneme}} before {{letter}}: surfaces as {{surface}}, and the root's initial {{letter}} drops"
+    "nasal-rule": "{{archiphoneme}} before {{letter}}: surfaces as {{surface}}, and the root's initial {{letter}} drops",
+    "reveal-prompt": "Tap to reveal the decomposition",
+    "show-breakdown": "Show the decomposition",
+    "quiz-breakdown": "Quiz the decomposition"
   },
   "settings": {
     "title": "Settings",

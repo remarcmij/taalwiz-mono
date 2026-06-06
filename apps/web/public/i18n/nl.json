@@ -19,6 +19,9 @@
     "search-alert-message": "Er is een fout opgetreden bij het zoeken in het woordenboek. Probeer het later nog eens.",
     "close": "Gereed",
     "continue": "Doorgaan",
+    "pronounce": "Uitspreken",
+    "bookmark": "Bladwijzer toevoegen",
+    "remove-bookmark": "Bladwijzer verwijderen",
     "word-not-found": "Niet gevonden in woordenbook:",
     "something-went-wrong": "Er is iets fout gegaan. Probeer het later nog eens.",
     "send": "Verzenden",
@@ -112,7 +115,10 @@
     "rating-hint": "Je beoordeling bepaalt wanneer je deze kaart terugziet"
   },
   "morphology": {
-    "nasal-rule": "{{archiphoneme}} vóór {{letter}}: wordt {{surface}}, waarbij de beginletter {{letter}} van het grondwoord wegvalt"
+    "nasal-rule": "{{archiphoneme}} vóór {{letter}}: wordt {{surface}}, waarbij de beginletter {{letter}} van het grondwoord wegvalt",
+    "reveal-prompt": "Tik om de woordopbouw te tonen",
+    "show-breakdown": "Toon de woordopbouw",
+    "quiz-breakdown": "Oefen de woordopbouw"
   },
   "settings": {
     "title": "Instellingen",

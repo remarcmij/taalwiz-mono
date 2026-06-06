@@ -46,6 +46,16 @@ ion-item {
   cursor: pointer;
 }
 
+// Quiz mode: stands in for the breakdown until the learner taps to reveal. Dimmed and
+// italic so it reads as a prompt, not content; sized to match the breakdown line.
+.affix-quiz {
+  font-size: 0.9em;
+  font-style: italic;
+  opacity: 0.55;
+  cursor: pointer;
+  margin-bottom: 0.15rem;
+}
+
 .affix-rule {
   font-size: 0.8em;
   font-style: italic;

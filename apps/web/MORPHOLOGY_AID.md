@@ -1,20 +1,20 @@
 # Morphology aid
 
-When a learner taps an inflected Indonesian word, the word-click modal already resolves it
-to its dictionary root and shows `surface -> root` in the title (e.g. `menyapukan -> sapu`)
-plus the definition. The **morphology aid** adds one small line that shows _how_ the word
-breaks into morphemes:
+When a learner taps an inflected Indonesian word, the word-click modal shows the tapped word
+as the title, the definition, and a tappable `-> headword` footer that opens the full
+dictionary entry. The **morphology aid** adds one small line that shows _how_ the word breaks
+into morphemes (the **decomposition**, UI term; _woordopbouw_ in Dutch):
 
 ```
-menyapukan -> sapu
-meN- + sapu + -kan
+menyapukan                  (title = the tapped word)
+meN- + sapu + -kan          (the decomposition line)
 menyapukan, vegen(, strijken) met enz; vegen voor enz.
+-> sapu                     (footer: tap to open the full entry)
 ```
 
-It is an **aid, not a quiz**: passive, on-demand, no scoring, no new interaction. It simply
-annotates a lookup the user is already doing. (A quiz variant that asks the learner to
-decompose a word themselves is deliberately deferred until we have worked out how it relates
-to the in-article quiz and the SRS scheduler.)
+By default it is an **aid**: passive, on-demand, no scoring. It annotates a lookup the user
+is already doing. A lightweight **quiz mode** (variant A, built) layers on top via a Show/Quiz
+toggle — see section 9; the heavier tile-assembly quiz remains deferred.
 
 This document explains how the aid is grounded in the Teeuw dictionary, because that
 grounding is the whole point: it is what lets us show automated morphology without ever
@@ -71,10 +71,10 @@ A surface string can have several readings; the modal lists them all. The breakd
 property of each _reading_, not of the string, so ambiguous words resolve cleanly without
 guessing. `beruang` returns two keyword readings:
 
-| Reading | `base` | keyword vs base | Breakdown |
-| --- | --- | --- | --- |
-| bear (the animal) | `beruang` | equal | none (it is a root) |
-| "to have money" | `uang` | different | `ber- + uang` |
+| Reading           | `base`    | keyword vs base | Breakdown           |
+| ----------------- | --------- | --------------- | ------------------- |
+| bear (the animal) | `beruang` | equal           | none (it is a root) |
+| "to have money"   | `uang`    | different       | `ber- + uang`       |
 
 We show both. The learner's reading context decides which is meant — that is the human's
 job, and the one thing we must not fake.
@@ -182,6 +182,41 @@ The architectural cost is the reason it is deferred: the segmenter is today **pu
 synchronous with no dictionary access**, and compound validation needs a root-existence
 lookup (an injected `isRoot(word)` predicate over the IndexedDB dictionary). Until we commit
 to that dependency, compounds and reduplication both return `null`.
+
+---
+
+## 9. Quiz mode (variant A): reveal-and-self-grade
+
+The decomposition can be **studied**, not just read. A Show/Quiz toggle in the modal title
+flips between two modes:
+
+- **Show** (`eye-outline`, default): the decomposition line is rendered directly — the
+  passive aid above.
+- **Quiz** (`school-outline`): the line is replaced by a dimmed _"Tap to reveal the
+  decomposition"_ prompt. The learner tries to split the word themselves, then taps to reveal
+  and self-grades.
+
+This is the lightest honest form of "test the learner" — no scoring, no scheduler, no new
+screen. It rides the modal the user already opened, so it does **not** become a third review
+loop alongside the in-article quiz and the SRS scheduler (the constraint that kept the quiz
+deferred until now).
+
+Mechanics:
+
+- The mode is **global and persisted** (`MorphologyModeService`, Capacitor `Preferences` key
+  `app.morphologyQuiz`, exposed as a signal so every modal stays in sync). Mirrors
+  `ThemeService`.
+- Reveal state is **per-open and ephemeral**: a freshly tapped word starts hidden, and
+  toggling Show -> Quiz clears any reveals so an answer never survives the round trip.
+- Non-decomposable words (roots, native words) show the toggle as a global mode indicator but
+  have nothing to reveal — acceptable, since it is a persistent setting, not a per-word action.
+- In SRS view-only mode (`hideActions`) the toggle button is hidden, but a globally-on quiz
+  mode still hides the breakdown behind the (still tappable) reveal prompt.
+
+**Deferred (the heavier quiz):** tile / word-bank assembly, where the learner arranges
+scrambled morpheme tiles plus targeted distractors (`me-` vs `meN-`, minted by the variation
+generator) and the result is auto-graded against the segmenter. Variant A ships first to prove
+the interaction before investing in grading and distractor UI.
 
 ---
 

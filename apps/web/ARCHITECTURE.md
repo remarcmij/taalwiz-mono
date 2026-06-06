@@ -147,6 +147,7 @@ src/app/
 │   ├── logger.service.ts
 │   ├── api-error-alert.service.ts
 │   ├── theme/                # ThemeService (class-based dark palette)
+│   ├── morphology/           # MorphologyModeService (persisted Show/Quiz toggle)
 │   ├── back-button/
 │   └── word-click-modal/
 │
@@ -217,10 +218,10 @@ flowchart TD
 
 **Guards:**
 
-| Guard | Purpose |
-|---|---|
-| `authGuard` | Requires authenticated user; triggers `DictSyncService.init()` |
-| `adminGuard` | Requires `roles` includes `'admin'`; composes `authGuard` |
+| Guard           | Purpose                                                         |
+| --------------- | --------------------------------------------------------------- |
+| `authGuard`     | Requires authenticated user; triggers `DictSyncService.init()`  |
+| `adminGuard`    | Requires `roles` includes `'admin'`; composes `authGuard`       |
 | `registerGuard` | Validates `?email=&token=` via API before showing register page |
 
 ---
@@ -338,25 +339,25 @@ graph TD
 
 ### Service responsibilities
 
-| Service | Location | Responsibility |
-|---|---|---|
-| `AuthService` | `auth/` | JWT + refresh-token management, login/logout, auto-login (Capacitor Preferences) |
-| `VocabularyService` | `home/vocabulary/` | Named list management; vocabulary item add/remove/update with optimistic UI; `addEntry()`, `updateBack()`, `addEntries()` for modal-driven input; cross-device current-list sync via `UserPreferences` API; calls `StudyService.refreshStats()` after every add/remove |
-| `StudyService` | `home/study/` | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)` and `submitReview()` observables for the SRS API |
-| `DictSyncService` | `home/dictionary/` | Fetch manifest, compare versions on the main thread, spawn `dict-import.worker` for the actual import, re-emit worker progress/status, expose `hasCompleteDict$` readiness |
-| `DictStoreService` | `home/dictionary/` | **Read-only** IndexedDB wrapper (`taalwiz-dict` DB): `open`, `getStoredVersion`, `findByWordAndLang`, `findWordsStartingWith`, `count`. All writes belong to `dict-import.worker.ts` |
-| `DictionaryService` | `home/dictionary/` | Offline lookup via `DictStoreService` using `langConfig.variationGenerator` (pluggable); manages `lookupResult$` |
-| `SearchHistoryService` | `home/dictionary/` | Persist search history (up to 50 entries) via Capacitor Preferences; deduplication on add |
-| `ContentService` | `home/content/` | Fetch publications & articles from API; `prefetchArticle()` for silent bulk pre-fetch (publication cache-all button); manage SW content-cache invalidation (manifest check on login, explicit bust on admin mutations and logout) |
-| `MarkdownService` | `home/content/` | Markdown → HTML with foreign-language span injection |
-| `TocService` | `home/content/…/article/` | Extract headings, scroll-to signal |
-| `HashtagsService` | `home/content/hashtags/` | Hashtag index fetching; `findHashtag()` lists occurrences for the hashtag modal |
-| `SpeechSynthesizerService` | `home/` | Web Speech API wrapper (single word + full sentence) |
-| `WordClickModalService` | `shared/` | Coordinate word taps → dictionary lookup → modal display; `onClicked()` for article DOM taps, `openForTerm()` for a known word (e.g. an SRS card) opening a view-only modal (bookmark/lookup actions hidden) |
-| `ApiErrorAlertService` | `shared/` | Display Ionic alert on HTTP errors |
-| `LoggerService` | `shared/` | Levelled logging (dev: `silly`, prod: `info`) |
-| `PromptUpdateService` | `sw-update/` | PWA version-update detection and reload prompt |
-| `ThemeService` | `shared/theme/` | Light/dark/system theme: persists choice in Capacitor Preferences, toggles the `ion-palette-dark` class on `<html>`, and (in `system` mode) tracks the OS `prefers-color-scheme` media query |
+| Service                    | Location                  | Responsibility                                                                                                                                                                                                                                                         |
+| -------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuthService`              | `auth/`                   | JWT + refresh-token management, login/logout, auto-login (Capacitor Preferences)                                                                                                                                                                                       |
+| `VocabularyService`        | `home/vocabulary/`        | Named list management; vocabulary item add/remove/update with optimistic UI; `addEntry()`, `updateBack()`, `addEntries()` for modal-driven input; cross-device current-list sync via `UserPreferences` API; calls `StudyService.refreshStats()` after every add/remove |
+| `StudyService`             | `home/study/`             | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)` and `submitReview()` observables for the SRS API                                                                                                                                                  |
+| `DictSyncService`          | `home/dictionary/`        | Fetch manifest, compare versions on the main thread, spawn `dict-import.worker` for the actual import, re-emit worker progress/status, expose `hasCompleteDict$` readiness                                                                                             |
+| `DictStoreService`         | `home/dictionary/`        | **Read-only** IndexedDB wrapper (`taalwiz-dict` DB): `open`, `getStoredVersion`, `findByWordAndLang`, `findWordsStartingWith`, `count`. All writes belong to `dict-import.worker.ts`                                                                                   |
+| `DictionaryService`        | `home/dictionary/`        | Offline lookup via `DictStoreService` using `langConfig.variationGenerator` (pluggable); manages `lookupResult$`                                                                                                                                                       |
+| `SearchHistoryService`     | `home/dictionary/`        | Persist search history (up to 50 entries) via Capacitor Preferences; deduplication on add                                                                                                                                                                              |
+| `ContentService`           | `home/content/`           | Fetch publications & articles from API; `prefetchArticle()` for silent bulk pre-fetch (publication cache-all button); manage SW content-cache invalidation (manifest check on login, explicit bust on admin mutations and logout)                                      |
+| `MarkdownService`          | `home/content/`           | Markdown → HTML with foreign-language span injection                                                                                                                                                                                                                   |
+| `TocService`               | `home/content/…/article/` | Extract headings, scroll-to signal                                                                                                                                                                                                                                     |
+| `HashtagsService`          | `home/content/hashtags/`  | Hashtag index fetching; `findHashtag()` lists occurrences for the hashtag modal                                                                                                                                                                                        |
+| `SpeechSynthesizerService` | `home/`                   | Web Speech API wrapper (single word + full sentence)                                                                                                                                                                                                                   |
+| `WordClickModalService`    | `shared/`                 | Coordinate word taps → dictionary lookup → modal display; `onClicked()` for article DOM taps, `openForTerm()` for a known word (e.g. an SRS card) opening a view-only modal (bookmark/lookup actions hidden)                                                           |
+| `ApiErrorAlertService`     | `shared/`                 | Display Ionic alert on HTTP errors                                                                                                                                                                                                                                     |
+| `LoggerService`            | `shared/`                 | Levelled logging (dev: `silly`, prod: `info`)                                                                                                                                                                                                                          |
+| `PromptUpdateService`      | `sw-update/`              | PWA version-update detection and reload prompt                                                                                                                                                                                                                         |
+| `ThemeService`             | `shared/theme/`           | Light/dark/system theme: persists choice in Capacitor Preferences, toggles the `ion-palette-dark` class on `<html>`, and (in `system` mode) tracks the OS `prefers-color-scheme` media query                                                                           |
 
 ---
 
@@ -431,15 +432,15 @@ sequenceDiagram
     Note over DictSyncService: Manifest 404 → status = 'done' (no dict yet)
 ```
 
-`DictStoreService` opens the `taalwiz-dict` IndexedDB database (version 4) for reads with two stores: `lemmas` (single index `by-lang-wordlower [lang, wordLower]` — language-scoped *and* case-insensitive; see [SEARCH.md](src/app/home/dictionary/SEARCH.md)) and `meta`. The `meta.version` record is the **atomic readiness flag**: written inside the worker's single import transaction *after* all `add()`s, so its presence (and equality with the manifest version) guarantees a complete dictionary is committed. A crash mid-import leaves no new version → next session re-syncs cleanly, with no half-built state ever observable.
+`DictStoreService` opens the `taalwiz-dict` IndexedDB database (version 4) for reads with two stores: `lemmas` (single index `by-lang-wordlower [lang, wordLower]` — language-scoped _and_ case-insensitive; see [SEARCH.md](src/app/home/dictionary/SEARCH.md)) and `meta`. The `meta.version` record is the **atomic readiness flag**: written inside the worker's single import transaction _after_ all `add()`s, so its presence (and equality with the manifest version) guarantees a complete dictionary is committed. A crash mid-import leaves no new version → next session re-syncs cleanly, with no half-built state ever observable.
 
 #### Why a Web Worker
 
 The compiled dictionary is ~270,000 word records. The import previously ran on the main thread as `clear()` + a synchronous loop of ~270k `store.add()` calls — that froze the UI for several seconds. Moving the import into a dedicated module worker (`dict-import.worker.ts`) achieves both responsiveness and consistency:
 
 - **Off the main thread** — `fetch`, `JSON.parse`, `transformDict`, and the structured-clone work of every `add()` happen in the worker. The UI never blocks.
-- **Single atomic transaction preserved** — the worker holds *one* readwrite transaction across the whole insert. All network fetches finish *before* the tx opens (awaiting a non-IDB promise inside an IDB transaction would auto-commit it early). Inside the tx the loop is fully synchronous; progress is reported with **synchronous `postMessage`** calls that don't yield control, so the tx stays open. IndexedDB isolation then guarantees readers see either the previous complete dictionary or the new one, never a partial state — no per-batch readiness gate needed.
-- **Readiness signal** — `DictSyncService.hasCompleteDict$` is derived from `meta.version` (snapshotted on `init()` and set true after a successful worker import). The search bar is disabled only while syncing *and* no committed dict exists yet (first-ever build). During a re-sync the existing dictionary stays usable (atomic swap on commit).
+- **Single atomic transaction preserved** — the worker holds _one_ readwrite transaction across the whole insert. All network fetches finish _before_ the tx opens (awaiting a non-IDB promise inside an IDB transaction would auto-commit it early). Inside the tx the loop is fully synchronous; progress is reported with **synchronous `postMessage`** calls that don't yield control, so the tx stays open. IndexedDB isolation then guarantees readers see either the previous complete dictionary or the new one, never a partial state — no per-batch readiness gate needed.
+- **Readiness signal** — `DictSyncService.hasCompleteDict$` is derived from `meta.version` (snapshotted on `init()` and set true after a successful worker import). The search bar is disabled only while syncing _and_ no committed dict exists yet (first-ever build). During a re-sync the existing dictionary stays usable (atomic swap on commit).
 - **Global chip** — a small "Updating dictionary X/Y" chip in `AppComponent` is visible from any route while `isSyncing()`, so background re-syncs aren't invisible outside the Dictionary tab. Tapping it jumps to the Dictionary tab. Driven by the same `status$` + `progress$` observables.
 - **One DB, two connections** — main (read) + worker (write) at the same schema version → no `versionchange`, they coexist. A future schema bump would need to coordinate (main closes the read connection, lets the worker upgrade, reopens).
 
@@ -451,11 +452,11 @@ The compiled dictionary is ~270,000 word records. The import previously ran on t
 
 Article bodies, topic index lists, and publication images are cached by the Angular service worker via three `dataGroups` in `ngsw-config.json`:
 
-| Group | URL pattern | Strategy | maxSize | maxAge |
-|---|---|---|---|---|
-| `content-api-articles` | `/api/v1/content/article/**` | `freshness` (network-first, 3 s timeout) | 150 | 14 d |
-| `content-api-index` | `/api/v1/content/**` | `freshness` (network-first, 3 s timeout) | 50 | 7 d |
-| `publication-images` | `/assets/images/*.(jpg\|png)` | `performance` (cache-first, 10 s timeout) | 100 | 7 d |
+| Group                  | URL pattern                   | Strategy                                  | maxSize | maxAge |
+| ---------------------- | ----------------------------- | ----------------------------------------- | ------- | ------ |
+| `content-api-articles` | `/api/v1/content/article/**`  | `freshness` (network-first, 3 s timeout)  | 150     | 14 d   |
+| `content-api-index`    | `/api/v1/content/**`          | `freshness` (network-first, 3 s timeout)  | 50      | 7 d    |
+| `publication-images`   | `/assets/images/*.(jpg\|png)` | `performance` (cache-first, 10 s timeout) | 100     | 7 d    |
 
 The two `content-api` groups use `freshness` so online users always get responses validated by the API — important because content is access-controlled by group membership. The SW cache serves as an offline fallback only. The 14-day `maxAge` on articles means offline reading remains available for two weeks after the last online visit. Publication images are public static assets, so they use `performance` (cache-first) for instant rendering.
 
@@ -499,10 +500,10 @@ The publication topic-list page (`PublicationPage`) has a **cache-all** button i
 
 `PublicationPage` drives the UI with two signals:
 
-| Signal | Type | Description |
-|---|---|---|
-| `cacheStatus` | `'idle' \| 'caching' \| 'done'` | Button appearance and disabled state |
-| `cachedCount` | `number` | Numerator for the deterministic `IonProgressBar` value |
+| Signal        | Type                            | Description                                            |
+| ------------- | ------------------------------- | ------------------------------------------------------ |
+| `cacheStatus` | `'idle' \| 'caching' \| 'done'` | Button appearance and disabled state                   |
+| `cachedCount` | `number`                        | Numerator for the deterministic `IonProgressBar` value |
 
 Because articles use the `freshness` strategy, prefetching primes the SW cache so the articles are available offline; while online the SW still revalidates each one against the API (falling back to the cached copy only on network failure or the 3 s timeout).
 
@@ -551,10 +552,10 @@ The app ships a **teal** palette on a warm off-white background, with a class-ba
 
 Uses **ngx-translate**. Translation files are loaded at runtime from `/i18n/{lang}.json`.
 
-| Setting | Value |
-|---|---|
-| Default UI language | Dutch (`nl`) |
-| Fallback language | English (`en`) |
+| Setting                    | Value                                                             |
+| -------------------------- | ----------------------------------------------------------------- |
+| Default UI language        | Dutch (`nl`)                                                      |
+| Fallback language          | English (`en`)                                                    |
 | Target (learning) language | Indonesian (`id`) — `langConfig.targetLang` in `app.constants.ts` |
 
 `LanguageService` (`shared/i18n/language.service.ts`) owns the runtime locale. The server-side `user.lang` field is the source of truth and drives both the ngx-translate locale and the language-scoped Help/About routes.
@@ -562,7 +563,7 @@ Uses **ngx-translate**. Translation files are loaded at runtime from `/i18n/{lan
 - On boot, `LanguageService.init()` runs as an `APP_INITIALIZER` and applies the value cached in Capacitor `Preferences` (key `app.lang`) so pre-login screens render in the last-used language.
 - `LanguageService` subscribes to `AuthService.user$`; when a user emits, `user.lang` is applied — the server always overrides the local cache on login.
 - The Settings page calls `LanguageService.setLanguage(lang)`, which `PATCH`es `/api/v1/users/me/lang`, applies the new locale, then calls `AuthService.applyLangToCurrentUser(lang)` to update the in-memory `User` and re-persist the cached `authData` so the language-dependent `/help/{lang}` menu link updates reactively and survives an `autoLogin`.
-- A change on one device only reaches another device at the next *full* login — the refresh-token endpoint does not fetch the profile.
+- A change on one device only reaches another device at the next _full_ login — the refresh-token endpoint does not fetch the profile.
 
 ---
 
