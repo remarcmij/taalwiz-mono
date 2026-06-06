@@ -1,7 +1,9 @@
 import { defineConfig } from "vitepress";
+import { withMermaid } from "vitepress-plugin-mermaid";
 import footnote from "markdown-it-footnote";
 
-export default defineConfig({
+export default withMermaid(
+  defineConfig({
   title: "Taalwiz Guide",
   description: "Documentation for Taalwiz content creators and administrators.",
   base: "/guide/",
@@ -16,6 +18,10 @@ export default defineConfig({
       {
         text: "About",
         items: [{ text: "Project Overview", link: "/guide/overview" }],
+      },
+      {
+        text: "How it works",
+        items: [{ text: "How search works", link: "/guide/how-search-works" }],
       },
       {
         text: "Content & Admin",
@@ -33,4 +39,5 @@ export default defineConfig({
     returnToTopLabel: "Terug naar boven",
     langMenuLabel: "Taal",
   },
-});
+  }),
+);

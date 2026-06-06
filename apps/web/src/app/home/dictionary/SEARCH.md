@@ -99,131 +99,13 @@ The variation generator is pluggable via `langConfig.variationGenerator` (`Varia
 
 **File**: `indonesian-variation-generator.ts` (implements the `VariationGenerator` interface from `variation-generator.ts`)
 
-### Purpose
+> **The morphology and design rationale now live in the linguist-facing guide: [How search works](../../../../../docs/docs/guide/how-search-works.md).** That page is the source of truth for the affix system (suffixes, prefixes, `meN-`/`peN-` nasalisation, circumfixes, reduplication), the "generate many candidates, let the dictionary be the judge" strategy, three worked examples, and why a stemmer is the wrong tool for lookup (but the right tool for a future content-search feature). This section keeps only the implementation details that matter when working on the code.
 
-Indonesian uses a rich system of prefixes, suffixes, and circumfixes to modify root words. The compiled dictionary indexes various word forms directly (e.g., it has entries for both `membaca` and `baca`), but not all morphological variants are indexed—particularly passive forms with `di-` prefix.
+### Lookup behaviour
 
-The variation generator **increases the likelihood of finding a match** by generating alternative forms of a search query. This is essential for user experience:
+The variation generator recursively strips affixes from a word, building an ordered set of candidate forms: the original first, then common derivations (notably the active `meN-` form), then bare roots and rarer variants last. `DictionaryService.#searchLocal()` iterates this array, calling `DictStoreService.findByWordAndLang(w, lang)` for each, and **stops at the first variation that yields keyword-flagged lemmas** (`keyword === 1`). Remaining variations are not queried. The ordering is chosen so the first hit is usually the best hit; see the guide for worked traces.
 
-- When a user searches for an **inflected word** like `dibakar` (passive: "was burned"), the variation generator produces variations including `membakar` (active form, more likely indexed)
-- `DictionaryService.#searchLocal()` tries each variation against IndexedDB in order and **stops at the first match**
-- Without variation generation, `dibakar` would return zero results, forcing the user to guess the base form manually
-
-**Key Design Principle**: Generate a set of plausible variations rather than a single canonical root. Extra candidates (false positives) just create additional IDB lookups; missing the actual match (false negative) is the real problem.
-
-**IDB Search Behavior**: `#searchLocal()` iterates the variation array, calling `DictStoreService.findByWordAndLang(w, lang)` for each. It stops and returns on the first variation that yields keyword-flagged lemmas. Remaining variations are not queried.
-
-### How It Works
-
-The variation generator recursively strips affixes from a word, building a set of variations. The variations are ordered strategically to maximize match likelihood:
-
-1. **Original form first**: The input word as-is (might be indexed directly)
-2. **Active/common forms next**: Generated active voice or common inflections (more likely indexed)
-3. **Base/rare forms last**: Stripped roots and uncommon variants (fallback only)
-
-`DictionaryService.#searchLocal()` queries IndexedDB for each variation in order, stopping at the first one that yields keyword-flagged lemmas.
-
-**Examples of variation ordering**:
-
-- User types `diambil` (passive: "was taken")
-- Variation generator generates: `["diambil", "mengambil", "ambil"]`
-  - `diambil`: original (rarely indexed)
-  - `mengambil`: active voice form (commonly indexed) ← **found first in IndexedDB**
-  - `ambil`: bare root (fallback)
-- Result: IndexedDB returns all `mengambil` entries
-
-- User types `membaca` (active: "to read")
-- Variation generator generates: `["membaca", "baca"]`
-  - `membaca`: common form, indexed directly ← **found in IndexedDB**
-  - `baca`: bare root (not needed)
-- Result: IndexedDB returns all `membaca` entries
-
-### Affixes Handled
-
-#### Suffixes (akhiran)
-
-| Affix | Purpose | Example |
-|-------|---------|---------|
-| `-nya` | Possessive/definite article | `rumahnya` → `rumah` |
-| `-ku` | 1st person possession | `rumahku` → `rumah` |
-| `-mu` | 2nd person possession | `rumahmu` → `rumah` |
-| `-kau` | Alternative 2nd person | `rumahkau` → `rumah` |
-| `-kah` | Question particle | `dimana` → `mana`, `dimanakah` → `mana` |
-| `-lah` | Emphatic particle | `berikutlah` → `berikut` |
-| `-tah` | Rhetorical particle | `siapa` → `siapa`, `siapatahlah` → `siapa` |
-| `-pun` | Also/even particle | `siapapun` → `siapa` |
-| `-kan` | Causative/benefactive | `bukakan` → `buka`, then me- variants |
-| `-i` | Locative/repetitive | `bukui` → `buku`, then me- variants |
-| `-an` | Nominalization | `makanan` → `makan`, `perjalanan` → `jalan` |
-
-#### Prefixes (awalan)
-
-| Prefix | Purpose | Example |
-|--------|---------|---------|
-| `ku-` | 1st person active | `kuambil` → `ambil` |
-| `kau-` | 2nd person active | `kauambil` → `ambil` |
-| `mu-` | 2nd person (variant) | `muambil` → `ambil` |
-| `di-` | Passive voice | `diambil` → `ambil`, `mengambil` (active variant) |
-| `ter-` | Accidental/passive/superlative | `terbang` → `bang` |
-| `ber-` | Stative/active verb, plural | `berbicara` → `bicara`, `berjalan` → `jalan` |
-| `se-` | One/each/with | `sehari` → `hari` |
-| `ke-` | Nominalization prefix | `ketua` → `tua` |
-| **`meN-` variants** | Active transitive verb | See below |
-| **`peN-` variants** | Agentive noun | See below |
-
-#### meN- Prefix Variants (Active Voice)
-
-The `meN-` prefix adapts based on the initial consonant of the root. The variation generator strips all forms and restores dropped consonants where possible:
-
-| Initial | Prefix + Root | Stripped | Restored |
-|---------|---------------|----------|----------|
-| Vowel | `meng` + `ambil` | `meng ambil` → `ambil` | N/A |
-| `b`, `f` | `mem` + `baca` | `membaca` → `baca` | N/A |
-| `p` | `mem` + `potong` (p dropped) | `memotong` → `otong` | Try `potong` |
-| `d`, `c`, `j`, `z` | `men` + `dapat` | `mendapat` → `dapat` | N/A |
-| `t` | `men` + `tulis` (t dropped) | `menulis` → `ulis` | Try `tulis` |
-| `s` | `meny` + `sapu` (s dropped) | `menyapu` → `apu` | Try `sapu` |
-| `g`, `h` | `meng` + `garis` | `menggaris` → `garis` | N/A |
-| `k` | `meng` + `kritik` (k dropped) | `mengritik` → `ritik` | Try `kritik` |
-| `l`, `r`, `m`, `n`, `w`, `y` | `me` + `lakukan` | `melakukan` → `lakukan` | N/A |
-
-Examples:
-- `membaca` → `baca`
-- `mengambil` → `ambil`
-- `menulis` → `tulis` or `ulis`
-- `menyapu` → `sapu` or `apu`
-- `memotong` → `potong` or `otong`
-
-#### peN- Prefix Variants (Agentive/Instrumental Nouns)
-
-The `peN-` prefix follows the same phonological rules as `meN-`:
-
-| Example | Stripped | Restored |
-|---------|----------|----------|
-| `penulis` (writer) | `ulis` | `tulis` |
-| `pembaca` (reader) | `baca` | N/A |
-| `pengambil` (taker) | `ambil` | N/A |
-| `penyapu` (sweeper) | `apu` | `sapu` |
-
-#### Circumfixes (kombinasi awalan + akhiran)
-
-Circumfixes are prefix-suffix combinations that frame the root:
-
-| Circumfix | Purpose | Example |
-|-----------|---------|---------|
-| `ke-...-an` | Abstract noun state | `kebaikan` → `baik`, `kehidupan` → `hidup` |
-| `per-...-an` | Place/process noun | `perjalanan` → `jalan`, `perbedaan` → `beda` |
-| `pe-...-an` | Process/result noun | `penulisan` → `tulis`, `pembacaan` → `baca` |
-
-#### Reduplication (Pengulangan)
-
-Repeated words are reduced to the singular form:
-
-| Example | Stripped |
-|---------|----------|
-| `anak-anak` | `anak` |
-| `rumah-rumah` | `rumah` |
-| `siswa-siswi` | `siswa` or `siswi` |
+**Key design principle**: generate a set of plausible candidates rather than a single canonical root. Extra candidates (false positives) just cost one extra IDB lookup each; missing the actual match (a false negative) costs the user their answer.
 
 ### Word Exemptions
 
@@ -317,17 +199,7 @@ Key test cases:
 
 ### Critical Affixes for Coverage
 
-Some affixes are more important for dictionary lookup coverage:
-
-| Affix | Why Important | Example |
-|-------|---------------|---------|
-| `di-` | Passive forms are common in Indonesian but often not indexed; active form (`meN-`) alternative increases match likelihood | `diambil` → generate `mengambil`, `ambil` |
-| `meN-` | Active transitive verbs are heavily used; generating base form improves matches | `membaca` → generate `baca` |
-| `-an` | Nominalized forms may not be indexed; base noun often is | `makanan` → generate `makan` |
-| `ber-` | Active verbs; base form has higher indexing likelihood | `berbicara` → generate `bicara` |
-| `peN-` | Agentive nouns; less likely to be indexed than the verb | `penulis` → generate `tulis` |
-
-Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, `-mu`, `-nya`) are stripped because they're grammatical markers that obscure the semantic word.
+The affixes that matter most for coverage are `di-` (passive forms are common but often not indexed, so the rebuilt active `meN-` form is the real win), `meN-` itself, `-an`, `ber-`, and `peN-`. Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, `-mu`, `-nya`) are stripped because they are grammatical markers that obscure the semantic word. See the [guide](../../../../../docs/docs/guide/how-search-works.md) for the full affix breakdown.
 
 ### Limitations & Design Tradeoffs
 
@@ -349,20 +221,9 @@ Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, 
 
 - **Add more sophisticated consonant restoration heuristics** — The current restoration rules use a guard `/^[aeiouagh]/` on the stripped remainder (`rest`) to decide whether to attempt `k`-restoration for `meng-` prefixes. This correctly blocks restoration for vowel-initial rests (e.g., `mengambil` → `rest='ambil'` → no `kambil` generated), and allows it for consonant-initial rests (e.g., `mengritik` → `rest='ritik'` → `kritik` is generated). More sophisticated heuristics could improve precision by: (i) tighter consonant-dropping guards to exclude cases like `mengkritik` (malformed input), and (ii) minimum base-form length filters to exclude very short stripped forms (< 4 chars) that are almost never valid roots.
 
-- **A stemmer is NOT the upgrade path for *this* module — its value is in a different feature.** It is worth being explicit, because it is easy to confuse. A stemmer (e.g. **Nazief–Adriani**, 1996; or **ECS / Enhanced Confix Stripping**, the basis of the **`@sastrawi/sastrawi`** npm package) reduces a word to a **single** canonical root. For *dictionary lookup* that adds little: Teeuw already returns the canonical root (`baseWord`) on every hit, and this module already generates the root **plus** sideways forms (e.g. passive `dibakar` → active `membakar`) that a stemmer would never produce. So a stemmer is largely redundant here — at best a marginal extra candidate for the rare word the rule-based generator mis-strips.
-
-  The genuine future home for a stemmer is a feature the app does **not** have yet: **free-text search over article content** (an inverted index). There you normalize *both* the query and every word in the indexed text to a shared root key, so searching `memukul` matches an article containing `dipukul`. That is the textbook stemming use case, and it is a different problem from single-word dictionary lookup (many-to-many text matching; can't afford a Teeuw lookup per token at index scale). Even then, Teeuw-backed lemmatization is an accuracy-favouring alternative to a fast stemmer. **Trigger: building content search — not lookup failures here.**
-
 - **Add configurable stripping depth to trade recall for precision** — Currently the variation generator recursively strips all possible affixes. For some use cases, stopping after stripping just the most common affixes (e.g., person markers, `-nya`, tense markers) might improve precision by avoiding over-generated false positives, at the cost of lower recall for heavily affixed words.
 
-### Why Order Matters
-
-The variations are generated in a specific order because `#searchLocal()` searches them sequentially against IndexedDB and **stops at the first match**. The order is designed to:
-1. Try the original form first (might be indexed as-is)
-2. Try more common forms next (e.g., active voice before passive)
-3. Try less common forms last (e.g., bare roots)
-
-This maximizes the likelihood that the first match is the best match.
+> **Why this module is not, and should not become, a stemmer** (Nazief–Adriani / Sastrawi) is covered in the [guide](../../../../../docs/docs/guide/how-search-works.md#why-not-a-stemmer): in short, a stemmer commits to a single root, whereas this module also generates the sideways forms (passive `dibakar` → active `membakar`) the dictionary actually indexes. The real home for a stemmer is a future free-text content search, not lookup.
 
 ---
 
@@ -588,6 +449,6 @@ The breadcrumb stores **the typed word** (e.g., "dibakar"), not the found base (
 
 1. **Expand word exemptions**: Some words don't follow standard patterns and are currently hardcoded
 2. **Smarter consonant restoration**: Current rules generate some phonetically implausible candidates
-3. **Free-text article search (inverted index)**: A future content-search feature would call for a single-root stemmer such as Nazief–Adriani or Sastrawi (see the detailed note above for why a stemmer fits content search but not dictionary lookup)
+3. **Free-text article search (inverted index)**: A future content-search feature would call for a single-root stemmer such as Nazief–Adriani or Sastrawi (see the [guide](../../../../../docs/docs/guide/how-search-works.md#why-not-a-stemmer) for why a stemmer fits content search but not dictionary lookup)
 4. **Configurable stripping depth**: Trade recall for precision by limiting affix stripping
 5. **Store detailed search metadata**: Track which variation was found, for more intelligent breadcrumb handling
