@@ -103,7 +103,7 @@ The variation generator is pluggable via `langConfig.variationGenerator` (`Varia
 
 ### Lookup behaviour
 
-The variation generator recursively strips affixes from a word, building an ordered set of candidate forms: the original first, then common derivations (notably the active `meN-` form), then bare roots and rarer variants last. `DictionaryService.#searchLocal()` iterates this array, calling `DictStoreService.findByWordAndLang(w, lang)` for each, and **stops at the first variation that yields keyword-flagged lemmas** (`keyword === 1`). Remaining variations are not queried. The ordering is chosen so the first hit is usually the best hit; see the guide for worked traces.
+The variation generator recursively strips affixes from a word, building a set of candidate forms in recursion (pre-order) order: the original first, then the forms reached by stripping affixes depth-first. It is **not** a ranked best-first list. The one deliberate ordering choice is that a stripped `di-` passive yields its rebuilt active `meN-` form _before_ the bare root (so `diambil` emits `mengambil` before `ambil`); see [Generation Order (worked trace)](#generation-order-worked-trace) below for the exact traversal. `DictionaryService.#searchLocal()` iterates this array, calling `DictStoreService.findByWordAndLang(w, lang)` for each, and **stops at the first variation that yields keyword-flagged lemmas** (`keyword === 1`). Remaining variations are not queried.
 
 **Key design principle**: generate a set of plausible candidates rather than a single canonical root. Extra candidates (false positives) just cost one extra IDB lookup each; missing the actual match (a false negative) costs the user their answer.
 
@@ -149,6 +149,34 @@ getVariations(word) {
 ```
 
 This ensures that multi-affix words (e.g., `kebaikan` = `ke-` + `baik` + `-an`) eventually generate the root through multiple stripping steps.
+
+#### Generation Order (worked trace)
+
+The output order is not a ranked "best first" list; it is the **pre-order traversal of the recursive stripping**, deduplicated by a `Set`. Each call does `variations.add(word)` _before_ recursing (`getVariations`, line 26), so a node is recorded ahead of its children, and the `Set` preserves first-insertion order.
+
+Tracing `getWordVariations('kepunyaanku')`:
+
+```
+kepunyaanku                              #1
+├─ strip -ku ─────────► kepunyaan        #2
+│   ├─ strip -an ─────► kepunya          #3
+│   │   ├─ strip -nya ► kepu             #4
+│   │   │   └─ strip ke- ► pu            #5
+│   │   └─ strip ke- ──► punya           #6
+│   ├─ strip ke- ─────► punyaan          #7
+│   └─ strip ke-…-an ─► punya            (dup)
+└─ strip ke- ─────────► punyaanku        #8
+```
+
+Output: `[kepunyaanku, kepunyaan, kepunya, kepu, pu, punya, punyaan, punyaanku]`.
+
+Two things this makes clear, both easy to misread from the flat list:
+
+1. **Nothing is added here; it is pure stripping.** `punya`, `punyaan`, and `punyaanku` are not the root with suffixes re-attached. They are the `ke-` prefix stripped off `kepunya`, `kepunyaan`, and `kepunyaanku` respectively, emitted as the recursion unwinds. There is **no rule anywhere in the generator that appends a suffix.** The bare root `punya` lands at position 6, _ahead_ of the longer `punyaan`/`punyaanku`, purely because of traversal order, not because it is treated as a low-priority fallback.
+
+2. **The only affixes the generator ever _adds_ are `meN-`/`peN-` prefixes and restored dropped consonants**, in three places: rebuilding the active form after stripping `di-` (`prefixWithMeng`, lines 60–66); adding `meng-` to a `-kan`/`-i` word that does not start with `m` (lines 156–163); and the `'k'+rest` / `'s'+rest` / `'p'+rest` / `'t'+rest` consonant restoration inside `stripMeN`/`stripPeN`. This prefix synthesis is the entire reason a passive like `dibakar` resolves to the indexed active `membakar`.
+
+So there is exactly **one deliberate ordering decision** in the whole generator: the `di-` rule recurses into the rebuilt `meN-` form (line 62) _before_ the bare root (line 65), so a more-likely-indexed active form is emitted first. Everywhere else, the order is simply the sequence in which the strip rules happen to fire.
 
 #### mePrefixed Flag
 
@@ -200,6 +228,31 @@ Key test cases:
 ### Critical Affixes for Coverage
 
 The affixes that matter most for coverage are `di-` (passive forms are common but often not indexed, so the rebuilt active `meN-` form is the real win), `meN-` itself, `-an`, `ber-`, and `peN-`. Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, `-mu`, `-nya`) are stripped because they are grammatical markers that obscure the semantic word. See the [guide](../../../../../docs/docs/guide/how-search-works.md) for the full affix breakdown.
+
+### Scope: productive morphology only (why there is no infix rule)
+
+The generator deliberately handles only **productive** affixation (`di-`, `meN-`, `ber-`, `ter-`, `per-`, `se-`, `ke-`, `-kan`, `-i`, `-an`, the circumfixes, clitics, and full reduplication). It has **no rule for infixes** (`-em-`, `-el-`, `-er-`), and that is correct by design, not an oversight.
+
+Infixation is unproductive: only a closed, limited set of infixed forms exists, they are no longer felt to contain an affix, and so dictionaries list them as separate headwords from their bases (Sneddon, _Indonesian: A Comprehensive Grammar_, §1.36). Teeuw is no exception — `gerigi`, `seruling`, `telapak`, `telunjuk`, `gemetar` are each indexed as their own keywords, alongside their bases `gigi`, `suling`, `tapak`, `tunjuk`, `getar`.
+
+The consequence for lookup: a typed infixed form **self-hits on candidate #1** (the original, unmodified word), so no stripping is ever needed to resolve it. A `-em-` stripping rule would only emit junk candidates (e.g. `getar` from `gemetar`) that the already-found `gemetar` keyword made unnecessary. The same reasoning covers lexicalised partial reduplication (`lelaki`, `tetangga`, `sesama`): a closed set, listed directly, resolved on #1.
+
+This sharpens the division of labour: **productive morphology is generated** (its forms are too numerous for a dictionary to list), **unproductive morphology is indexed** (the closed set is listed outright). The boundary the generator draws is exactly the boundary productivity has already drawn in the dictionary, which is why there is no gap between them.
+
+### Failure modes and the best-effort contract
+
+The generator is a **best-effort** helper, not a guarantee. Because `#searchLocal()` validates every candidate against the dictionary, a generated non-word that matches nothing is free — it costs one extra IndexedDB lookup and no more. Validation leaves exactly two failure modes it cannot catch:
+
+1. **Silent miss** — the correct keyword is never generated, so there is nothing to validate and the user gets "no result." This is acceptable: it degrades gracefully to manual lookup (the user finds the base form themselves, as with a paper dictionary). Within the generator's scope (productive morphology) these are rare; the unproductive cases are indexed and self-hit (see [Scope](#scope-productive-morphology-only-why-there-is-no-infix-rule)).
+
+2. **Wrong hit** — a generated candidate is a real but _unrelated_ keyword, reached before the intended one. Teeuw confirms "yes, that's a word" and the wrong entry is returned. This is the only way the generator can actively mislead, and it is the one failure the best-effort contract does **not** excuse: a best-effort tool may return nothing, but it must not confidently return the wrong thing.
+
+Wrong hits are bounded by two facts, though not eliminated:
+
+- **The original typed form is always candidate #1.** Teeuw is root-organised and indexes many derivations as sublemma-keywords, so most inflected forms a learner actually types are themselves keywords and self-hit on #1 with the correct entry, before any stripped candidate is queried.
+- **The `di-` → active `meN-` ordering** (the rebuilt active form is emitted before the bare root) puts the more-likely-indexed form first.
+
+The residual risk lives in **over-stripping with weak guards** (`-i` strips any final _i_ from a 2-character-plus stem; `-an`/`-kan` similar — see Limitation 1 below). If a typed form is _not_ itself indexed and an over-strip coincidentally lands on an unrelated keyword before the correct one, the result is a confidently-wrong entry. Tighter length/shape guards on strips would shrink this surface (see Future Improvements). The over-generation noise itself is harmless; only this coincidental-real-word case is not.
 
 ### Limitations & Design Tradeoffs
 
