@@ -18,7 +18,9 @@ Long articles have a __Table of Contents__ in the right-hand side menu; tap any 
 
 To download all articles in a publication for offline reading in one go, open the article list and tap the __download__ icon (cloud with arrow) in the top-right corner. A progress bar shows the download progress. Articles you have already opened are retrieved from the local cache instantly, so only new articles require a network connection.
 
-While reading, you can tap any highlighted word to open the word detail panel. The panel title shows the word as it appears in the text; if the dictionary base form differs, both are shown with an arrow (e.g. _dibakar → membakar_).
+While reading, you can tap any highlighted word to open the word detail panel, which shows its meaning. The panel title is the word as it appears in the text (e.g. _dibakar_). For a word built from a root plus affixes, a grey line shows its **decomposition** (for _menyapukan_: _meN- + sapu + -kan_), and a _→ headword_ link at the bottom (e.g. _→ membakar_) opens the full dictionary entry for the form the meaning belongs to.
+
+Tap the __show/quiz__ icon in the panel title to test yourself: in quiz mode the decomposition is hidden behind a _tap to reveal_ prompt, so you can work it out first and then check. On a desktop or laptop, you can also Cmd-click (Mac) or Ctrl-click (Windows/Linux) a word to jump straight to its dictionary entry, skipping the panel.
 
 ---
 
@@ -73,7 +75,7 @@ Tap the __Study__ button on any vocabulary list to start a flashcard session. Th
 During a session:
 
 - The front of the card is shown first. Tap the card (or press __Space__) to reveal the back.
-- For a word saved from an article, the back shows the __example sentence__ it came from, with the dictionary translation beneath it. Every Indonesian word in the sentence is tappable (shown in teal): tap one to open its full dictionary entry and hear it pronounced (either the single word or the whole sentence) without leaving the session.
+- For a word saved from an article, the back shows the __example sentence__ it came from, with the dictionary translation beneath it. Every Indonesian word in the sentence is tappable (shown in teal): tap one to open its full dictionary entry and hear it pronounced, without leaving the session.
 - Rate how well you knew the answer: __Again__ (didn't know it; the card comes back later in the same session), __Good__ (got it with some effort), or __Easy__ (knew it immediately). You can also use the keyboard shortcuts __1__, __2__, __3__.
 - A badge on the Study button shows how many cards are due for review today.
 

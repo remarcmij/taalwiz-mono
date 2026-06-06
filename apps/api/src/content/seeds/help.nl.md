@@ -18,7 +18,9 @@ Lange artikelen hebben een __Inhoudsopgave__ in het rechterzijmenu; tik op een k
 
 Om alle artikelen van een publicatie in één keer te downloaden voor offline gebruik, open de artikelenlijst en tik op het __download__-pictogram (wolk met pijl) rechtsboven. Een voortgangsbalk toont de downloadvoortgang. Artikelen die je al eerder hebt geopend, worden meteen uit de lokale cache geladen; alleen nieuwe artikelen vereisen een netwerkverbinding.
 
-Tijdens het lezen kun je op een gemarkeerd woord tikken om het woorddetailvenster te openen. De titelbalk toont het woord zoals het in de tekst staat; als de woordenboekbasisvorm afwijkt, worden beide getoond met een pijl (bijv. _dibakar → membakar_).
+Tijdens het lezen kun je op een gemarkeerd woord tikken om het woorddetailvenster te openen, dat de betekenis toont. De titelbalk toont het woord zoals het in de tekst staat (bijv. _dibakar_). Bij een woord dat uit een grondwoord plus voor- en achtervoegsels is opgebouwd, toont een grijze regel de **woordopbouw** (voor _menyapukan_: _meN- + sapu + -kan_), en een link _→ trefwoord_ onderaan (bijv. _→ membakar_) opent het volledige woordenboekartikel van de vorm waar de betekenis bij hoort.
+
+Tik op het pictogram __tonen/oefenen__ in de titelbalk om jezelf te testen: in de oefenmodus wordt de woordopbouw verborgen achter een _tik om te tonen_-aanwijzing, zodat je het eerst zelf kunt uitzoeken en daarna kunt controleren. Op een desktop of laptop kun je ook met Cmd-klik (Mac) of Ctrl-klik (Windows/Linux) op een woord meteen naar het woordenboekartikel springen, zonder het venster te openen.
 
 ---
 
@@ -73,7 +75,7 @@ Tik op de knop __Studeren__ bij een woordenlijst om een flashcardsessie te start
 Tijdens een sessie:
 
 - De voorkant van de kaart wordt als eerste getoond. Tik op de kaart (of druk op __Spatie__) om de achterkant te onthullen.
-- Bij een woord dat je vanuit een artikel hebt opgeslagen, toont de achterkant de __voorbeeldzin__ waaruit het komt, met daaronder de woordenboekvertaling. Elk Indonesisch woord in de zin is aantikbaar (in teal weergegeven): tik erop om het volledige woordenboekartikel te openen en het te laten uitspreken (het losse woord of de hele zin) zonder de sessie te verlaten.
+- Bij een woord dat je vanuit een artikel hebt opgeslagen, toont de achterkant de __voorbeeldzin__ waaruit het komt, met daaronder de woordenboekvertaling. Elk Indonesisch woord in de zin is aantikbaar (in teal weergegeven): tik erop om het volledige woordenboekartikel te openen en het te laten uitspreken, zonder de sessie te verlaten.
 - Beoordeel hoe goed je het antwoord kende: __Opnieuw__ (wist het niet; de kaart komt later in dezelfde sessie terug), __Goed__ (gelukt met enige moeite), of __Makkelijk__ (wist het meteen). Je kunt ook de sneltoetsen __1__, __2__, __3__ gebruiken.
 - Een badge op de knop Studeren toont hoeveel kaarten er vandaag ter herhaling klaarstaan.
 
