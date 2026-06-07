@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, NavigationStart, Router, RouterLink } from '@angular/router';
 
@@ -27,6 +34,7 @@ import { filter, first, pairwise, Subject, takeUntil } from 'rxjs';
 import { environment } from '../environments/environment';
 
 import {
+  AlertController,
   IonApp,
   IonContent,
   IonHeader,
@@ -41,7 +49,6 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
-  AlertController,
   MenuController,
   ModalController,
   ToastController,
@@ -50,9 +57,9 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AboutModalComponent } from './about/about-modal/about-modal.component';
 import { AdminService } from './admin/admin.service';
 import { AuthService } from './auth/auth.service';
+import { TocService } from './home/content/publication/article/toc.service';
 import { DictSyncService, SyncStatus } from './home/dictionary/dict-sync.service';
 import { LAST_TAB_KEY, tabFromUrl } from './home/home.routes';
-import { TocService } from './home/content/publication/article/toc.service';
 import { SpeechSynthesizerService } from './home/speech-synthesizer.service';
 import { LoggerService } from './shared/logger.service';
 import { ThemeService } from './shared/theme/theme.service';
@@ -123,9 +130,7 @@ export class AppComponent implements OnInit, OnDestroy {
     const p = this.syncProgress();
     if (!p || p.total === 0) return 0;
     const frac = Math.min(1, p.loaded / p.total);
-    return p.phase === 'downloading'
-      ? Math.round(frac * 10)
-      : Math.round(10 + frac * 90);
+    return p.phase === 'downloading' ? Math.round(frac * 10) : Math.round(10 + frac * 90);
   });
   #destroy$ = new Subject<void>();
 
@@ -149,7 +154,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    const logLevel = environment.production ? 'info' : 'silly';
+    const logLevel = environment.production ? 'info' : 'debug';
     this.#logger.setLevel(logLevel);
 
     if (sessionStorage.getItem(UPDATE_INSTALLED_FLAG) === '1') {
