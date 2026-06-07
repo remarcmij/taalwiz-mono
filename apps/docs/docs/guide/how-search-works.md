@@ -7,8 +7,7 @@ dictionary search box, with a focus on the morphology.
 This page is written for **linguists**. It assumes a reading knowledge of Indonesian
 (Malay) affixational morphology and uses standard terminology without glossing it. It is
 **not** end-user help: a regular user needs none of this to use the dictionary, they just
-type a word and read the result. Implementation notes for developers live with the code
-(see [For developers](#for-developers) at the end).
+type a word and read the result. Implementation notes for developers live with the code.
 :::
 
 ## The problem
@@ -19,7 +18,7 @@ more. A learner reading a sentence meets the affixed form, not the base, and typ
 exactly what they see. The dictionary behind the search is Teeuw's
 _Indonesisch-Nederlands Woordenboek_, digitised from the 1996 print edition. Its
 **headwords** are mostly bases, with common derivations listed beneath each headword as
-**sublemmas** rather than as headwords of their own. There is no entry for every possible
+**sublemmas** rather than as headwords of their own. There are is no entry for every possible
 affixed form.
 
 So the search has a gap to bridge: from the affixed form the user typed to some form the
@@ -27,31 +26,35 @@ dictionary actually lists, whether a headword or a sublemma.
 
 ## From print entries to a searchable index
 
-Two vocabularies meet on this page; keeping them apart makes everything below precise.
+Two vocabularies meet on this page; keeping them apart makes everything below precise. To
+signal which is which, each is given its own type style: _italic_ for Teeuw's own Dutch
+terms, **bold** for the standard lexicographic terms, and a monospaced font for the names
+the app's index uses internally (`base`, `keyword`), used where a sentence turns on the
+engineering side rather than the dictionary side.
 
 In the **print dictionary**, Teeuw is organised by **headword**, mostly a base (root).
 Derived forms get no headword of their own: they sit beneath the headword as
 **sublemmas**, bold sub-entries with their own glosses. A word cited in passing that is
-defined under its own headword elsewhere is a **word reference**.
+defined under its own headword elsewhere is a **cross-reference**.
 
 In the **digitised index** the app actually searches, each of those bold forms, the
-headword _and_ every sublemma, becomes a **keyword**: an independently searchable string.
-A successful match surfaces grouped under its **base**, the headword/root that anchors the
+headword _and_ every sublemma, becomes a `keyword`: an independently searchable string.
+A successful match surfaces grouped under its `base`, the headword/root that anchors the
 group, which is also the morphological base the derivations are built on.
 
-| Print Teeuw (lexicography)         | Teeuw's Dutch term                | Taalwiz index (engineering)                            |
-| ---------------------------------- | --------------------------------- | ------------------------------------------------------ |
-| headword (a base)                  | _hoofdtrefwoord_ (een _grondwoord_) | a **keyword**, and the **base** that anchors the group |
-| sublemma (nested derivation)       | _afleiding_                       | a **keyword** under that base                          |
-| word reference (defined elsewhere) | _verwijzing_ (_verwijspijl_ →)    | resolves to a keyword (which may itself be a base)     |
+| Teeuw's Dutch term                  | Print Teeuw (lexicography)          | Taalwiz index (engineering)                            |
+| ----------------------------------- | ----------------------------------- | ------------------------------------------------------ |
+| _hoofdtrefwoord_ (een _grondwoord_) | headword (a base)                   | a `keyword`, and the `base` that anchors the group |
+| _afleiding_                         | sublemma (nested derivation)        | a `keyword` under that `base`                       |
+| _verwijzing_ (_verwijspijl_ →)      | cross-reference (defined elsewhere) | resolves to a `keyword` (which may itself be a `base`) |
 
-So when this page says a candidate "matches a keyword," that keyword may be a headword or
-a sublemma; either way the entry surfaces under its base. The _kepunyaanku_ example below
+So when this page says a candidate "matches a `keyword`," that `keyword` may be a headword or
+a sublemma; either way the entry surfaces under its `base`. The _kepunyaanku_ example below
 walks the whole chain, print to index to lookup, on one real word.
 
 Teeuw's own terminology lines up with the engineering names almost one-for-one: his
-_trefwoord_ ("lookup word") is the direct ancestor of the index's **keyword**, and his
-_grondwoord_ ("root word") of its **base**. In his frontmatter Teeuw is explicit that the
+_trefwoord_ ("lookup word") is the direct ancestor of the index's `keyword`, and his
+_grondwoord_ ("root word") of its `base`. In his frontmatter Teeuw is explicit that the
 headwords (_hoofdtrefwoorden_) are "in the first place the so-called _grondwoorden_," with
 derivations (_afleidingen_) listed beneath them and cross-references (_verwijzingen_, often
 marked with an arrow _verwijspijl_ →) pointing from an apparent form to the real base.
@@ -129,9 +132,6 @@ The three examples below trace real lookups, from simple to complex. The first t
 a sequence diagram showing the variation generator producing candidates and the dictionary
 (the offline Teeuw index) accepting or rejecting each one in order.
 
-You can reproduce any of these yourself with the developer trace tool described
-[below](#for-developers).
-
 ### 1. A passive form: _dibakar_
 
 The user reads _dibakar_ ("was burned") and types it. The passive _di-_ form is not a
@@ -173,7 +173,7 @@ beneath it, indented:
 ![The printed Teeuw entry for _punya_](images/teeuw-punya.png)
 
 The digitised source preserves that layout. The headword comes first; the bold run-on
-forms are its sublemmas; the italic forms are examples and word references:
+forms are its sublemmas; the italic forms are examples and cross-references:
 
 ```text
 **punya**, 1 hebben, bezitten;
@@ -186,15 +186,15 @@ forms are its sublemmas; the italic forms are examples and word references:
 ```
 
 The compiler reads that whole block (the text between two blank lines) into a single
-**base** with many **keywords**:
+`base` with many `keyword`s:
 
 | In the source                                                    | Parsed as                       | A search target?                       |
 | ---------------------------------------------------------------- | ------------------------------- | -------------------------------------- |
-| `**punya**`, the headword                                        | **base** `punya`                | yes, as the base itself                |
-| `**punyaku**`, `**berpunya**`, `**mempunyai**`, `**kepunyaan**` … | **keywords** under base `punya` | yes, each one                          |
-| `*saya ~ uang itu*`, `*yg ~*` …                                  | examples and word references    | no (references resolve to their own keyword) |
+| `**punya**`, the headword                                        | `base` `punya`                  | yes, as the `base` itself              |
+| `**punyaku**`, `**berpunya**`, `**mempunyai**`, `**kepunyaan**` … | `keyword`s under `base` `punya` | yes, each one                          |
+| `*saya ~ uang itu*`, `*yg ~*` …                                  | examples and cross-references   | no (references resolve to their own `keyword`) |
 
-So `kepunyaan` is not a headword: it is a **sublemma**, stored as a keyword whose base is
+So `kepunyaan` is not a headword: it is a **sublemma**, stored as a `keyword` whose `base` is
 `punya`. That is the form the search lands on. (The encoding rules are spelled out in the
 compiler's `TEEUW_PARSER.md`.)
 
@@ -228,7 +228,7 @@ sequenceDiagram
 ```
 
 The point: the search stops at _kepunyaan_, a **sublemma**, and the entry surfaces under
-its **base** _punya_, without the lookup ever querying the bare _punya_ candidate that the
+its base _punya_, without the lookup ever querying the bare _punya_ candidate that the
 generator did produce. Matching the sublemma keyword already routes to the base. Of the
 eight candidates only two are queried (_kepunyaanku_, then _kepunyaan_); the rest, the
 real base and the nonsense alike, are never looked up.
@@ -278,19 +278,3 @@ is the right tool.
   Indonesia_ (Faculty of Computer Science, University of Indonesia, 1996), and the
   Enhanced Confix Stripping (ECS) method implemented by the Sastrawi stemmer, both
   discussed under [Why not a stemmer?](#why-not-a-stemmer).
-
-## For developers
-
-The candidate generation lives in `indonesian-variation-generator.ts`; the lookup loop
-that queries each candidate and stops at the first keyword hit is
-`DictionaryService.#searchLocal()`. The full implementation notes (focus handling,
-IndexedDB indexes, result grouping, breadcrumbs) are in `SEARCH.md` alongside the code.
-
-To reproduce the traces on this page against the live compiled dictionary:
-
-```bash
-pnpm --filter compiler run trace dibakar kepunyaanku diinstal
-```
-
-This reuses the production variation generator and the compiled Teeuw index, so its
-hit/miss output is exactly what the app does at runtime.

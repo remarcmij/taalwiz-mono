@@ -225,6 +225,16 @@ Key test cases:
 - `perjalanan` should include `jalan`
 - `penulis` should include `tulis`
 
+#### Tracing a Lookup Against the Compiled Dictionary
+
+To see the full generate-and-test sequence against the **production** compiled Teeuw index (not just the generator in isolation), run the compiler's trace tool:
+
+```bash
+pnpm --filter compiler run trace dibakar kepunyaanku diinstal
+```
+
+It reuses the production variation generator and the compiled dictionary, so its per-candidate hit/miss output is exactly what the app does at runtime. This is the tool that produces the worked examples in the [guide](../../../../../docs/docs/guide/how-search-works.md#worked-examples).
+
 ### Critical Affixes for Coverage
 
 The affixes that matter most for coverage are `di-` (passive forms are common but often not indexed, so the rebuilt active `meN-` form is the real win), `meN-` itself, `-an`, `ber-`, and `peN-`. Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, `-mu`, `-nya`) are stripped because they are grammatical markers that obscure the semantic word. See the [guide](../../../../../docs/docs/guide/how-search-works.md) for the full affix breakdown.
