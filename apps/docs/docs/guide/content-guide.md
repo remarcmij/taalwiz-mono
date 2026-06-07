@@ -266,6 +266,8 @@ Rule of thumb: **asterisks for target-language words you want learners to tap an
 
 Getting this wrong is silent and easy to miss: an asterisk on a Dutch or English word produces a clickable word whose dictionary lookup is meaningless, and an underscore on an Indonesian word denies the learner a lookup they would expect. When in doubt, for any non-target-language emphasis, use underscores.
 
+Mark the word **as it appears in your sentence**, affixes and all. The lookup is morphology-aware: an inflected form such as `*membaca*` or `*dibakar*` resolves to the right dictionary entry on its own, so you do not need to reduce it to its base first. The [How Search Works](./how-search-works) guide explains how that resolution happens.
+
 ### Fill-in-the-blank quiz blanks
 
 Markdown **strikethrough** (`~~ ~~`) doubles as an interactive quiz blank inside an article. The hidden answer renders as a placeholder; the learner taps it to reveal or to answer. There are two modes, chosen automatically by whether the strikethrough text contains a `|`:
