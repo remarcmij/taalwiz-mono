@@ -178,7 +178,13 @@ export class IndonesianVariationGenerator implements VariationGenerator {
     if (word.startsWith('meng')) {
       const rest = word.substring(4);
       results.push(rest);
-      if (rest && !/^[aeiouagh]/.test(rest)) {
+      // meng- elides a root-initial k (meng- + kumpul -> mengumpul), so a
+      // vowel-initial remainder is itself a k-elision case (umpul -> kumpul).
+      // Only g/h initial remainders are genuine meng- allomorphs with no
+      // elision (menggali -> gali, menghitung -> hitung); everything else can
+      // restore the k. A spurious restore on a true vowel root (ambil ->
+      // kambil) simply fails to match any entry, so it is harmless.
+      if (rest && !/^[gh]/.test(rest)) {
         results.push('k' + rest);
       }
       // bare me- + ng-initial root (e.g. menganga → nganga)
@@ -218,7 +224,9 @@ export class IndonesianVariationGenerator implements VariationGenerator {
     if (word.startsWith('peng')) {
       const rest = word.substring(4);
       results.push(rest);
-      if (rest && !/^[aeiouagh]/.test(rest)) {
+      // Same k-elision as meN- (peng- + kumpul -> pengumpul): a vowel-initial
+      // remainder restores the k; only g/h are non-eliding allomorphs.
+      if (rest && !/^[gh]/.test(rest)) {
         results.push('k' + rest);
       }
       // bare pe- + ng-initial root

@@ -66,6 +66,16 @@ describe('segmentIndonesian', () => {
       });
     });
 
+    it('restores k elided before a vowel (meng-): mengumpulkan → kumpul', () => {
+      const result = seg('mengumpulkan', 'kumpul')!;
+      expect(result.display).toBe('meN- + kumpul + -kan');
+      expect(result.ruleNote).toEqual({
+        archiphoneme: 'meN-',
+        surface: 'meng-',
+        letter: 'k',
+      });
+    });
+
     it('peN- restores s', () => {
       expect(seg('penyapu', 'sapu')!.ruleNote).toEqual({
         archiphoneme: 'peN-',

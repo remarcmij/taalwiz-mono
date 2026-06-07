@@ -101,7 +101,9 @@ function nasalCandidates(form: string, stem: string): NasalCandidate[] {
   if (form.startsWith(ng)) {
     const rest = form.slice(4);
     res.push({ remainder: rest, restored: null, surface: ng + '-' });
-    if (rest && !/^[aeiouagh]/.test(rest)) {
+    // meng- elides a root-initial k, so a vowel-initial remainder is itself a
+    // k-elision case (umpul -> kumpul). Only g/h are non-eliding allomorphs.
+    if (rest && !/^[gh]/.test(rest)) {
       res.push({ remainder: 'k' + rest, restored: 'k', surface: ng + '-' });
     }
     res.push({ remainder: form.slice(2), restored: null, surface: stem + '-' });

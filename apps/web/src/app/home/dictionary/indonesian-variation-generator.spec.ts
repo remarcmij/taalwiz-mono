@@ -102,6 +102,12 @@ describe('IndonesianVariationGenerator', () => {
     it('meng- + k root with restoration: mengritik → kritik', () =>
       expect(variations('mengritik')).toContain('kritik'));
 
+    it('meng- + k-elided vowel root: mengumpulkan → kumpul', () =>
+      expect(variations('mengumpulkan')).toContain('kumpul'));
+
+    it('meng- + k-elided vowel root: mengelola → kelola', () =>
+      expect(variations('mengelola')).toContain('kelola'));
+
     it('me- + liquid root: melakukan → lakukan', () =>
       expect(variations('melakukan')).toContain('lakukan'));
 
