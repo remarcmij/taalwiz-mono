@@ -18,19 +18,16 @@ more. A learner reading a sentence meets the affixed form, not the base, and typ
 exactly what they see. The dictionary behind the search is Teeuw's
 _Indonesisch-Nederlands Woordenboek_, digitised from the 1996 print edition. Its
 **headwords** are mostly bases, with common derivations listed beneath each headword as
-**sublemmas** rather than as headwords of their own. There are is no entry for every possible
-affixed form.
+**sublemmas** rather than as headwords of their own. Teeuw lists many affixed forms, but not every possible one.
 
 So the search has a gap to bridge: from the affixed form the user typed to some form the
 dictionary actually lists, whether a headword or a sublemma.
 
-## From print entries to a searchable index
+## From printed dictionary to a searchable index
 
-Two vocabularies meet on this page; keeping them apart makes everything below precise. To
-signal which is which, each is given its own type style: _italic_ for Teeuw's own Dutch
-terms, **bold** for the standard lexicographic terms, and a monospaced font for the names
-the app's index uses internally (`base`, `keyword`), used where a sentence turns on the
-engineering side rather than the dictionary side.
+This page draws on two domains of terminology and keeps them distinct: the lexicography of
+Teeuw's printed dictionary, in his own Dutch and its standard English equivalents, and the
+engineering of the app's search index. Table 1 below lines them up.
 
 In the **print dictionary**, Teeuw is organised by **headword**, mostly a base (root).
 Derived forms get no headword of their own: they sit beneath the headword as
@@ -38,49 +35,53 @@ Derived forms get no headword of their own: they sit beneath the headword as
 defined under its own headword elsewhere is a **cross-reference**.
 
 In the **digitised index** the app actually searches, each of those bold forms, the
-headword _and_ every sublemma, becomes a `keyword`: an independently searchable string.
-A successful match surfaces grouped under its `base`, the headword/root that anchors the
+headword _and_ every sublemma, becomes a keyword: an independently searchable string.
+A successful match surfaces grouped under its base, the headword/root that anchors the
 group, which is also the morphological base the derivations are built on.
 
-| Teeuw's Dutch term                  | Print Teeuw (lexicography)          | Taalwiz index (engineering)                            |
-| ----------------------------------- | ----------------------------------- | ------------------------------------------------------ |
-| _hoofdtrefwoord_ (een _grondwoord_) | headword (a base)                   | a `keyword`, and the `base` that anchors the group |
-| _afleiding_                         | sublemma (nested derivation)        | a `keyword` under that `base`                       |
-| _verwijzing_ (_verwijspijl_ →)      | cross-reference (defined elsewhere) | resolves to a `keyword` (which may itself be a `base`) |
+| Teeuw (Dutch) | Standard (English) | Taalwiz index |
+| --- | --- | --- |
+| _hoofdtrefwoord_ (een _grondwoord_) | headword (a base) | a keyword, and the base that anchors the group |
+| _afleiding_ | sublemma (nested derivation) | a keyword under that base |
+| _verwijzing_ (_verwijspijl_ →) | cross-reference (defined elsewhere) | resolves to a keyword (which may itself be a base) |
 
-So when this page says a candidate "matches a `keyword`," that `keyword` may be a headword or
-a sublemma; either way the entry surfaces under its `base`. The _kepunyaanku_ example below
-walks the whole chain, print to index to lookup, on one real word.
+<small>**Table 1.** Terminology.</small>
+
+So when this page says a candidate "matches a keyword," that keyword may be a headword or
+a sublemma; either way the entry surfaces under its base. The _kepunyaanku_ example below
+walks the whole chain: print → index → lookup.
 
 Teeuw's own terminology lines up with the engineering names almost one-for-one: his
-_trefwoord_ ("lookup word") is the direct ancestor of the index's `keyword`, and his
-_grondwoord_ ("root word") of its `base`. In his frontmatter Teeuw is explicit that the
+_trefwoord_ ("lookup word") is the direct ancestor of the index's keyword, and his
+_grondwoord_ ("root word") of its base. In his frontmatter Teeuw is explicit that the
 headwords (_hoofdtrefwoorden_) are "in the first place the so-called _grondwoorden_," with
 derivations (_afleidingen_) listed beneath them and cross-references (_verwijzingen_, often
 marked with an arrow _verwijspijl_ →) pointing from an apparent form to the real base.
 
 ## The core idea: generate candidates, let the dictionary judge
 
-Taalwiz does **not** try to analyse a word down to its one "true" base. Instead it
-generates a _set_ of plausible candidate forms by stripping and rebuilding affixes,
+Taalwiz does **not** try to analyse an inflected word down to its one "true" base. Instead it
+generates a _set_ of plausible candidate forms by recursively stripping affixes,
 then looks each candidate up in turn and stops at the first one the dictionary
 lists as a keyword (a headword or a sublemma). In information-retrieval terms this is a generate-and-test
 (over-generate-and-filter) strategy rather than morphological analysis: the generator
 favours recall, and the dictionary supplies precision.
 
-This is deliberately not a stemmer. A stemmer commits to a single answer; if it is
-wrong, the lookup fails. Taalwiz instead casts a wider net and lets the **dictionary
+This is deliberately not a stemmer. A stemmer commits to a single root; if that one guess is
+wrong the lookup fails, and even when it is right it points only at the base, never at the
+indexed derivations Taalwiz can land on directly. Taalwiz instead casts a wider net and lets the **dictionary
 be the judge of what is real**. Some generated candidates are not Indonesian words at
 all. That is fine: a non-word simply finds nothing and the search moves on to the next
 candidate. A false candidate costs one extra lookup; a missing candidate costs the
 user their answer. The design optimises against the second, more expensive failure.
 
 The generator emits its candidates in a fixed order set by its recursion, not by any
-ranking it computes, and with no notion of which form is a base. The one part that matters
+ranking it computes, and with no notion of which form is a base, or whether a form is a valid Indonesian word at all. The one part that matters
 for lookup: the original form is tried first, in case it is already a keyword. After that
-the algorithm strips and re-adds affixes until it is exhausted, emitting well-formed
-derivations (such as a rebuilt active _meN-_ form, which the dictionary often lists)
-intermixed with non-words. Empirically, the forms most likely to be keywords tend to
+it strips affixes recursively until exhausted. Where it _builds_ a form rather than strips
+one, it is reconstructing the active _meN-_ form, most visibly from a stripped _di-_ passive
+(_dibakar_ → _membakar_, example 1), which the dictionary often lists. The candidates are well-formed
+derivations intermixed with non-words; empirically, the forms most likely to be keywords
 surface before the long shots.
 
 Because the lookup stops at the first hit, this ordering means that on a successful
@@ -93,17 +94,19 @@ The generator knows the regular affix system. The parts most relevant to lookup:
 
 | Type | Examples | Function |
 | --- | --- | --- |
-| Suffixes | `-kan`, `-i`, `-an` | `-kan`: causative/instrumental/benefactive; `-i`: locative/repetitive; `-an`: forms nouns |
-| Bound pronouns (suffixed) | `-ku`, `-mu`, `-nya` | object of an active verb, possessor, or passive agent |
-| Particles | `-lah`, `-kah`, `-pun`, `-tah` | mood, focus, concessive |
-| Simple prefixes | `di-`, `ber-`, `ter-`, `ke-`, `se-`, `per-` | `di-` passive, `ber-` intransitive verb, `ter-` accidental/abilitative, `ke-` ordinal/collective, `se-` "one/same", `per-` causative |
-| Nasal prefixes | `meN-`, `peN-` | `meN-` active verb; `peN-`/`pe-` noun for the person or instrument of the action |
-| Circumfixes | `ke-...-an`, `per-...-an`, `peN-...-an` | `ke-...-an` abstract noun, `per-...-an` process/place noun, `peN-...-an` action noun |
-| Reduplication | `anak-anak` &rarr; `anak` | plurality, iteration, derivation |
+| Suffixes | _-kan_, _-i_, _-an_ | _-kan_: causative/instrumental/benefactive; _-i_: locative/repetitive; _-an_: forms nouns |
+| Bound pronouns (suffixed) | _-ku_, _-mu_, _-nya_ | object of an active verb, possessor, or passive agent |
+| Particles | _-lah_, _-kah_, _-pun_, _-tah_ | mood, focus, concessive |
+| Simple prefixes | _di-_, _ber-_, _ter-_, _ke-_, _se-_, _per-_ | _di-_ passive, _ber-_ intransitive verb, _ter-_ accidental/abilitative, _ke-_ ordinal/collective, _se-_ "one/same", _per-_ causative |
+| Nasal prefixes | _meN-_, _peN-_ | _meN-_ active verb; _peN-_ or _pe-_ noun for the person or instrument of the action |
+| Circumfixes | _ke-...-an_, _per-...-an_, _peN-...-an_ | _ke-...-an_ abstract noun, _per-...-an_ process/place noun, _peN-...-an_ action noun |
+| Reduplication | _anak-anak_ &rarr; _anak_ | plurality, iteration, derivation |
+
+<small>**Table 2.** Affixes most relevant to lookup.</small>
 
 The linguistically interesting part is the **nasal prefix _meN-_** (and its noun
 counterpart _peN-_). The capital _N_ stands for the nasal element, which surfaces as
-_me-_, _mem-_, _men-_, _meng-_ or _meny-_ depending on the bases first sound. For one
+_me-_, _mem-_, _men-_, _meng-_ or _meny-_ depending on the base's first sound. For one
 class of bases, those beginning with a voiceless consonant (_p, t, s, k_), that initial
 consonant is **lost** when the prefix attaches:
 
@@ -119,6 +122,8 @@ consonant is **lost** when the prefix attaches:
 | **_s_** (lost) | _meny-_ | _menyapu_ | _sapu_ |
 | **_k_** (lost) | _meng-_ | _mengarang_ | _karang_ |
 
+<small>**Table 3.** Realisation of _meN-_ by the base's initial sound.</small>
+
 The dropped-consonant rows are why analysis is ambiguous in the _reverse_ direction.
 Seeing _menulis_, you cannot tell from the surface alone whether the base began with
 _t_ (it did: _tulis_) or was vowel-initial (_ulis_, which would also yield a form
@@ -128,13 +133,13 @@ which one exists.
 
 ## Worked examples
 
-The three examples below trace real lookups, from simple to complex. The first two carry
-a sequence diagram showing the variation generator producing candidates and the dictionary
-(the offline Teeuw index) accepting or rejecting each one in order.
+The three examples below trace how Taalwiz performs real lookups, from simple to complex. The first two carry
+a sequence diagram showing the variation generator producing candidates and the indexed dictionary
+accepting or rejecting each one in order.
 
 ### 1. A passive form: _dibakar_
 
-The user reads _dibakar_ ("was burned") and types it. The passive _di-_ form is not a
+The user reads _dibakar_ ("was burned") and types it in the search field or taps it in displayed content. The passive _di-_ form is not an indexed
 Teeuw keyword, but the generator rebuilds the active _membakar_, which is.
 
 ```mermaid
@@ -150,12 +155,14 @@ sequenceDiagram
     Note over G: strip di- to base "bakar",<br/>rebuild active (b takes mem-) = "membakar",<br/>also emit "bakar" and the non-word "mbakar"
     G-->>S: [dibakar, membakar, bakar, mbakar]
     S->>D: "dibakar"?
-    D-->>S: no entry (passive not a keyword)
+    D-->>S: no match
     S->>D: "membakar"?
-    D-->>S: match (keyword, base "bakar")
-    Note over S: stop at first hit,<br/>"bakar" and "mbakar" are never queried
+    D-->>S: match: keyword, base "bakar"
+    Note over S: stop at first hit,<br/>remaining "bakar" and<br/>"mbakar" are never queried
     S-->>U: entry shown under base "bakar"
 ```
+
+<small>**Figure 1.** Looking up _dibakar_.</small>
 
 The point: the generator produced four candidates, one of them ("mbakar") not a word.
 It did no harm. The active form was found on the second lookup and the rest were never
@@ -172,6 +179,8 @@ beneath it, indented:
 
 ![The printed Teeuw entry for _punya_](images/teeuw-punya.png)
 
+<small>**Figure 2.** The printed Teeuw entry for _punya_.</small>
+
 The digitised source preserves that layout. The headword comes first; the bold run-on
 forms are its sublemmas; the italic forms are examples and cross-references:
 
@@ -185,27 +194,30 @@ forms are its sublemmas; the italic forms are examples and cross-references:
 **kepunyaan**, bezit, eigendom, toebehoren.
 ```
 
-The compiler reads that whole block (the text between two blank lines) into a single
-`base` with many `keyword`s:
+The compiler reads that whole block (the text between two blank lines) into a single base with many keywords:
 
-| In the source                                                    | Parsed as                       | A search target?                       |
-| ---------------------------------------------------------------- | ------------------------------- | -------------------------------------- |
-| `**punya**`, the headword                                        | `base` `punya`                  | yes, as the `base` itself              |
-| `**punyaku**`, `**berpunya**`, `**mempunyai**`, `**kepunyaan**` … | `keyword`s under `base` `punya` | yes, each one                          |
-| `*saya ~ uang itu*`, `*yg ~*` …                                  | examples and cross-references   | no (references resolve to their own `keyword`) |
+| In the source | Parsed as | A search target? |
+| --- | --- | --- |
+| `**punya**`, the headword | base _punya_ | yes, as the base itself |
+| `**punyaku**`, `**berpunya**`, `**mempunyai**`, `**kepunyaan**` … | keywords under base _punya_ | yes, each one |
+| `*saya ~ uang itu*`, `*yg ~*` … | examples and cross-references | no (references resolve to their own keyword) |
 
-So `kepunyaan` is not a headword: it is a **sublemma**, stored as a `keyword` whose `base` is
-`punya`. That is the form the search lands on. (The encoding rules are spelled out in the
+<small>**Table 4.** One print block, parsed into the index.</small>
+
+So _kepunyaan_ is not a headword: it is a **sublemma**, stored as a keyword whose base is
+_punya_. That is the form the search lands on. (The encoding rules are spelled out in the
 compiler's `TEEUW_PARSER.md`.)
 
-The generator knows none of this. It mechanically strips and re-adds affixes, running its
+The generator knows none of this. It mechanically strips affixes, running its
 rules to exhaustion. For _kepunyaanku_ it produces, in order: _kepunyaanku_, _kepunyaan_,
-_kepunya_, _kepu_, _pu_, _punya_, _punyaan_, _punyaanku_. This is not a march toward a
-base: some candidates come from stripping affixes, others from _adding_ one that was never
-there (_punyaan_, _punyaanku_), and the bare root _punya_ lands at position 6, ahead of two
-of the nonsense forms rather than at the end. The generator does not stop when it happens
-to produce a real word. What stops early is the _lookup_: _kepunyaan_, candidate 2, is a
-keyword, so the search halts there, long before the rest are reached.
+_kepunya_, _kepu_, _pu_, _punya_, _punyaan_, _punyaanku_. Every one of these comes from
+_stripping_, never from appending a suffix: _punyaan_ and _punyaanku_ look as though _-an_
+or _-anku_ had been added to the root, but they are just _kepunyaan_ and _kepunyaanku_ with
+the _ke-_ prefix peeled off as the recursion backtracks. So this is not a march toward a base: the bare root _punya_
+lands at position 6, ahead of two of the nonsense forms rather than at the end. The
+generator does not stop when it happens to produce a real word. What stops early is the
+_lookup_: _kepunyaan_, candidate 2, is a keyword, so the search halts there, long before
+the rest are reached.
 
 ```mermaid
 sequenceDiagram
@@ -220,16 +232,18 @@ sequenceDiagram
     Note over G: emit the input unchanged first,<br/>then strip affixes by rule, with no notion of a base
     G-->>S: [kepunyaanku, kepunyaan, ... punya (6), ... punyaanku]
     S->>D: "kepunyaanku"?
-    D-->>S: no entry (clitic form not a keyword)
+    D-->>S: no match
     S->>D: "kepunyaan"?
-    D-->>S: match (keyword, base "punya")
+    D-->>S: match: keyword, base "punya", sublemma "kepunyaan"
     Note over S: stop at candidate 2.<br/>The "punya" candidate (6) is never queried
-    S-->>U: entry shown under base "punya"
+    S-->>U: entry shown as sublemma "kepunyaan" under base "punya"
 ```
+
+<small>**Figure 3.** Looking up _kepunyaanku_.</small>
 
 The point: the search stops at _kepunyaan_, a **sublemma**, and the entry surfaces under
 its base _punya_, without the lookup ever querying the bare _punya_ candidate that the
-generator did produce. Matching the sublemma keyword already routes to the base. Of the
+generator did produce. Of the
 eight candidates only two are queried (_kepunyaanku_, then _kepunyaan_); the rest, the
 real base and the nonsense alike, are never looked up.
 
