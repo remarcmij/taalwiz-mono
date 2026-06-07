@@ -195,10 +195,10 @@ export class Compiler {
     }
 
     if (!result.sourceKeywords.has(parser.base)) {
-      result.sourceWords.add(parser.base);
+      result.referenceWords.add(parser.base);
     }
 
-    for (const word of result.sourceWords) {
+    for (const word of result.referenceWords) {
       if (!result.sourceKeywords.has(word)) {
         lemma.words.push({
           word,
@@ -208,7 +208,7 @@ export class Compiler {
       }
     }
 
-    for (const word of result.targetKeywords) {
+    for (const word of result.targetWords) {
       lemma.words.push({
         word,
         lang: parser.targetLang,

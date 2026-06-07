@@ -15,7 +15,7 @@ describe('Compiler', () => {
   });
 
   it('compiles a two-group Teeuw dict file to correct JSON', async () => {
-    // 'I' is filtered (ABBREVIATIONS_NL), so eeuw and tijdperk are the only target keywords.
+    // 'I' is filtered (EDITORIAL_MARKERS_NL), so eeuw and tijdperk are the only target words.
     // The digit-continuation line triggers TeeuwParser's tilde-word prepend logic.
     const input = [
       '**abad** I, eeuw, tijdperk',
@@ -80,7 +80,7 @@ describe('Compiler', () => {
   });
 
   it('assigns homonym index 1 when the same base appears in consecutive groups', async () => {
-    // 'II' is filtered (ABBREVIATIONS_NL), so generatie and geslacht are the target keywords.
+    // 'II' is filtered (EDITORIAL_MARKERS_NL), so generatie and geslacht are the target words.
     const input = [
       '**abad** I, eeuw, tijdperk',
       '',

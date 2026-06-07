@@ -1,11 +1,5 @@
 import { removeParenthesizedFragments as removeParenFragments } from './helpers.js';
 
-export class WordSets {
-  sourceKeywords: Set<string> = new Set();
-  sourceWords: Set<string> = new Set();
-  targetKeywords: Set<string> = new Set();
-}
-
 export interface Parser {
   get sourceLang(): string;
   get targetLang(): string;
@@ -19,8 +13,8 @@ export interface Parser {
 export class ParserResult {
   line = '';
   sourceKeywords: Set<string> = new Set();
-  sourceWords: Set<string> = new Set();
-  targetKeywords: Set<string> = new Set();
+  referenceWords: Set<string> = new Set();
+  targetWords: Set<string> = new Set();
 }
 
 abstract class ParserBase implements Parser {
@@ -31,7 +25,7 @@ abstract class ParserBase implements Parser {
   protected _tildeWord: string | null = null;
   protected _homonym = 0;
 
-  abstract extractWords(line: string, wordSets: WordSets): void;
+  abstract extractWords(line: string, result: ParserResult): void;
 
   constructor(sourceLang: string, targetLang: string) {
     this._sourceLang = sourceLang;
@@ -90,7 +84,7 @@ abstract class ParserBase implements Parser {
     }
 
     if (this.base && !parserResult.sourceKeywords.has(this.base)) {
-      parserResult.sourceWords.add(this.base);
+      parserResult.referenceWords.add(this.base);
     }
 
     if (line.indexOf('~') !== -1) {

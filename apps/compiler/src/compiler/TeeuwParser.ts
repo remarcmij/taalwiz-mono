@@ -1,7 +1,7 @@
 import {
-  ABBREVIATIONS_NL,
+  EDITORIAL_MARKERS_NL,
   IGNORED_WORDS_ID,
-  IGNORED_WORDS_NL,
+  COMMON_WORDS_NL,
 } from './filter_data.js';
 import ParserBase, { ParserResult } from './ParserBase.js';
 import Tokenizer, { Token } from './Tokenizer.js';
@@ -32,7 +32,7 @@ export default class TeeuwParser extends ParserBase {
 
   extractWords(line: string, result: ParserResult): void {
     const tokenizer = new Tokenizer(line);
-    let targetWords: string[] = [];
+    let pendingWords: string[] = [];
 
     let arrowSeen = false;
     let token = tokenizer.next();
@@ -41,7 +41,7 @@ export default class TeeuwParser extends ParserBase {
       switch (token) {
         case Token.DblStar: {
           if (arrowSeen) {
-            this.parseDblStarFragment(tokenizer, result.sourceWords);
+            this.parseDblStarFragment(tokenizer, result.referenceWords);
           } else {
             this.tildeWord = null;
             this.parseDblStarFragment(tokenizer, result.sourceKeywords);
@@ -50,12 +50,12 @@ export default class TeeuwParser extends ParserBase {
         }
 
         case Token.Star: {
-          this.parseStarFragment(tokenizer, result.sourceWords);
+          this.parseStarFragment(tokenizer, result.referenceWords);
           break;
         }
 
         case Token.Word: {
-          targetWords.push(tokenizer.value);
+          pendingWords.push(tokenizer.value);
           break;
         }
 
@@ -86,9 +86,9 @@ export default class TeeuwParser extends ParserBase {
         }
         case Token.Comma:
         case Token.Semicolon: {
-          if (targetWords.length > 0) {
-            this.assignTargetWords(targetWords, result.targetKeywords);
-            targetWords = [];
+          if (pendingWords.length > 0) {
+            this.selectTargetWord(pendingWords, result.targetWords);
+            pendingWords = [];
           }
           break;
         }
@@ -105,8 +105,8 @@ export default class TeeuwParser extends ParserBase {
       token = tokenizer.next();
     }
 
-    if (targetWords.length > 0) {
-      this.assignTargetWords(targetWords, result.targetKeywords);
+    if (pendingWords.length > 0) {
+      this.selectTargetWord(pendingWords, result.targetWords);
     }
   }
 
@@ -192,13 +192,13 @@ export default class TeeuwParser extends ParserBase {
     }
   }
 
-  assignTargetWords(targetWords: string[], wordSet: Set<string>) {
-    let filtered = targetWords.filter((word) => !ABBREVIATIONS_NL.has(word));
+  selectTargetWord(fragmentWords: string[], wordSet: Set<string>) {
+    let filtered = fragmentWords.filter((word) => !EDITORIAL_MARKERS_NL.has(word));
 
     if (filtered.length == 1) {
       wordSet.add(filtered[0]);
     } else {
-      filtered = filtered.filter((word) => !IGNORED_WORDS_NL.has(word));
+      filtered = filtered.filter((word) => !COMMON_WORDS_NL.has(word));
       if (filtered.length === 1) {
         wordSet.add(filtered[0]);
       }

@@ -10,8 +10,8 @@ describe('TeeuwParser', () => {
       '**ab** I, sv busje, potje (voor het opbergen van opium).'
     );
     expect(result.sourceKeywords).toStrictEqual(new Set(['ab']));
-    expect(result.sourceWords.size).toBe(0);
-    expect(result.targetKeywords).toStrictEqual(new Set(['busje', 'potje']));
+    expect(result.referenceWords.size).toBe(0);
+    expect(result.targetWords).toStrictEqual(new Set(['busje', 'potje']));
   });
 
   it('*~ emas*(, *keemasan*), gouden eeuw, bloeitijd, hoogtepunt;', () => {
@@ -25,10 +25,10 @@ describe('TeeuwParser', () => {
       '*abad emas*(, *keemasan*), gouden eeuw, bloeitijd, hoogtepunt;'
     );
     expect(result.sourceKeywords.size).toBe(0);
-    expect(result.sourceWords).toStrictEqual(
+    expect(result.referenceWords).toStrictEqual(
       new Set(['abad', 'emas', 'keemasan'])
     );
-    expect(result.targetKeywords).toStrictEqual(
+    expect(result.targetWords).toStrictEqual(
       new Set(['bloeitijd', 'hoogtepunt'])
     );
   });
@@ -45,10 +45,27 @@ describe('TeeuwParser', () => {
     expect(result.sourceKeywords).toStrictEqual(
       new Set(['mengabolisi', 'mengabolisikan'])
     );
-    expect(result.sourceWords.size).toBe(0);
-    expect(result.targetKeywords).toStrictEqual(
+    expect(result.referenceWords.size).toBe(0);
+    expect(result.targetWords).toStrictEqual(
       new Set(['afschaffen', 'kwijtschelden'])
     );
+  });
+
+  it('**agah, beragah(-agah)an**, elkaar uitdagen(d aankijken);', () => {
+    // Parentheses mark an optional word-part that is NOT a trailing suffix:
+    // a medial reduplication on the Indonesian side (beragah(-agah)an ->
+    // beragahan / beragah-agahan) and an optional continuation on the Dutch
+    // side (uitdagen(d aankijken) -> uitdagen). The double pass indexes both.
+    const parser = new TeeuwParser();
+
+    const result = parser.parseLine(
+      '**agah, beragah(-agah)an**, elkaar uitdagen(d aankijken);'
+    );
+    expect(result.sourceKeywords).toStrictEqual(
+      new Set(['agah', 'beragahan', 'beragah-agahan'])
+    );
+    expect(result.referenceWords.size).toBe(0);
+    expect(result.targetWords).toStrictEqual(new Set(['uitdagen']));
   });
 
   it('**acara** IV † → **cara**, manier.', () => {
@@ -57,8 +74,8 @@ describe('TeeuwParser', () => {
     const result = parser.parseLine('**acara** IV † → **cara**, manier.');
     expect(result.line).toBe('**acara** IV † → **cara**, manier.');
     expect(result.sourceKeywords).toStrictEqual(new Set(['acara']));
-    expect(result.sourceWords).toStrictEqual(new Set(['cara']));
-    expect(result.targetKeywords).toStrictEqual(new Set(['manier']));
+    expect(result.referenceWords).toStrictEqual(new Set(['cara']));
+    expect(result.targetWords).toStrictEqual(new Set(['manier']));
   });
 
   it('2 tijd, periode;', () => {
@@ -68,8 +85,8 @@ describe('TeeuwParser', () => {
     const result = parser.parseLine('2 tijd, periode;');
     expect(result.line).toBe('**abad**, 2 tijd, periode;');
     expect(result.sourceKeywords).toStrictEqual(new Set(['abad']));
-    expect(result.sourceWords.size).toBe(0);
-    expect(result.targetKeywords).toStrictEqual(new Set(['tijd', 'periode']));
+    expect(result.referenceWords.size).toBe(0);
+    expect(result.targetWords).toStrictEqual(new Set(['tijd', 'periode']));
   });
 
   describe('reset and homonym tracking', () => {

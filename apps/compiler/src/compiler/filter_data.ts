@@ -1,4 +1,7 @@
-export const ABBREVIATIONS_NL = new Set([
+// Teeuw's editorial apparatus, stripped from a Dutch fragment before counting
+// content words: abbreviations, the sense-numbering Roman numerals (I-X), and the
+// single-letter language-origin codes (N, A, E, ...). None of these are translation words.
+export const EDITORIAL_MARKERS_NL = new Set([
   'A', // Arabisch
   'C', // Chinees (Maleis)
   'E', // Engels
@@ -65,7 +68,10 @@ export const ABBREVIATIONS_NL = new Set([
   'X', // 10
 ]);
 
-export const IGNORED_WORDS_NL = new Set([
+// Common Dutch words used ONLY to disambiguate a multi-word fragment down to a single
+// content word (see selectTargetWord). They are NOT globally ignored: a word standing
+// alone in a fragment is still indexed even if it appears here.
+export const COMMON_WORDS_NL = new Set([
   'de',
   'het',
   'een',
