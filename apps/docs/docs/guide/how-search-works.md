@@ -39,15 +39,22 @@ headword _and_ every sublemma, becomes a **keyword**: an independently searchabl
 A successful match surfaces grouped under its **base**, the headword/root that anchors the
 group, which is also the morphological base the derivations are built on.
 
-| Print Teeuw (lexicography)         | Taalwiz index (engineering)                          |
-| ---------------------------------- | ---------------------------------------------------- |
-| headword (a base)                  | a **keyword**, and the **base** that anchors the group |
-| sublemma (nested derivation)       | a **keyword** under that base                        |
-| word reference (defined elsewhere) | resolves to a keyword (which may itself be a base)    |
+| Print Teeuw (lexicography)         | Teeuw's Dutch term                | Taalwiz index (engineering)                            |
+| ---------------------------------- | --------------------------------- | ------------------------------------------------------ |
+| headword (a base)                  | _hoofdtrefwoord_ (een _grondwoord_) | a **keyword**, and the **base** that anchors the group |
+| sublemma (nested derivation)       | _afleiding_                       | a **keyword** under that base                          |
+| word reference (defined elsewhere) | _verwijzing_ (_verwijspijl_ →)    | resolves to a keyword (which may itself be a base)     |
 
 So when this page says a candidate "matches a keyword," that keyword may be a headword or
 a sublemma; either way the entry surfaces under its base. The _kepunyaanku_ example below
 walks the whole chain, print to index to lookup, on one real word.
+
+Teeuw's own terminology lines up with the engineering names almost one-for-one: his
+_trefwoord_ ("lookup word") is the direct ancestor of the index's **keyword**, and his
+_grondwoord_ ("root word") of its **base**. In his frontmatter Teeuw is explicit that the
+headwords (_hoofdtrefwoorden_) are "in the first place the so-called _grondwoorden_," with
+derivations (_afleidingen_) listed beneath them and cross-references (_verwijzingen_, often
+marked with an arrow _verwijspijl_ →) pointing from an apparent form to the real base.
 
 ## The core idea: generate candidates, let the dictionary judge
 
