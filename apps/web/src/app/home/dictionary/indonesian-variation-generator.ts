@@ -65,6 +65,18 @@ export class IndonesianVariationGenerator implements VariationGenerator {
       this.getVariations(matchWord, variations, true);
     }
 
+    // if a -kan/-i form is not already a meN- form, reconstruct the active meN- form and
+    // try it BEFORE stripping to the bare root, so a reduced form like "bacakan" resolves
+    // to "membacakan" (which preserves the -kan sense) rather than the root "baca".
+    // Mirrors the di- rule above; the bare root is still reached later via stripping.
+    match = word.match(/^[^m].{2,}(?:kan|i)$/);
+    if (match && !mePrefixed) {
+      meWord = this.prefixWithMeng(word);
+      if (meWord !== word) {
+        this.getVariations(meWord, variations, true);
+      }
+    }
+
     // strip -kah, -lah, -tah, -pun particles
     match = word.match(/^(.{2,})(?:[klt]ah|pun)$/);
     if (match) {
@@ -150,15 +162,6 @@ export class IndonesianVariationGenerator implements VariationGenerator {
     if (peNVariations) {
       for (const stripped of peNVariations) {
         this.getVariations(stripped, variations, mePrefixed);
-      }
-    }
-
-    // if word ends with -kan or -i and doesn't start with m, add meng prefix
-    match = word.match(/^[^m].{2,}(?:kan|i)$/);
-    if (match && !mePrefixed) {
-      meWord = this.prefixWithMeng(word);
-      if (meWord !== word) {
-        this.getVariations(meWord, variations, true);
       }
     }
 

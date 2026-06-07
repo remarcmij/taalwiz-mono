@@ -140,6 +140,31 @@ describe('IndonesianVariationGenerator', () => {
       expect(variations('penulis')).toContain('ulis'));
   });
 
+  describe('-kan/-i active reconstruction (active before bare root)', () => {
+    it('bacakan: membacakan comes before the root baca', () => {
+      const vars = variations('bacakan');
+      const activeIndex = vars.indexOf('membacakan');
+      const rootIndex = vars.indexOf('baca');
+      expect(activeIndex).toBeGreaterThan(-1);
+      expect(rootIndex).toBeGreaterThan(-1);
+      expect(activeIndex).toBeLessThan(rootIndex);
+    });
+
+    it('ajari: mengajari comes before the root ajar', () => {
+      const vars = variations('ajari');
+      const activeIndex = vars.indexOf('mengajari');
+      const rootIndex = vars.indexOf('ajar');
+      expect(activeIndex).toBeGreaterThan(-1);
+      expect(rootIndex).toBeGreaterThan(-1);
+      expect(activeIndex).toBeLessThan(rootIndex);
+    });
+
+    it('a genuine root ending in -i still self-hits at position 0 (tari)', () => {
+      // The typed form is always candidate 0, so real roots are unaffected by the reorder.
+      expect(variations('tari').indexOf('tari')).toBe(0);
+    });
+  });
+
   describe('circumfix stripping', () => {
     it('ke-...-an: kebaikan → baik', () => expect(variations('kebaikan')).toContain('baik'));
 
