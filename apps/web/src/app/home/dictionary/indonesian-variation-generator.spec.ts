@@ -242,6 +242,171 @@ describe('IndonesianVariationGenerator', () => {
     });
   });
 
+  // Characterization (golden) test: locks the EXACT output array — order included —
+  // for words spanning all rule shapes and the order-sensitive synthesis rules. The
+  // table-driven refactor must keep these byte-identical (lookup priority depends on
+  // emission order). Regenerate intentionally with `vitest -u` only if behaviour is
+  // meant to change.
+  describe('output order (characterization)', () => {
+    it('mengambilnya (meN- + -nya)', () =>
+      expect(variations('mengambilnya')).toMatchInlineSnapshot(`
+        [
+          "mengambilnya",
+          "mengambil",
+          "ambil",
+          "kambil",
+          "ngambil",
+          "ambilnya",
+          "kambilnya",
+          "ngambilnya",
+        ]
+      `));
+    it('diambil (di- synthesis)', () =>
+      expect(variations('diambil')).toMatchInlineSnapshot(`
+        [
+          "diambil",
+          "mengambil",
+          "ambil",
+          "kambil",
+          "ngambil",
+        ]
+      `));
+    it('dibakar (di- synthesis)', () =>
+      expect(variations('dibakar')).toMatchInlineSnapshot(`
+        [
+          "dibakar",
+          "membakar",
+          "bakar",
+          "mbakar",
+        ]
+      `));
+    it('bacakan (-kan synthesis)', () =>
+      expect(variations('bacakan')).toMatchInlineSnapshot(`
+        [
+          "bacakan",
+          "membacakan",
+          "membaca",
+          "baca",
+          "mbaca",
+          "membacak",
+          "bacak",
+          "mbacak",
+          "mbacakan",
+        ]
+      `));
+    it('ajari (-i synthesis)', () => expect(variations('ajari')).toMatchInlineSnapshot(`
+      [
+        "ajari",
+        "mengajari",
+        "mengajar",
+        "ajar",
+        "kajar",
+        "ngajar",
+        "kajari",
+        "ngajari",
+      ]
+    `));
+    it('memperbaik (mem- + per-)', () =>
+      expect(variations('memperbaik')).toMatchInlineSnapshot(`
+        [
+          "memperbaik",
+          "perbaik",
+          "baik",
+          "rbaik",
+          "pperbaik",
+          "mperbaik",
+        ]
+      `));
+    it('kebaikan (ke-...-an circumfix)', () =>
+      expect(variations('kebaikan')).toMatchInlineSnapshot(`
+        [
+          "kebaikan",
+          "mengebaikan",
+          "mengebai",
+          "mengeba",
+          "eba",
+          "keba",
+          "ba",
+          "ngeba",
+          "ebai",
+          "kebai",
+          "bai",
+          "ngebai",
+          "mengebaik",
+          "ebaik",
+          "kebaik",
+          "baik",
+          "ngebaik",
+          "ebaikan",
+          "baikan",
+          "ngebaikan",
+          "membaikan",
+          "membai",
+          "memba",
+          "mba",
+          "mbai",
+          "membaik",
+          "mbaik",
+          "mbaikan",
+        ]
+      `));
+    it('penulisan (pe-...-an circumfix)', () =>
+      expect(variations('penulisan')).toMatchInlineSnapshot(`
+        [
+          "penulisan",
+          "penulis",
+          "ulis",
+          "tulis",
+          "nulis",
+          "ulisan",
+          "tulisan",
+          "nulisan",
+        ]
+      `));
+    it('mengumpulkan (k-elision)', () =>
+      expect(variations('mengumpulkan')).toMatchInlineSnapshot(`
+        [
+          "mengumpulkan",
+          "mengumpul",
+          "umpul",
+          "kumpul",
+          "mpul",
+          "ngumpul",
+          "mengumpulk",
+          "umpulk",
+          "kumpulk",
+          "mpulk",
+          "ngumpulk",
+          "umpulkan",
+          "kumpulkan",
+          "mpulkan",
+          "ngumpulkan",
+        ]
+      `));
+    it('menyala (bare me- + ny-)', () => expect(variations('menyala')).toMatchInlineSnapshot(`
+      [
+        "menyala",
+        "ala",
+        "sala",
+        "nyala",
+      ]
+    `));
+    it('anak-anak (reduplication)', () =>
+      expect(variations('anak-anak')).toMatchInlineSnapshot(`
+        [
+          "anak-anak",
+          "anak",
+        ]
+      `));
+    it('membaca (meN-)', () => expect(variations('membaca')).toMatchInlineSnapshot(`
+      [
+        "membaca",
+        "baca",
+        "mbaca",
+      ]
+    `));
+  });
+
   describe('documented test cases from SEARCH.md', () => {
     it('membaca should include baca (original first)', () => {
       const vars = variations('membaca');
