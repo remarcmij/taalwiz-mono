@@ -21,10 +21,15 @@ supplement files so they behave like the rest of the dictionary.
 The markdown is a faithful, human-readable transcription of the printed Teeuw,
 encoding its **typography and layout**, not its meaning. A headword is bold and
 at the left margin; its run-on forms are bold and indented; its compounds and
-examples are italic; the swung dash stands in for a repeated word. The source
+examples are italic; the swung dash (the `~` character on your keyboard) stands
+in for a repeated word. The source
 re-encodes those visual conventions in plain text, and the compiler then derives
 all the structure (what is a headword, a derivation, a homonym) **mechanically**
-from that typography. See [TEEUW_PARSER.md](./TEEUW_PARSER.md) Part 1.
+from that typography. See [TEEUW_PARSER.md Part 1](./TEEUW_PARSER.md#part-1--markdown-to-json-headwords-keywords-homonyms).
+
+![printed-page-example](teeuw-page-a.png)
+
+**Figure 1.** The first page of the printed Teeuw dictionary definitions.
 
 Two consequences worth internalising:
 
@@ -43,26 +48,92 @@ This is a **best-effort** digitization. The transcription is careful and the
 compiler is strict, but the original is a large, irregular book, and incidental
 deviations remain. Aim for faithful, not flawless.
 
+### Terminology
+
+The same handful of things go by different names depending on whether you mean
+Teeuw's printed page, standard lexicography, or this markup. They line up like this:
+
+| Teeuw (Dutch) | Standard (English) | In this markup |
+| --- | --- | --- |
+| _artikel_ | article / entry | a **block** — one hanging-indent paragraph (compiles to the rows sharing one `base`) |
+| _grondwoord_, _hoofdtrefwoord_ | headword (a base) | the **first bold** word of a block → `base` |
+| _afleiding_ | derivation, sublemma | a **later bold** word → `keyword` (this guide's "run-on form") |
+| _samenstelling_, _vaste verbinding_ | compound, fixed expression | _italic_; or **bold** on its own line if it has its own derivation |
+| _verwijzing_ (_verwijspijl_ →) | cross-reference | the bold words after a `->` arrow |
+| _betekenis(variant)_ | sense | a sense number `1`, `2`, … |
+
+**Table 1.** Terminology: one set of things, three vocabularies (Teeuw's print, standard lexicography, and this markup).
+
 ---
 
 ## 2. The block rule (this is the backbone)
 
-A **blank line** separates entries. Everything between two blank lines is one
-**block**, and the **first bold word of a block is the headword** (the
-grondwoord / `base`). Every later bold word in the same block is a run-on form
+Each **block** is separated from the next by a **blank line** — a block being the
+run of consecutive non-blank lines in between. One block is one dictionary
+**entry** — what Teeuw calls an *artikel* (article): a single headword and everything
+printed beneath it. ("Block" and "entry" name the same unit, source-side and
+dictionary-side.) The **first bold word of a block is the headword** — literally
+the word at the *head* of the block (the grondwoord / `base`). Every later bold word in the same block is a run-on form[^1]
 (`keyword`) under that same headword — it does **not** start a new entry.
 
 ```
-**indah** I, fraai, mooi;          <- new block: headword `indah`
-*~ kabar*, goed nieuws;            <- still `indah`
-**memperindah(kan)**, verfraaien;  <- still `indah` (a keyword, not a new entry)
-                                   <- blank line: next block resets the headword
-**indang**, wan (rijst);           <- new block: headword `indang`
+**abad**, 1 eeuw;               <- new block: headword `abad`
+*~ pertengahan*, middeleeuwen;  <- still `abad` ("abad pertengahan")
+**berabad-abad**, eeuwenlang;   <- still `abad` (a keyword, not a new entry)
+...                             <- (more run-on forms of `abad`, omitted for brevity)
+                                <- blank line: next block resets the headword
+**abah** I, richting, koers;    <- new block: headword `abah`
 ```
+
+(This is the top of the **A** page shown in Figure 1: see [`abad`](dict/teeuw/teeuw.a.md)
+followed, after a blank line, by [`abah`](dict/teeuw/teeuw.a.md).)
 
 If the same headword reappears in a later block, it becomes the next **homonym**
 (`kapan I` / `kapan II` in print). The Roman numerals are just text you copy;
-the numbering is computed from the repetition. See [TEEUW_PARSER.md](./TEEUW_PARSER.md) §1.2.
+the numbering is computed from the repetition. See [TEEUW_PARSER.md §1.2](./TEEUW_PARSER.md#12-the-algorithm-verified-against-the-source).
+
+### How this maps to the printed page
+
+Look at the **A** page in Figure 1 and the block rule falls straight out of the
+layout. On the page, each block (entry / *artikel*) takes the form of one
+**hanging-indent paragraph** — that is just its print-layout shape: the headword
+hangs out at the **left margin**, and the rest of the article — its numbered
+senses, its italic compounds, and its bold run-on forms — sits in an indented body
+beneath it (a line that wraps stays at that indent). The next article begins only
+when a headword **drops back to the left margin** and a new paragraph starts.
+
+The markdown re-encodes that paragraph, and the **blank line is the paragraph
+break** — the exact point where the page returns to a flush-left headword:
+
+| On the printed page | In the markdown |
+|---------------------|-----------------|
+| headword hanging at the left margin (starts the paragraph) | the **first** `**bold**` word of a block |
+| bold run-on form, in the indented body | a **later** `**bold**` word in the same block |
+| italic compound or example, inline | `*italic*` |
+| swung dash repeating the governing word | `~` |
+| headword drops back to the left margin (new paragraph) | a **blank line** |
+
+**Table 2.** How each feature of the printed page is encoded in the markdown source.
+
+The markdown encodes two things that are easy to conflate. **Block membership**
+fixes the headword: every line in a block shares the block's `base`, and the blank
+line is the drop to the next left-margin headword. The **line breaks** are
+structural too: each line becomes its own **lemma** — a record in the compiled JSON
+(the `^` revert marker is the one exception, emitting nothing). That is why Figure 2
+shows one row per source line. So putting each form on its own line is not merely
+for editing readability; it is how the entry is split into those per-line records.
+
+What the source does *not* reproduce is the page's line-**wrapping**: where a
+printed column runs out mid-entry and wraps to an indented line, the markdown
+ignores it. That break is cosmetic; the markdown's own line breaks are not.
+
+Following the same `abad` article one stage further — through the compiler and into
+the app — closes the loop:
+
+![taalwiz-app-example](taalwiz-abad.png)
+
+**Figure 2.** The `abad` article compiled and rendered in the Taalwiz app: the end of
+the chain (print → markdown → app).[^2]
 
 ---
 
@@ -78,9 +149,11 @@ the numbering is computed from the repetition. See [TEEUW_PARSER.md](./TEEUW_PAR
 | `-` | a literal hyphen / reduplication | kept as-is (`anak-anak`) |
 | `->` | a cross-reference arrow | bold words after it are references, not keywords |
 | `_word_` | (editorial) an exotic name in a gloss | skipped: not indexed as a Dutch word (e.g. a Latin plant name) |
-| `( )` | an optional word-part, or a descriptive aside | both forms are indexed (long form and short form); see [TEEUW_PARSER.md](./TEEUW_PARSER.md) §1.3 |
+| `( )` | an optional word-part, or a descriptive aside | both forms are indexed (long form and short form); see [TEEUW_PARSER.md §1.3](./TEEUW_PARSER.md#13-the-parenthesis-double-pass) |
 | `1`, `2` | a sense number | copied literally; continues the current headword's senses |
 | blank line | return to the left margin | ends the block, resets the headword |
+
+**Table 3.** The full markup vocabulary: each symbol, the print feature it encodes, and what it means to the compiler.
 
 Unused/free characters in the corpus include `^` (now the revert marker) — do
 not introduce other control characters without updating the tokenizer.
@@ -109,8 +182,8 @@ subtlety below.
 `~` expands to the **nearest preceding bold word** — the lemma the entry is
 currently elaborating. Almost always that is what you want:
 
-- in the headword's compound list, `~` is the headword (`*~ kabar*` under `indah`
-  is "indah kabar");
+- in the headword's compound list, `~` is the headword (`*~ pertengahan*` under
+  `abad` is "abad pertengahan");
 - under a derivation, `~` is that derivation (`*~ negeri*` under `pengadilan` is
   "pengadilan negeri").
 
@@ -191,7 +264,7 @@ To add post-1996 words, create/extend `teeuw.X+.md` (e.g. `teeuw.a+.md`) using t
 **exact same markup**. The core files stay untouched; everything in a `+` file is
 automatically flagged `isSupplement` and rendered distinctly. Homonym numbering
 carries across the core/supplement boundary. Full design in
-[TEEUW_PARSER.md](./TEEUW_PARSER.md) Part 2.
+[TEEUW_PARSER.md Part 2](./TEEUW_PARSER.md#part-2--supplement--files).
 
 Practical checklist for a new entry:
 
@@ -220,3 +293,14 @@ as you intended. Two safety nets:
 
 The `^` rule plus this warning cover the systematic cases; a new one can only
 arise from a new bold compound you introduce, and the warning will flag it.
+
+[^1]: A run-on form is what the user-facing guide calls a **sublemma**; the two
+terms are interchangeable — a `keyword` under a `base`.
+
+[^2]: Two things are worth noticing in Figure 2. Each swung dash has been
+**expanded to its governing word** (`*~ pertengahan*` → "abad pertengahan",
+`*~ emas*` → "abad emas"; see [section 5](#5-the--tilde-and-the--revert-marker)),
+and the bold run-on forms (`berabad-abad`, `abadi`, `mengabadikan`, …) are listed
+under the headword. The second card, `keemasan`, is something the **printed page
+cannot do**: it surfaces as a backlink because its own entry cross-links to `abad`
+in the gloss, so the digital form makes the reference bidirectional.
