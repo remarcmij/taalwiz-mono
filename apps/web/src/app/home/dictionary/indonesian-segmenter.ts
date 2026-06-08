@@ -12,14 +12,15 @@
  * single best ordered affix path from surface down to exactly that root. It never
  * invents a root; failure yields `null`.
  *
- * The meN-/peN- nasal allomorphy below is a faithful hand-port of the variation
- * generator's `stripMeN` (indonesian-variation-generator.ts L172-210), `stripPeN`
- * (L212-250) and the assimilation guards in `prefixWithMeng` (L252-278). Keep the two
- * consistent:
- * `indonesian-segmenter.spec.ts` has a cross-check test that fails if they drift.
+ * The meN-/peN- nasal allomorphy (which surface allomorph elides which root
+ * consonant) is shared with the variation generator via ./indonesian-nasal-rules.ts,
+ * so both undo assimilation from one table. This file adds only the ordered-path
+ * search and the rule-note shaping on top of those candidates.
  *
  * See apps/web/MORPHOLOGY_AID.md for the design and its grounding in Teeuw.
  */
+
+import { nasalCandidates } from './indonesian-nasal-rules';
 
 /** Restored-consonant note for meN-/peN- allomorphy, parameterised for i18n. */
 export interface SegmentRuleNote {
@@ -76,62 +77,6 @@ const SIMPLE_PREFIXES: SimpleAffix[] = [
   { label: 'ku-', match: /^ku(.{2,})$/ },
   { label: 'mu-', match: /^mu(.{2,})$/ },
 ];
-
-interface NasalCandidate {
-  remainder: string;
-  /** Restored root-initial consonant, or null when none was restored. */
-  restored: string | null;
-  /** Surface allomorph for the rule note, e.g. "meny-". */
-  surface: string;
-}
-
-/**
- * Candidate remainders after stripping a meN-/peN- nasal prefix whose stem is
- * `stem` ("me" or "pe"). Faithful port of stripMeN/stripPeN: each onset yields the
- * bare remainder plus, where the assimilation guard allows, a remainder with the
- * dropped root consonant restored (s/p/t/k), plus the bare me-/pe- + nasal-root case.
- */
-function nasalCandidates(form: string, stem: string): NasalCandidate[] {
-  const res: NasalCandidate[] = [];
-  const ng = stem + 'ng';
-  const ny = stem + 'ny';
-  const m3 = stem + 'm';
-  const n3 = stem + 'n';
-
-  if (form.startsWith(ng)) {
-    const rest = form.slice(4);
-    res.push({ remainder: rest, restored: null, surface: ng + '-' });
-    // meng- elides a root-initial k, so a vowel-initial remainder is itself a
-    // k-elision case (umpul -> kumpul). Only g/h are non-eliding allomorphs.
-    if (rest && !/^[gh]/.test(rest)) {
-      res.push({ remainder: 'k' + rest, restored: 'k', surface: ng + '-' });
-    }
-    res.push({ remainder: form.slice(2), restored: null, surface: stem + '-' });
-  } else if (form.startsWith(ny)) {
-    const rest = form.slice(4);
-    res.push({ remainder: rest, restored: null, surface: ny + '-' });
-    res.push({ remainder: 's' + rest, restored: 's', surface: ny + '-' });
-    res.push({ remainder: form.slice(2), restored: null, surface: stem + '-' });
-  } else if (form.startsWith(m3)) {
-    const rest = form.slice(3);
-    res.push({ remainder: rest, restored: null, surface: m3 + '-' });
-    if (rest && !/^[bf]/.test(rest)) {
-      res.push({ remainder: 'p' + rest, restored: 'p', surface: m3 + '-' });
-    }
-    res.push({ remainder: form.slice(2), restored: null, surface: stem + '-' });
-  } else if (form.startsWith(n3)) {
-    const rest = form.slice(3);
-    res.push({ remainder: rest, restored: null, surface: n3 + '-' });
-    if (rest && !/^[dcjz]/.test(rest) && !rest.startsWith('sy')) {
-      res.push({ remainder: 't' + rest, restored: 't', surface: n3 + '-' });
-    }
-    res.push({ remainder: form.slice(2), restored: null, surface: stem + '-' });
-  } else if (form.startsWith(stem)) {
-    res.push({ remainder: form.slice(2), restored: null, surface: stem + '-' });
-  }
-
-  return res;
-}
 
 const NASAL_PREFIXES = [
   { archiphoneme: 'meN-', stem: 'me' },

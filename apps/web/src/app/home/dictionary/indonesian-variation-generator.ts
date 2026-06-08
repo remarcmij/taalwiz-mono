@@ -1,3 +1,4 @@
+import { nasalCandidates } from './indonesian-nasal-rules';
 import type { VariationGenerator } from './variation-generator';
 
 const WordExemptions: string[] = [
@@ -149,20 +150,14 @@ export class IndonesianVariationGenerator implements VariationGenerator {
       this.getVariations(match[1], variations, mePrefixed);
     }
 
-    // strip meN- prefix (me-, meng-, mem-, men-, meny-)
-    const meNVariations = this.stripMeN(word);
-    if (meNVariations) {
-      for (const stripped of meNVariations) {
-        this.getVariations(stripped, variations, mePrefixed);
-      }
+    // strip meN- prefix (me-, meng-, mem-, men-, meny-) and peN- (pe-, peng-, ...),
+    // restoring any elided root consonant. The allomorphy lives in the shared
+    // nasal-rules table (also consumed by the segmenter); see indonesian-nasal-rules.ts.
+    for (const cand of nasalCandidates(word, 'me')) {
+      this.getVariations(cand.remainder, variations, mePrefixed);
     }
-
-    // strip peN- prefix (pe-, peng-, pem-, pen-, peny-)
-    const peNVariations = this.stripPeN(word);
-    if (peNVariations) {
-      for (const stripped of peNVariations) {
-        this.getVariations(stripped, variations, mePrefixed);
-      }
+    for (const cand of nasalCandidates(word, 'pe')) {
+      this.getVariations(cand.remainder, variations, mePrefixed);
     }
 
     // strip reduplication (e.g., anak-anak -> anak)
@@ -170,94 +165,6 @@ export class IndonesianVariationGenerator implements VariationGenerator {
     if (match) {
       this.getVariations(match[1], variations, mePrefixed);
     }
-  }
-
-  private stripMeN(word: string): string[] | null {
-    const results: string[] = [];
-
-    if (word.startsWith('meng')) {
-      const rest = word.substring(4);
-      results.push(rest);
-      // meng- elides a root-initial k (meng- + kumpul -> mengumpul), so a
-      // vowel-initial remainder is itself a k-elision case (umpul -> kumpul).
-      // Only g/h initial remainders are genuine meng- allomorphs with no
-      // elision (menggali -> gali, menghitung -> hitung); everything else can
-      // restore the k. A spurious restore on a true vowel root (ambil ->
-      // kambil) simply fails to match any entry, so it is harmless.
-      if (rest && !/^[gh]/.test(rest)) {
-        results.push('k' + rest);
-      }
-      // bare me- + ng-initial root (e.g. menganga → nganga)
-      results.push(word.substring(2));
-    } else if (word.startsWith('meny')) {
-      const rest = word.substring(4);
-      results.push(rest);
-      results.push('s' + rest);
-      // bare me- + ny-initial root (e.g. menyala → nyala)
-      results.push(word.substring(2));
-    } else if (word.startsWith('mem')) {
-      const rest = word.substring(3);
-      results.push(rest);
-      if (rest && !/^[bf]/.test(rest)) {
-        results.push('p' + rest);
-      }
-      // bare me- + m-initial root (e.g. memegakan → megakan → mega)
-      results.push(word.substring(2));
-    } else if (word.startsWith('men')) {
-      const rest = word.substring(3);
-      results.push(rest);
-      if (rest && !/^[dcjz]/.test(rest) && !rest.startsWith('sy')) {
-        results.push('t' + rest);
-      }
-      // bare me- + n-initial root (e.g. menilai → nilai)
-      results.push(word.substring(2));
-    } else if (word.startsWith('me')) {
-      results.push(word.substring(2));
-    }
-
-    return results.length > 0 ? results : null;
-  }
-
-  private stripPeN(word: string): string[] | null {
-    const results: string[] = [];
-
-    if (word.startsWith('peng')) {
-      const rest = word.substring(4);
-      results.push(rest);
-      // Same k-elision as meN- (peng- + kumpul -> pengumpul): a vowel-initial
-      // remainder restores the k; only g/h are non-eliding allomorphs.
-      if (rest && !/^[gh]/.test(rest)) {
-        results.push('k' + rest);
-      }
-      // bare pe- + ng-initial root
-      results.push(word.substring(2));
-    } else if (word.startsWith('peny')) {
-      const rest = word.substring(4);
-      results.push(rest);
-      results.push('s' + rest);
-      // bare pe- + ny-initial root
-      results.push(word.substring(2));
-    } else if (word.startsWith('pem')) {
-      const rest = word.substring(3);
-      results.push(rest);
-      if (rest && !/^[bf]/.test(rest)) {
-        results.push('p' + rest);
-      }
-      // bare pe- + m-initial root (e.g. pemalu → malu)
-      results.push(word.substring(2));
-    } else if (word.startsWith('pen')) {
-      const rest = word.substring(3);
-      results.push(rest);
-      if (rest && !/^[dcjz]/.test(rest) && !rest.startsWith('sy')) {
-        results.push('t' + rest);
-      }
-      // bare pe- + n-initial root (e.g. penilai → nilai)
-      results.push(word.substring(2));
-    } else if (word.startsWith('pe')) {
-      results.push(word.substring(2));
-    }
-
-    return results.length > 0 ? results : null;
   }
 
   private prefixWithMeng(word: string): string {

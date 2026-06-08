@@ -154,10 +154,13 @@ equals the root, then returns the morphemes in surface order. Key properties:
   `Indonesia`) get no breakdown either, which is acceptable: silence is safe, and such forms
   are rare.
 
-The nasal rules are a hand-port of the production lookup `IndonesianVariationGenerator`
-(`indonesian-variation-generator.ts`), which over-generates candidate forms for dictionary
-lookup; the two must not drift, which `indonesian-segmenter.spec.ts` guards with a
-cross-check test.
+The meN-/peN- nasal allomorphy (which surface allomorph elides which root consonant) is
+shared with the production lookup `IndonesianVariationGenerator` via a single table in
+`indonesian-nasal-rules.ts`, tested directly in `indonesian-nasal-rules.spec.ts`. The
+segmenter consumes the same `nasalCandidates()` and adds only the ordered-path search and
+the rule-note shaping. (Previously each had its own hand-port; they drifted into carrying
+the same inverted guard, which a consistency test could not catch because both agreed while
+both were wrong. One source of truth removes that failure mode.)
 
 ---
 

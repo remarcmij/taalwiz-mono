@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { IndonesianVariationGenerator } from './indonesian-variation-generator';
 import { segmentIndonesian } from './indonesian-segmenter';
 
 describe('segmentIndonesian', () => {
@@ -122,28 +121,7 @@ describe('segmentIndonesian', () => {
     });
   });
 
-  // Anti-drift guard: the segmenter's nasal allomorphy is a hand-port of the
-  // variation generator (indonesian-variation-generator.ts). If someone edits its
-  // rules, this fails and signals the segmenter table needs the same edit.
-  describe('consistency with IndonesianVariationGenerator', () => {
-    const generator = new IndonesianVariationGenerator();
-    const pairs: [string, string][] = [
-      ['memperbaiki', 'baik'],
-      ['menyapukan', 'sapu'],
-      ['memotong', 'potong'],
-      ['menulis', 'tulis'],
-      ['membaca', 'baca'],
-      ['dipukul', 'pukul'],
-      ['terbesar', 'besar'],
-      ['beruang', 'uang'],
-      ['kebesaran', 'besar'],
-      ['penyapu', 'sapu'],
-    ];
-
-    for (const [surface, root] of pairs) {
-      it(`variations of ${surface} include ${root}`, () => {
-        expect(generator.getWordVariations(surface)).toContain(root);
-      });
-    }
-  });
+  // The meN-/peN- nasal allomorphy is now shared with the variation generator via
+  // indonesian-nasal-rules.ts (tested directly in indonesian-nasal-rules.spec.ts),
+  // so there is no longer a hand-port to keep in sync here.
 });
