@@ -126,25 +126,17 @@ Certain common words are not expanded into variations because they don't follow 
 
 #### Recursive Variation Building
 
-The variation generator uses a recursive approach to strip affixes in sequence:
+The variation generator walks a single ordered list of rules (`RULES`), recursing into the form(s) each matching rule produces. The rules come in three shapes — `strip` (peel an affix, recurse into the remainder), `synthesize` (reconstruct the active `meN-` form), and `nasal` (undo meN-/peN- assimilation via the shared `nasalCandidates()`) — declared as data and dispatched by a small `switch` in `getVariations`:
 
 ```
 getVariations(word) {
   add(word)
-  
-  // Try each affix pattern
-  if matches -nya suffix:
-    getVariations(word_without_nya)
-  
-  if matches ber- prefix:
-    getVariations(word_without_ber)
-  
-  if matches meN- prefix:
-    getVariations(word_without_meN)
-    if consonant was dropped:
-      getVariations(word_with_consonant_restored)
-  
-  // ... etc for all patterns
+
+  for (rule of RULES) {            // RULES is one ordered pipeline; order == lookup priority
+    strip:      if word matches rule.pattern -> getVariations(remainder)
+    synthesize: if !mePrefixed && word matches -> getVariations(prefixWithMeng(base))
+    nasal:      for cand of nasalCandidates(word, rule.stem) -> getVariations(cand.remainder)
+  }
 }
 ```
 
@@ -152,7 +144,7 @@ This ensures that multi-affix words (e.g., `kebaikan` = `ke-` + `baik` + `-an`) 
 
 #### Generation Order (worked trace)
 
-The output order is not a ranked "best first" list; it is the **pre-order traversal of the recursive stripping**, deduplicated by a `Set`. Each call does `variations.add(word)` _before_ recursing (`getVariations`, line 26), so a node is recorded ahead of its children, and the `Set` preserves first-insertion order.
+The output order is not a ranked "best first" list; it is the **pre-order traversal of the recursive stripping**, deduplicated by a `Set`. Each call does `variations.add(word)` _before_ walking the rules, so a node is recorded ahead of its children, and the `Set` preserves first-insertion order.
 
 Tracing `getWordVariations('kepunyaanku')`:
 
@@ -174,9 +166,9 @@ Two things this makes clear, both easy to misread from the flat list:
 
 1. **Nothing is added here; it is pure stripping.** `punya`, `punyaan`, and `punyaanku` are not the root with suffixes re-attached. They are the `ke-` prefix stripped off `kepunya`, `kepunyaan`, and `kepunyaanku` respectively, emitted as the recursion unwinds. There is **no rule anywhere in the generator that appends a suffix.** The bare root `punya` lands at position 6, _ahead_ of the longer `punyaan`/`punyaanku`, purely because of traversal order, not because it is treated as a low-priority fallback.
 
-2. **The only affixes the generator ever _adds_ are `meN-`/`peN-` prefixes and restored dropped consonants**, in three places: rebuilding the active form after stripping `di-` (`prefixWithMeng`, in the `di-` block); reconstructing the active `meN-` form of a reduced `-kan`/`-i` word that does not start with `m` (`prefixWithMeng` again, in the block immediately after the `di-` rule, so it too is emitted before the bare root); and the `'k'+rest` / `'s'+rest` / `'p'+rest` / `'t'+rest` consonant restoration done by the shared `nasalCandidates()` (`indonesian-nasal-rules.ts`), which the generator consumes for the `meN-`/`peN-` strips. This prefix synthesis is the entire reason a passive like `dibakar` resolves to the indexed active `membakar` (and a reduced `bacakan` to `membacakan`).
+2. **The only affixes the generator ever _adds_ are `meN-`/`peN-` prefixes and restored dropped consonants**, in three places: rebuilding the active form after stripping `di-` (the `di- -> meN-` synthesis rule, via `prefixWithMeng`); reconstructing the active `meN-` form of a reduced `-kan`/`-i` word that does not start with `m` (the `-kan/-i -> meN-` synthesis rule, `prefixWithMeng` again, which runs before the bare-root strips so it too is emitted first); and the `'k'+rest` / `'s'+rest` / `'p'+rest` / `'t'+rest` consonant restoration done by the shared `nasalCandidates()` (`indonesian-nasal-rules.ts`), which the generator consumes for the `meN-`/`peN-` strips. This prefix synthesis is the entire reason a passive like `dibakar` resolves to the indexed active `membakar` (and a reduced `bacakan` to `membacakan`).
 
-So there are exactly **two deliberate ordering decisions** in the whole generator, and they are siblings: the `di-` rule (recursing into the rebuilt `meN-` form, line 62, _before_ the bare root, line 65) and the `-kan`/`-i` rule (reconstructing the active `meN-` form _before_ the suffix is stripped to the bare root), each emitting the more-likely-wanted active form first. Everywhere else, the order is simply the sequence in which the strip rules happen to fire.
+So there are exactly **two deliberate ordering decisions** in the whole generator, and they are siblings: the `di-` synthesis rule (recursing into the rebuilt `meN-` form _before_ the bare root — its `alsoBare` recursion) and the `-kan`/`-i` synthesis rule (reconstructing the active `meN-` form, positioned ahead of the suffix strips that reach the bare root), each emitting the more-likely-wanted active form first. Everywhere else, the order is simply the sequence in which the strip rules happen to fire.
 
 #### mePrefixed Flag
 
@@ -282,7 +274,7 @@ The residual risk lives in **over-stripping with weak guards** (`-i` strips any 
 
 - **Expand word exemptions list based on user feedback** — Common words that don't follow standard morphological patterns (e.g., `aku`, `ilmu`, `bukan`) are currently hardcoded; this list can grow as users encounter words that produce incorrect or unnecessary variations.
 
-- **Add more sophisticated consonant restoration heuristics** — The current restoration rules use a guard `/^[aeiouagh]/` on the stripped remainder (`rest`) to decide whether to attempt `k`-restoration for `meng-` prefixes. This correctly blocks restoration for vowel-initial rests (e.g., `mengambil` → `rest='ambil'` → no `kambil` generated), and allows it for consonant-initial rests (e.g., `mengritik` → `rest='ritik'` → `kritik` is generated). More sophisticated heuristics could improve precision by: (i) tighter consonant-dropping guards to exclude cases like `mengkritik` (malformed input), and (ii) minimum base-form length filters to exclude very short stripped forms (< 4 chars) that are almost never valid roots.
+- **Add more sophisticated consonant restoration heuristics** — The current restoration rule (in the shared `nasalCandidates()`, `indonesian-nasal-rules.ts`) uses a guard `/^[gh]/` on the stripped remainder to decide whether to attempt `k`-restoration for `meng-` prefixes. It restores `k` for both vowel-initial rests (`mengumpul` → `rest='umpul'` → `kumpul`, since `meng-` elides a root-initial `k`) and consonant-initial rests (`mengritik` → `rest='ritik'` → `kritik`), and blocks it only for `g`/`h`-initial rests (the genuinely non-eliding allomorphs, `menggali` → `gali`). This over-generates a harmless spurious form for true vowel-initial roots (`mengambil` → `kambil`, which matches no entry). More sophisticated heuristics could improve precision by: (i) tighter consonant-dropping guards to exclude cases like `mengkritik` (malformed input), and (ii) minimum base-form length filters to exclude very short stripped forms (< 4 chars) that are almost never valid roots.
 
 - **Add configurable stripping depth to trade recall for precision** — Currently the variation generator recursively strips all possible affixes. For some use cases, stopping after stripping just the most common affixes (e.g., person markers, `-nya`, tense markers) might improve precision by avoiding over-generated false positives, at the cost of lower recall for heavily affixed words.
 
