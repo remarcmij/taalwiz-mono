@@ -171,6 +171,9 @@ export class Compiler {
           text = text.slice(1).trimStart();
         }
         const result = this.parser!.parseLine(text);
+        if (result.warning) {
+          console.warn(`[${lineIndex + 1}] warning: ${result.warning}`);
+        }
         const lemma = this.buildLemma(result);
         lemmas.push(lemma);
       } catch (err: any) {

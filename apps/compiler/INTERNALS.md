@@ -39,7 +39,7 @@ Custom markup syntax:
 | `**word**` | Source keyword (`keyword: 1`). The *first* bold word of a blank-line block is the headword (`base`); later bold words are keywords under that base |
 | `*word*` | Reference or example form (`keyword: 0`), not searchable |
 | `~` | Shorthand for the current governing bold word (usually the `base`) |
-| `^` | Revert marker: resets `~` (and bare sense numbers) back to the `base` until the next bold word; emits no lemma. Used where a headword's compound list resumes after a bold compound. May be its own line or a sublemma prefix (`^ *~ x*`) |
+| `^` | Revert marker: resets `~` (and bare sense numbers) back to the `base` until the next bold word; emits no lemma. Used where a headword's compound list resumes after a bold compound. May be its own line or a sublemma prefix (`^ *~ x*`). The compiler emits a non-fatal warning when a `~` binds to a compound after its derivation with no `^` (a likely-missing marker) |
 | `+` | Space (in compound words) |
 | `->` | Cross-reference separator (bold words after it are `keyword: 0`) |
 | Blank line | Entry delimiter (resets the `base`) |

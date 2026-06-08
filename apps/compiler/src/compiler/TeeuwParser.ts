@@ -6,6 +6,11 @@ import {
 import ParserBase, { ParserResult } from './ParserBase.js';
 import Tokenizer, { Token } from './Tokenizer.js';
 
+// Normalize a word/compound to a comparable stem: lowercase, drop spaces,
+// joiners, punctuation. Used to detect a compound's derivation by containment.
+const normStem = (s: string): string =>
+  s.toLowerCase().replace(/[()]/g, '').replace(/[+\-\s'·]/g, '');
+
 export default class TeeuwParser extends ParserBase {
   constructor() {
     super('id', 'nl');
@@ -16,6 +21,27 @@ export default class TeeuwParser extends ParserBase {
     this._base = null;
     this._tildeWord = null;
     this._homonym = 0;
+    this._tildeTracked = null;
+    this._tildeDerivSeen = false;
+  }
+
+  // A derivation of `compound` is an affixed bold/italic word whose normalized
+  // stem contains the compound (e.g. `merumahsakitkan` contains `rumahsakit`).
+  // `slice(1)` tolerates meN-/peN- first-consonant mutation. `~`-led spans are
+  // sub-compounds, not derivations, so they are skipped.
+  protected lineHasDerivation(line: string, compound: string): boolean {
+    const stem = normStem(compound);
+    const short = stem.slice(1);
+    const spans: string[] = [];
+    for (const m of line.matchAll(/\*\*([^*]+)\*\*/g)) spans.push(m[1]);
+    const sansBold = line.replace(/\*\*[^*]+\*\*/g, '');
+    for (const m of sansBold.matchAll(/\*([^*]+)\*/g)) spans.push(m[1]);
+    return spans.some((w) => {
+      const t = w.trim();
+      if (t.startsWith('~')) return false;
+      const n = normStem(t);
+      return n !== stem && (n.includes(stem) || (short.length >= 4 && n.includes(short)));
+    });
   }
 
   parseLine(line: string): ParserResult {

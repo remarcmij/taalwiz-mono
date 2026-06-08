@@ -209,7 +209,14 @@ Practical checklist for a new entry:
 ## 7. Validation
 
 A clean compile guarantees the markup is well-formed, not that every `~` resolves
-as you intended. For tilde-sensitive edits, compile and check the affected entry
-in the JSON (`json/teeuw.X.json`) or the app: confirm a resumed line reads
-"`headword word`", not "`compound word`". The `^` rule removed the systematic
-cases; new ones can only arise from new bold compounds you introduce.
+as you intended. Two safety nets:
+
+- **The compiler warns** (non-fatally, with a line number) when a `~` binds to a
+  multi-word compound **after that compound's own derivation has appeared** — the
+  signature of a missing `^`. Watch the compile output; a warning almost always
+  means "add a `^` where the headword's list resumes". It does not abort the build.
+- For anything subtle, check the affected entry in the JSON (`json/teeuw.X.json`)
+  or the app: a resumed line should read "`headword word`", not "`compound word`".
+
+The `^` rule plus this warning cover the systematic cases; a new one can only
+arise from a new bold compound you introduce, and the warning will flag it.

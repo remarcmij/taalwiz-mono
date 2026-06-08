@@ -235,6 +235,53 @@ describe('Compiler', () => {
     expect(lemmas[2].text).toBe('*anak tunggal*, enig kind');
   });
 
+  it('warns (non-fatally) when a `~` binds to a compound after its derivation, with no `^`', async () => {
+    // **rumah+sakit** sets the tilde; *merumahsakitkan* is its derivation, so the
+    // following `~ sewa` should have been reverted to the base with a `^`.
+    const input = [
+      '**rumah**, huis',
+      '**rumah+sakit**, ziekenhuis; *merumahsakitkan*, opnemen',
+      '*~ sewa*, huurhuis',
+    ].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.r.md');
+    const outFile = path.join(tmpDir, 'teeuw.r.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await new Compiler(inFile, outFile).run();
+    const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    warnSpy.mockRestore();
+
+    // Build still succeeds (non-fatal) and the warning names the fix.
+    expect(fs.existsSync(outFile)).toBe(true);
+    expect(warned).toMatch(/"\^"/);
+    expect(warned).toMatch(/rumah sakit/);
+  });
+
+  it('does not warn when the `^` revert is present', async () => {
+    const input = [
+      '**rumah**, huis',
+      '**rumah+sakit**, ziekenhuis; *merumahsakitkan*, opnemen',
+      '^',
+      '*~ sewa*, huurhuis',
+    ].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.r.md');
+    const outFile = path.join(tmpDir, 'teeuw.r.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await new Compiler(inFile, outFile).run();
+    const callCount = warnSpy.mock.calls.length;
+    warnSpy.mockRestore();
+
+    expect(callCount).toBe(0);
+    // And `~ sewa` resolved to the base.
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+    expect(lemmas.at(-1).text).toBe('*rumah sewa*, huurhuis');
+  });
+
   it('errors on a `^` marker before any headword', async () => {
     const input = ['^', '*~ tunggal*, enig kind'].join('\n');
     const inFile = path.join(tmpDir, 'teeuw.a.md');

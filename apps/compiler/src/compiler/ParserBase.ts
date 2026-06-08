@@ -16,6 +16,9 @@ export class ParserResult {
   sourceKeywords: Set<string> = new Set();
   referenceWords: Set<string> = new Set();
   targetWords: Set<string> = new Set();
+  // Non-fatal authoring warning (e.g. a likely-missing `^` tilde-revert). The
+  // compiler logs it with a line number; it does not abort the build.
+  warning: string | undefined = undefined;
 }
 
 abstract class ParserBase implements Parser {
@@ -25,8 +28,20 @@ abstract class ParserBase implements Parser {
   protected _prevBase: string | null = null;
   protected _tildeWord: string | null = null;
   protected _homonym = 0;
+  // Forward guard for missing `^` markers: track whether the active compound's
+  // own derivation has already appeared (the signature of a tilde that should
+  // have been reverted to the base). `_tildeTracked` is the tilde value these
+  // flags describe, so we can reset them when the tilde changes.
+  protected _tildeTracked: string | null = null;
+  protected _tildeDerivSeen = false;
 
   abstract extractWords(line: string, result: ParserResult): void;
+
+  // Whether `line` carries a derivation of `compound` (an affixed form whose
+  // stem contains the compound). Default: no; overridden per language.
+  protected lineHasDerivation(_line: string, _compound: string): boolean {
+    return false;
+  }
 
   constructor(sourceLang: string, targetLang: string) {
     this._sourceLang = sourceLang;
@@ -36,6 +51,20 @@ abstract class ParserBase implements Parser {
   reset() {
     this._base = null;
     this._tildeWord = null;
+    this._tildeTracked = null;
+    this._tildeDerivSeen = false;
+  }
+
+  // True when the active tilde is a multi-word compound whose own derivation has
+  // already been seen — i.e. the headword's list has resumed and a `^` revert is
+  // expected. Genuine sub-compounds come *before* the derivation, so they don't
+  // trip this.
+  protected tildeNeedsRevert(): boolean {
+    return (
+      !!this._tildeWord &&
+      this._tildeWord.includes(' ') &&
+      this._tildeDerivSeen
+    );
   }
 
   get sourceLang() {
@@ -86,6 +115,7 @@ abstract class ParserBase implements Parser {
 
   parseLine(line: string): ParserResult {
     const parserResult = new ParserResult();
+    const original = line;
 
     const hasParens = line.match(/[()]/);
 
@@ -101,15 +131,38 @@ abstract class ParserBase implements Parser {
       parserResult.referenceWords.add(this.base);
     }
 
+    // Reset the derivation tracker whenever the active tilde changes.
+    if (this._tildeWord !== this._tildeTracked) {
+      this._tildeTracked = this._tildeWord;
+      this._tildeDerivSeen = false;
+    }
+
     if (line.indexOf('~') !== -1) {
       if (!this._tildeWord) {
         throw new Error('Tilde found but no tilde word set');
+      }
+      // Check against derivations seen on *prior* lines, before this line's own
+      // derivation (if any) updates the flag below.
+      if (this.tildeNeedsRevert()) {
+        parserResult.warning =
+          `"~" binds to compound "${this._tildeWord}" after its derivation; ` +
+          `expected a "^" revert to base "${this._base}"`;
       }
       line = line.replace(/~/g, this._tildeWord);
     }
 
     if (line.indexOf('+') !== -1) {
       line = line.replace(/\+/g, ' ');
+    }
+
+    // If this line carries the active compound's derivation, the headword's
+    // list resumes after it — so following `~`/sense lines expect a `^`.
+    if (
+      this._tildeWord &&
+      this._tildeWord.includes(' ') &&
+      this.lineHasDerivation(original, this._tildeWord)
+    ) {
+      this._tildeDerivSeen = true;
     }
 
     parserResult.line = line;
