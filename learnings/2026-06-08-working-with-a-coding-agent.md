@@ -45,34 +45,41 @@ from taking that seriously.
    what the code can justify. So fluency is not a signal of correctness, and you
    cannot wait for the agent to flag its own blind spots.
 
-2. **Your most valuable inputs are the ones not derivable from the code.** A photo
+2. **The boundary is the context window, not just the repo.** Even code the agent
+   has worked on extensively is not a model it *holds*; it rebuilds from whatever is
+   loaded in the moment. So "it's in the repo" does not mean "the agent has it."
+   Runtime behaviour, how a screen really renders, a choice made in an earlier
+   session — all may need to be put back on screen even though they are, in
+   principle, derivable. Showing is usually cheaper than making it re-derive.
+
+3. **Your most valuable inputs are the ones not derivable from the code.** A photo
    of a reference. A "no, that's not how this domain works". A hunch. The agent
    could never have reached these by reading the repository harder. This is also
    why a passive "just fix it" fails: it withholds the very thing only you can
    provide.
 
-3. **Hand over your ground truth explicitly — the agent can't reach for the book
+4. **Hand over your ground truth explicitly — the agent can't reach for the book
    on your desk.** Paste the spec, screenshot the page, describe the constraint,
    show the real output. A surprising amount of stuck-ness dissolves the moment
    the off-screen truth is put on screen.
 
-4. **Trust your instinct enough to overrule fluent output.** The turning point was
+5. **Trust your instinct enough to overrule fluent output.** The turning point was
    a human saying, in effect, "this shouldn't need to be that hard." That doubt
    was information the code did not contain. Treat the agent's output as a strong
    draft to be challenged, not an answer to be accepted.
 
-5. **Build the shared mental model first; the code is the easy part.** Most of the
+6. **Build the shared mental model first; the code is the easy part.** Most of the
    effort went into *understanding the problem together* — and the understanding
    only became correct once the human's external knowledge was folded in. Once the
    model was right, the implementation was small. Don't let the agent rush to code
    past a model you haven't actually agreed on.
 
-6. **Verify with a method independent of how the work was done.** Because the agent
+7. **Verify with a method independent of how the work was done.** Because the agent
    can't see its own blind spots, have it check its work a different way than it
    produced it. Two independent methods that agree are worth far more than one that
    is sure.
 
-7. **You own the scope and the stopping point.** The agent will happily keep
+8. **You own the scope and the stopping point.** The agent will happily keep
    going. Deciding "this is good enough, and here is the honest boundary" is a
    judgment that needs the human's sense of what matters — which, again, is not in
    the code.
@@ -105,12 +112,14 @@ stop.
 
 1. Assume the agent knows only what is in the repo; everything else is yours to
    supply.
-2. Put your off-screen ground truth on screen — paste it, screenshot it, describe
+2. Remember its memory is the context window: re-supply runtime behaviour and
+   decisions from earlier sessions — "it's in the repo" is not "it has it".
+3. Put your off-screen ground truth on screen — paste it, screenshot it, describe
    it.
-3. Treat fluent output as a draft; it can't tell you when it has guessed past the
+4. Treat fluent output as a draft; it can't tell you when it has guessed past the
    code.
-4. Push back on instinct; "that feels wrong" is information the codebase lacks.
-5. Agree on the mental model before asking for code.
-6. Let it do the breadth and the tooling; you do the grounding.
-7. Verify with an independent method.
-8. Decide the scope and the stopping point yourself.
+5. Push back on instinct; "that feels wrong" is information the codebase lacks.
+6. Agree on the mental model before asking for code.
+7. Let it do the breadth and the tooling; you do the grounding.
+8. Verify with an independent method.
+9. Decide the scope and the stopping point yourself.
