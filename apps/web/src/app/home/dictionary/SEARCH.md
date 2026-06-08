@@ -134,7 +134,7 @@ getVariations(word) {
 
   for (rule of RULES) {            // RULES is one ordered pipeline; order == lookup priority
     strip:      if word matches rule.pattern -> getVariations(remainder)
-    synthesize: if !mePrefixed && word matches -> getVariations(prefixWithMeng(base))
+    synthesize: if !mePrefixed && word matches -> getVariations(prefixWithMeN(base))
     nasal:      for cand of nasalCandidates(word, rule.stem) -> getVariations(cand.remainder)
   }
 }
@@ -166,7 +166,7 @@ Two things this makes clear, both easy to misread from the flat list:
 
 1. **Nothing is added here; it is pure stripping.** `punya`, `punyaan`, and `punyaanku` are not the root with suffixes re-attached. They are the `ke-` prefix stripped off `kepunya`, `kepunyaan`, and `kepunyaanku` respectively, emitted as the recursion unwinds. There is **no rule anywhere in the generator that appends a suffix.** The bare root `punya` lands at position 6, _ahead_ of the longer `punyaan`/`punyaanku`, purely because of traversal order, not because it is treated as a low-priority fallback.
 
-2. **The only affixes the generator ever _adds_ are `meN-`/`peN-` prefixes and restored dropped consonants**, in three places: rebuilding the active form after stripping `di-` (the `di- -> meN-` synthesis rule, via `prefixWithMeng`); reconstructing the active `meN-` form of a reduced `-kan`/`-i` word that does not start with `m` (the `-kan/-i -> meN-` synthesis rule, `prefixWithMeng` again, which runs before the bare-root strips so it too is emitted first); and the `'k'+rest` / `'s'+rest` / `'p'+rest` / `'t'+rest` consonant restoration done by the shared `nasalCandidates()` (`indonesian-nasal-rules.ts`), which the generator consumes for the `meN-`/`peN-` strips. This prefix synthesis is the entire reason a passive like `dibakar` resolves to the indexed active `membakar` (and a reduced `bacakan` to `membacakan`).
+2. **The only affixes the generator ever _adds_ are `meN-`/`peN-` prefixes and restored dropped consonants**, in three places: rebuilding the active form after stripping `di-` (the `di- -> meN-` synthesis rule, via the shared `prefixWithMeN()`); reconstructing the active `meN-` form of a reduced `-kan`/`-i` word that does not start with `m` (the `-kan/-i -> meN-` synthesis rule, `prefixWithMeN()` again, which runs before the bare-root strips so it too is emitted first); and the `'k'+rest` / `'s'+rest` / `'p'+rest` / `'t'+rest` consonant restoration done by the shared `nasalCandidates()`. Both helpers live in `indonesian-nasal-rules.ts` — `prefixWithMeN()` (root -> surface) and `nasalCandidates()` (surface -> root) are the two inverse directions of the same meN- allomorphy. This prefix synthesis is the entire reason a passive like `dibakar` resolves to the indexed active `membakar` (and a reduced `bacakan` to `membacakan`).
 
 So there are exactly **two deliberate ordering decisions** in the whole generator, and they are siblings: the `di-` synthesis rule (recursing into the rebuilt `meN-` form _before_ the bare root — its `alsoBare` recursion) and the `-kan`/`-i` synthesis rule (reconstructing the active `meN-` form, positioned ahead of the suffix strips that reach the bare root), each emitting the more-likely-wanted active form first. Everywhere else, the order is simply the sequence in which the strip rules happen to fire.
 

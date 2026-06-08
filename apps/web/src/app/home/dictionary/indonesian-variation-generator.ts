@@ -1,4 +1,4 @@
-import { nasalCandidates } from './indonesian-nasal-rules';
+import { nasalCandidates, prefixWithMeN } from './indonesian-nasal-rules';
 import type { VariationGenerator } from './variation-generator';
 
 const WordExemptions: string[] = [
@@ -38,7 +38,7 @@ interface SimpleStrip {
 
 /**
  * Shape 2 — SYNTHESIS. Not a strip: reconstruct the active meN- form (FORWARD
- * generation, via prefixWithMeng) so a passive/reduced form resolves to its
+ * generation, via prefixWithMeN) so a passive/reduced form resolves to its
  * indexed active form. Runs only when not already inside a synthesised branch
  * (`!mePrefixed`) and recurses with `mePrefixed = true` to prevent re-synthesis.
  * `base` selects what gets the meN- prefix; `alsoBare` additionally recurses
@@ -148,7 +148,7 @@ export class IndonesianVariationGenerator implements VariationGenerator {
           const match = word.match(rule.pattern);
           if (!match) break;
           const base = rule.base === 'group1' ? match[1] : word;
-          const meWord = this.prefixWithMeng(base);
+          const meWord = prefixWithMeN(base);
           if (meWord !== base) {
             this.getVariations(meWord, variations, true);
           }
@@ -167,31 +167,4 @@ export class IndonesianVariationGenerator implements VariationGenerator {
     }
   }
 
-  private prefixWithMeng(word: string): string {
-    if (word.match(/^[aeiou]/)) {
-      return 'meng' + word;
-    } else if (word.match(/^[bf]/)) {
-      return 'mem' + word;
-    } else if (word.match(/^p/)) {
-      if (!word.match(/^(?:per|pelajar)/)) {
-        return 'mem' + word.substring(1);
-      }
-      return 'mem' + word;
-    } else if (word.match(/^(?:d|t|c|j|sy|z)/)) {
-      if (word.match(/^t/)) {
-        return 'men' + word.substring(1);
-      }
-      return 'men' + word;
-    } else if (word.match(/^s/)) {
-      return 'meny' + word.substring(1);
-    } else if (word.match(/^(?:g|h|kh|k)/)) {
-      if (word.match(/^k[^h]/)) {
-        return 'meng' + word.substring(1);
-      }
-      return 'meng' + word;
-    } else if (word.match(/^(?:l|r|m|n|ny|ng|w|y)/)) {
-      return 'me' + word;
-    }
-    return word;
-  }
 }

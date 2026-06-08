@@ -20,10 +20,16 @@
  * "consistency" test could not catch it because both sides agreed while both
  * were wrong. One table removes that whole failure mode.
  *
- * Direction: SURFACE -> ROOT only. The inverse (root -> surface, used by the
- * variation generator's di-/-kan reconstruction) is deliberately NOT unified
- * here: it carries exemptions (per-, pelajar) the strip direction lacks, and
- * folding it in would contort this table to fit a messier function.
+ * This module owns BOTH directions of meN- allomorphy:
+ *   - nasalCandidates(): SURFACE -> ROOT (strip the prefix, restore the elided
+ *     consonant). Used by the variation generator AND the segmenter.
+ *   - prefixWithMeN():   ROOT -> SURFACE (build the active meN- form). Used by
+ *     the variation generator's di-/-kan reconstruction.
+ * They are INVERSES of the same facts, kept as two separate tables (not one):
+ * the forward direction carries exemptions (per-, pelajar, kh) the strip
+ * direction lacks, so folding them together would contort both. Co-locating
+ * them lets the two tables be read against each other so they cannot drift.
+ * (peN- has no forward builder; only meN- is reconstructed.)
  *
  * See apps/web/MORPHOLOGY_AID.md for the linguistic grounding (Teeuw).
  */
@@ -96,4 +102,48 @@ export function nasalCandidates(form: string, stem: string): NasalCandidate[] {
   }
 
   return res;
+}
+
+// ---------------------------------------------------------------------------
+// ROOT -> SURFACE: build the active meN- form. The inverse of nasalCandidates,
+// keyed by the ROOT's initial instead of the surface allomorph. First matching
+// row wins, so order matters: the per-/pelajar- and kh exceptions sit before
+// their generic rows, /^t/ before the other men- onsets, and /^sy/ (handled in
+// the men- row) before /^s/ so it is not mistaken for s-elision.
+// ---------------------------------------------------------------------------
+
+interface ForwardMeN {
+  /** Matches the root's initial onset. */
+  onset: RegExp;
+  /** The meN- allomorph this onset selects: me-, mem-, men-, meny-, meng-. */
+  prefix: string;
+  /** Whether the root-initial consonant is dropped (assimilated into the nasal). */
+  elide: boolean;
+}
+
+const ACTIVE_MEN_RULES: ForwardMeN[] = [
+  { onset: /^[aeiou]/, prefix: 'meng', elide: false }, // vowel: meng-, nothing elided
+  { onset: /^[bf]/, prefix: 'mem', elide: false },
+  { onset: /^(?:per|pelajar)/, prefix: 'mem', elide: false }, // exception: p kept
+  { onset: /^p/, prefix: 'mem', elide: true }, // p -> m
+  { onset: /^t/, prefix: 'men', elide: true }, // t -> n (before the other men- onsets)
+  { onset: /^(?:d|c|j|z|sy)/, prefix: 'men', elide: false }, // before /^s/: sy is not s-elision
+  { onset: /^s/, prefix: 'meny', elide: true }, // s -> ny
+  { onset: /^k[^h]/, prefix: 'meng', elide: true }, // k -> ng, but not kh
+  { onset: /^(?:g|h|kh|k)/, prefix: 'meng', elide: false }, // g/h/kh (and bare k): meng-, kept
+  { onset: /^[lrmnwy]/, prefix: 'me', elide: false }, // liquids/nasals/glides (n subsumes ny-, ng-)
+];
+
+/**
+ * Build the active meN- form of a root, e.g. sapu -> menyapu, kumpul -> mengumpul,
+ * potong -> memotong. Returns the root unchanged when no onset rule matches (e.g.
+ * a non-letter initial). Pure and synchronous. Inverse of nasalCandidates(.., 'me').
+ */
+export function prefixWithMeN(root: string): string {
+  for (const rule of ACTIVE_MEN_RULES) {
+    if (rule.onset.test(root)) {
+      return rule.prefix + (rule.elide ? root.slice(1) : root);
+    }
+  }
+  return root;
 }

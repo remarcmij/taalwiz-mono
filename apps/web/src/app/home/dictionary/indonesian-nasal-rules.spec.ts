@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nasalCandidates } from './indonesian-nasal-rules';
+import { nasalCandidates, prefixWithMeN } from './indonesian-nasal-rules';
 
 describe('nasalCandidates', () => {
   // Convenience: just the remainder strings, which is what the variation generator uses.
@@ -83,5 +83,68 @@ describe('nasalCandidates', () => {
       expect(r).toContain('gali');
       expect(r).not.toContain('tggali');
     });
+  });
+});
+
+describe('prefixWithMeN (root -> active meN- surface form)', () => {
+  // Each row exercises one allomorph/onset; the inverse of nasalCandidates(.., 'me').
+  const cases: [string, string][] = [
+    // vowel onsets -> meng-, nothing elided
+    ['ambil', 'mengambil'],
+    ['elok', 'mengelok'],
+    ['isi', 'mengisi'],
+    ['obat', 'mengobat'],
+    ['urus', 'mengurus'],
+    // b/f -> mem-, kept
+    ['baca', 'membaca'],
+    ['foto', 'memfoto'],
+    // p -> mem-, elided
+    ['potong', 'memotong'],
+    ['pukul', 'memukul'],
+    // per-/pelajar- exceptions: p kept
+    ['pergi', 'mempergi'],
+    ['pelajari', 'mempelajari'],
+    // t -> men-, elided
+    ['tulis', 'menulis'],
+    // d/c/j/z/sy -> men-, kept (sy before s)
+    ['dapat', 'mendapat'],
+    ['cuci', 'mencuci'],
+    ['jual', 'menjual'],
+    ['zakat', 'menzakat'],
+    ['syarat', 'mensyarat'],
+    // s -> meny-, elided
+    ['sapu', 'menyapu'],
+    // k -> meng-, elided; but kh kept
+    ['kumpul', 'mengumpul'],
+    ['khusus', 'mengkhusus'],
+    // g/h -> meng-, kept
+    ['gali', 'menggali'],
+    ['hitung', 'menghitung'],
+    // liquids/nasals/glides -> me-, kept (n subsumes ny-, ng-)
+    ['lihat', 'melihat'],
+    ['rasa', 'merasa'],
+    ['makan', 'memakan'],
+    ['nilai', 'menilai'],
+    ['nyala', 'menyala'],
+    ['ngeri', 'mengeri'],
+    ['waris', 'mewaris'],
+    ['yakin', 'meyakin'],
+  ];
+
+  for (const [root, surface] of cases) {
+    it(`${root} -> ${surface}`, () => expect(prefixWithMeN(root)).toBe(surface));
+  }
+
+  it('returns the root unchanged when no onset rule matches', () => {
+    expect(prefixWithMeN('123')).toBe('123');
+  });
+
+  it('is consistent with nasalCandidates: the built form strips back to the root', () => {
+    // Forward then inverse should recover the root among the candidates.
+    for (const [root, surface] of cases) {
+      if (surface === root) continue;
+      const back = nasalCandidates(surface, 'me').map((c) => c.remainder);
+      expect(back).toContain(root);
+    }
   });
 });
