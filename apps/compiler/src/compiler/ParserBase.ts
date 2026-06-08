@@ -7,6 +7,7 @@ export interface Parser {
   get homonym(): number;
   get tildeWord(): string | null;
   reset(): void;
+  revertTildeToBase(): void;
   parseLine(line: string): ParserResult;
 }
 
@@ -64,6 +65,19 @@ abstract class ParserBase implements Parser {
 
   set tildeWord(word: string | null) {
     this._tildeWord = word;
+  }
+
+  // A `^` marker line resets the tilde reference back to the grondwoord (base),
+  // undoing the drift caused by a bold compound mid-entry. Teeuw's swung dash
+  // always denotes the headword within the compound list, but a bold compound
+  // (e.g. **akal+budi**) re-anchors the tilde; `^` marks where the headword's
+  // alphabetical compound list resumes, so following `~`/sense lines bind to the
+  // base again until the next bold word re-anchors it.
+  revertTildeToBase(): void {
+    if (!this._base) {
+      throw new Error('"^" tilde-revert marker before any headword');
+    }
+    this._tildeWord = this._base;
   }
 
   get homonym() {

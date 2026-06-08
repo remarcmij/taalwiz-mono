@@ -38,14 +38,17 @@ Custom markup syntax:
 |--------|---------|
 | `**word**` | Source keyword (`keyword: 1`). The *first* bold word of a blank-line block is the headword (`base`); later bold words are keywords under that base |
 | `*word*` | Reference or example form (`keyword: 0`), not searchable |
-| `~` | Shorthand for the current headword (`base`) |
+| `~` | Shorthand for the current governing bold word (usually the `base`) |
+| `^` | Revert marker: resets `~` (and bare sense numbers) back to the `base` until the next bold word; emits no lemma. Used where a headword's compound list resumes after a bold compound. May be its own line or a sublemma prefix (`^ *~ x*`) |
 | `+` | Space (in compound words) |
 | `->` | Cross-reference separator (bold words after it are `keyword: 0`) |
 | Blank line | Entry delimiter (resets the `base`) |
 | `1`, `2`, etc. | Sub-sense of the current headword |
 
 See [TEEUW_PARSER.md, Part 1](./TEEUW_PARSER.md) for the exact base/keyword/homonym
-derivation and worked examples.
+derivation and worked examples, and [TEEUW_SOURCE_FORMAT.md](./TEEUW_SOURCE_FORMAT.md)
+for the print -> markup authoring conventions (how to write/extend the source,
+including the `^` tilde-revert rule).
 
 ### Supplement files
 

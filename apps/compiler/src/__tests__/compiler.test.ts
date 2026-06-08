@@ -162,6 +162,92 @@ describe('Compiler', () => {
     expect(lemmas[1].isSupplement).toBe(true);
   });
 
+  it('reverts the tilde to the base after a `^` marker (both `~` and sense lines)', async () => {
+    // Without `^`, the bold compound **anak+tiri** captures the tilde, so
+    // `~ tunggal` would wrongly become "anak tiri tunggal" and the bare "2"
+    // sense would attach to "anak tiri". The `^` marker resets to the base.
+    const input = [
+      '**anak**, 1 kind',
+      '**anak+tiri**, stiefkind',
+      '^',
+      '*~ tunggal*, enig kind',
+      '2 jong dier',
+    ].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.a.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    await new Compiler(inFile, outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+
+    // The `^` line itself emits no lemma.
+    expect(lemmas).toHaveLength(4);
+    const [, , tunggal, sense2] = lemmas;
+
+    // `~` resolved to the base "anak", not the compound "anak tiri".
+    expect(tunggal.text).toBe('*anak tunggal*, enig kind');
+    // Bare sense number re-anchored to the base, not the compound.
+    expect(sense2.text).toBe('**anak**, 2 jong dier');
+    expect(sense2.base).toBe('anak');
+  });
+
+  it('accepts the `^` marker as a sublemma prefix (not stored in the text)', async () => {
+    const input = [
+      '**anak**, 1 kind',
+      '**anak+tiri**, stiefkind',
+      '^*~ tunggal*, enig kind',
+      '*~ yatim*, wees',
+    ].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.a.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    await new Compiler(inFile, outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+
+    expect(lemmas).toHaveLength(4);
+    const [, , tunggal, yatim] = lemmas;
+    // Prefix reverts to base, and the `^` is stripped from the stored text.
+    expect(tunggal.text).toBe('*anak tunggal*, enig kind');
+    // The revert latches: the following line stays on the base too.
+    expect(yatim.text).toBe('*anak yatim*, wees');
+  });
+
+  it('accepts a space after a `^` sublemma prefix (`^ *~ x*`) for readability', async () => {
+    const input = [
+      '**anak**, 1 kind',
+      '**anak+tiri**, stiefkind',
+      '^ *~ tunggal*, enig kind',
+    ].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.a.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    await new Compiler(inFile, outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+    expect(lemmas).toHaveLength(3);
+    expect(lemmas[2].text).toBe('*anak tunggal*, enig kind');
+  });
+
+  it('errors on a `^` marker before any headword', async () => {
+    const input = ['^', '*~ tunggal*, enig kind'].join('\n');
+    const inFile = path.join(tmpDir, 'teeuw.a.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await new Compiler(inFile, outFile).run();
+    errorSpy.mockRestore();
+
+    expect(fs.existsSync(outFile)).toBe(false);
+  });
+
   it('deletes the output file when a parse error occurs', async () => {
     const input = '**unclosed\n';
     const inFile = path.join(tmpDir, 'teeuw.a.md');
