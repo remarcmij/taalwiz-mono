@@ -23,6 +23,19 @@ _Indonesisch-Nederlands Woordenboek_, digitised from the 1996 print edition. Its
 So the search has a gap to bridge: from the affixed form the user typed to some form the
 dictionary actually lists, whether a headword or a sublemma.
 
+That gap is **bounded**, because Teeuw's omissions are principled. His introduction
+states that forms with a wholly predictable meaning are left out: the passive _di-_
+form (_dipukul_) is almost always absent, the adjectival superlative (_terbesar_) is
+omitted, and reduplications are recorded only when their meaning does not follow from
+the base. That predictable class is exactly what an affix-stripper can reconstruct, so
+the forms Teeuw dropped to save paper are the very ones the generator regenerates on
+demand (strip _ter-_ from _terbesar_ to reach _besar_; strip _di-_ from _dipukul_, and
+rebuild the active _memukul_, both of which he kept). The irregular forms he _did_
+record are reached by trying the typed string first. Teeuw's omission rule and the
+candidate generator are thus complementary halves of one design, arrived at three
+decades apart: what a lexicographer leaves out as predictable is what a stripper can
+safely put back.
+
 ## From printed dictionary to a searchable index
 
 This page draws on two domains of terminology and keeps them distinct: the lexicography of
