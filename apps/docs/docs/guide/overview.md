@@ -93,7 +93,7 @@ The content organisation is illustrated in Figure 4.
 
 ### Tap-to-Search in Articles
 
-Every Indonesian word in an article text is tappable, triggering a switch to the Dictionary tab and initiating a search for the tapped word in the same way as we saw earlier. This is illustrated in Figure 5 below.
+Every Indonesian word in an article text is tappable, triggering a switch to the Dictionary tab and initiating a search for the tapped word in the same way as we saw earlier in the Dictionary tab. This is illustrated in Figure 5 below.
 
 ![Article tap-to-search](images/article-tap.png)<br />
 <small>Figure 5: *Tap-to-Search in an Article*</small>
@@ -106,7 +106,7 @@ A word worth remembering can be saved to a personal vocabulary list with a secon
 
 ### Word Structure
 
-Refer to Figure 6.Give 
+Refer to Figure 6.
 
 Beyond finding the right entry, the app can show _how_ an inflected word is built. When a tapped word is a derived form, the word panel adds a short grey line with its **decomposition**, the affixes and the root in order. For _menyampaikan_ ("to convey, to deliver"), it shows _meN- + sampai + -kan_.
 
