@@ -24,6 +24,7 @@
     "pronounce": "Uitspreken",
     "bookmark": "Bladwijzer toevoegen",
     "remove-bookmark": "Bladwijzer verwijderen",
+    "open-entry": "Volledig artikel openen ({{word}})",
     "word-not-found": "Niet gevonden in woordenbook:",
     "something-went-wrong": "Er is iets fout gegaan. Probeer het later nog eens.",
     "send": "Verzenden",

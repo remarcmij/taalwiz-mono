@@ -24,6 +24,7 @@
     "pronounce": "Pronounce",
     "bookmark": "Bookmark",
     "remove-bookmark": "Remove bookmark",
+    "open-entry": "Open full entry ({{word}})",
     "word-not-found": "Not found in dictionary:",
     "something-went-wrong": "Something went wrong. Please try again later.",
     "send": "Send",

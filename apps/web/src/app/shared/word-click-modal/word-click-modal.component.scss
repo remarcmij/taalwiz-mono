@@ -14,6 +14,12 @@
 // breakdown: an automated relationship, not authored content). Right-aligned to snap to
 // the border, echoing Teeuw's cross-reference arrows and separating it from the
 // left-aligned breakdown.
+//
+// This is the descriptive, names-the-target form of the lookup. It scrolls with the
+// content, so for long entries it can fall below the visible sheet slice; the always-
+// visible toolbar search button is the reliable fallback there. We can't pin this to the
+// sheet bottom (sticky/footer both land off-screen: the sheet is a full-height modal
+// translated below the screen edge, so its scroll box bottom is off-screen).
 .resolution-hop {
   text-align: right;
   padding: 0.25rem 1rem 0;

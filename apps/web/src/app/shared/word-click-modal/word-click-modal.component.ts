@@ -24,6 +24,7 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import {
+  arrowForwardOutline,
   bookmark,
   bookmarkOutline,
   chevronDownOutline,
@@ -201,6 +202,7 @@ export class WordClickModalComponent implements OnInit {
       chevronUpOutline,
       eyeOutline,
       schoolOutline,
+      arrowForwardOutline,
     });
   }
 }

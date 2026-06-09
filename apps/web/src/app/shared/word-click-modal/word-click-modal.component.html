@@ -49,6 +49,13 @@
             ></ion-icon>
           </ion-button>
         }
+        <ion-button
+          (click)="dictionaryLookup()"
+          [title]="'common.open-entry' | translate: { word: word() }"
+          [attr.aria-label]="'common.open-entry' | translate: { word: word() }"
+        >
+          <ion-icon slot="icon-only" name="arrow-forward-outline"></ion-icon>
+        </ion-button>
       }
     </ion-buttons>
   </ion-toolbar>
