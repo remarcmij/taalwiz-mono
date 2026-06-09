@@ -5,7 +5,7 @@ follow so the compiler accepts the file and interprets it correctly.
 
 It serves two purposes:
 
-1. It documents how the author went about to produce the markdown source files from OCR scanned pages of the printed dictionary.
+1. It documents how the author went about producing the markdown source files from OCR scanned pages of the printed dictionary.
 2. It serves as a guide for dictionary editors to create a new, updated revision of the Teeuw 1996 edition, assuming it is within their remit.
 
 This is the **print -> markup** companion to the two developer-oriented documents:
@@ -19,17 +19,19 @@ Where those explain how the machine reads the source, this one explains how a
 supplement files so they behave like the rest of the dictionary.
 
 ---
+
 ## 1. Terminology
 
-Table 1 below establishes the terminology that will be used througout the remainder document. The same handful of things go by different names depending on whether you mean
+Table 1 below establishes the terminology that will be used throughout the remainder of the document. The same handful of things go by different names depending on whether you mean
 Teeuw's printed page, standard lexicography, or this markup. They line up like this:
 
 | Teeuw (Dutch) | Standard (English) | In this markup |
 | --- | --- | --- |
 | _artikel_ | article / entry | a **block** — one hanging-indent paragraph (compiles to the rows sharing one `base`) |
 | _grondwoord_, _hoofdtrefwoord_ | headword (a base) | the **first bold** word of a block → `base` |
-| _afleiding_ | derivation, sublemma | a **later bold** word → `keyword` (this guide's "run-on form") |
+| _afleiding_ | derivation, sublemma | a **later bold** word → `keyword` |
 | _samenstelling_, _vaste verbinding_ | compound, fixed expression | _italic_; or **bold** on its own line if it has its own derivation |
+| _voorbeeld_ | usage (example) | an Indonesian word or phrase used inside a gloss (_italic_) |
 | _verwijzing_ (_verwijspijl_ →) | cross-reference | the bold words after a `->` arrow |
 | (genummerde)<br />_betekenis(variant)_ | sense | a sense number `1`, `2`, … |
 
@@ -42,20 +44,19 @@ Teeuw's printed page, standard lexicography, or this markup. They line up like t
 The markdown is a faithful, human-readable transcription of the printed Teeuw (ref. Figure 1),
 encoding its **typography and layout**, while fully retaining its meaning.
 
-![printed-page-example](./assets/teeuw-page-a.png)<br /><div style="text-align: center;">(truncated)</div>
+![printed-page-example](./assets/teeuw-page-a.png)
 
 **Figure 1.** The first page of the printed Teeuw definitions.
 
-The markdown format (ref. Figure 2) follows closely the format of the printed book. This was for convenience, because the "raw material" for the transcription, viz. hanging paragraphs in scanned OCR pages, could then simply be "flattened out" and marked up with markdown bold and italic annotations[^1]. The markdown could be previewed in the editor with the some bold and italic renderings.
+The markdown format (ref. Figure 2) follows closely the format of the printed book. This was for convenience, because the "raw material" for the transcription, viz. hanging paragraphs in scanned OCR pages, could then simply be "flattened out" and marked up with markdown bold and italic annotations[^1]. The markdown could be previewed in the editor with some bold and italic renderings.
 
 ![book-markdown](./assets/markdown-in-editor.png)
 
 **Figure 2.** Book paragraphs from Figure 1 flattened to markdown, shown in text editor.
 
-<!--I'm still in doubt about the term run-on. I never heard of it and derivation (afleiding) seem to me a better word to use. Teeuw uses it -->
 In printed Teeuw, a headword is bold and
-at the left margin; its run-on forms are bold and indented; its compounds and
-examples are italic; the swung dash (the `~` character on your keyboard) stands
+at the left margin; its derivations are bold and indented; its compounds and
+usages are italic; the swung dash (the `~` character on your keyboard) stands
 in for a repeated word. The markdown source
 re-encodes those visual conventions in plain text, and the compiler then derives
 all the structure (what is a headword, a derivation, a homonym) **mechanically**
@@ -63,37 +64,39 @@ from that typography. See [TEEUW_PARSER.md Part 1](./TEEUW_PARSER.md#part-1--mar
 
 Two consequences worth internalising:
 
-- **The transcription is based on appearance, not linguistics.** When transcibing from paper to markdown you never have to decide
+- **The transcription is based on appearance, not linguistics.** When transcribing from paper to markdown you never have to decide
   "is this a derivation?" You just reproduce what the page shows (bold / italic /
   indentation / swung dash) and the parser does the rest. The one place this
-  breaks down is the tilde, which is why [section 5](#5-the--tilde-and-the--revert-marker)
+  breaks down is the tilde, which is why [section 6](#6-the--tilde-and-the--revert-marker)
   is the longest.
-- For the benefit of both editor and printer, Teeuw used the swung dash as a placeholder for the most recent headword or derivation. In the markdown files, this is replaced by a tilde `~` character, convenienty available on all computer keyboards. From this point on we will refer to the "swung dash" as "tilde". Note that the Taalwiz app never displays the tilde. It is internally replaced with the corresponding headword or derivation. Screen pace is cheap, paper, ink and typesetting is not.
+- For the benefit of both editor and printer, Teeuw used the swung dash as a placeholder for the most recent headword or derivation. In the markdown files, this is replaced by a tilde `~` character, conveniently available on all computer keyboards. From this point on we will refer to the "swung dash" as "tilde". Note that the Taalwiz app never displays the tilde. It is internally replaced with the corresponding headword or derivation. Screen space is cheap; paper, ink and typesetting are not.
 
-The existing Teeuw digitation it to be considered **best-effort**. The transcription was careful and the
-compiler parsing the markdon is strict, but the original is a large, irregular book, and incidental
+The existing Teeuw digitisation is to be considered **best-effort**. The transcription was careful and the
+compiler parsing the markdown is strict, but the original is a large, irregular book, and incidental
 deviations remain.
 
-## 2. The block rule (this is the backbone)
+---
+
+## 3. The block rule (this is the backbone)
 
 Each **block** is separated from the next by a **blank line** — a block being the
 run of consecutive non-blank lines in between. 
 
 ![entry-shapes](./assets/entry-shapes.png)<br />
-**Figure 2.** Paragraphs, Blocks: Entries
+**Figure 3.** One entry, two forms: a hanging-indent paragraph (book) flattened to a block (markdown).
 
 One block is one dictionary
 **entry** — what Teeuw calls an *artikel* (article): a single **headword** and everything
 printed beneath it. ("Block" and "entry" name the same unit, source-side and
 dictionary-side.) The first bold word of a block is the headword — literally
-the word at the *head* of the block (the grondwoord / `base`). Every later bold word in the same block is a run-on form[^2]
+the word at the *head* of the block (the grondwoord / `base`). Every later bold word in the same block is a **derivation**[^2]
 (`keyword`) under that same headword — it does **not** start a new entry.
 
 ```
 **abad**, 1 eeuw;               <- new block: headword `abad`
 *~ pertengahan*, middeleeuwen;  <- still `abad` ("abad pertengahan")
 **berabad-abad**, eeuwenlang;   <- still `abad` (a keyword, not a new entry)
-...                             <- (more run-on forms of `abad`, omitted for brevity)
+...                             <- (more derivations of `abad`, omitted for brevity)
                                 <- blank line: next block resets the headword
 **abah** I, richting, koers;    <- new block: headword `abah`
 ```
@@ -111,18 +114,18 @@ Look at the **A** page in Figure 1 and the block rule falls straight out of the
 layout. On the page, each block (entry / *artikel*) takes the form of one
 **hanging-indent paragraph** — that is just its print-layout shape: the headword
 hangs out at the **left margin**, and the rest of the article — its numbered
-senses, its italic compounds, and its bold run-on forms — sits in an indented body
+senses, its italic compounds, and its bold derivations — sits in an indented body
 beneath it (a line that wraps stays at that indent). The next article begins only
 when a headword **drops back to the left margin** and a new paragraph starts.
 
-The markdown (ref. Figure 2) re-encodes that paragraph, and the **blank line is the paragraph
+The markdown (ref. Figure 3) re-encodes that paragraph, and the **blank line is the paragraph
 break** — the exact point where the page returns to a flush-left headword:
 
 | On the printed page | In the markdown |
 |---------------------|-----------------|
 | headword hanging at the left margin (starts the paragraph) | the **first** `**bold**` word of a block |
-| bold run-on form, in the indented body | a **later** `**bold**` word in the same block |
-| italic compound or example, inline | `*italic*` |
+| bold derivation, in the indented body | a **later** `**bold**` word in the same block |
+| italic compound or usage, inline | `*italic*` |
 | swung dash repeating the governing word | `~` |
 | headword drops back to the left margin (new paragraph) | a **blank line** |
 
@@ -132,7 +135,7 @@ The markdown encodes two things that are easy to conflate. **Block membership**
 fixes the headword: every line in a block shares the block's `base`, and the blank
 line is the drop to the next left-margin headword. The **line breaks** are
 structural too: each line becomes its own **lemma** — a record in the compiled JSON
-(the `^` revert marker is the one exception, emitting nothing). That is why Figure 2
+(the `^` revert marker is the one exception, emitting nothing). That is why Figure 4
 shows one row per source line. So putting each form on its own line is not merely
 for editing readability; it is how the entry is split into those per-line records.
 
@@ -141,25 +144,23 @@ printed column runs out mid-entry and wraps to an indented line, the markdown
 ignores it. That break is cosmetic; the markdown's own line breaks are not.
 
 Following the same `abad` article one stage further — through the compiler and into
-the app — closes the loop (Figures 2 and 3):
-
-
+the app — closes the loop (Figure 4):
 
 ![taalwiz-app-example](./assets/taalwiz-abad.png)
 
-**Figure 3.** The `abad` article compiled and rendered in the Taalwiz app: the end of
+**Figure 4.** The `abad` article compiled and rendered in the Taalwiz app: the end of
 the chain (print → markdown → app).[^3]
 
 ---
 
-## 3. Markup vocabulary
+## 4. Markup vocabulary
 
 | Symbol | Print feature it encodes | Meaning to the compiler |
 |--------|--------------------------|-------------------------|
-| `**word**` | a bold word (headword or run-on form) | searchable Indonesian keyword; first in a block = `base`, later = `keyword` |
-| `*word*` | an italic word (compound, example, cross-reference) | reference form, not independently searchable |
-| `~` | the swung dash | shorthand for the current governing bold word (see §5) |
-| `^` | (no print equivalent) | revert `~` back to the headword (see §5) |
+| `**word**` | a bold word (headword or derivation) | searchable Indonesian keyword; first in a block = `base`, later = `keyword` |
+| `*word*` | an italic word (compound or usage) | reference form, not independently searchable |
+| `~` | the swung dash | shorthand for the current governing bold word (see §6) |
+| `^` | (no print equivalent) | revert `~` back to the headword (see §6) |
 | `+` | a space inside a multi-word unit you want indexed as one | rendered as a space (`anak+tiri` -> "anak tiri") |
 | `-` | a literal hyphen / reduplication | kept as-is (`anak-anak`) |
 | `->` | a cross-reference arrow | bold words after it are references, not keywords |
@@ -175,7 +176,7 @@ not introduce other control characters without updating the tokenizer.
 
 ---
 
-## 4. Derivations and compounds (how an entry is built)
+## 5. Derivations and compounds (how an entry is built)
 
 Within a block, the print lays an article out in a fixed order (Teeuw's
 introduction, "Opbouw artikelen en volgorde afleidingen"):
@@ -188,11 +189,12 @@ introduction, "Opbouw artikelen en volgorde afleidingen"):
 A compound that has its **own** derivation is promoted to **bold on its own line**,
 its derivation set immediately after it, and then the headword's alphabetical
 compound list **resumes**. This promotion is exactly what creates the tilde
-subtlety below.
+subtlety below. (It is also the one common case of a later bold word that is *not*
+a derivation — relatively rare, e.g. *terima kasih*.)
 
 ---
 
-## 5. The `~` tilde and the `^` revert marker
+## 6. The `~` tilde and the `^` revert marker
 
 `~` expands to the **nearest preceding bold word** — the lemma the entry is
 currently elaborating. Almost always that is what you want:
@@ -273,7 +275,7 @@ same result.
 
 ---
 
-## 6. Supplement (`+`) files
+## 7. Supplement (`+`) files
 
 To add post-1996 words, create/extend `teeuw.X+.md` (e.g. `teeuw.a+.md`) using the
 **exact same markup**. The core files stay untouched; everything in a `+` file is
@@ -294,7 +296,7 @@ Practical checklist for a new entry:
 
 ---
 
-## 7. Validation
+## 8. Validation
 
 A clean compile guarantees the markup is well-formed, not that every `~` resolves
 as you intended. Two safety nets:
@@ -311,13 +313,13 @@ arise from a new bold compound you introduce, and the warning will flag it.
 
 [^1]: There was more to it: OCR scanning errors had to be located and corrected too.
 
-[^2]: A run-on form is what the user-facing guide calls a **sublemma**; the two
+[^2]: A derivation is what the user-facing guide calls a **sublemma**; the two
 terms are interchangeable — a `keyword` under a `base`.
 
-[^3]: Two things are worth noticing in Figure 2. Each swung dash has been
+[^3]: Two things are worth noticing in Figure 4. Each swung dash has been
 **expanded to its governing word** (`*~ pertengahan*` → "abad pertengahan",
-`*~ emas*` → "abad emas"; see [section 5](#5-the--tilde-and-the--revert-marker)),
-and the bold run-on forms (`berabad-abad`, `abadi`, `mengabadikan`, …) are listed
+`*~ emas*` → "abad emas"; see [section 6](#6-the--tilde-and-the--revert-marker)),
+and the bold derivations (`berabad-abad`, `abadi`, `mengabadikan`, …) are listed
 under the headword. The second card, `keemasan`, is something the **printed page
 cannot do**: it surfaces as a backlink because its own entry cross-links to `abad`
 in the gloss, so the digital form makes the reference bidirectional.
