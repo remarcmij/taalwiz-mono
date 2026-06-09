@@ -77,6 +77,11 @@ The existing Teeuw digitisation is to be considered **best-effort**. The transcr
 compiler parsing the markdown is strict, but the original is a large, irregular book, and incidental
 deviations remain.
 
+In practice, the quickest way to absorb these conventions is to read the source
+itself. An editor has the entire corpus (`dict/teeuw/teeuw.*.md`) on hand, and
+skimming a few real entries shows the patterns at a glance — the rest of this
+document mainly makes explicit what you will already have noticed there.
+
 ---
 
 ## 3. The block rule (this is the backbone)
