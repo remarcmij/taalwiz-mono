@@ -31,7 +31,7 @@ Teeuw's printed page, standard lexicography, or this markup. They line up like t
 | _grondwoord_, _hoofdtrefwoord_ | headword (a base) | the **first bold** word of a block → `base` |
 | _afleiding_ | derivation, sublemma | a **later bold** word → `keyword` |
 | _samenstelling_, _vaste verbinding_ | compound, fixed expression | _italic_; or **bold** on its own line if it has its own derivation |
-| _voorbeeld_ | usage (example) | an Indonesian word or phrase used inside a gloss (_italic_) |
+| — (no Teeuw term) | usage (example) | an Indonesian word or phrase used inside a gloss (_italic_) |
 | _verwijzing_ (_verwijspijl_ →) | cross-reference | the bold words after a `->` arrow |
 | (genummerde)<br />_betekenis(variant)_ | sense | a sense number `1`, `2`, … |
 
