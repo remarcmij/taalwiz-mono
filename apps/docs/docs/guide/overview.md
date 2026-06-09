@@ -49,22 +49,26 @@ Here is a breakdown of Figure 1:
 
 A key feature in Taalwiz is that every coloured word (i.e., all Indonesian words) can be tapped to initiate a dictionary search. This is illustrated in Figure 2.
 
-![Tap-to-search](images/search-4-5.png)
+![Tap-to-search](images/search-4-5-6.png)
 <small>Figure 2: *Tap-to-Search*</small>
 
 Breakdown:
 
-1. In the first panel showing the search results for the word _abang_ the user tapped the word _cemara_. This brings up a panel that slides up from the bottom (a _bottom sheet_) with dictionary definitions for the word _cemara_. Tapping anywhere outside of the bottom sheet dismisses it.
+1. The first panel shows the search results for the word _abang_.
 
-    At the bottom of the sheet a _→ cemara_ link points to the dictionary entry the definition belongs to. Tapping it dismisses the sheet and opens the full entry. On a laptop, Cmd-click (Mac) or Ctrl-click (Windows/Linux) on a word does the same in a single step, without opening the sheet.
+2. In the second panel the user tapped the word _cemara_ in the card for _cemara_ where the word _abang_ was used in an example. This brings up a panel that slides up from the bottom (a _bottom sheet_) with condensed dictionary definitions for the word _cemara_. Tapping anywhere outside of the bottom sheet dismisses it.
 
-2. The second panel shows the full entry for _cemara_, after tapping the _→ cemara_ link.
+    Tapping the _→_ icon in the sheet's toolbar, or the _→ cemara_ link at the bottom, dismisses the sheet and opens the full entry for _cemara_.
+
+    On a laptop, Cmd-click (Mac) or Ctrl-click (Windows/Linux) on a word does the same in a single step, without opening the sheet.
+
+3. The third panel shows the full entry for _cemara_, after tapping the _→ cemara_ link.
 
 ### Reverse Lookup
 
 In addition to searching for Indonesian words the app also supports searching for Dutch words in the Teeuw dictionary, i.e. a _reverse lookup_. By indexing the Dutch glosses of every lemma, the app offers a practical Dutch-to-Indonesian path on a dictionary that was only ever built to go the other way, something a printed unidirectional dictionary cannot do at all. A search for a Dutch word returns the lemmas in which it occurs. This is not a substitute for a true bidirectional dictionary, but in practice it is genuinely useful.
 
-The reverse lookup is illustrated in Figure 3. Referring back to Figure 1, first panel, this the result of tapping on the _beraadslagen_ suggestion.
+The reverse lookup is illustrated in Figure 3. Referring back to Figure 1, first panel, this is the result of tapping on the _beraadslagen_ suggestion.
 
 ![Reverse lookup](images/reverse-lookup.png)
 <small>Figure 3: *Reverse lookup for the Dutch word _beraadslagen_*</small>
@@ -89,9 +93,9 @@ The content organisation is illustrated in Figure 4.
 
 ### Tap-to-Search in Articles
 
-Every Indonesian word in an article text is tappable, triggering a switch to the Dictionary tab and initiating a search for the tapped word. This is illustrated in Figure 5 below.
+Every Indonesian word in an article text is tappable, triggering a switch to the Dictionary tab and initiating a search for the tapped word in the same way as we saw earlier. This is illustrated in Figure 5 below.
 
-![Article tap-to-search](images/article-tap.png)
+![Article tap-to-search](images/article-tap.png)<br />
 <small>Figure 5: *Tap-to-Search in an Article*</small>
 
 In Figure 5, the word _terbesar_ was tapped. This word does not occur as a definition in the Teeuw dictionary. It only occurs in a gloss of the lemma for headword _bagi_. The search for _terbesar_ lands on its headword _besar_. This is accomplished through affix stripping as part of a search. The app handles a wide range of Indonesian affixes, including some subtleties of their ordering; this is detailed in Appendix I.
@@ -102,18 +106,20 @@ A word worth remembering can be saved to a personal vocabulary list with a secon
 
 ### Word Structure
 
-Beyond finding the right entry, the app can show _how_ an inflected word is built. When a tapped word is a derived form, the word panel adds a short grey line with its **decomposition**, the affixes and the root in order. For _menyapukan_ ("to sweep with"), it shows _meN- + sapu + -kan_.
+Refer to Figure 6.Give 
+
+Beyond finding the right entry, the app can show _how_ an inflected word is built. When a tapped word is a derived form, the word panel adds a short grey line with its **decomposition**, the affixes and the root in order. For _menyampaikan_ ("to convey, to deliver"), it shows _meN- + sampai + -kan_.
 
 This is deliberately not a free guess. The root is the one Teeuw itself records for that entry, since the dictionary groups derived forms under an editorial headword, so the app only has to name the affixes that bridge the surface form to that attested root. Where it cannot do so with confidence, it shows nothing rather than assert a structure Teeuw does not support. A word with two readings carries one line per reading: _beruang_ appears both as the root "bear" (no decomposition) and as _ber- + uang_ ("to have money"), and the reader's context decides which is meant.
 
-A small expandable note explains the trickier sound changes. In _menyapukan_ the prefix meN- before an _s_ surfaces as _meny-_ and the root's initial _s_ drops, which is why the root _sapu_ is not visible on the surface. This is the kind of detail a learner rarely gets from a dictionary alone.
+A small expandable note explains the trickier sound changes. In _menyampaikan_ the prefix meN- before an _s_ surfaces as _meny-_ and the root's initial _s_ drops, which is why the root _sampai_ is not visible on the surface. This is the kind of detail a learner rarely gets from a dictionary alone.
 
-The decomposition doubles as a quick self-test. A toggle in the panel switches it between _show_ and _quiz_: in quiz mode the line is hidden behind a "tap to reveal" prompt, so the learner can try to break the word down first and then check. It adds no separate exercise and no scoring; it simply turns a lookup the reader is already doing into a moment of active recall.
+The decomposition doubles as a quick self-test. A toggle in the panel switches it between _show_ and _quiz_: in quiz mode the line is hidden behind a "tap to reveal" prompt (not shown in Figure 6), so the learner can try to break the word down first and then check. It adds no separate exercise and no scoring; it simply turns a lookup the reader is already doing into a moment of active recall.
 
-The morphological handling is mine to change, and I would welcome a linguist's guidance on extending it. Compound words and reduplication, for instance, are recorded by the dictionary but not yet decomposed in this view.
+> Author's note: The morphological handling is mine to change, and I would welcome a linguist's guidance on extending it. Compound words and reduplication, for instance, are recorded by the dictionary but not yet decomposed in this view.
 
 ![Word structure](images/decomposition.png)
-<small>Figure 6: *The decomposition of _menyapukan_, the sound-change note, and quiz mode.*</small>
+<small>Figure 6: *The decomposition of _menyampaikan_, the sound-change note, and quiz mode.*</small>
 
 ### Fill-in-the-blank exercises
 
