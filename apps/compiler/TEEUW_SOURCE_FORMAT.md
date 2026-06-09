@@ -1,10 +1,14 @@
 # Teeuw Source Format
 
-How to read and write the Teeuw dictionary markdown source (`dict/teeuw/*.md`):
-the markup conventions, what each symbol means, and the rules an editor must
+This document describes how to read and write the Teeuw dictionary markdown source (`dict/teeuw/*.md`): the markup conventions, what each symbol means, and the rules an editor must
 follow so the compiler accepts the file and interprets it correctly.
 
-This is the **print -> markup** companion to the two engine-facing docs:
+It serves two purposes:
+
+1. It documents how the author went about to produce the markdown source files from OCR scanned pages of the printed dictionary.
+2. It serves as a guide for dictionary editors to create a new, updated revision of the Teeuw 1996 edition, assuming it is within their remit.
+
+This is the **print -> markup** companion to the two developer-oriented documents:
 
 - [INTERNALS.md](./INTERNALS.md) — the compile pipeline and the markup table.
 - [TEEUW_PARSER.md](./TEEUW_PARSER.md) — exactly how markup becomes the compiled
@@ -15,42 +19,9 @@ Where those explain how the machine reads the source, this one explains how a
 supplement files so they behave like the rest of the dictionary.
 
 ---
+## 1. Terminology
 
-## 1. What the source actually is
-
-The markdown is a faithful, human-readable transcription of the printed Teeuw,
-encoding its **typography and layout**, not its meaning. A headword is bold and
-at the left margin; its run-on forms are bold and indented; its compounds and
-examples are italic; the swung dash (the `~` character on your keyboard) stands
-in for a repeated word. The source
-re-encodes those visual conventions in plain text, and the compiler then derives
-all the structure (what is a headword, a derivation, a homonym) **mechanically**
-from that typography. See [TEEUW_PARSER.md Part 1](./TEEUW_PARSER.md#part-1--markdown-to-json-headwords-keywords-homonyms).
-
-![printed-page-example](teeuw-page-a.png)
-
-**Figure 1.** The first page of the printed Teeuw dictionary definitions.
-
-Two consequences worth internalising:
-
-- **You transcribe appearance, not linguistics.** You almost never have to decide
-  "is this a derivation?" You reproduce what the page shows (bold / italic /
-  indentation / swung dash) and the parser does the rest. The one place this
-  breaks down is the tilde, which is why [section 5](#5-the--tilde-and-the--revert-marker)
-  is the longest.
-- **The `~` shorthand is editorial convenience, not a data model.** A swung dash
-  saves the editor (and reader) from re-typing the headword on every line. A
-  purely computational representation would not use it at all; it would link rows
-  in a table. We keep `~` because the source is written and proofread by people.
-  That choice is the source of the one genuine subtlety in this format.
-
-This is a **best-effort** digitization. The transcription is careful and the
-compiler is strict, but the original is a large, irregular book, and incidental
-deviations remain. Aim for faithful, not flawless.
-
-### Terminology
-
-The same handful of things go by different names depending on whether you mean
+Table 1 below establishes the terminology that will be used througout the remainder document. The same handful of things go by different names depending on whether you mean
 Teeuw's printed page, standard lexicography, or this markup. They line up like this:
 
 | Teeuw (Dutch) | Standard (English) | In this markup |
@@ -60,20 +31,62 @@ Teeuw's printed page, standard lexicography, or this markup. They line up like t
 | _afleiding_ | derivation, sublemma | a **later bold** word → `keyword` (this guide's "run-on form") |
 | _samenstelling_, _vaste verbinding_ | compound, fixed expression | _italic_; or **bold** on its own line if it has its own derivation |
 | _verwijzing_ (_verwijspijl_ →) | cross-reference | the bold words after a `->` arrow |
-| _betekenis(variant)_ | sense | a sense number `1`, `2`, … |
+| (genummerde)<br />_betekenis(variant)_ | sense | a sense number `1`, `2`, … |
 
 **Table 1.** Terminology: one set of things, three vocabularies (Teeuw's print, standard lexicography, and this markup).
 
 ---
 
+## 2. What the source actually is
+
+The markdown is a faithful, human-readable transcription of the printed Teeuw (ref. Figure 1),
+encoding its **typography and layout**, while fully retaining its meaning.
+
+![printed-page-example](./assets/teeuw-page-a.png)<br /><div style="text-align: center;">(truncated)</div>
+
+**Figure 1.** The first page of the printed Teeuw definitions.
+
+The markdown format (ref. Figure 2) follows closely the format of the printed book. This was for convenience, because the "raw material" for the transcription, viz. hanging paragraphs in scanned OCR pages, could then simply be "flattened out" and marked up with markdown bold and italic annotations[^1]. The markdown could be previewed in the editor with the some bold and italic renderings.
+
+![book-markdown](./assets/markdown-in-editor.png)
+
+**Figure 2.** Book paragraphs from Figure 1 flattened to markdown, shown in text editor.
+
+<!--I'm still in doubt about the term run-on. I never heard of it and derivation (afleiding) seem to me a better word to use. Teeuw uses it -->
+In printed Teeuw, a headword is bold and
+at the left margin; its run-on forms are bold and indented; its compounds and
+examples are italic; the swung dash (the `~` character on your keyboard) stands
+in for a repeated word. The markdown source
+re-encodes those visual conventions in plain text, and the compiler then derives
+all the structure (what is a headword, a derivation, a homonym) **mechanically**
+from that typography. See [TEEUW_PARSER.md Part 1](./TEEUW_PARSER.md#part-1--markdown-to-json-headwords-keywords-homonyms).
+
+Two consequences worth internalising:
+
+- **The transcription is based on appearance, not linguistics.** When transcibing from paper to markdown you never have to decide
+  "is this a derivation?" You just reproduce what the page shows (bold / italic /
+  indentation / swung dash) and the parser does the rest. The one place this
+  breaks down is the tilde, which is why [section 5](#5-the--tilde-and-the--revert-marker)
+  is the longest.
+- For the benefit of both editor and printer, Teeuw used the swung dash as a placeholder for the most recent headword or derivation. In the markdown files, this is replaced by a tilde `~` character, convenienty available on all computer keyboards. From this point on we will refer to the "swung dash" as "tilde". Note that the Taalwiz app never displays the tilde. It is internally replaced with the corresponding headword or derivation. Screen pace is cheap, paper, ink and typesetting is not.
+
+The existing Teeuw digitation it to be considered **best-effort**. The transcription was careful and the
+compiler parsing the markdon is strict, but the original is a large, irregular book, and incidental
+deviations remain.
+
 ## 2. The block rule (this is the backbone)
 
 Each **block** is separated from the next by a **blank line** — a block being the
-run of consecutive non-blank lines in between. One block is one dictionary
-**entry** — what Teeuw calls an *artikel* (article): a single headword and everything
+run of consecutive non-blank lines in between. 
+
+![entry-shapes](./assets/entry-shapes.png)<br />
+**Figure 2.** Paragraphs, Blocks: Entries
+
+One block is one dictionary
+**entry** — what Teeuw calls an *artikel* (article): a single **headword** and everything
 printed beneath it. ("Block" and "entry" name the same unit, source-side and
-dictionary-side.) The **first bold word of a block is the headword** — literally
-the word at the *head* of the block (the grondwoord / `base`). Every later bold word in the same block is a run-on form[^1]
+dictionary-side.) The first bold word of a block is the headword — literally
+the word at the *head* of the block (the grondwoord / `base`). Every later bold word in the same block is a run-on form[^2]
 (`keyword`) under that same headword — it does **not** start a new entry.
 
 ```
@@ -102,7 +115,7 @@ senses, its italic compounds, and its bold run-on forms — sits in an indented 
 beneath it (a line that wraps stays at that indent). The next article begins only
 when a headword **drops back to the left margin** and a new paragraph starts.
 
-The markdown re-encodes that paragraph, and the **blank line is the paragraph
+The markdown (ref. Figure 2) re-encodes that paragraph, and the **blank line is the paragraph
 break** — the exact point where the page returns to a flush-left headword:
 
 | On the printed page | In the markdown |
@@ -128,12 +141,14 @@ printed column runs out mid-entry and wraps to an indented line, the markdown
 ignores it. That break is cosmetic; the markdown's own line breaks are not.
 
 Following the same `abad` article one stage further — through the compiler and into
-the app — closes the loop:
+the app — closes the loop (Figures 2 and 3):
 
-![taalwiz-app-example](taalwiz-abad.png)
 
-**Figure 2.** The `abad` article compiled and rendered in the Taalwiz app: the end of
-the chain (print → markdown → app).[^2]
+
+![taalwiz-app-example](./assets/taalwiz-abad.png)
+
+**Figure 3.** The `abad` article compiled and rendered in the Taalwiz app: the end of
+the chain (print → markdown → app).[^3]
 
 ---
 
@@ -294,10 +309,12 @@ as you intended. Two safety nets:
 The `^` rule plus this warning cover the systematic cases; a new one can only
 arise from a new bold compound you introduce, and the warning will flag it.
 
-[^1]: A run-on form is what the user-facing guide calls a **sublemma**; the two
+[^1]: There was more to it: OCR scanning errors had to be located and corrected too.
+
+[^2]: A run-on form is what the user-facing guide calls a **sublemma**; the two
 terms are interchangeable — a `keyword` under a `base`.
 
-[^2]: Two things are worth noticing in Figure 2. Each swung dash has been
+[^3]: Two things are worth noticing in Figure 2. Each swung dash has been
 **expanded to its governing word** (`*~ pertengahan*` → "abad pertengahan",
 `*~ emas*` → "abad emas"; see [section 5](#5-the--tilde-and-the--revert-marker)),
 and the bold run-on forms (`berabad-abad`, `abadi`, `mengabadikan`, …) are listed
