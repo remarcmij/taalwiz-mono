@@ -319,7 +319,7 @@ arise from a new bold compound you introduce, and the warning will flag it.
 
 [^1]: There was more to it: OCR scanning errors had to be located and corrected too.
 
-[^2]: In the markdown files, the tilde `~` is a convenience for the editor. As stated, it is a placeholder for the preceding headword or derivation. But the Taalwiz app replaces the tilde automatically with the corresponding word. Therefore, the content editor could also opt to retype the word instead of using the tilde (but at the risk of introducing a typo).
+[^2]: Because the app expands the tilde automatically, an editor could just as well retype the word in full instead of using `~` — at the risk of introducing a typo.
 
 [^3]: A derivation is what the user-facing guide calls a **sublemma**; the two
 terms are interchangeable — a `keyword` under a `base`.
