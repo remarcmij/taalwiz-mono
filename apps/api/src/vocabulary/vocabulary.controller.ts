@@ -12,10 +12,14 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import type { JwtPayload } from '../auth/types/jwtpayload.interface.js';
-import { VocabularyListInfo, VocabularyService } from './vocabulary.service.js';
+import {
+  PublicVocabularyListInfo,
+  VocabularyListInfo,
+  VocabularyService,
+} from './vocabulary.service.js';
 import { BulkAddVocabularyDto } from './dto/create-vocabulary-item.dto.js';
 import { CreateVocabularyListDto } from './dto/create-vocabulary-list.dto.js';
-import { RenameVocabularyListDto } from './dto/rename-vocabulary-list.dto.js';
+import { UpdateVocabularyListDto } from './dto/update-vocabulary-list.dto.js';
 
 @Controller('vocabulary')
 export class VocabularyController {
@@ -44,12 +48,32 @@ export class VocabularyController {
 
   @Patch('lists/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async renameList(
+  async updateList(
     @CurrentUser() user: JwtPayload,
     @Param('id') id: string,
-    @Body() dto: RenameVocabularyListDto,
+    @Body() dto: UpdateVocabularyListDto,
   ): Promise<void> {
-    await this.vocabularyService.renameList(user.sub, id, dto.name);
+    await this.vocabularyService.updateList(user.sub, id, dto);
+  }
+
+  // --- Public (shared) list routes ---
+
+  @Get('public')
+  async getPublicLists(@CurrentUser() user: JwtPayload): Promise<PublicVocabularyListInfo[]> {
+    return this.vocabularyService.findPublicLists(user.sub);
+  }
+
+  @Get('public/:id/items')
+  async getPublicItems(@Param('id') id: string) {
+    return this.vocabularyService.findPublicItems(id);
+  }
+
+  @Post('public/:id/clone')
+  async clonePublicList(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+  ): Promise<VocabularyListInfo> {
+    return this.vocabularyService.cloneList(user.sub, id);
   }
 
   // --- Vocabulary item CRUD routes ---

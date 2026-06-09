@@ -1,0 +1,72 @@
+<ion-header>
+  <ion-toolbar>
+    @if (selected()) {
+      <ion-buttons slot="start">
+        <ion-button (click)="back()">
+          <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title>{{ selected()!.name }}</ion-title>
+    } @else {
+      <ion-title>{{ 'shared-lists.title' | translate }}</ion-title>
+    }
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">{{ 'common.close' | translate }}</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (loading()) {
+    <div class="center"><ion-spinner></ion-spinner></div>
+  } @else if (!selected()) {
+    <!-- Browse view: public lists from other users -->
+    @if (lists().length === 0) {
+      <p class="empty-state">{{ 'shared-lists.empty' | translate }}</p>
+    } @else {
+      <ion-list lines="full">
+        @for (list of lists(); track list.id) {
+          <ion-item button (click)="openPreview(list)">
+            <ion-label>
+              <h2>{{ list.name }}</h2>
+              <p>{{ 'shared-lists.shared-by' | translate: { name: list.ownerName } }}</p>
+            </ion-label>
+            <ion-note slot="end">
+              {{ 'shared-lists.word-count' | translate: { count: list.count } }}
+            </ion-note>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  } @else {
+    <!-- Read-only preview of the selected public list -->
+    <ion-button
+      expand="block"
+      [disabled]="cloning()"
+      (click)="clone(selected()!)">
+      @if (cloning()) {
+        <ion-spinner slot="start" name="dots"></ion-spinner>
+      } @else {
+        <ion-icon slot="start" name="download-outline"></ion-icon>
+      }
+      {{ 'shared-lists.clone-button' | translate }}
+    </ion-button>
+
+    @if (itemsLoading()) {
+      <div class="center"><ion-spinner></ion-spinner></div>
+    } @else {
+      <ion-list lines="full">
+        @for (item of items(); track item.term + ':' + item.lang) {
+          <ion-item>
+            <ion-label>
+              <h2>{{ item.term }}</h2>
+              @if (item.back) {
+                <p class="back-preview">{{ item.back }}</p>
+              }
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  }
+</ion-content>

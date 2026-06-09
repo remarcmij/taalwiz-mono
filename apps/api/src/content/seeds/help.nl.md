@@ -68,6 +68,14 @@ Je kunt meerdere woorden tegelijk toevoegen via het tabblad __Lijst importeren__
 
 Regels die beginnen met `#` worden als commentaar beschouwd en genegeerd. Lege regels worden ook genegeerd en kunnen gebruikt worden om secties visueel te scheiden.
 
+### Lijsten delen
+
+Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Tik op het __wereldbol__-icoon op een lijsttabblad om die lijst __openbaar__ te maken: iedereen die Taalwiz gebruikt kan hem dan vinden. Tik nogmaals op de wereldbol om de lijst weer privé te maken; wie hem al heeft gekopieerd, behoudt de eigen kopie.
+
+Om lijsten te vinden die anderen hebben gedeeld, tik je op het __personen__-icoon in de bovenbalk. Dit opent het overzicht van gedeelde lijsten, waar je per lijst de naam, wie hem deelde en het aantal woorden ziet. Tik op een lijst om de woorden te bekijken en tik daarna op __Naar mijn lijsten kopiëren__ om een kopie aan je eigen account toe te voegen.
+
+Een gekopieerde lijst is een momentopname: hij wordt een gewone eigen lijst, met eigen studievoortgang. Latere wijzigingen van de oorspronkelijke eigenaar hebben geen invloed op jouw kopie, en jouw studeren heeft geen invloed op die van hen.
+
 ### Studeren met flashcards
 
 Tik op de knop __Studeren__ bij een woordenlijst om een flashcardsessie te starten. De app gebruikt __Spaced Repetition (SRS)__ om te bepalen welke kaarten worden getoond: kaarten die je moeilijk vindt komen eerder terug, terwijl kaarten die je goed kent verder in de toekomst worden gepland.

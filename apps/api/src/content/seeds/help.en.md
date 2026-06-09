@@ -68,6 +68,14 @@ You can add multiple words at once using the __Import list__ tab in the vocabula
 
 Lines starting with `#` are treated as comments and ignored. Blank lines are also ignored and can be used to visually separate sections.
 
+### Sharing lists
+
+If you have built a list you think others would find useful, you can share it. Tap the __globe__ icon on a list tab to make that list __public__: everyone using Taalwiz can then find it. Tap the globe again to make it private; people who already copied it keep their own copy.
+
+To find lists others have shared, tap the __people__ icon in the top bar. This opens the shared-lists browser, where each entry shows the list name, who shared it, and how many words it contains. Tap a list to preview its words, then tap __Copy to my lists__ to add a copy to your own account.
+
+A copied list is a snapshot: it becomes a normal list of your own, with its own study progress. Later changes the original owner makes do not affect your copy, and your studying never affects theirs.
+
 ### Studying with flashcards
 
 Tap the __Study__ button on any vocabulary list to start a flashcard session. The app uses __Spaced Repetition (SRS)__ to decide which cards to show: cards you find difficult come back sooner, while cards you know well are scheduled further into the future.

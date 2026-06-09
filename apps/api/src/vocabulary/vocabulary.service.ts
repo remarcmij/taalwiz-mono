@@ -1,6 +1,7 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { AnyBulkWriteOperation, Types } from 'mongoose';
 import { SrsService } from '../srs/srs.service.js';
+import User from '../users/models/user.model.js';
 import { CreateVocabularyItemDto } from './dto/create-vocabulary-item.dto.js';
 import VocabularyItem, { VocabularyItemDoc } from './models/vocabulary-item.model.js';
 import VocabularyList from './models/vocabulary-list.model.js';
@@ -8,6 +9,14 @@ import VocabularyList from './models/vocabulary-list.model.js';
 export interface VocabularyListInfo {
   id: string;
   name: string;
+  count: number;
+  isPublic: boolean;
+}
+
+export interface PublicVocabularyListInfo {
+  id: string;
+  name: string;
+  ownerName: string;
   count: number;
 }
 
@@ -30,13 +39,18 @@ export class VocabularyService {
     ]).exec();
 
     const countMap = new Map(counts.map((c) => [c._id.toString(), c.count]));
-    return lists.map((l) => ({ id: l._id.toString(), name: l.name, count: countMap.get(l._id.toString()) ?? 0 }));
+    return lists.map((l) => ({
+      id: l._id.toString(),
+      name: l.name,
+      count: countMap.get(l._id.toString()) ?? 0,
+      isPublic: l.isPublic ?? false,
+    }));
   }
 
   async createList(userId: string, name: string): Promise<VocabularyListInfo> {
     try {
       const list = await VocabularyList.create({ userId: new Types.ObjectId(userId), name });
-      return { id: list._id.toString(), name: list.name, count: 0 };
+      return { id: list._id.toString(), name: list.name, count: 0, isPublic: false };
     } catch (err: unknown) {
       if ((err as { code?: number }).code === 11000) {
         throw new ConflictException(`List '${name}' already exists`);
@@ -53,17 +67,108 @@ export class VocabularyService {
     await this.srsService.deleteCardsByList(userId, listId);
   }
 
-  async renameList(userId: string, listId: string, newName: string): Promise<void> {
+  async updateList(
+    userId: string,
+    listId: string,
+    changes: { name?: string; isPublic?: boolean },
+  ): Promise<void> {
+    const set: Record<string, unknown> = {};
+    if (changes.name !== undefined) set['name'] = changes.name;
+    if (changes.isPublic !== undefined) set['isPublic'] = changes.isPublic;
+    if (Object.keys(set).length === 0) return;
     try {
       await VocabularyList.findOneAndUpdate(
         { _id: new Types.ObjectId(listId), userId: new Types.ObjectId(userId) },
-        { $set: { name: newName } },
+        { $set: set },
       ).exec();
     } catch (err: unknown) {
       if ((err as { code?: number }).code === 11000) {
-        throw new ConflictException(`List '${newName}' already exists`);
+        throw new ConflictException(`List '${changes.name}' already exists`);
       }
       throw err;
+    }
+  }
+
+  /** Public lists owned by other users, with owner name and item count, for the browse view. */
+  async findPublicLists(callerUserId: string): Promise<PublicVocabularyListInfo[]> {
+    const callerObjectId = new Types.ObjectId(callerUserId);
+    const lists = await VocabularyList.find({ isPublic: true, userId: { $ne: callerObjectId } })
+      .sort({ createdAt: -1 })
+      .exec();
+    if (lists.length === 0) return [];
+
+    const listIds = lists.map((l) => l._id);
+    const ownerIds = lists.map((l) => l.userId);
+
+    const counts = await VocabularyItem.aggregate<{ _id: Types.ObjectId; count: number }>([
+      { $match: { listId: { $in: listIds } } },
+      { $group: { _id: '$listId', count: { $sum: 1 } } },
+    ]).exec();
+    const countMap = new Map(counts.map((c) => [c._id.toString(), c.count]));
+
+    const owners = await User.find({ _id: { $in: ownerIds } })
+      .select('name')
+      .lean()
+      .exec();
+    const ownerMap = new Map(owners.map((o) => [o._id.toString(), o.name as string]));
+
+    return lists
+      .map((l) => ({
+        id: l._id.toString(),
+        name: l.name,
+        ownerName: ownerMap.get(l.userId.toString()) ?? '',
+        count: countMap.get(l._id.toString()) ?? 0,
+      }))
+      .filter((l) => l.count > 0);
+  }
+
+  /** Items of a public list, addressed by list id only (no ownership check) — read-only browse. */
+  async findPublicItems(listId: string): Promise<VocabularyItemDoc[]> {
+    const listObjectId = new Types.ObjectId(listId);
+    const list = await VocabularyList.findOne({ _id: listObjectId, isPublic: true }).exec();
+    if (!list) throw new NotFoundException('Public list not found');
+    return VocabularyItem.find({ listId: listObjectId }).sort({ savedAt: -1 }).exec();
+  }
+
+  /** Clone a public list into the caller's own account (snapshot copy + SRS cards). */
+  async cloneList(callerUserId: string, sourceListId: string): Promise<VocabularyListInfo> {
+    const sourceObjectId = new Types.ObjectId(sourceListId);
+    const source = await VocabularyList.findOne({ _id: sourceObjectId, isPublic: true }).exec();
+    if (!source) throw new NotFoundException('Public list not found');
+
+    const callerObjectId = new Types.ObjectId(callerUserId);
+    const newList = await this.#createListWithUniqueName(callerObjectId, source.name, sourceObjectId);
+
+    const sourceItems = await VocabularyItem.find({ listId: sourceObjectId })
+      .select('term lang back sourceSentence')
+      .lean()
+      .exec();
+
+    const newListId = newList._id.toString();
+    await this.addMany(
+      callerUserId,
+      sourceItems.map((i) => ({
+        term: i.term,
+        lang: i.lang,
+        listId: newListId,
+        back: i.back as string | undefined,
+        sourceSentence: i.sourceSentence as string | undefined,
+      })),
+    );
+
+    return { id: newListId, name: newList.name, count: sourceItems.length, isPublic: false };
+  }
+
+  /** Create a list, auto-suffixing the name on collision with the caller's existing lists. */
+  async #createListWithUniqueName(userId: Types.ObjectId, baseName: string, clonedFrom: Types.ObjectId) {
+    for (let attempt = 0; ; attempt++) {
+      const name = attempt === 0 ? baseName : attempt === 1 ? `${baseName} (copy)` : `${baseName} (copy ${attempt})`;
+      try {
+        return await VocabularyList.create({ userId, name, clonedFrom });
+      } catch (err: unknown) {
+        if ((err as { code?: number }).code === 11000) continue;
+        throw err;
+      }
     }
   }
 

@@ -99,6 +99,19 @@
     "import-success": "{{count}} items geïmporteerd",
     "save": "Opslaan"
   },
+  "shared-lists": {
+    "title": "Gedeelde lijsten",
+    "empty": "Nog geen gedeelde lijsten. Maak een van je eigen lijsten openbaar om te delen.",
+    "shared-by": "Gedeeld door {{name}}",
+    "word-count": "{{count}} woorden",
+    "clone-button": "Naar mijn lijsten kopiëren",
+    "clone-success": "'{{name}}' naar je lijsten gekopieerd",
+    "clone-failed": "Kon '{{name}}' niet kopiëren",
+    "share-list": "Openbaar delen",
+    "make-private": "Privé maken",
+    "unpublish-title": "Privé maken",
+    "unpublish-message": "Stoppen met delen van '{{name}}'? Wie het al heeft gekopieerd, behoudt de eigen kopie."
+  },
   "study": {
     "title": "Studeren",
     "select-list": "Kies een lijst om te studeren",

@@ -19,6 +19,14 @@ export interface VocabularyList {
   id: string;
   name: string;
   count: number;
+  isPublic: boolean;
+}
+
+export interface PublicVocabularyList {
+  id: string;
+  name: string;
+  ownerName: string;
+  count: number;
 }
 
 const PREFS_KEY = 'vocabularyCurrentListId';
@@ -198,6 +206,51 @@ export class VocabularyService {
         }),
       )
       .subscribe();
+  }
+
+  setListPublic(id: string, isPublic: boolean): void {
+    const snapshot = this.lists();
+    this.lists.update((ls) => ls.map((l) => (l.id === id ? { ...l, isPublic } : l)));
+
+    this.#http
+      .patch(`/api/v1/vocabulary/lists/${id}`, { isPublic })
+      .pipe(
+        catchError(() => {
+          this.lists.set(snapshot);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
+  }
+
+  async fetchPublicLists(): Promise<PublicVocabularyList[]> {
+    return firstValueFrom(
+      this.#http
+        .get<PublicVocabularyList[]>('/api/v1/vocabulary/public')
+        .pipe(catchError(() => of([]))),
+    );
+  }
+
+  async fetchPublicItems(listId: string): Promise<VocabularyEntry[]> {
+    return firstValueFrom(
+      this.#http
+        .get<VocabularyEntry[]>(`/api/v1/vocabulary/public/${listId}/items`)
+        .pipe(catchError(() => of([]))),
+    );
+  }
+
+  /** Clone a public list into the user's own account, then switch to it. Returns the new list. */
+  async cloneList(publicListId: string): Promise<VocabularyList | null> {
+    const list = await firstValueFrom(
+      this.#http
+        .post<VocabularyList>(`/api/v1/vocabulary/public/${publicListId}/clone`, {})
+        .pipe(catchError(() => of(null))),
+    );
+    if (!list) return null;
+    this.lists.update((ls) => [...ls, list]);
+    this.setCurrentList(list.id);
+    void this.#studyService.refreshStats();
+    return list;
   }
 
   async #initLists(): Promise<void> {

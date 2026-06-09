@@ -28,7 +28,10 @@ import {
   addOutline,
   closeOutline,
   createOutline,
+  globe,
+  globeOutline,
   pencilOutline,
+  peopleOutline,
   schoolOutline,
   trashOutline,
 } from 'ionicons/icons';
@@ -36,6 +39,7 @@ import { DictionaryService } from '../dictionary/dictionary.service';
 import { WordLang } from '../dictionary/word-lang.model';
 import { StudyModalComponent } from '../study/study-modal/study-modal.component';
 import { StudyService } from '../study/study.service';
+import { SharedListsBrowserComponent } from './shared-lists-browser/shared-lists-browser.component';
 import { VocabularyEntryModalComponent } from './vocabulary-entry-modal/vocabulary-entry-modal.component';
 import { VocabularyEntry, VocabularyList, VocabularyService } from './vocabulary.service';
 import { PointerService } from '../../shared/pointer.service';
@@ -93,10 +97,39 @@ export class VocabularyPage {
       addOutline,
       closeOutline,
       createOutline,
+      globe,
+      globeOutline,
       pencilOutline,
+      peopleOutline,
       schoolOutline,
       trashOutline,
     });
+  }
+
+  async openSharedListsBrowser(): Promise<void> {
+    const modal = await this.#modalCtrl.create({ component: SharedListsBrowserComponent });
+    await modal.present();
+  }
+
+  async toggleListPublic(list: VocabularyList): Promise<void> {
+    if (!list.isPublic) {
+      this.vocabularyService.setListPublic(list.id, true);
+      return;
+    }
+    // Making a public list private: confirm, since others may want to keep finding it.
+    // (Copies already cloned are unaffected — they are independent.)
+    const alert = await this.#alertCtrl.create({
+      header: this.#translate.instant('shared-lists.unpublish-title'),
+      message: this.#translate.instant('shared-lists.unpublish-message', { name: list.name }),
+      buttons: [
+        { text: this.#translate.instant('common.close'), role: 'cancel' },
+        {
+          text: this.#translate.instant('shared-lists.make-private'),
+          handler: () => this.vocabularyService.setListPublic(list.id, false),
+        },
+      ],
+    });
+    await alert.present();
   }
 
   async lookup(entry: VocabularyEntry): Promise<void> {
