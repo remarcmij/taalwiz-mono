@@ -37,6 +37,8 @@ Teeuw's printed page, standard lexicography, or this markup. They line up like t
 
 **Table 1.** Terminology: one set of things, three vocabularies (Teeuw's print, standard lexicography, and this markup).
 
+The first two columns probably need no further explanation for readers familiar with the Teeuw dictionary and the standard lexicographical vocabulary. The third column describes the terms used here for the transcription. Their exact meaning will become clearer in the next sections.
+
 ---
 
 ## 2. What the source actually is
@@ -48,11 +50,11 @@ encoding its **typography and layout**, while fully retaining its meaning.
 
 **Figure 1.** The first page of the printed Teeuw definitions.
 
-The markdown format (ref. Figure 2) follows closely the format of the printed book. This was for convenience, because the "raw material" for the transcription, viz. hanging paragraphs in scanned OCR pages, could then simply be "flattened out" and marked up with markdown bold and italic annotations[^1]. The markdown could be previewed in the editor with some bold and italic renderings.
+The markdown format (ref. Figure 2) follows closely the format of the printed book. This was for convenience, because the "raw material" for the transcription, viz. hanging paragraphs in scanned OCR pages, could then simply be "flattened out" and marked up with markdown bold and italic annotations[^1]. The markdown could be previewed in the editor with the same bold and italic renderings.
 
 ![book-markdown](./assets/markdown-in-editor.png)
 
-**Figure 2.** Book paragraphs from Figure 1 flattened to markdown, shown in text editor.
+**Figure 2.** Book paragraphs from Figure 1 flattened to markdown, shown in the text editor (the author used VS Code).
 
 In printed Teeuw, a headword is bold and
 at the left margin; its derivations are bold and indented; its compounds and
@@ -69,9 +71,9 @@ Two consequences worth internalising:
   indentation / swung dash) and the parser does the rest. The one place this
   breaks down is the tilde, which is why [section 6](#6-the--tilde-and-the--revert-marker)
   is the longest.
-- For the benefit of both editor and printer, Teeuw used the swung dash as a placeholder for the most recent headword or derivation. In the markdown files, this is replaced by a tilde `~` character, conveniently available on all computer keyboards. From this point on we will refer to the "swung dash" as "tilde". Note that the Taalwiz app never displays the tilde. It is internally replaced with the corresponding headword or derivation. Screen space is cheap; paper, ink and typesetting are not.
+- For the benefit of both editor and printer, Teeuw used the swung dash as a placeholder for the most recent headword or derivation. In the markdown files, this is replaced by a tilde `~` character, conveniently available on all computer keyboards. From this point on we will refer to the "swung dash" as "tilde". Note that the Taalwiz app never displays the tilde. It is internally replaced with the corresponding headword or derivation.[^2] Screen space is cheap; paper, ink and typesetting are not.
 
-The existing Teeuw digitisation is to be considered **best-effort**. The transcription was careful and the
+The existing Teeuw digitisation is to be considered **best-effort**. The transcription was done carefully and the
 compiler parsing the markdown is strict, but the original is a large, irregular book, and incidental
 deviations remain.
 
@@ -87,9 +89,12 @@ run of consecutive non-blank lines in between.
 
 One block is one dictionary
 **entry** — what Teeuw calls an *artikel* (article): a single **headword** and everything
-printed beneath it. ("Block" and "entry" name the same unit, source-side and
-dictionary-side.) The first bold word of a block is the headword — literally
-the word at the *head* of the block (the grondwoord / `base`). Every later bold word in the same block is a **derivation**[^2]
+printed beneath it. 
+
+> "Block" and "entry" name the same unit: "block" for the markdown source, "entry" for how it is referred to internally in the Taalwiz app.
+
+The first bold word of a block is the headword — literally
+the word at the *head* of the block (the grondwoord / `base`). Every later bold word in the same block is a **derivation**[^3]
 (`keyword`) under that same headword — it does **not** start a new entry.
 
 ```
@@ -149,7 +154,7 @@ the app — closes the loop (Figure 4):
 ![taalwiz-app-example](./assets/taalwiz-abad.png)
 
 **Figure 4.** The `abad` article compiled and rendered in the Taalwiz app: the end of
-the chain (print → markdown → app).[^3]
+the chain (print → markdown → app).[^4]
 
 ---
 
@@ -172,7 +177,8 @@ the chain (print → markdown → app).[^3]
 **Table 3.** The full markup vocabulary: each symbol, the print feature it encodes, and what it means to the compiler.
 
 Unused/free characters in the corpus include `^` (now the revert marker) — do
-not introduce other control characters without updating the tokenizer.
+not introduce other control characters; a new one would require a corresponding
+change to the compiler.
 
 ---
 
@@ -266,7 +272,7 @@ The same shape, with genuine sub-compounds kept before the `^`:
 - A line where a following **bold** form already re-anchors `~` (a new derivation):
   no `^` needed.
 
-Deciding sub-compound-vs-headword is the one judgment that can need the printed
+Deciding sub-compound-vs-headword is the one judgment that can need an inspection of the printed
 page (is `~ jiwa` a "rumah sakit jiwa" or a "rumah jiwa"?). The Dutch gloss
 usually settles it ("psychiatrische kliniek" is a hospital), so this is reading
 your own translation, not deep Indonesian. When in doubt, you can always avoid
@@ -278,7 +284,7 @@ same result.
 ## 7. Supplement (`+`) files
 
 To add post-1996 words, create/extend `teeuw.X+.md` (e.g. `teeuw.a+.md`) using the
-**exact same markup**. The core files stay untouched; everything in a `+` file is
+**exact same markup**. The core files, representing Teeuw's original 1996 edition, stay untouched; everything in a `+` file is
 automatically flagged `isSupplement` and rendered distinctly. Homonym numbering
 carries across the core/supplement boundary. Full design in
 [TEEUW_PARSER.md Part 2](./TEEUW_PARSER.md#part-2--supplement--files).
@@ -289,7 +295,7 @@ Practical checklist for a new entry:
 2. Use `*~ x*` for compounds of the headword; spell Dutch glosses plainly.
 3. If you add a bold compound with its own derivation and more headword-compounds
    follow it, drop a `^` after the derivation.
-4. Mark exotic gloss names with `_..._` so they are not indexed as Dutch.
+4. Mark exotic gloss names (e.g. Latin names of plants) with `_..._` so they are not indexed as Dutch.
 5. Recompile (`pnpm --filter compiler run build && pnpm --filter compiler run start`).
    The compiler is strict: a malformed block aborts with the line number, so a
    clean compile is your first proofreading pass.
@@ -313,10 +319,12 @@ arise from a new bold compound you introduce, and the warning will flag it.
 
 [^1]: There was more to it: OCR scanning errors had to be located and corrected too.
 
-[^2]: A derivation is what the user-facing guide calls a **sublemma**; the two
+[^2]: In the markdown files, the tilde `~` is a convenience for the editor. As stated, it is a placeholder for the preceding headword or derivation. But the Taalwiz app replaces the tilde automatically with the corresponding word. Therefore, the content editor could also opt to retype the word instead of using the tilde (but at the risk of introducing a typo).
+
+[^3]: A derivation is what the user-facing guide calls a **sublemma**; the two
 terms are interchangeable — a `keyword` under a `base`.
 
-[^3]: Two things are worth noticing in Figure 4. Each swung dash has been
+[^4]: Two things are worth noticing in Figure 4. Each swung dash has been
 **expanded to its governing word** (`*~ pertengahan*` → "abad pertengahan",
 `*~ emas*` → "abad emas"; see [section 6](#6-the--tilde-and-the--revert-marker)),
 and the bold derivations (`berabad-abad`, `abadi`, `mengabadikan`, …) are listed
