@@ -100,8 +100,11 @@ export class ContentService implements OnApplicationBootstrap {
     const article = await Article.findOne({ filename: normalizedFilename }).select('-indexText').lean();
     if (!article) return null;
 
+    // `help` articles are universal UI documentation, readable by any
+    // authenticated user regardless of group membership (cf. the target-lang
+    // exemption for `help` in ArticleLoader).
     const groups = authorizedGroups(user);
-    if (groups && !groups.includes(article.groupName)) {
+    if (groups && article.groupName !== 'help' && !groups.includes(article.groupName)) {
       throw new ForbiddenException();
     }
 

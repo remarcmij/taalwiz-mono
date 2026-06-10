@@ -77,6 +77,14 @@ describe('ContentService', () => {
       );
     });
 
+    it('allows any user to fetch a help article even without the help group', async () => {
+      mockArticle({ filename: 'help.nl.md', groupName: 'help', mdText: '# Help' });
+
+      const result = await service.findArticle('help.nl', demoUser);
+
+      expect(result).toMatchObject({ filename: 'help.nl.md', htmlText: '<p>html</p>' });
+    });
+
     it('allows an admin to fetch an article from any group', async () => {
       mockArticle({ filename: 'salindo.basisgrammatica-1.md', groupName: 'salindo', mdText: '# Hi' });
 
