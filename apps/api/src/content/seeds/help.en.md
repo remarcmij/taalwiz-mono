@@ -70,7 +70,7 @@ Lines starting with `#` are treated as comments and ignored. Blank lines are als
 
 ### Sharing lists
 
-If you have built a list you think others would find useful, you can share it. Tap the __globe__ icon on a list tab to make that list __public__: everyone using Taalwiz can then find it. Tap the globe again to make it private; people who already copied it keep their own copy.
+If you have built a list you think others would find useful, you can share it. Open a list's __menu__ (the three-dots button on the list tab) and choose __Share with everyone__: everyone using Taalwiz can then find it, and a globe appears on the tab to show it is shared. Choose __Make private__ from the same menu to stop sharing; people who already copied it keep their own copy.
 
 To find lists others have shared, tap the __people__ icon in the top bar. This opens the shared-lists browser, where each entry shows the list name, who shared it, and how many words it contains. Tap a list to preview its words, then tap __Copy to my lists__ to add a copy to your own account.
 

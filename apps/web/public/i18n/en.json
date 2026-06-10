@@ -102,14 +102,14 @@
   },
   "shared-lists": {
     "title": "Shared lists",
-    "empty": "No shared lists yet. Make one of your own lists public to share it.",
+    "empty": "No shared lists yet. Share one of your own lists with everyone to get started.",
     "shared-by": "Shared by {{name}}",
     "word-count": "{{count}} words",
     "clone-button": "Copy to my lists",
     "clone-success": "Copied '{{name}}' to your lists",
     "clone-failed": "Could not copy '{{name}}'",
-    "shared-status": "Shared publicly",
-    "share-list": "Share publicly",
+    "shared-status": "Shared with everyone",
+    "share-list": "Share with everyone",
     "make-private": "Make private",
     "unpublish-title": "Make private",
     "unpublish-message": "Stop sharing '{{name}}'? Anyone who already copied it keeps their own copy."

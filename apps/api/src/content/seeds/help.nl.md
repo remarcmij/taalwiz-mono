@@ -70,7 +70,7 @@ Regels die beginnen met `#` worden als commentaar beschouwd en genegeerd. Lege r
 
 ### Lijsten delen
 
-Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Tik op het __wereldbol__-icoon op een lijsttabblad om die lijst __openbaar__ te maken: iedereen die Taalwiz gebruikt kan hem dan vinden. Tik nogmaals op de wereldbol om de lijst weer privé te maken; wie hem al heeft gekopieerd, behoudt de eigen kopie.
+Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Open het __menu__ van een lijst (de knop met drie puntjes op het lijsttabblad) en kies __Met iedereen delen__: iedereen die Taalwiz gebruikt kan hem dan vinden, en er verschijnt een wereldbol op het tabblad om aan te geven dat hij gedeeld is. Kies __Privé maken__ in hetzelfde menu om te stoppen met delen; wie hem al heeft gekopieerd, behoudt de eigen kopie.
 
 Om lijsten te vinden die anderen hebben gedeeld, tik je op het __personen__-icoon in de bovenbalk. Dit opent het overzicht van gedeelde lijsten, waar je per lijst de naam, wie hem deelde en het aantal woorden ziet. Tik op een lijst om de woorden te bekijken en tik daarna op __Naar mijn lijsten kopiëren__ om een kopie aan je eigen account toe te voegen.
 

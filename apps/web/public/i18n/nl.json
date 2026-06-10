@@ -102,14 +102,14 @@
   },
   "shared-lists": {
     "title": "Gedeelde lijsten",
-    "empty": "Nog geen gedeelde lijsten. Maak een van je eigen lijsten openbaar om te delen.",
+    "empty": "Nog geen gedeelde lijsten. Deel een van je eigen lijsten met iedereen om te beginnen.",
     "shared-by": "Gedeeld door {{name}}",
     "word-count": "{{count}} woorden",
     "clone-button": "Naar mijn lijsten kopiëren",
     "clone-success": "'{{name}}' naar je lijsten gekopieerd",
     "clone-failed": "Kon '{{name}}' niet kopiëren",
-    "shared-status": "Openbaar gedeeld",
-    "share-list": "Openbaar delen",
+    "shared-status": "Gedeeld met iedereen",
+    "share-list": "Met iedereen delen",
     "make-private": "Privé maken",
     "unpublish-title": "Privé maken",
     "unpublish-message": "Stoppen met delen van '{{name}}'? Wie het al heeft gekopieerd, behoudt de eigen kopie."
