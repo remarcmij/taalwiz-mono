@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -96,9 +96,17 @@ export class AuthService implements OnDestroy {
       }
       return this.#getRefreshedToken();
     }).pipe(
-      catchError((error) => {
-        this.#logger.error('AuthService', 'Token retrieval failed', error);
-        this.logout();
+      catchError((error: unknown) => {
+        // Only a genuine rejection of the refresh token (HTTP 401/403) ends the
+        // session. Transient failures — server unreachable (status 0), timeouts,
+        // or 5xx — must NOT log the user out: returning null fails just this
+        // request, leaving the session intact so the next attempt can recover.
+        if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
+          this.#logger.warn('AuthService', 'Refresh token rejected; logging out', error);
+          this.logout();
+        } else {
+          this.#logger.error('AuthService', 'Token refresh failed (transient); keeping session', error);
+        }
         return of(null);
       }),
       takeUntil(this.#destroy$),
@@ -111,6 +119,11 @@ export class AuthService implements OnDestroy {
         take(1),
         switchMap((refreshToken) => {
           if (!refreshToken) {
+            // No valid refresh token left (missing or client-side expired) —
+            // the session is genuinely over, so end it. This is distinct from a
+            // transient network failure, which is handled in the token getter's
+            // catchError and must keep the session.
+            this.logout();
             return of(null);
           }
           return this.#http

@@ -40,18 +40,18 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           return authService.token.pipe(
             first(),
             switchMap((newToken) => {
+              // The token getter is the single authority on logout: it has
+              // already ended the session if the refresh was genuinely rejected
+              // (401/403) or the refresh token expired. A null token for any
+              // other reason is transient, so we just fail this request rather
+              // than tearing down the session.
               if (!newToken) {
-                authService.logout();
                 return throwError(() => error);
               }
               const retryReq = req.clone({
                 headers: req.headers.set('Authorization', `Bearer ${newToken}`),
               });
               return next(retryReq);
-            }),
-            catchError(() => {
-              authService.logout();
-              return throwError(() => error);
             }),
           );
         }),
