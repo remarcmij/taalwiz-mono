@@ -33,12 +33,16 @@
           [color]="list.id === vocabularyService.currentListId() ? 'primary' : 'medium'"
           (click)="vocabularyService.setCurrentList(list.id)">
           <ion-label>{{ list.name }}</ion-label>
+          @if (list.isPublic) {
+            <ion-icon
+              name="globe"
+              class="public-indicator"
+              [title]="'shared-lists.shared-status' | translate"></ion-icon>
+          }
           <ion-icon
-            [name]="list.isPublic ? 'globe' : 'globe-outline'"
-            [title]="(list.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list') | translate"
-            (click)="$event.stopPropagation(); toggleListPublic(list)"></ion-icon>
-          <ion-icon name="pencil-outline" (click)="$event.stopPropagation(); openRenameListAlert(list)"></ion-icon>
-          <ion-icon name="close-outline" (click)="$event.stopPropagation(); confirmDeleteList(list)"></ion-icon>
+            name="ellipsis-vertical"
+            [title]="'common.options' | translate"
+            (click)="$event.stopPropagation(); openListMenu(list)"></ion-icon>
         </ion-chip>
       }
     </ion-toolbar>

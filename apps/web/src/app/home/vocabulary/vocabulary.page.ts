@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
+  ActionSheetController,
   AlertController,
   IonBadge,
   IonButton,
@@ -26,8 +27,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
-  closeOutline,
   createOutline,
+  ellipsisVertical,
   globe,
   globeOutline,
   pencilOutline,
@@ -77,6 +78,7 @@ export class VocabularyPage {
   #dictionaryService = inject(DictionaryService);
   #router = inject(Router);
   #alertCtrl = inject(AlertController);
+  #actionSheetCtrl = inject(ActionSheetController);
   #modalCtrl = inject(ModalController);
   #translate = inject(TranslateService);
   #platform = inject(Platform);
@@ -95,8 +97,8 @@ export class VocabularyPage {
   constructor() {
     addIcons({
       addOutline,
-      closeOutline,
       createOutline,
+      ellipsisVertical,
       globe,
       globeOutline,
       pencilOutline,
@@ -109,6 +111,35 @@ export class VocabularyPage {
   async openSharedListsBrowser(): Promise<void> {
     const modal = await this.#modalCtrl.create({ component: SharedListsBrowserComponent });
     await modal.present();
+  }
+
+  /** Per-list overflow menu — keeps the chip uncluttered (just name + status + ⋮). */
+  async openListMenu(list: VocabularyList): Promise<void> {
+    const sheet = await this.#actionSheetCtrl.create({
+      header: list.name,
+      buttons: [
+        {
+          text: this.#translate.instant(
+            list.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list',
+          ),
+          icon: list.isPublic ? 'globe' : 'globe-outline',
+          handler: () => void this.toggleListPublic(list),
+        },
+        {
+          text: this.#translate.instant('bookmarks.rename-list-title'),
+          icon: 'pencil-outline',
+          handler: () => void this.openRenameListAlert(list),
+        },
+        {
+          text: this.#translate.instant('bookmarks.delete-list-title'),
+          icon: 'trash-outline',
+          role: 'destructive',
+          handler: () => void this.confirmDeleteList(list),
+        },
+        { text: this.#translate.instant('common.close'), role: 'cancel' },
+      ],
+    });
+    await sheet.present();
   }
 
   async toggleListPublic(list: VocabularyList): Promise<void> {

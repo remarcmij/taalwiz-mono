@@ -55,5 +55,12 @@ p.back-preview {
     ion-icon:first-of-type {
       margin-left: 6px;
     }
+
+    // Non-interactive "this list is shared" status glyph.
+    ion-icon.public-indicator {
+      color: var(--ion-color-medium);
+      font-size: 0.9rem;
+      cursor: default;
+    }
   }
 }
