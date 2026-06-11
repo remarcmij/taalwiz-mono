@@ -159,7 +159,7 @@ pnpm build
 
 > **bcrypt (native) under pnpm 10:** `pnpm install` may warn `Ignored build
 > scripts: … bcrypt …`. The repo allow-lists bcrypt
-> (`pnpm.onlyBuiltDependencies` in the root `package.json`) so it should build
+> (`onlyBuiltDependencies` in `pnpm-workspace.yaml`) so it should build
 > automatically. If auth still throws on the first login/registration, the
 > native addon is missing — run `pnpm rebuild bcrypt` and verify with
 > `node -e "console.log(require('bcrypt').hashSync('x',8))"`.
