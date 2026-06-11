@@ -8,6 +8,9 @@ hero:
       text: Project Overview
       link: /overview
     - theme: alt
+      text: How Search Works
+      link: /how-search-works
+    - theme: alt
       text: Content Management Guide
       link: /content-guide
     - theme: alt
