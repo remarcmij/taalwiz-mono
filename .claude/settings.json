@@ -50,7 +50,8 @@
       "Skill(fewer-permission-prompts)",
       "Skill(fewer-permission-prompts:*)",
       "Bash(python3 /tmp/perm-scan.py)",
-      "Bash(python3 -c \"import json; d=json.load\\(open\\('.claude/settings.json'\\)\\); print\\(json.dumps\\(d.get\\('permissions',{}\\).get\\('allow',[]\\), indent=0\\)\\)\")"
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('.claude/settings.json'\\)\\); print\\(json.dumps\\(d.get\\('permissions',{}\\).get\\('allow',[]\\), indent=0\\)\\)\")",
+      "Edit(/.claude/skills/deploy-to-pi/**)"
     ],
     "additionalDirectories": [
       "/tmp",
