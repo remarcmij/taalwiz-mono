@@ -38,6 +38,17 @@ import { VocabularyModule } from './vocabulary/vocabulary.module.js';
       rootPath: path.join(
         import.meta.dirname,
         '../../..',
+        'apps/docs/docs/.vitepress/dist',
+      ),
+      serveRoot: '/guide',
+      // VitePress emits .html files; resolve extensionless URLs like
+      // /guide/overview to overview.html.
+      serveStaticOptions: { extensions: ['html'] },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: path.join(
+        import.meta.dirname,
+        '../../..',
         'apps/web/www/browser',
       ),
     }),

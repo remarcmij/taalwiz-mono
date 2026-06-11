@@ -6,10 +6,10 @@ hero:
   actions:
     - theme: brand
       text: Project Overview
-      link: /guide/overview
+      link: /overview
     - theme: alt
       text: Content Management Guide
-      link: /guide/content-guide
+      link: /content-guide
     - theme: alt
       text: GitHub
       link: https://github.com/remarcmij/taalwiz-mono

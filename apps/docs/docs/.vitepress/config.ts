@@ -17,15 +17,15 @@ export default withMermaid(
     sidebar: [
       {
         text: "About",
-        items: [{ text: "Project Overview", link: "/guide/overview" }],
+        items: [{ text: "Project Overview", link: "/overview" }],
       },
       {
         text: "How it works",
-        items: [{ text: "How search works", link: "/guide/how-search-works" }],
+        items: [{ text: "How search works", link: "/how-search-works" }],
       },
       {
         text: "Content & Admin",
-        items: [{ text: "Content Management Guide", link: "/guide/content-guide" }],
+        items: [{ text: "Content Management Guide", link: "/content-guide" }],
       },
     ],
     socialLinks: [],
