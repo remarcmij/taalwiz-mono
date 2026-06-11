@@ -279,6 +279,22 @@ Wrong hits are bounded by two facts, though not eliminated:
 
 The residual risk lives in **over-stripping with weak guards** (`-i` strips any final _i_ from a 2-character-plus stem; `-an`/`-kan` similar — see Limitation 1 below). If a typed form is _not_ itself indexed and an over-strip coincidentally lands on an unrelated keyword before the correct one, the result is a confidently-wrong entry. Tighter length/shape guards on strips would shrink this surface (see Future Improvements). The over-generation noise itself is harmless; only this coincidental-real-word case is not.
 
+#### Which nonsense candidates actually get queried
+
+A tempting overstatement is "the nonsense forms are never searched." Not quite. `#searchLocal()` stops at the **first** keyword hit, so candidates _after_ the winner are never queried — but a nonsense candidate sitting _before_ the winner does get its one (empty) IndexedDB lookup. The over-generation is free either way (a non-word matches nothing), but "free" means "costs one wasted lookup," not "skipped."
+
+Only one ordering pattern actually places nonsense ahead of a valid root: the `meN-` strip of a root whose initial consonant **elides** (p/t/s/k). `nasalCandidates()` emits the bare remainder before the consonant-restored root, so the un-restored vowel-initial fragment lands one slot earlier:
+
+| typed | candidate order | nonsense ahead of the valid root |
+| --- | --- | --- |
+| `menulis` | `[menulis, ulis, tulis, nulis]` | `ulis` (#2) before `tulis` (#3) |
+| `memotong` | `[memotong, otong, potong, motong]` | `otong` before `potong` |
+| `mengirim` | `[mengirim, irim, kirim, ngirim]` | `irim` before `kirim` |
+
+In practice these `meN-` forms are themselves sublemma-keywords, so the typed word **self-hits on #1** and `ulis`/`otong`/`irim` are never queried (e.g. `menulis -> ['=menulis', 'ulis', 'tulis', 'nulis']` — only `menulis` is looked up). The fragment only reaches IndexedDB when the typed form is _not_ indexed, in which case it misses and the search moves on to the real root one slot later.
+
+The two other junk sources are always emitted **after** the valid root, so they are never queried ahead of it: the consonant-restored form of a true vowel-initial root (`mengambil → kambil`, after the valid `ambil`) and the bare-stem `slice(2)` form (`membakar → mbakar`, `menulis → nulis`, pushed last).
+
 ### Limitations & Design Tradeoffs
 
 1. **Over-stripping**: Some generated variations may not be real words (e.g., `terbang` → `bang`). This is acceptable because false variations just create extra IndexedDB lookups; they don't break lookups. The lookup simply won't find a match for them.
