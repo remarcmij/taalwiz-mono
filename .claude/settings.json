@@ -15,6 +15,7 @@
       "mcp__mongodb-mcp-server__list-collections",
       "mcp__mongodb-mcp-server__collection-schema",
       "mcp__mongodb-mcp-server__find",
+      "mcp__claude_ai_Mermaid_Chart__validate_and_render_mermaid_diagram",
       "Bash(node_modules/.bin/tsc --project tsconfig.json --noEmit)",
       "Bash(node_modules/.bin/tsc --project tsconfig.json)",
       "Bash(echo \"Exit code: $?\")",
@@ -45,7 +46,11 @@
       "Bash(scp /tmp/about-check.js raspi5x:/tmp/about-check.js)",
       "Bash(scp /tmp/delete-about.js raspi5x:/tmp/delete-about.js)",
       "Bash(scp /tmp/about-recheck.js raspi5x:/tmp/about-recheck.js)",
-      "Bash(scp /tmp/assign-groups.js raspi5x:/tmp/assign-groups.js)"
+      "Bash(scp /tmp/assign-groups.js raspi5x:/tmp/assign-groups.js)",
+      "Skill(fewer-permission-prompts)",
+      "Skill(fewer-permission-prompts:*)",
+      "Bash(python3 /tmp/perm-scan.py)",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('.claude/settings.json'\\)\\); print\\(json.dumps\\(d.get\\('permissions',{}\\).get\\('allow',[]\\), indent=0\\)\\)\")"
     ],
     "additionalDirectories": [
       "/tmp",
