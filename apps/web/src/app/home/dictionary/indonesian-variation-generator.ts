@@ -131,9 +131,14 @@ interface TraceNode {
   word: string;
   /** Label of the rule that produced this node from its parent; null for the root. */
   rule: string | null;
-  /** Insertion sequence number in the result Set, or null when this is a duplicate. */
-  seq: number | null;
-  /** True when `word` was already in the Set on this visit (the subtree is not expanded). */
+  /**
+   * True when `word` was already SHOWN earlier in the tree (a visible repeat).
+   * Note this is deliberately keyed on what the trace has displayed, NOT on the
+   * result Set: the real recursion re-enters already-Set'd subtrees (mePrefixed
+   * correctness) and adds new words inside them, so a word's first Set-insertion
+   * can happen in a branch the trace collapses. Keying `dup` on display order
+   * keeps numbering gap-free and reserves `(dup)` for genuine on-screen repeats.
+   */
   dup: boolean;
   children: TraceNode[];
 }
@@ -146,9 +151,15 @@ function isTraceEnabled(): boolean {
   }
 }
 
-/** Render a TraceNode tree as the box-drawing trace shown in SEARCH.md. */
-function renderTrace(root: TraceNode): string {
-  const marker = (n: TraceNode) => (n.dup ? '(dup)' : `#${n.seq}`);
+/**
+ * Render a TraceNode tree as the box-drawing trace shown in SEARCH.md. Each
+ * non-dup node is numbered by its position in `order` (the returned variations),
+ * so the `#N` labels line up exactly with the final array; `(dup)` marks a word
+ * already shown higher in the tree.
+ */
+function renderTrace(root: TraceNode, order: string[]): string {
+  const index = new Map(order.map((w, i) => [w, i + 1]));
+  const marker = (n: TraceNode) => (n.dup ? '(dup)' : `#${index.get(n.word)}`);
   const lines: string[] = [`${root.word}  ${marker(root)}`];
 
   const walk = (children: TraceNode[], prefix: string) => {
@@ -169,13 +180,15 @@ export class IndonesianVariationGenerator implements VariationGenerator {
 
     if (isTraceEnabled()) {
       // The recursion attaches each visited word to its trace parent; a throwaway
-      // holder collects the real root as its single child.
-      const holder: TraceNode = { word: '', rule: null, seq: null, dup: false, children: [] };
-      this.getVariations(word, variations, false, holder);
+      // holder collects the real root as its single child. `shown` tracks which
+      // words have already been displayed, so re-visits collapse to `(dup)`.
+      const holder: TraceNode = { word: '', rule: null, dup: false, children: [] };
+      const shown = new Set<string>();
+      this.getVariations(word, variations, false, holder, shown);
       const result = [...variations];
       const root = holder.children[0];
       if (root) {
-        console.log(`${renderTrace(root)}\n→ [${result.join(', ')}]`);
+        console.log(`${renderTrace(root, result)}\n→ [${result.join(', ')}]`);
       }
       return result;
     }
@@ -184,31 +197,29 @@ export class IndonesianVariationGenerator implements VariationGenerator {
     return [...variations];
   }
 
-  // `traceParent` drives the optional dev trace: `undefined` means tracing is
-  // off (the production path); a node (or the root holder) means attach this
-  // word under it. Recursing into an already-seen word passes `undefined` to its
-  // children, so a duplicate is shown as a leaf and its subtree is not re-walked.
+  // `traceParent`/`traceShown` drive the optional dev trace: both `undefined`
+  // means tracing is off (the production path). When set, this word is attached
+  // under `traceParent`; its `dup` flag and whether its subtree is expanded are
+  // keyed on `traceShown` (what the tree has already displayed), NOT on the
+  // result Set — see TraceNode.dup for why. A word shown for the first time
+  // expands; a repeat renders as a `(dup)` leaf and is not re-walked in the tree.
   private getVariations(
     word: string,
     variations: Set<string>,
     mePrefixed: boolean,
     traceParent?: TraceNode,
+    traceShown?: Set<string>,
     ruleLabel?: string,
   ) {
-    const isNew = !variations.has(word);
     variations.add(word);
 
     let childTrace: TraceNode | undefined;
-    if (traceParent) {
-      const node: TraceNode = {
-        word,
-        rule: ruleLabel ?? null,
-        seq: isNew ? variations.size : null,
-        dup: !isNew,
-        children: [],
-      };
+    if (traceParent && traceShown) {
+      const seenInTrace = traceShown.has(word);
+      if (!seenInTrace) traceShown.add(word);
+      const node: TraceNode = { word, rule: ruleLabel ?? null, dup: seenInTrace, children: [] };
       traceParent.children.push(node);
-      childTrace = isNew ? node : undefined; // a dup is a leaf; do not re-trace its subtree
+      childTrace = seenInTrace ? undefined : node; // a visible repeat is a leaf; don't re-trace it
     }
 
     if (WordExemptions.indexOf(word) !== -1) {
@@ -222,7 +233,7 @@ export class IndonesianVariationGenerator implements VariationGenerator {
         case 'strip': {
           const match = word.match(rule.pattern);
           if (match) {
-            this.getVariations(match[1], variations, mePrefixed, childTrace, `strip ${rule.label}`);
+            this.getVariations(match[1], variations, mePrefixed, childTrace, traceShown, `strip ${rule.label}`);
           }
           break;
         }
@@ -233,16 +244,16 @@ export class IndonesianVariationGenerator implements VariationGenerator {
           const base = rule.base === 'group1' ? match[1] : word;
           const meWord = prefixWithMeN(base);
           if (meWord !== base) {
-            this.getVariations(meWord, variations, true, childTrace, rule.label);
+            this.getVariations(meWord, variations, true, childTrace, traceShown, rule.label);
           }
           if (rule.alsoBare) {
-            this.getVariations(base, variations, true, childTrace, `${rule.label} (bare root)`);
+            this.getVariations(base, variations, true, childTrace, traceShown, `${rule.label} (bare root)`);
           }
           break;
         }
         case 'nasal': {
           for (const cand of nasalCandidates(word, rule.stem)) {
-            this.getVariations(cand.remainder, variations, mePrefixed, childTrace, `nasal ${cand.surface}`);
+            this.getVariations(cand.remainder, variations, mePrefixed, childTrace, traceShown, `nasal ${cand.surface}`);
           }
           break;
         }
