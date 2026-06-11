@@ -36,6 +36,12 @@ export class WordClickModalService {
     }
 
     const { text: sentence, html: sentenceHtml } = this.#extractSentence(target);
+    // Speech reads only the target-language phrase the word sits in. Each target word
+    // is a <span> inside one <em>/<strong> emphasis group, while native (Dutch) text is
+    // a plain-text sibling outside it, so the parent element's text is the foreign phrase
+    // alone. This deliberately differs from `sentence` (whole block, kept bilingual for
+    // flashcard context): speaking the block would read the Dutch in the foreign voice.
+    const speech = target.parentElement?.textContent?.trim() ?? '';
 
     target.classList.add('clicked');
 
@@ -48,6 +54,7 @@ export class WordClickModalService {
           lang,
           sentence,
           sentenceHtml,
+          speech,
           lemmas,
           onDismiss: () => target.classList.remove('clicked'),
         });
@@ -71,6 +78,9 @@ export class WordClickModalService {
           word: response.word,
           lang: response.lang,
           sentence: sentence.trim(),
+          // No DOM to narrow to the foreign phrase here, and the stored source sentence
+          // can be bilingual, so leave `speech` empty: the audio button falls back to
+          // pronouncing just the tapped word (never native text in the foreign voice).
           lemmas: response.lemmas,
           hideActions: true,
         });
@@ -85,6 +95,7 @@ export class WordClickModalService {
     lang: string;
     sentence: string;
     sentenceHtml?: string;
+    speech?: string;
     lemmas: ILemma[];
     hideActions?: boolean;
     onDismiss?: () => void;
@@ -98,6 +109,7 @@ export class WordClickModalService {
           lang: opts.lang,
           sentence: opts.sentence,
           sentenceHtml: opts.sentenceHtml ?? '',
+          speech: opts.speech ?? '',
           lemmas: opts.lemmas,
           hideActions: opts.hideActions ?? false,
         },

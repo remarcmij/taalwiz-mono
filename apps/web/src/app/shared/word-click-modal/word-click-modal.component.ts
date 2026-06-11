@@ -87,6 +87,11 @@ export class WordClickModalComponent implements OnInit {
   /** Marked-up form of the sentence (target words wrapped in <span>), stored as the
    * flashcard's source-sentence so the card can reuse the same tappable words. */
   sentenceHtml = input<string>('');
+  /** Text spoken by the audio button: the target-language phrase the clicked word
+   * belongs to (its emphasis group), NOT the whole block. In bilingual content (grammar
+   * tables/lists) the native text sits outside that group, so it is never read aloud in
+   * the target-language voice. Falls back to the bare clicked word. */
+  speech = input<string>('');
   lemmas = input.required<ILemma[]>();
   /** When true (e.g. opened from SRS review) hide the bookmark and dictionary-lookup
    * actions, leaving a view-only modal (definition + audio). */
@@ -174,11 +179,12 @@ export class WordClickModalComponent implements OnInit {
     return this.#speechService.canSpeakLanguage(this.lang());
   }
 
-  // One audio button now covers both cases: it speaks the sentence the word was tapped
-  // in, which falls back to the bare word when there is no surrounding sentence
-  // (sentence() === clickedWord()). So a standalone tap still pronounces the word.
+  // Speaks the target-language phrase the word belongs to (its emphasis group), not the
+  // whole block. This keeps native (Dutch) text in bilingual grammar tables/lists from
+  // being read aloud in the target-language voice. Falls back to the bare clicked word.
   speakSentence() {
-    this.#speechService.speakSingle(this.sentence(), this.lang()).subscribe({ error: () => {} });
+    const text = this.speech() || this.clickedWord();
+    this.#speechService.speakSingle(text, this.lang()).subscribe({ error: () => {} });
   }
 
   toggleQuizMode() {
