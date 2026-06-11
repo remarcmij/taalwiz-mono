@@ -77,10 +77,11 @@ The variation generator is pluggable via `langConfig.variationGenerator` (`Varia
 2. User presses Enter (on mobile this is the soft-keyboard Go/Search/Return key, which fires the same `key === 'Enter'` event)
 3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `this.lookup(new WordLang(this.word(), langConfig.targetLang))` — this is the fallback that runs the full variation-generator-backed lookup on the typed term
 4. `#searchLocal()` calls `langConfig.variationGenerator.getWordVariations('dibakar')`:
-   - `["dibakar", "membakar", "bakar"]`
+   - `["dibakar", "membakar", "bakar", "mbakar"]`
    - "dibakar" = original (passive: "was burned")
    - "membakar" = active voice form (meN- + bakar, where 'b' initial → mem-)
    - "bakar" = bare root
+   - "mbakar" = harmless over-generation: `membakar` with the **bare** `me-` stem sliced off (the "bare me-/pe- + nasal-initial root" candidate in `nasalCandidates()`, meant for genuinely nasal-initial roots like `menganga` → `nganga`). It matches nothing in IDB, so it costs one wasted lookup and no more (see [the best-effort contract](#failure-modes-and-the-best-effort-contract)).
 5. Iterates variations, querying IDB for each:
    - `findByWordAndLang('dibakar', 'id')` → `[]` (passive forms rarely indexed)
    - `findByWordAndLang('membakar', 'id')` → lemmas found — **iteration stops**
@@ -169,6 +170,28 @@ Two things this makes clear, both easy to misread from the flat list:
 2. **The only affixes the generator ever _adds_ are `meN-`/`peN-` prefixes and restored dropped consonants**, in three places: rebuilding the active form after stripping `di-` (the `di- -> meN-` synthesis rule, via the shared `prefixWithMeN()`); reconstructing the active `meN-` form of a reduced `-kan`/`-i` word that does not start with `m` (the `-kan/-i -> meN-` synthesis rule, `prefixWithMeN()` again, which runs before the bare-root strips so it too is emitted first); and the `'k'+rest` / `'s'+rest` / `'p'+rest` / `'t'+rest` consonant restoration done by the shared `nasalCandidates()`. Both helpers live in `indonesian-nasal-rules.ts` — `prefixWithMeN()` (root -> surface) and `nasalCandidates()` (surface -> root) are the two inverse directions of the same meN- allomorphy. This prefix synthesis is the entire reason a passive like `dibakar` resolves to the indexed active `membakar` (and a reduced `bacakan` to `membacakan`).
 
 So there are exactly **two deliberate ordering decisions** in the whole generator, and they are siblings: the `di-` synthesis rule (recursing into the rebuilt `meN-` form _before_ the bare root — its `alsoBare` recursion) and the `-kan`/`-i` synthesis rule (reconstructing the active `meN-` form, positioned ahead of the suffix strips that reach the bare root), each emitting the more-likely-wanted active form first. Everywhere else, the order is simply the sequence in which the strip rules happen to fire.
+
+#### Trace logging (dev aid)
+
+`getWordVariations()` can print this stripping tree to the browser console at runtime, gated behind a localStorage flag so it is off (and zero-cost) by default. In the DevTools console:
+
+```js
+localStorage.setItem('taalwiz.trace-variations', '1'); // enable
+localStorage.removeItem('taalwiz.trace-variations');   // disable
+```
+
+With it enabled, every lookup logs the actual recursion (rule label ► produced form, with `#N` insertion order or `(dup)` for an already-seen form), e.g. for `dibakar`:
+
+```
+dibakar  #1
+├─ di- -> meN- ► membakar  #2
+│  ├─ nasal mem- ► bakar  #3
+│  └─ nasal me- ► mbakar  #4
+└─ di- -> meN- (bare root) ► bakar  (dup)
+→ [dibakar, membakar, bakar, mbakar]
+```
+
+This is the live counterpart of the [worked trace](#generation-order-worked-trace) above — it makes over-generated forms like `mbakar` (the bare `me-` strip) and the dedup behaviour visible. The flag only controls the tree; the flat `word -> [...]` line (with the matched variation flagged `=`) is logged unconditionally by `DictionaryService.#logVariations()`. The tree builds a parallel structure alongside the real `Set` recursion and never changes the returned variations.
 
 #### mePrefixed Flag
 
@@ -396,7 +419,7 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 1. **Keystroke detection**: The `ionViewWillEnter()` keyup listener fires, debounces, finds no suggestions
 2. **Enter handling**: `searchDictionary(new WordLang('dibakar', 'id'))` is called
-3. **Variation generation**: `langConfig.variationGenerator.getWordVariations('dibakar')` generates `["dibakar", "membakar", "bakar"]`
+3. **Variation generation**: `langConfig.variationGenerator.getWordVariations('dibakar')` generates `["dibakar", "membakar", "bakar", "mbakar"]` (the trailing `mbakar` is harmless over-generation; see [Path 2](#path-2-manual-entry-without-autocomplete-no-match))
 4. **IDB lookup**: `#searchLocal()` iterates variations:
    - `findByWordAndLang('dibakar', 'id')` → `[]` (passive forms rarely indexed)
    - `findByWordAndLang('membakar', 'id')` → **found** — returns lemmas with `word: "membakar"`, `baseWord: "bakar"`

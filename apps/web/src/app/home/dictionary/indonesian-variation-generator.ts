@@ -118,15 +118,98 @@ const RULES: Rule[] = [
   ...REDUPLICATION,
 ];
 
+// --------------------------------------------------------------------------
+// Optional dev trace. When the localStorage flag `taalwiz.trace-variations` is
+// set (e.g. `localStorage.setItem('taalwiz.trace-variations', '1')` in the
+// browser console), getWordVariations() prints the recursive stripping tree to
+// the console — the same shape as the worked trace in SEARCH.md. Pure debugging
+// aid: it builds a parallel TraceNode tree alongside the real Set recursion and
+// never affects the returned variations. Off (and zero-cost) by default.
+// --------------------------------------------------------------------------
+
+interface TraceNode {
+  word: string;
+  /** Label of the rule that produced this node from its parent; null for the root. */
+  rule: string | null;
+  /** Insertion sequence number in the result Set, or null when this is a duplicate. */
+  seq: number | null;
+  /** True when `word` was already in the Set on this visit (the subtree is not expanded). */
+  dup: boolean;
+  children: TraceNode[];
+}
+
+function isTraceEnabled(): boolean {
+  try {
+    return typeof localStorage !== 'undefined' && !!localStorage.getItem('taalwiz.trace-variations');
+  } catch {
+    return false;
+  }
+}
+
+/** Render a TraceNode tree as the box-drawing trace shown in SEARCH.md. */
+function renderTrace(root: TraceNode): string {
+  const marker = (n: TraceNode) => (n.dup ? '(dup)' : `#${n.seq}`);
+  const lines: string[] = [`${root.word}  ${marker(root)}`];
+
+  const walk = (children: TraceNode[], prefix: string) => {
+    children.forEach((child, i) => {
+      const last = i === children.length - 1;
+      lines.push(`${prefix}${last ? '└─ ' : '├─ '}${child.rule} ► ${child.word}  ${marker(child)}`);
+      walk(child.children, prefix + (last ? '   ' : '│  '));
+    });
+  };
+
+  walk(root.children, '');
+  return lines.join('\n');
+}
+
 export class IndonesianVariationGenerator implements VariationGenerator {
   getWordVariations(word: string): string[] {
     const variations: Set<string> = new Set();
+
+    if (isTraceEnabled()) {
+      // The recursion attaches each visited word to its trace parent; a throwaway
+      // holder collects the real root as its single child.
+      const holder: TraceNode = { word: '', rule: null, seq: null, dup: false, children: [] };
+      this.getVariations(word, variations, false, holder);
+      const result = [...variations];
+      const root = holder.children[0];
+      if (root) {
+        console.log(`${renderTrace(root)}\n→ [${result.join(', ')}]`);
+      }
+      return result;
+    }
+
     this.getVariations(word, variations, false);
     return [...variations];
   }
 
-  private getVariations(word: string, variations: Set<string>, mePrefixed: boolean) {
+  // `traceParent` drives the optional dev trace: `undefined` means tracing is
+  // off (the production path); a node (or the root holder) means attach this
+  // word under it. Recursing into an already-seen word passes `undefined` to its
+  // children, so a duplicate is shown as a leaf and its subtree is not re-walked.
+  private getVariations(
+    word: string,
+    variations: Set<string>,
+    mePrefixed: boolean,
+    traceParent?: TraceNode,
+    ruleLabel?: string,
+  ) {
+    const isNew = !variations.has(word);
     variations.add(word);
+
+    let childTrace: TraceNode | undefined;
+    if (traceParent) {
+      const node: TraceNode = {
+        word,
+        rule: ruleLabel ?? null,
+        seq: isNew ? variations.size : null,
+        dup: !isNew,
+        children: [],
+      };
+      traceParent.children.push(node);
+      childTrace = isNew ? node : undefined; // a dup is a leaf; do not re-trace its subtree
+    }
 
     if (WordExemptions.indexOf(word) !== -1) {
       return;
@@ -139,7 +222,7 @@ export class IndonesianVariationGenerator implements VariationGenerator {
         case 'strip': {
           const match = word.match(rule.pattern);
           if (match) {
-            this.getVariations(match[1], variations, mePrefixed);
+            this.getVariations(match[1], variations, mePrefixed, childTrace, `strip ${rule.label}`);
           }
           break;
         }
@@ -150,16 +233,16 @@ export class IndonesianVariationGenerator implements VariationGenerator {
           const base = rule.base === 'group1' ? match[1] : word;
           const meWord = prefixWithMeN(base);
           if (meWord !== base) {
-            this.getVariations(meWord, variations, true);
+            this.getVariations(meWord, variations, true, childTrace, rule.label);
           }
           if (rule.alsoBare) {
-            this.getVariations(base, variations, true);
+            this.getVariations(base, variations, true, childTrace, `${rule.label} (bare root)`);
           }
           break;
         }
         case 'nasal': {
           for (const cand of nasalCandidates(word, rule.stem)) {
-            this.getVariations(cand.remainder, variations, mePrefixed);
+            this.getVariations(cand.remainder, variations, mePrefixed, childTrace, `nasal ${cand.surface}`);
           }
           break;
         }
