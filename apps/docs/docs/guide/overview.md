@@ -3,9 +3,6 @@
 **Repository:** https://github.com/remarcmij/taalwiz-mono  
 **Contact:** Jim Cramer, remarcmij@gmail.com  
 
-_Author's note: For a quick read I recommend the sections Overview, Dictionary and Library. All other sections are optional._
-
-
 ## Overview
 
 Taalwiz began with a few things that came to mind while following courses in Indonesian at the Volksuniversiteit. What if I could access my learning materials and the Teeuw dictionary directly on my phone? I might still use the study books at home, but the paper dictionary could stay on its shelf. Next came the idea to connect the learning materials to the dictionary. What if I could tap a word while reading a lesson and see its meaning at once, without losing my place in the lesson? What if I could also use it on my laptop for serious study at home? That is the vision I, as a developer with the appropriate skills, started to build.
