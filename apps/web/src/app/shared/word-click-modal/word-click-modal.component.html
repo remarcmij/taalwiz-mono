@@ -33,13 +33,7 @@
         </ion-button>
         @if (vocabularyService.isEnabled()) {
           <ion-button
-            (click)="
-              vocabularyService.toggle(
-                clickedWord(),
-                lang(),
-                sentence() !== clickedWord() && sentenceHtml() ? sentenceHtml() : undefined
-              )
-            "
+            (click)="vocabularyService.toggle(clickedWord(), lang())"
             [title]="(isBookmarked() ? 'common.remove-bookmark' : 'common.bookmark') | translate"
           >
             <ion-icon

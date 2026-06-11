@@ -11,7 +11,6 @@ export interface VocabularyEntry {
   lang: string;
   listId: string;
   back?: string;
-  sourceSentence?: string;
   savedAt: string;
 }
 
@@ -66,12 +65,12 @@ export class VocabularyService {
     return this.bookmarkedKeys().has(`${term}:${lang}`);
   }
 
-  toggle(term: string, lang: string, sourceSentence?: string): void {
+  toggle(term: string, lang: string): void {
     if (!this.currentListId()) return;
     if (this.isBookmarked(term, lang)) {
       this.#remove(term, lang);
     } else {
-      this.#add(term, lang, sourceSentence);
+      this.#add(term, lang);
     }
   }
 
@@ -309,10 +308,10 @@ export class VocabularyService {
       });
   }
 
-  #add(term: string, lang: string, sourceSentence?: string): void {
+  #add(term: string, lang: string): void {
     const listId = this.currentListId()!;
     const key = `${term}:${lang}`;
-    const entry: VocabularyEntry = { term, lang, listId, sourceSentence, savedAt: new Date().toISOString() };
+    const entry: VocabularyEntry = { term, lang, listId, savedAt: new Date().toISOString() };
     const listsSnapshot = this.lists();
 
     this.bookmarkedKeys.update((s) => new Set([...s, key]));
@@ -320,7 +319,7 @@ export class VocabularyService {
     this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: l.count + 1 } : l)));
 
     this.#http
-      .post('/api/v1/vocabulary', { items: [{ term, lang, listId, sourceSentence }] })
+      .post('/api/v1/vocabulary', { items: [{ term, lang, listId }] })
       .pipe(
         catchError(() => {
           this.bookmarkedKeys.update((s) => {

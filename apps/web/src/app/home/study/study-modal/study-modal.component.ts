@@ -32,7 +32,6 @@ import { closeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
 import { MarkdownService } from '../../content/markdown.service';
 import { DictionaryService } from '../../dictionary/dictionary.service';
-import { WordClickModalService } from '../../../shared/word-click-modal/word-click-modal.service';
 import { PointerService } from '../../../shared/pointer.service';
 import { VocabularyService } from '../../vocabulary/vocabulary.service';
 import { SrsItem, SrsRating, StudyService } from '../study.service';
@@ -79,7 +78,6 @@ export class StudyModalComponent implements OnInit {
   #studyService = inject(StudyService);
   #dictionaryService = inject(DictionaryService);
   #markdownService = inject(MarkdownService);
-  #wordClickModalService = inject(WordClickModalService);
   protected vocabularyService = inject(VocabularyService);
   protected pointer = inject(PointerService);
 
@@ -89,7 +87,6 @@ export class StudyModalComponent implements OnInit {
   readonly currentIndex = signal<number>(0);
   readonly flipped = signal<boolean>(false);
   readonly definition = signal<string>('');
-  readonly sourceSentence = signal<string>('');
   readonly baseWordNote = signal<string | null>(null);
   // Distinct cards in the session, fixed at start; `completed` counts cards that have
   // graduated (Good/Easy, or practice Next). An "Again" re-queue never inflates these.
@@ -104,10 +101,6 @@ export class StudyModalComponent implements OnInit {
   readonly definitionHtml = computed(() =>
     this.definition() ? this.#markdownService.convertMarkdown(this.definition()) : '',
   );
-  // The source sentence is stored with its original markup (target words wrapped in
-  // <span>), so it is rendered as-is: only those words are teal/tappable, native text
-  // stays plain — exactly as when reading the article.
-  readonly sourceSentenceHtml = computed(() => this.sourceSentence());
   readonly progress = computed(() => {
     const total = this.sessionSize();
     return total > 0 ? this.completed() / total : 0;
@@ -191,9 +184,6 @@ export class StudyModalComponent implements OnInit {
     const card = this.currentCard();
     if (!card) return;
 
-    // Source sentence (word-tap cards) is shown as context alongside the answer.
-    this.sourceSentence.set(card.sourceSentence ?? '');
-
     // The translation is the gradeable answer the rating buttons act on, so it
     // is always resolved: a stored back, otherwise the dictionary's first line
     // (the "View full entry" button reveals the full Teeuw entry when that is
@@ -240,31 +230,10 @@ export class StudyModalComponent implements OnInit {
       this.currentIndex.set(nextIndex);
       this.flipped.set(false);
       this.definition.set('');
-      this.sourceSentence.set('');
       this.baseWordNote.set(null);
     } else {
       this.screen.set('complete');
     }
-  }
-
-  /** Tapping a target word — any preserved <span>, whether in the example sentence
-   * or in the definition gloss (head-word `**bold**` or example `*italic*`) — opens
-   * the view-only word modal for that word, with the sentence as spoken context.
-   * Native (non-span) words are not tappable. */
-  onWordClick(event: MouseEvent): void {
-    const card = this.currentCard();
-    if (!card) return;
-    const span = (event.target as HTMLElement).closest('span');
-    if (!span) return;
-    const word = (span.textContent ?? '').toLowerCase().trim();
-    if (word) this.#wordClickModalService.openForTerm(word, card.lang, this.#sourceSentenceText());
-  }
-
-  /** Plain-text form of the stored (marked-up) source sentence, for speech. */
-  #sourceSentenceText(): string {
-    const div = document.createElement('div');
-    div.innerHTML = this.sourceSentence();
-    return div.textContent ?? '';
   }
 
   close(): void {

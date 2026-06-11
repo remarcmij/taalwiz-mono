@@ -115,34 +115,12 @@
     font-size: 1.1rem;
     line-height: 1.5;
     margin: 0;
-
-    // Every target word in the gloss (head-word and italic examples) is tappable.
-    // ::ng-deep is needed because the definition is injected via [innerHTML] and so
-    // lacks this component's style-encapsulation attribute.
-    ::ng-deep span {
-      cursor: pointer;
-    }
   }
 
   .no-definition {
     font-size: 0.9rem;
     color: var(--ion-color-medium);
     font-style: italic;
-  }
-
-  .source-sentence {
-    font-size: 1.15rem;
-    line-height: 1.6;
-    margin: 0 0 12px;
-
-    // Only the original target-language words (preserved as <span>s in the stored
-    // markup) are tappable and teal; native text stays plain — matching the article.
-    // ::ng-deep is needed because the sentence is injected via [innerHTML] and so
-    // lacks this component's style-encapsulation attribute.
-    ::ng-deep span {
-      color: var(--ion-color-primary);
-      cursor: pointer;
-    }
   }
 
   .rating-hint {

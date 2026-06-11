@@ -54,7 +54,7 @@ Je kunt zo veel woordenlijsten aanmaken als je wilt, bijvoorbeeld één per arti
 
 Woorden kunnen op twee manieren aan een lijst worden toegevoegd:
 
-- Vanuit een __artikel__: tik op een gemarkeerd woord en tik vervolgens op het bladwijzerpictogram in het woorddetailvenster. Het woord wordt opgeslagen in de vorm zoals het in de tekst staat (bijv. _dibakar_, niet de basisvorm _membakar_), samen met de zin waarin het voorkwam, zodat je het later in context kunt herhalen.
+- Vanuit een __artikel__: tik op een gemarkeerd woord en tik vervolgens op het bladwijzerpictogram in het woorddetailvenster. Het woord wordt opgeslagen in de vorm zoals het in de tekst staat (bijv. _dibakar_, niet de basisvorm _membakar_).
 - Rechtstreeks in het tabblad Woordenschat: tik op de __+__-knop in een lijst en typ het woord handmatig.
 
 Elk item heeft een __achterkant__-veld waar je je eigen definitie, voorbeeldzin of vertaalaantekening kunt schrijven. Tik op een item om het te bewerken.
@@ -83,7 +83,7 @@ Tik op de knop __Studeren__ bij een woordenlijst om een flashcardsessie te start
 Tijdens een sessie:
 
 - De voorkant van de kaart wordt als eerste getoond. Tik op de kaart (of druk op __Spatie__) om de achterkant te onthullen.
-- Bij een woord dat je vanuit een artikel hebt opgeslagen, toont de achterkant de __voorbeeldzin__ waaruit het komt, met daaronder de woordenboekvertaling. Elk Indonesisch woord in de zin is aantikbaar (in teal weergegeven): tik erop om het volledige woordenboekartikel te openen en het te laten uitspreken, zonder de sessie te verlaten.
+- De achterkant toont de vertaling: je eigen __achterkant__-aantekening als je die hebt geschreven, anders de definitie uit het woordenboek.
 - Beoordeel hoe goed je het antwoord kende: __Opnieuw__ (wist het niet; de kaart komt later in dezelfde sessie terug), __Goed__ (gelukt met enige moeite), of __Makkelijk__ (wist het meteen). Je kunt ook de sneltoetsen __1__, __2__, __3__ gebruiken.
 - Een badge op de knop Studeren toont hoeveel kaarten er vandaag ter herhaling klaarstaan.
 

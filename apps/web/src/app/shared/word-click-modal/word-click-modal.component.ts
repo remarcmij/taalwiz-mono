@@ -83,10 +83,6 @@ export class WordClickModalComponent implements OnInit {
   clickedWord = input.required<string>();
   word = input.required<string>();
   lang = input.required<string>();
-  sentence = input.required<string>();
-  /** Marked-up form of the sentence (target words wrapped in <span>), stored as the
-   * flashcard's source-sentence so the card can reuse the same tappable words. */
-  sentenceHtml = input<string>('');
   /** Text spoken by the audio button: the target-language phrase the clicked word
    * belongs to (its emphasis group), NOT the whole block. In bilingual content (grammar
    * tables/lists) the native text sits outside that group, so it is never read aloud in

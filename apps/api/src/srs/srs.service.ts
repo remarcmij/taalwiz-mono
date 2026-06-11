@@ -14,7 +14,6 @@ export interface SrsItemInfo {
   lang: string;
   listId: string;
   back?: string;
-  sourceSentence?: string;
   interval: number;
   easeFactor: number;
   dueDate: string;
@@ -89,22 +88,13 @@ export class SrsService {
       listId: listObjectId,
       term: { $in: terms },
     })
-      .select('term lang back sourceSentence')
+      .select('term lang back')
       .lean()
       .exec();
 
     const backMap = new Map(bookmarks.map((b) => [`${b.term}:${b.lang}`, b.back as string | undefined]));
-    const sourceSentenceMap = new Map(
-      bookmarks.map((b) => [`${b.term}:${b.lang}`, b.sourceSentence as string | undefined]),
-    );
 
-    return cards.map((card) =>
-      toSrsItemInfo(
-        card,
-        backMap.get(`${card.term}:${card.lang}`),
-        sourceSentenceMap.get(`${card.term}:${card.lang}`),
-      ),
-    );
+    return cards.map((card) => toSrsItemInfo(card, backMap.get(`${card.term}:${card.lang}`)));
   }
 
   async getAllStats(userId: string): Promise<SrsStatsEntry[]> {
@@ -186,7 +176,6 @@ export function applySm2(state: Sm2State, rating: 'again' | 'good' | 'easy'): Sm
 function toSrsItemInfo(
   card: { term: string; lang: string; listId: unknown; interval: number; easeFactor: number; dueDate: unknown; reps: number; lapses: number },
   back: string | undefined,
-  sourceSentence: string | undefined,
 ): SrsItemInfo {
   const info: SrsItemInfo = {
     term: card.term,
@@ -199,7 +188,6 @@ function toSrsItemInfo(
     lapses: card.lapses,
   };
   if (back !== undefined) info.back = back;
-  if (sourceSentence !== undefined) info.sourceSentence = sourceSentence;
   return info;
 }
 

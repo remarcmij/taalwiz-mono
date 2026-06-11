@@ -54,7 +54,7 @@ You can create as many vocabulary lists as you like, for example one per article
 
 Words can be added to a list in two ways:
 
-- From an __article__: tap a highlighted word, then tap the bookmark icon in the word detail panel. The word is saved in the form it appeared in the text (e.g. _dibakar_, not the base form _membakar_), along with the sentence it came from, so you can review it in context.
+- From an __article__: tap a highlighted word, then tap the bookmark icon in the word detail panel. The word is saved in the form it appeared in the text (e.g. _dibakar_, not the base form _membakar_).
 - Directly in the Vocabulary tab: tap the __+__ button inside a list and type the word manually.
 
 Each entry has a __back__ field where you can write your own definition, example sentence, or translation note. Tap an entry to edit it.
@@ -83,7 +83,7 @@ Tap the __Study__ button on any vocabulary list to start a flashcard session. Th
 During a session:
 
 - The front of the card is shown first. Tap the card (or press __Space__) to reveal the back.
-- For a word saved from an article, the back shows the __example sentence__ it came from, with the dictionary translation beneath it. Every Indonesian word in the sentence is tappable (shown in teal): tap one to open its full dictionary entry and hear it pronounced, without leaving the session.
+- The back shows the translation: your own __back__ note if you wrote one, otherwise the dictionary's definition.
 - Rate how well you knew the answer: __Again__ (didn't know it; the card comes back later in the same session), __Good__ (got it with some effort), or __Easy__ (knew it immediately). You can also use the keyboard shortcuts __1__, __2__, __3__.
 - A badge on the Study button shows how many cards are due for review today.
 

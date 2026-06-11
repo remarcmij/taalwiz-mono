@@ -76,22 +76,11 @@
             </div>
           } @else {
             <div class="card-face card-back">
-              @if (sourceSentence()) {
-                <p
-                  class="source-sentence"
-                  [innerHTML]="sourceSentenceHtml()"
-                  (click)="onWordClick($event); $event.stopPropagation()"
-                ></p>
-              }
               @if (baseWordNote()) {
                 <p class="base-word-note">→ {{ baseWordNote() }}</p>
               }
               @if (definition()) {
-                <p
-                  class="definition markdown-body text-content"
-                  [innerHTML]="definitionHtml()"
-                  (click)="onWordClick($event); $event.stopPropagation()"
-                ></p>
+                <p class="definition markdown-body" [innerHTML]="definitionHtml()"></p>
               } @else {
                 <p class="no-definition">{{ 'study.no-definition' | translate }}</p>
               }

@@ -140,7 +140,7 @@ export class VocabularyService {
     const newList = await this.#createListWithUniqueName(callerObjectId, source.name, sourceObjectId);
 
     const sourceItems = await VocabularyItem.find({ listId: sourceObjectId })
-      .select('term lang back sourceSentence')
+      .select('term lang back')
       .lean()
       .exec();
 
@@ -152,7 +152,6 @@ export class VocabularyService {
         lang: i.lang,
         listId: newListId,
         back: i.back as string | undefined,
-        sourceSentence: i.sourceSentence as string | undefined,
       })),
     );
 
@@ -182,9 +181,8 @@ export class VocabularyService {
     if (items.length === 0) return;
     const userObjectId = new Types.ObjectId(userId);
     const ops: AnyBulkWriteOperation<VocabularyItemDoc>[] = items.map(
-      ({ term, lang, listId, back, sourceSentence }) => {
+      ({ term, lang, listId, back }) => {
         const setOnInsert: Record<string, unknown> = { savedAt: new Date() };
-        if (sourceSentence !== undefined) setOnInsert['sourceSentence'] = sourceSentence;
         const update: Record<string, unknown> = { $setOnInsert: setOnInsert };
         if (back !== undefined) update['$set'] = { back };
         return {

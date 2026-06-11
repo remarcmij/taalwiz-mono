@@ -25,10 +25,6 @@ export class CreateVocabularyItemDto {
   @IsOptional()
   @IsString()
   back?: string;
-
-  @IsOptional()
-  @IsString()
-  sourceSentence?: string;
 }
 
 export class BulkAddVocabularyDto {

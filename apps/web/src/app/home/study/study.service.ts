@@ -8,7 +8,6 @@ export interface SrsItem {
   lang: string;
   listId: string;
   back?: string;
-  sourceSentence?: string;
   interval: number;
   easeFactor: number;
   dueDate: string;
