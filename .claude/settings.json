@@ -37,7 +37,19 @@
       "Bash(sed -n '75,90p' apps/api/src/vocabulary/vocabulary.service.ts)",
       "Bash(grep \"\\\\.md$\")",
       "Bash(python3 -c \"import os; print\\(os.path.exists\\('src/app/home/dictionary/SEARCH.md'\\)\\)\")",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(ssh raspi5x *)",
+      "Bash(ssh raspi5 *)",
+      "Bash(scp -3 raspi5:/tmp/users.archive raspi5x:/tmp/users.archive)",
+      "Bash(scp /tmp/transform-users.js raspi5x:/tmp/transform-users.js)",
+      "Bash(scp /tmp/about-check.js raspi5x:/tmp/about-check.js)",
+      "Bash(scp /tmp/delete-about.js raspi5x:/tmp/delete-about.js)",
+      "Bash(scp /tmp/about-recheck.js raspi5x:/tmp/about-recheck.js)",
+      "Bash(scp /tmp/assign-groups.js raspi5x:/tmp/assign-groups.js)"
+    ],
+    "additionalDirectories": [
+      "/tmp",
+      "/private/tmp"
     ]
   }
 }
