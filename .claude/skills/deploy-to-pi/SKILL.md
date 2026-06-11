@@ -114,6 +114,13 @@ sudo nginx -t
 sudo systemctl enable nginx && sudo systemctl start nginx
 ```
 
+> **`nginx -t` must pass before you proceed — do not ignore a failure.** A
+> common cause is a mis-pasted `proxy_pass` carrying markdown angle brackets
+> (`proxy_pass <http://127.0.0.1:3000>;` → `invalid URL prefix`). It must be
+> bare: `proxy_pass http://127.0.0.1:3000;`. While the config is invalid, nginx
+> won't start, and a later `apt` upgrade's nginx step will fail and leave dpkg
+> half-configured (blocking further `apt install`s) until it's fixed.
+
 #### 4. Set up MongoDB (Docker, via systemd)
 
 Create `/etc/systemd/system/mongodb.service`:
@@ -149,6 +156,13 @@ cd taalwiz-mono
 pnpm install
 pnpm build
 ```
+
+> **bcrypt (native) under pnpm 10:** `pnpm install` may warn `Ignored build
+> scripts: … bcrypt …`. The repo allow-lists bcrypt
+> (`pnpm.onlyBuiltDependencies` in the root `package.json`) so it should build
+> automatically. If auth still throws on the first login/registration, the
+> native addon is missing — run `pnpm rebuild bcrypt` and verify with
+> `node -e "console.log(require('bcrypt').hashSync('x',8))"`.
 
 Copy `.env` from your Mac (it is gitignored, so it does not come with the
 clone). Run this **from your Mac**:
@@ -194,7 +208,60 @@ sudo systemctl start taalwiz.service
 systemctl status taalwiz.service
 ```
 
+#### 7. Migrate the `users` collection from the old Pi
+
+The old app predates this repo and has **no SRS / bookmarks / vocabulary** data —
+only `users` needs to come across. Its schema also differs: the old app stores a
+**singular `role`** string; the new app uses a **`roles` array** plus `groups`
+and `isSuspended`. So this is dump → restore → **transform**, not a raw copy.
+
+Dump (read-only on the old Pi) and transfer:
+
+```bash
+ssh raspi5 'docker exec mongodb mongodump --db taalwiz --collection users --archive > /tmp/users.archive'
+scp -3 raspi5:/tmp/users.archive raspi5x:/tmp/users.archive
+```
+
+Restore, wiping any test/seed users first:
+
+```bash
+ssh raspi5x 'docker exec -i mongodb mongorestore --drop --archive < /tmp/users.archive'
+```
+
+Transform old `role` → new `roles`/`groups`/`isSuspended`. Put this in a file and
+pipe it in (`docker exec -i mongodb mongosh taalwiz < /tmp/transform-users.js`).
+Keep `find().forEach()` on **one line** — piped mongosh chokes on leading-dot
+line breaks:
+
+```js
+db.users.find({}).forEach(function (u) {
+  var roles = u.role === 'admin' ? ['admin', 'user'] : u.role === 'demo' ? ['demo'] : ['user'];
+  db.users.updateOne({ _id: u._id }, { $set: { roles: roles, groups: u.groups || [], isSuspended: u.isSuspended === true }, $unset: { role: '' } });
+});
+```
+
+Then assign content groups (**after content is uploaded**, since the group set is
+derived from the uploaded articles). Policy: regular users see all groups except
+`claude`; demo sees only `claude`; admin bypasses gating so needs none:
+
+```js
+var regular = db.articles.distinct('groupName').filter(function (g) { return g !== 'claude' && g !== 'help'; });
+db.users.updateMany({ $and: [{ roles: 'user' }, { roles: { $nin: ['admin', 'demo'] } }] }, { $set: { groups: regular } });
+db.users.updateMany({ roles: 'demo' }, { $set: { groups: ['claude'] } });
+```
+
+> The seed (`AuthService.onApplicationBootstrap`) is insert-if-absent, so once the
+> real admin/demo rows exist it won't clobber their passwords.
+
+> **Re-run this whole step at cutover.** The old Pi keeps taking logins/changes
+> until the router flip; `mongorestore --drop` + re-transform is idempotent, so a
+> final pass right before switching captures last-minute changes with near-zero
+> data loss.
+
 ### B.2 — Switch the router
+
+> **Do the final `users` re-sync (B.1 step 7) immediately before this step** so
+> logins/changes on the old Pi up to the last moment aren't lost.
 
 In the home router, change port forwarding for ports **80** and **443** to the
 new Pi's local IP. The old Pi goes dark here; expect ~1–2 minutes of HTTPS
@@ -263,11 +330,13 @@ Config file locations:
 
 ---
 
-## One-time fix outstanding on the current live Pi
+## Gotcha: unit-file `WorkingDirectory` after the repo rename
 
-The repo was renamed to `taalwiz-mono`. The existing Pi's
-`taalwiz.service` may still point `WorkingDirectory` at the old path. Update it
-to `/home/jim/taalwiz-mono/apps/api`, then reload:
+If you ever **reuse an existing** `taalwiz.service` from before the
+`taalwiz-api → api` rename, its `WorkingDirectory` may still point at the dead
+`apps/taalwiz-api` path, and the service crash-loops on `CHDIR` ("Changing to the
+requested working directory failed: No such file or directory",
+`status=200/CHDIR`). Fix it to `/home/jim/taalwiz-mono/apps/api`, then reload:
 
 ```bash
 sudo systemctl daemon-reload && sudo systemctl restart taalwiz.service
@@ -275,3 +344,7 @@ sudo systemctl daemon-reload && sudo systemctl restart taalwiz.service
 
 (`sudo systemctl edit taalwiz.service`, or edit
 `/etc/systemd/system/taalwiz.service` directly.)
+
+> Resolved on **raspi5x** as of 2026-06-11 — its fresh clone and the unit file in
+> B.1 step 6 already use the correct `apps/api` path. This note is kept only for
+> the case of reusing an old unit file.
