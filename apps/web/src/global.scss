@@ -206,6 +206,13 @@ ion-back-button {
   padding: 5px 10px 5px 5px;
 }
 
+// The default Ionic toggle reads a little large in the admin User Accounts rows;
+// scale it down a touch. Anchored right so it stays snug against the row's icons.
+app-users ion-toggle {
+  transform: scale(0.8);
+  transform-origin: right center;
+}
+
 .markdown-body blockquote {
   border: none;
 }
