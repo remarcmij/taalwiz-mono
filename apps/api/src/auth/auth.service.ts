@@ -14,7 +14,12 @@ import type {
   AuthResponse,
   RefreshTokenResponse,
 } from './types/auth-response.interface.js';
-import { JwtPayload, JwtPayloadSchema } from './types/jwtpayload.interface.js';
+import {
+  JwtPayload,
+  JwtPayloadSchema,
+  RegTokenPayload,
+  RegTokenSchema,
+} from './types/jwtpayload.interface.js';
 
 const ACCESS_TOKEN_EXPIRATION = 60 * 60; // 1 hour
 
@@ -136,10 +141,10 @@ export class AuthService implements OnApplicationBootstrap {
   }
 
   async validateRegToken(email: string, token: string): Promise<void> {
-    let decoded: JwtPayload;
+    let decoded: RegTokenPayload;
 
     try {
-      decoded = JwtPayloadSchema.parse(
+      decoded = RegTokenSchema.parse(
         this.jwtService.verify(token, { secret: this.config.get('JWT_SECRET') }),
       );
     } catch (_) {

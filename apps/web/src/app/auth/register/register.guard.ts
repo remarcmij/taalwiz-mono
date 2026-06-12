@@ -12,7 +12,8 @@ export const registerGuard: CanActivateFn = (route) => {
   const email = route.queryParamMap.get('email');
   const token = route.queryParamMap.get('token');
   if (!email || !token) {
-    of(false);
+    router.navigateByUrl('/auth');
+    return of(false);
   }
   return http.post(`/api/v1/auth/validate-regtoken`, { email, token }).pipe(
     map(() => true),

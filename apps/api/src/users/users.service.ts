@@ -19,7 +19,12 @@ import {
 } from '@repo/shared';
 import bcrypt from 'bcrypt';
 import type { AuthResponse } from '../auth/types/auth-response.interface.js';
-import { JwtPayload, JwtPayloadSchema } from '../auth/types/jwtpayload.interface.js';
+import {
+  JwtPayload,
+  JwtPayloadSchema,
+  RegTokenPayload,
+  RegTokenSchema,
+} from '../auth/types/jwtpayload.interface.js';
 import { EnvDto } from '../util/env.dto.js';
 import User, { Language, Role, UserDoc } from './models/user.model.js';
 
@@ -143,10 +148,10 @@ export class UsersService {
     name: string,
     token: string,
   ): Promise<AuthResponse> {
-    let decoded: JwtPayload;
+    let decoded: RegTokenPayload;
 
     try {
-      decoded = JwtPayloadSchema.parse(
+      decoded = RegTokenSchema.parse(
         this.jwtService.verify(token, { secret: this.config.get('JWT_SECRET') }),
       );
     } catch (_) {
