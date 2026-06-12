@@ -33,6 +33,7 @@
     "no-data": "No data available",
     "load-error": "Could not load content — please check your connection.",
     "retry": "Retry",
+    "refresh": "Refresh",
     "reload": "Reload",
     "help": "Help",
     "bookmarks": "Vocabulary",

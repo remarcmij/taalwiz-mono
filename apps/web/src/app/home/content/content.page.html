@@ -4,6 +4,11 @@
       <ion-menu-button menu="m1"></ion-menu-button>
     </ion-buttons>
     <ion-title>{{ 'common.library' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="handleRefresh()" [title]="'common.refresh' | translate">
+        <ion-icon slot="icon-only" name="refresh-outline" aria-hidden="true"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

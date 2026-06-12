@@ -4,6 +4,11 @@
       <app-back-button></app-back-button>
     </ion-buttons>
     <ion-title>User Accounts</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="reload()" title="Refresh">
+        <ion-icon slot="icon-only" name="refresh-outline" aria-hidden="true"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

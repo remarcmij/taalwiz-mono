@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import {
+  IonButton,
   IonButtons,
   IonContent,
   IonHeader,
@@ -19,7 +20,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { helpCircleOutline } from 'ionicons/icons';
+import { helpCircleOutline, refreshOutline } from 'ionicons/icons';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { Subject, filter, switchMap } from 'rxjs';
@@ -32,6 +33,7 @@ import { ContentService } from './content.service';
     AsyncPipe,
     RouterLink,
     TranslatePipe,
+    IonButton,
     IonButtons,
     IonContent,
     IonHeader,
@@ -62,7 +64,7 @@ export class ContentPage {
   helpLang = computed(() => this.#authService.user()?.lang ?? 'nl');
 
   constructor() {
-    addIcons({ helpCircleOutline });
+    addIcons({ helpCircleOutline, refreshOutline });
     this.#authService.user$.pipe(
       takeUntilDestroyed(),
       filter(Boolean),

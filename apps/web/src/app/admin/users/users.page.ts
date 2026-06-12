@@ -22,7 +22,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { keyOutline, peopleOutline, trash } from 'ionicons/icons';
+import { keyOutline, peopleOutline, refreshOutline, trash } from 'ionicons/icons';
 
 import { User } from '../../auth/user.model';
 import { ApiErrorAlertService } from '../../shared/api-error-alert.service';
@@ -67,6 +67,10 @@ export class UsersPage {
   isToastOpen = signal(false);
 
   ionViewWillEnter() {
+    this.reload();
+  }
+
+  reload() {
     this.#adminService.getUsers().subscribe((users) => {
       this.users.set(
         users
@@ -152,6 +156,6 @@ export class UsersPage {
   }
 
   constructor() {
-    addIcons({ trash, peopleOutline, keyOutline });
+    addIcons({ trash, peopleOutline, keyOutline, refreshOutline });
   }
 }
