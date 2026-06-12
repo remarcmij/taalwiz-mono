@@ -128,8 +128,15 @@ export class ContentService implements OnApplicationBootstrap {
     return await Topic.find(query).select('filename sha -_id').lean();
   }
 
+  // Only groups backed by a manifest are real, assignable publications. A bare
+  // `distinct('groupName')` also surfaces the structural `main` index, the
+  // `dict` dictionaries (open to every logged-in user, never group-gated), the
+  // manifest-less `help` docs (universal UI documentation), and stale
+  // pre-manifest groups left over from early uploads — for none of which does
+  // group membership gate anything, so none belong in the admin "Manage Groups"
+  // picker.
   async findGroups(): Promise<string[]> {
-    return await Topic.distinct('groupName').exec();
+    return await Topic.distinct('groupName', { type: 'manifest' }).exec();
   }
 
   async uploadContent(file: Express.Multer.File): Promise<{ filename: string }> {
