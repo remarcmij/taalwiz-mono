@@ -51,7 +51,10 @@
       "Skill(fewer-permission-prompts:*)",
       "Bash(python3 /tmp/perm-scan.py)",
       "Bash(python3 -c \"import json; d=json.load\\(open\\('.claude/settings.json'\\)\\); print\\(json.dumps\\(d.get\\('permissions',{}\\).get\\('allow',[]\\), indent=0\\)\\)\")",
-      "Edit(/.claude/skills/deploy-to-pi/**)"
+      "Edit(/.claude/skills/deploy-to-pi/**)",
+      "mcp__mongodb-mcp-server__aggregate",
+      "Bash(mongosh mongodb://localhost:27017/taalwiz --quiet --eval 'const t = db.topics.deleteMany\\({groupName:{$in:[\"welcome\",\"taalwiz-nl\"]}}\\); const u = db.users.updateMany\\({},{$pull:{groups:{$in:[\"welcome\",\"taalwiz-nl\"]}}}\\); print\\(JSON.stringify\\({topicsDeleted:t.deletedCount, usersModified:u.modifiedCount}\\)\\);')",
+      "Bash(echo \"exit:$?\")"
     ],
     "additionalDirectories": [
       "/tmp",
