@@ -34,6 +34,11 @@ import { WordLang } from '../word-lang.model';
     TranslatePipe,
   ],
   templateUrl: './history-modal.component.html',
+  styles: `
+    ion-note[slot='end'] {
+      margin-inline-end: 12px;
+    }
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HistoryModalComponent {
