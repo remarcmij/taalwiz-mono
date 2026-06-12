@@ -19,6 +19,7 @@ Newest first. Filename convention: `YYYY-MM-DD-kebab-case-topic.md`.
 
 | Date | Note | In one line |
 |---|---|---|
+| 2026-06-12 | [When "give" generates "fish"](2026-06-12-reading-the-variation-trace.md) | Reading the variation traces for `ikan`/`berikan`/`memberikan`: candidates belong to the morphological family not the typed word, and why `berikan → ikan` (give→fish) shows the typed-word-is-candidate-#1 safeguard. |
 | 2026-06-08 | [What the codebase can't tell the agent](2026-06-08-working-with-a-coding-agent.md) | A project-agnostic process note on working with a coding agent: it knows only the code, so the human must supply the ground truth and judgment that live outside the repo (domain knowledge, external references, instinct). |
 | 2026-06-08 | [Bug-to-refactor retrospective](2026-06-08-bug-to-refactor-retrospective.md) | Synthesis of the session: what the whole arc (one bug -> single source of truth) actually achieved, and the transferable recipe. |
 | 2026-06-08 | [Table-driven refactor](2026-06-08-table-driven-refactor.md) | Turning a hand-written `if`-ladder into a data-driven rule pipeline: naming the rule shapes, why order is load-bearing, and pinning behaviour with a characterization test first. |
