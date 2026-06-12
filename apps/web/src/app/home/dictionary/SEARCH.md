@@ -180,7 +180,7 @@ localStorage.setItem('taalwiz.trace-variations', '1'); // enable
 localStorage.removeItem('taalwiz.trace-variations');   // disable
 ```
 
-With it enabled, every lookup logs the actual recursion (rule label ► produced form). Each form is numbered `#N` by its slot in the returned array; `(dup)` marks a repeat of a form already numbered higher up. For example `dibakar`:
+With it enabled, every lookup logs the actual recursion (rule label ► produced form). Each form is numbered `#N` by its slot in the returned array; `(dup)` marks a repeat of a form already numbered higher up. A meN-/peN- nasal strip that restores an elided root consonant annotates it as `+<letter>` (e.g. `nasal men- +t ► terima`, `nasal mem- +p ► potong`), surfacing the `nasalCandidates()` restoration. For example `dibakar`:
 
 ```
 dibakar  #1

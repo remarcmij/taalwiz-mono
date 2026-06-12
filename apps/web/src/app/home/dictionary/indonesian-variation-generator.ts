@@ -301,17 +301,21 @@ export class IndonesianVariationGenerator implements VariationGenerator {
         }
         case 'nasal': {
           for (const cand of nasalCandidates(word, rule.stem)) {
+            // Note the root-initial consonant that meN-/peN- elided and we
+            // restored (e.g. men- + t -> menerima, traced as `nasal men- +t`).
+            const restored = cand.restored ? ` +${cand.restored}` : '';
             this.getVariations(
               cand.remainder,
               variations,
               mePrefixed,
               childTrace,
               traceShown,
-              `nasal ${cand.surface}`,
+              `nasal ${cand.surface}${restored}`,
             );
           }
           break;
         }
+
       }
     }
   }

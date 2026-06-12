@@ -33,6 +33,24 @@ final candidate list. `(dup)` marks a form already produced higher up. The flat
 `word -> [...]` line below each tree is the same list in lookup order, with the
 form that actually matched flagged `=`.
 
+A meN-/peN- nasal strip that **restores a dropped root consonant** annotates it as
+`+<letter>`. The prefix assimilates to the root's first sound and often swallows
+it (`me` + `terima` → `menerima`), so recovering the root means putting that
+letter back:
+
+```
+menerima  #1
+├─ nasal men- ► erima  #2
+├─ nasal men- +t ► terima  #3
+│  └─ strip ter- ► ima  #4
+└─ nasal me- ► nerima  #5
+```
+
+`nasal men- +t ► terima` is the line that recovers the real root — and the `+t`
+is the only reason `terima` appears at all. (For the common p/t/s/k-initial roots
+the `+<letter>` line is usually the one that hits; it is not a correctness flag,
+though — `mengambil → meng- +k ► kambil` restores a `k` that matches nothing.)
+
 ---
 
 ## 1. `ikan` — a word that needs no morphology
@@ -98,3 +116,18 @@ real word win before any mechanical strip can produce a real-but-wrong one.
 It is worth keeping `berikan → ikan` in mind as the example, precisely because
 *give → fish* is such an obviously absurd answer — it makes the safeguard easy to
 remember.
+
+---
+
+## The point underneath all of it
+
+The generator does **blind, rule-based string manipulation with no notion of
+meaning.** It does not know that `berikan` means "give" or that `ikan` means
+"fish"; it just peels and reattaches letters according to the affix rules. Even
+the `+t` "restoration" is not understanding — it is one more mechanical string
+edit that happens to mirror a phonological rule. Meaning enters the system in
+exactly one place: the dictionary lookup. The generator proposes; the dictionary
+disposes. That division is the whole design — it is why over-generating junk is
+safe (a non-word matches nothing) and why the only real danger is a junk string
+that *happens* to be a real, unrelated word. The machine never knows what a word
+means; it only knows whether the dictionary has heard of it.
