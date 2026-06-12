@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ActionSheetController, AlertController } from '@ionic/angular/standalone';
-import { catchError, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { User } from '../auth/user.model';
 import { ApiErrorAlertService } from '../shared/api-error-alert.service';
 import { IHashtagUsage } from './hashtag-usage/hashtag-usage.model';
@@ -71,7 +71,7 @@ export class AdminService {
     return this.#http.delete(`/api/v1/content/${filename}`);
   }
 
-  async deleteConfirmed<T>(deleteObs: Observable<T>) {
+  async deleteConfirmed(deleteObs: Observable<unknown>): Promise<Observable<boolean>> {
     const actionSheetEl = await this.#actionSheetCtrl.create({
       header: 'Are you sure?',
       buttons: [
@@ -95,11 +95,18 @@ export class AdminService {
     await actionSheetEl.present();
     const resp = await actionSheetEl.onDidDismiss();
 
-    if (resp.data.action === 'cancel') {
-      return of(null);
+    // Anything other than an explicit Delete (Cancel, or a backdrop dismiss
+    // with no data) is a no-op.
+    if (resp.data?.action !== 'delete') {
+      return of(false);
     }
 
+    // A successful delete returns true regardless of the response body. The
+    // backend replies 200 with no content, which HttpClient surfaces as null,
+    // so we cannot rely on the emitted value to signal success — only on the
+    // observable completing without error.
     return deleteObs.pipe(
+      map(() => true),
       catchError((error) => {
         this.#alertCtrl
           .create({
@@ -108,7 +115,7 @@ export class AdminService {
             buttons: ['Close'],
           })
           .then((alertEl) => alertEl.present());
-        return of(null);
+        return of(false);
       }),
     );
   }
