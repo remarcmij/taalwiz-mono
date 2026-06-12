@@ -119,11 +119,15 @@ export class AuthService implements OnDestroy {
         take(1),
         switchMap((refreshToken) => {
           if (!refreshToken) {
-            // No valid refresh token left (missing or client-side expired) —
-            // the session is genuinely over, so end it. This is distinct from a
-            // transient network failure, which is handled in the token getter's
-            // catchError and must keep the session.
-            this.logout();
+            // No valid refresh token left (missing or client-side expired).
+            // Only end the session if there actually is one: a public request
+            // made while logged out (e.g. registration or password reset) also
+            // routes through this interceptor and lands here, and calling
+            // logout() then would spuriously redirect to /auth — the login
+            // screen that briefly appeared under the registration welcome alert.
+            if (this.#user$.value) {
+              this.logout();
+            }
             return of(null);
           }
           return this.#http
