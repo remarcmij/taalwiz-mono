@@ -77,12 +77,6 @@
             </ion-button>
           </ion-col>
         </ion-row>
-        <ion-toast
-          [isOpen]="isToastOpen()"
-          [message]="'An invitaton email has been sent successfully to ' + acceptedEmails() + '.'"
-          [duration]="5000"
-          (didDismiss)="isToastOpen.set(false)"
-        ></ion-toast>
       </ion-grid>
     </form>
   </div>

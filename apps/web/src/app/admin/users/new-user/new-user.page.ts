@@ -17,9 +17,10 @@ import {
   IonRow,
   IonText,
   IonTitle,
-  IonToast,
   IonToolbar,
+  AlertController,
   LoadingController,
+  NavController,
 } from '@ionic/angular/standalone';
 
 import { TranslatePipe } from '@ngx-translate/core';
@@ -53,7 +54,6 @@ const DEFAULT_LANG = 'nl';
     IonRadioGroup,
     IonRadio,
     IonButton,
-    IonToast,
     TranslatePipe,
   ],
   templateUrl: './new-user.page.html',
@@ -61,12 +61,12 @@ const DEFAULT_LANG = 'nl';
 })
 export class NewUserPage {
   #loadingCtrl = inject(LoadingController);
+  #alertCtrl = inject(AlertController);
+  #navCtrl = inject(NavController);
   #adminService = inject(AdminService);
   #apiErrorAlertService = inject(ApiErrorAlertService);
   #logger = inject(LoggerService);
 
-  isToastOpen = signal(false);
-  acceptedEmails = signal('???');
   lang = signal(DEFAULT_LANG);
 
   async onSubmit(form: NgForm) {
@@ -84,11 +84,21 @@ export class NewUserPage {
 
     this.#adminService.inviteNewUser(email, this.lang()).subscribe({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      next: (info: any) => {
-        this.acceptedEmails.set(info.accepted.join(', '));
+      next: async (info: any) => {
         loadingEl.dismiss();
-        this.isToastOpen.set(true);
-        this.#logger.debug('NewUserPage', this.acceptedEmails);
+        const accepted = info.accepted.join(', ');
+        this.#logger.debug('NewUserPage', accepted);
+        // Acknowledge with an alert and only navigate back once the admin has
+        // dismissed it, so the confirmation is always read; a toast would be
+        // torn down by the immediate route transition.
+        const alert = await this.#alertCtrl.create({
+          header: 'Invitation Sent',
+          message: `An invitation email has been sent successfully to ${accepted}.`,
+          buttons: ['OK'],
+        });
+        await alert.present();
+        await alert.onDidDismiss();
+        this.#navCtrl.back();
       },
       error: async ({ error }) => {
         loadingEl.dismiss();
