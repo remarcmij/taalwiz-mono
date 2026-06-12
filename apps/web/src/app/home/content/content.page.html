@@ -35,9 +35,13 @@
         </ion-label>
       </ion-item>
       } @empty {
-      <div class="ion-text-center ion-padding">
-        <ion-button (click)="handleRefresh()">{{ 'common.retry' | translate }}</ion-button>
-      </div>
+      <ion-item detail button [routerLink]="['/help', helpLang()]">
+        <ion-icon slot="start" name="help-circle-outline" aria-hidden="true"></ion-icon>
+        <ion-label class="ion-text-wrap">
+          <h2>{{ 'content.welcome-title' | translate }}</h2>
+          <p>{{ 'content.welcome-subtitle' | translate }}</p>
+        </ion-label>
+      </ion-item>
       }
     </ion-list>
   </div>

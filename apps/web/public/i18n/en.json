@@ -51,7 +51,9 @@
     "update-installed": "Update installed"
   },
   "content": {
-    "single-hashtag": "This hashtag does not occur elsewhere."
+    "single-hashtag": "This hashtag does not occur elsewhere.",
+    "welcome-title": "Welcome to TaalWiz",
+    "welcome-subtitle": "New here? Read the guide on how to use TaalWiz."
   },
   "user": {
     "welcome": "Welcome",

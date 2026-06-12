@@ -51,7 +51,9 @@
     "update-installed": "Update geïnstalleerd"
   },
   "content": {
-    "single-hashtag": "Deze hashtag komt nergens anders voor."
+    "single-hashtag": "Deze hashtag komt nergens anders voor.",
+    "welcome-title": "Welkom bij TaalWiz",
+    "welcome-subtitle": "Nieuw hier? Lees de uitleg over het gebruik van TaalWiz."
   },
   "user": {
     "welcome": "Welkom",

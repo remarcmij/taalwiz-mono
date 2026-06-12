@@ -1,12 +1,12 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import {
-  IonButton,
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonImg,
   IonItem,
   IonLabel,
@@ -18,6 +18,8 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { helpCircleOutline } from 'ionicons/icons';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { Subject, filter, switchMap } from 'rxjs';
@@ -30,10 +32,10 @@ import { ContentService } from './content.service';
     AsyncPipe,
     RouterLink,
     TranslatePipe,
-    IonButton,
     IonButtons,
     IonContent,
     IonHeader,
+    IonIcon,
     IonImg,
     IonItem,
     IonLabel,
@@ -56,7 +58,11 @@ export class ContentPage {
   #refresh$ = new Subject<void>();
   topics$ = this.#refresh$.pipe(switchMap(() => this.#contentService.fetchPublications()));
 
+  /** UI language for the help deep-link shown when the library is empty. */
+  helpLang = computed(() => this.#authService.user()?.lang ?? 'nl');
+
   constructor() {
+    addIcons({ helpCircleOutline });
     this.#authService.user$.pipe(
       takeUntilDestroyed(),
       filter(Boolean),
