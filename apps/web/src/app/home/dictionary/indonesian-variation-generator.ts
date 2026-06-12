@@ -77,10 +77,22 @@ const CLITIC_STRIPS: SimpleStrip[] = [
 // synthesised active form is emitted ahead of the bare root (lookup priority).
 const SYNTHESIS_RULES: SynthesisRule[] = [
   // di- passive -> active meN- form, then the bare root.
-  { kind: 'synthesize', label: 'di- -> meN-', pattern: /^di(.{2,})$/, base: 'group1', alsoBare: true },
+  {
+    kind: 'synthesize',
+    label: 'di- -> meN-',
+    pattern: /^di(.{2,})$/,
+    base: 'group1',
+    alsoBare: true,
+  },
   // A reduced -kan/-i form (not already a meN- form) -> its active meN- form.
   // The bare root is still reached later by the -kan/-i strips below.
-  { kind: 'synthesize', label: '-kan/-i -> meN-', pattern: /^[^m].{2,}(?:kan|i)$/, base: 'word', alsoBare: false },
+  {
+    kind: 'synthesize',
+    label: '-kan/-i -> meN-',
+    pattern: /^[^m].{2,}(?:kan|i)$/,
+    base: 'word',
+    alsoBare: false,
+  },
 ];
 
 // Derivational/inflectional affixes and circumfixes.
@@ -132,12 +144,14 @@ interface TraceNode {
   /** Label of the rule that produced this node from its parent; null for the root. */
   rule: string | null;
   /**
-   * True when `word` was already SHOWN earlier in the tree (a visible repeat).
-   * Note this is deliberately keyed on what the trace has displayed, NOT on the
-   * result Set: the real recursion re-enters already-Set'd subtrees (mePrefixed
-   * correctness) and adds new words inside them, so a word's first Set-insertion
-   * can happen in a branch the trace collapses. Keying `dup` on display order
-   * keeps numbering gap-free and reserves `(dup)` for genuine on-screen repeats.
+   * False on a word's first occurrence in the (depth-first) recursion, true on
+   * every later repeat. The full recursion is traced — repeats included —
+   * because re-walking a repeated word can still create a brand-new form deeper
+   * down (e.g. `ikan`, born by re-stripping a repeated `berikan`). renderTrace()
+   * then prunes: first-occurrence nodes, plus any repeat on the path to such a
+   * birth, are drawn; repeats that introduce nothing new are dropped. So each
+   * new word appears once, numbered by its slot in the returned array, at its
+   * true point of first creation — and the `#N` labels read straight down.
    */
   dup: boolean;
   children: TraceNode[];
@@ -145,7 +159,9 @@ interface TraceNode {
 
 function isTraceEnabled(): boolean {
   try {
-    return typeof localStorage !== 'undefined' && !!localStorage.getItem('taalwiz.trace-variations');
+    return (
+      typeof localStorage !== 'undefined' && !!localStorage.getItem('taalwiz.trace-variations')
+    );
   } catch {
     return false;
   }
@@ -153,24 +169,37 @@ function isTraceEnabled(): boolean {
 
 /**
  * Render a TraceNode tree as the box-drawing trace shown in SEARCH.md. Each
- * non-dup node is numbered by its position in `order` (the returned variations),
- * so the `#N` labels line up exactly with the final array; `(dup)` marks a word
- * already shown higher in the tree.
+ * first-occurrence node is numbered by its position in `order` (the returned
+ * variations), so the `#N` labels line up exactly with the final array; `(dup)`
+ * marks a repeat of a word already numbered higher up.
+ *
+ * The raw tree records every recursion, including re-entered (repeated) branches.
+ * We prune at render time: a first-occurrence node shows all its children, but a
+ * repeated node is kept only when its subtree still contains a NEW word — and
+ * then only the birth-bearing children are drawn. This surfaces a word at its
+ * true point of first creation (e.g. `ikan`, born by re-stripping a repeated
+ * `berikan`) while dropping the redundant re-listing of already-seen forms, so
+ * the `#N` numbering reads straight down the tree.
  */
 function renderTrace(root: TraceNode, order: string[]): string {
   const index = new Map(order.map((w, i) => [w, i + 1]));
   const marker = (n: TraceNode) => (n.dup ? '(dup)' : `#${index.get(n.word)}`);
-  const lines: string[] = [`${root.word}  ${marker(root)}`];
 
+  // A subtree is worth drawing if it introduces a first-occurrence (non-dup) node.
+  const bearsNew = (n: TraceNode): boolean => !n.dup || n.children.some(bearsNew);
+  // A first-occurrence node shows every child; a repeat shows only births.
+  const childrenToShow = (n: TraceNode) => (n.dup ? n.children.filter(bearsNew) : n.children);
+
+  const lines: string[] = [`${root.word}  ${marker(root)}`];
   const walk = (children: TraceNode[], prefix: string) => {
     children.forEach((child, i) => {
       const last = i === children.length - 1;
       lines.push(`${prefix}${last ? '└─ ' : '├─ '}${child.rule} ► ${child.word}  ${marker(child)}`);
-      walk(child.children, prefix + (last ? '   ' : '│  '));
+      walk(childrenToShow(child), prefix + (last ? '   ' : '│  '));
     });
   };
 
-  walk(root.children, '');
+  walk(childrenToShow(root), '');
   return lines.join('\n');
 }
 
@@ -181,7 +210,7 @@ export class IndonesianVariationGenerator implements VariationGenerator {
     if (isTraceEnabled()) {
       // The recursion attaches each visited word to its trace parent; a throwaway
       // holder collects the real root as its single child. `shown` tracks which
-      // words have already been displayed, so re-visits collapse to `(dup)`.
+      // words have already been displayed, so re-visits render as `(dup)`.
       const holder: TraceNode = { word: '', rule: null, dup: false, children: [] };
       const shown = new Set<string>();
       this.getVariations(word, variations, false, holder, shown);
@@ -199,10 +228,10 @@ export class IndonesianVariationGenerator implements VariationGenerator {
 
   // `traceParent`/`traceShown` drive the optional dev trace: both `undefined`
   // means tracing is off (the production path). When set, this word is attached
-  // under `traceParent`; its `dup` flag and whether its subtree is expanded are
-  // keyed on `traceShown` (what the tree has already displayed), NOT on the
-  // result Set — see TraceNode.dup for why. A word shown for the first time
-  // expands; a repeat renders as a `(dup)` leaf and is not re-walked in the tree.
+  // under `traceParent`; its `dup` flag is keyed on `traceShown` (what the tree
+  // has already displayed), NOT on the result Set — see TraceNode.dup for why.
+  // Every node keeps tracing its subtree (even a repeat); renderTrace() prunes
+  // repeated branches that introduce nothing new.
   private getVariations(
     word: string,
     variations: Set<string>,
@@ -219,7 +248,12 @@ export class IndonesianVariationGenerator implements VariationGenerator {
       if (!seenInTrace) traceShown.add(word);
       const node: TraceNode = { word, rule: ruleLabel ?? null, dup: seenInTrace, children: [] };
       traceParent.children.push(node);
-      childTrace = seenInTrace ? undefined : node; // a visible repeat is a leaf; don't re-trace it
+      // Keep tracing even a repeat: re-walking it can surface a brand-new form
+      // (a "birth") that exists ONLY inside this re-entered branch — e.g. `ikan`
+      // is first created by re-stripping a repeated `berikan`. renderTrace()
+      // prunes repeated branches that bear nothing new, so the tree stays compact
+      // while still showing each new word at its true point of first creation.
+      childTrace = node;
     }
 
     if (WordExemptions.indexOf(word) !== -1) {
@@ -233,7 +267,14 @@ export class IndonesianVariationGenerator implements VariationGenerator {
         case 'strip': {
           const match = word.match(rule.pattern);
           if (match) {
-            this.getVariations(match[1], variations, mePrefixed, childTrace, traceShown, `strip ${rule.label}`);
+            this.getVariations(
+              match[1],
+              variations,
+              mePrefixed,
+              childTrace,
+              traceShown,
+              `strip ${rule.label}`,
+            );
           }
           break;
         }
@@ -247,18 +288,31 @@ export class IndonesianVariationGenerator implements VariationGenerator {
             this.getVariations(meWord, variations, true, childTrace, traceShown, rule.label);
           }
           if (rule.alsoBare) {
-            this.getVariations(base, variations, true, childTrace, traceShown, `${rule.label} (bare root)`);
+            this.getVariations(
+              base,
+              variations,
+              true,
+              childTrace,
+              traceShown,
+              `${rule.label} (bare root)`,
+            );
           }
           break;
         }
         case 'nasal': {
           for (const cand of nasalCandidates(word, rule.stem)) {
-            this.getVariations(cand.remainder, variations, mePrefixed, childTrace, traceShown, `nasal ${cand.surface}`);
+            this.getVariations(
+              cand.remainder,
+              variations,
+              mePrefixed,
+              childTrace,
+              traceShown,
+              `nasal ${cand.surface}`,
+            );
           }
           break;
         }
       }
     }
   }
-
 }

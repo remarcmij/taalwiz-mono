@@ -180,7 +180,7 @@ localStorage.setItem('taalwiz.trace-variations', '1'); // enable
 localStorage.removeItem('taalwiz.trace-variations');   // disable
 ```
 
-With it enabled, every lookup logs the actual recursion (rule label ► produced form, with `#N` insertion order or `(dup)` for an already-seen form), e.g. for `dibakar`:
+With it enabled, every lookup logs the actual recursion (rule label ► produced form). Each form is numbered `#N` by its slot in the returned array; `(dup)` marks a repeat of a form already numbered higher up. For example `dibakar`:
 
 ```
 dibakar  #1
@@ -191,7 +191,37 @@ dibakar  #1
 → [dibakar, membakar, bakar, mbakar]
 ```
 
-This is the live counterpart of the [worked trace](#generation-order-worked-trace) above — it makes over-generated forms like `mbakar` (the bare `me-` strip) and the dedup behaviour visible. The flag only controls the tree; the flat `word -> [...]` line (with the matched variation flagged `=`) is logged unconditionally by `DictionaryService.#logVariations()`. The tree builds a parallel structure alongside the real `Set` recursion and never changes the returned variations.
+This is the live counterpart of the [worked trace](#generation-order-worked-trace) above — it makes over-generated forms like `mbakar` (the bare `me-` strip) and the dedup behaviour visible.
+
+**Each new form is drawn at its true point of first creation.** The generator re-enters already-seen forms (a `di-`/`-kan/-i` synthesis rebuilds a longer form, which then strips back down), and a brand-new form can be _born_ inside one of those repeated branches. The trace records the full recursion and prunes at render time: a first-occurrence node shows all its children, but a repeated node is kept only when its subtree still introduces a new form — and then only the birth-bearing children are drawn. So the `#N` labels read straight down with no gaps. `berikan` shows this: `ikan` is first created by re-stripping a _repeated_ `berikan`, so it appears as `#13` under that branch (not later, at the top-level `ber-` strip, which is then a `(dup)`):
+
+```
+berikan  #1
+├─ -kan/-i -> meN- ► memberikan  #2
+│  ├─ strip -kan ► memberi  #3
+│  │  ├─ strip -i ► member  #4
+│  │  │  ├─ nasal mem- ► ber  #5
+│  │  │  └─ nasal me- ► mber  #6
+│  │  ├─ nasal mem- ► beri  #7
+│  │  │  └─ strip -i ► ber  (dup)
+│  │  └─ nasal me- ► mberi  #8
+│  │     └─ strip -i ► mber  (dup)
+│  ├─ strip -an ► memberik  #9
+│  │  ├─ nasal mem- ► berik  #10
+│  │  │  └─ strip ber- ► ik  #11
+│  │  └─ nasal me- ► mberik  #12
+│  ├─ nasal mem- ► berikan  (dup)
+│  │  └─ strip ber- ► ikan  #13
+│  └─ nasal me- ► mberikan  #14
+│     ├─ strip -kan ► mberi  (dup)
+│     └─ strip -an ► mberik  (dup)
+├─ strip ber- ► ikan  (dup)
+├─ strip -kan ► beri  (dup)
+└─ strip -an ► berik  (dup)
+→ [berikan, memberikan, memberi, member, ber, mber, beri, mberi, memberik, berik, ik, mberik, ikan, mberikan]
+```
+
+The flag only controls the tree; the flat `word -> [...]` line (with the matched variation flagged `=`) is logged unconditionally by `DictionaryService.#logVariations()`. The full-recursion bookkeeping and the prune are paid only while the flag is on — the production path builds no trace nodes — and never change the returned variations.
 
 #### mePrefixed Flag
 
