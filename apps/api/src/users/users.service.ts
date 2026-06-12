@@ -1,11 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import {
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -208,12 +202,15 @@ export class UsersService {
 
   async requestPasswordReset(email: string) {
     const user = await User.findOne({ email }).exec();
-    if (!user) {
-      throw new NotFoundException(EMAIL_NOT_FOUND);
-    }
 
-    if (user.roles.includes('demo')) {
-      throw new ForbiddenException(DEMO_ACCOUNT);
+    // This endpoint is public, so the response must not reveal whether the
+    // email belongs to an account (or a demo account): a differing response
+    // would let anyone probe which addresses are registered. Silently no-op for
+    // unknown/demo emails — the controller returns the same generic result
+    // either way, and only a real, non-demo account actually gets a mail.
+    if (!user || user.roles.includes('demo')) {
+      this.logger.debug(`Password reset requested for an unknown or demo email; no mail sent`);
+      return;
     }
 
     const payload: JwtPayload = { sub: user._id.toString(), email: user.email };
@@ -243,7 +240,10 @@ export class UsersService {
     }
 
     if (!(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException(AUTH_FAILED);
+      // 403 rather than 401: the session is authenticated; it's the submitted
+      // current password that is wrong. A 401 would make the auth interceptor
+      // treat it as a stale access token and pointlessly refresh + retry.
+      throw new ForbiddenException(AUTH_FAILED);
     }
 
     if (user.roles.includes('demo')) {

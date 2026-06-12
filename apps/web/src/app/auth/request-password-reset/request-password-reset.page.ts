@@ -23,7 +23,6 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
-import { EMAIL_NOT_FOUND } from '@repo/shared';
 import { AuthService } from '../auth.service';
 
 @Component({
@@ -81,12 +80,11 @@ export class RequestPasswordResetPage {
           form.reset();
           this.isToastOpen.set(true);
         },
-        error: (errResp) => {
-          if (errResp.error.message === EMAIL_NOT_FOUND) {
-            this.showAlert(this.#translate.instant('auth.email-not-found'));
-          } else {
-            this.showAlert(this.#translate.instant('common.something-went-wrong'));
-          }
+        // The backend returns the same generic success whether or not the email
+        // is registered (to avoid account enumeration), so any error here is a
+        // genuine failure (network/server), not "email not found".
+        error: () => {
+          this.showAlert(this.#translate.instant('common.something-went-wrong'));
         },
       });
   }

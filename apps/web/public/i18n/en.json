@@ -182,7 +182,7 @@
     "reset-link-expired": "This password reset link has expired. Please request a new one.",
     "reset-link-invalid": "This password reset link is invalid. Please request a new one from the most recent email.",
     "resetting-password": "Resetting Password...",
-    "password-reset-request-sent": "Password reset request sent. Please check your email for further instructions.",
+    "password-reset-request-sent": "If an account exists for that email address, a link to reset your password has been sent. Please check your inbox.",
     "forgot-password": "Forgot Password? Click here to reset it.",
     "password-reset-instructions": "Please enter your email address and we will send you a link to reset your password.",
     "register-message": "Please enter your name and a password to use with TaalWiz. Please note that the password is unique to TaalWiz and not related to the password that you use with your email provider.",
