@@ -52,25 +52,42 @@ p.back-preview {
   padding: 2rem 1rem;
 }
 
-.chip-bar {
+.list-selector-bar {
   --padding-start: 8px;
   --padding-end: 8px;
   --min-height: auto;
-  padding-block: 6px;
+  padding-block: 4px;
 
-  ion-chip {
-    margin: 0 4px 0 0;
-    cursor: pointer;
+  // The current-list trigger: a left-aligned, normal-case label + caret,
+  // not an uppercase button.
+  .list-selector-trigger {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    text-transform: none;
+    font-weight: 600;
+    max-width: 70%;
 
-    ion-icon:first-of-type {
-      margin-left: 6px;
+    ion-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    // Non-interactive "this list is shared" status glyph.
-    ion-icon.public-indicator {
-      color: var(--ion-color-medium);
-      font-size: 0.9rem;
-      cursor: default;
+    .caret {
+      margin-left: 4px;
+      font-size: 1rem;
     }
   }
+
+  // Non-interactive "this list is shared" status glyph.
+  .public-indicator {
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+  }
+}
+
+// Hidden-but-space-reserving check, so non-current rows align with the
+// current one in the dropdown.
+.invisible {
+  visibility: hidden;
 }

@@ -6,7 +6,6 @@ import {
   IonBadge,
   IonButton,
   IonButtons,
-  IonChip,
   IonContent,
   IonHeader,
   IonIcon,
@@ -18,6 +17,7 @@ import {
   IonList,
   IonMenuButton,
   IonNote,
+  IonPopover,
   IonTitle,
   IonToolbar,
   ModalController,
@@ -27,6 +27,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
+  checkmarkOutline,
+  chevronDownOutline,
   createOutline,
   ellipsisVertical,
   globe,
@@ -63,7 +65,7 @@ import { PointerService } from '../../shared/pointer.service';
     IonItemOptions,
     IonItemOption,
     IonButton,
-    IonChip,
+    IonPopover,
     IonIcon,
     TranslatePipe,
   ],
@@ -97,6 +99,8 @@ export class VocabularyPage {
   constructor() {
     addIcons({
       addOutline,
+      checkmarkOutline,
+      chevronDownOutline,
       createOutline,
       ellipsisVertical,
       globe,

@@ -26,25 +26,56 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
-  @if (vocabularyService.lists().length > 0) {
-    <ion-toolbar class="chip-bar">
-      @for (list of vocabularyService.lists(); track list.id) {
-        <ion-chip
-          [color]="list.id === vocabularyService.currentListId() ? 'primary' : 'medium'"
-          (click)="vocabularyService.setCurrentList(list.id)">
-          <ion-label>{{ list.name }}</ion-label>
-          @if (list.isPublic) {
-            <ion-icon
-              name="globe"
-              class="public-indicator"
-              [title]="'shared-lists.shared-status' | translate"></ion-icon>
-          }
+  @if (vocabularyService.currentList(); as current) {
+    <ion-toolbar class="list-selector-bar">
+      <ion-button id="list-selector-trigger" fill="clear" class="list-selector-trigger">
+        <ion-label>{{ current.name }}</ion-label>
+        @if (current.isPublic) {
           <ion-icon
-            name="ellipsis-vertical"
-            [title]="'common.options' | translate"
-            (click)="$event.stopPropagation(); openListMenu(list)"></ion-icon>
-        </ion-chip>
-      }
+            name="globe"
+            slot="end"
+            class="public-indicator"
+            [title]="'shared-lists.shared-status' | translate"></ion-icon>
+        }
+        <ion-icon name="chevron-down-outline" slot="end" class="caret"></ion-icon>
+      </ion-button>
+      <ion-buttons slot="end">
+        <ion-button [title]="'common.options' | translate" (click)="openListMenu(current)">
+          <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+
+      <ion-popover #listPopover trigger="list-selector-trigger" side="bottom" alignment="start">
+        <ng-template>
+          <ion-content>
+            <ion-list lines="full">
+              @for (list of vocabularyService.lists(); track list.id) {
+                <ion-item
+                  button
+                  [detail]="false"
+                  (click)="vocabularyService.setCurrentList(list.id); listPopover.dismiss()">
+                  <ion-icon
+                    slot="start"
+                    name="checkmark-outline"
+                    [class.invisible]="list.id !== vocabularyService.currentListId()"
+                    color="primary"></ion-icon>
+                  <ion-label>{{ list.name }}</ion-label>
+                  @if (list.isPublic) {
+                    <ion-icon name="globe" slot="end" class="public-indicator"></ion-icon>
+                  }
+                  <ion-button
+                    slot="end"
+                    fill="clear"
+                    [title]="'common.options' | translate"
+                    (click)="$event.stopPropagation(); listPopover.dismiss(); openListMenu(list)">
+                    <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+                  </ion-button>
+                </ion-item>
+              }
+            </ion-list>
+          </ion-content>
+        </ng-template>
+      </ion-popover>
     </ion-toolbar>
   }
 </ion-header>
