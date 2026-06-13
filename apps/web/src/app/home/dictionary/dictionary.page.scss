@@ -1,11 +1,25 @@
 .sync-banner {
-  font-size: 0.8rem;
-  padding: 4px 16px;
-  color: var(--ion-color-medium);
+  // The translucent header's absolutely-positioned `.header-background` (its
+  // backdrop-blur layer) paints on top of this non-positioned in-flow div,
+  // smearing the text. Give the banner its own stacking context so it paints
+  // above that layer; the opaque background then keeps it crisp. The toolbars
+  // get this treatment from Ionic; a bare header child does not.
+  position: relative;
+  z-index: 2;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 6px 16px;
+  text-align: center;
+  // var(--ion-color-medium) (grey ~#92949c) on the warm #faf7f2 header is only
+  // ~2.8:1 contrast; use the on-brand primary on a faint tint of the same hue so
+  // the note reads as a distinct status strip in both light and dark palettes.
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
 }
 
 .sync-error {
   color: var(--ion-color-danger);
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
 }
 
 .searchbar {
