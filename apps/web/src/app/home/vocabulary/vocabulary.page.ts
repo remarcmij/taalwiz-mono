@@ -127,18 +127,14 @@ export class VocabularyPage {
     await modal.present();
   }
 
-  /** Per-list overflow menu — keeps the chip uncluttered (just name + status + ⋮). */
+  /**
+   * Per-list overflow menu — rename / delete. Public/private is toggled directly
+   * via the globe button on the list, so it is intentionally not repeated here.
+   */
   async openListMenu(list: VocabularyList): Promise<void> {
     const sheet = await this.#actionSheetCtrl.create({
       header: list.name,
       buttons: [
-        {
-          text: this.#translate.instant(
-            list.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list',
-          ),
-          icon: list.isPublic ? 'globe' : 'globe-outline',
-          handler: () => void this.toggleListPublic(list),
-        },
         {
           text: this.#translate.instant('bookmarks.rename-list-title'),
           icon: 'pencil-outline',
@@ -175,6 +171,9 @@ export class VocabularyPage {
         },
       ],
     });
+    // The globe may be tapped from inside the open list popover; blur it so the
+    // confirm alert can apply aria-hidden without the focused-ancestor warning.
+    this.blurActiveElement();
     await alert.present();
   }
 

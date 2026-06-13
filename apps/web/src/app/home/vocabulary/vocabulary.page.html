@@ -30,16 +30,17 @@
     <ion-toolbar class="list-selector-bar">
       <ion-button id="list-selector-trigger" fill="clear" class="list-selector-trigger">
         <ion-label>{{ current.name }}</ion-label>
-        @if (current.isPublic) {
-          <ion-icon
-            name="globe"
-            slot="end"
-            class="public-indicator"
-            [title]="'shared-lists.shared-status' | translate"></ion-icon>
-        }
         <ion-icon name="chevron-down-outline" slot="end" class="caret"></ion-icon>
       </ion-button>
       <ion-buttons slot="end">
+        <ion-button
+          [title]="(current.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list') | translate"
+          (click)="toggleListPublic(current)">
+          <ion-icon
+            slot="icon-only"
+            [name]="current.isPublic ? 'globe' : 'globe-outline'"
+            [color]="current.isPublic ? 'primary' : 'medium'"></ion-icon>
+        </ion-button>
         <ion-button [title]="'common.options' | translate" (click)="openListMenu(current)">
           <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
         </ion-button>
@@ -66,9 +67,16 @@
                     [class.invisible]="list.id !== vocabularyService.currentListId()"
                     color="primary"></ion-icon>
                   <ion-label class="row-name">{{ list.name }}</ion-label>
-                  @if (list.isPublic) {
-                    <ion-icon name="globe" slot="end" class="public-indicator"></ion-icon>
-                  }
+                  <ion-button
+                    slot="end"
+                    fill="clear"
+                    [title]="(list.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list') | translate"
+                    (click)="$event.stopPropagation(); toggleListPublic(list)">
+                    <ion-icon
+                      slot="icon-only"
+                      [name]="list.isPublic ? 'globe' : 'globe-outline'"
+                      [color]="list.isPublic ? 'primary' : 'medium'"></ion-icon>
+                  </ion-button>
                   <ion-button
                     slot="end"
                     fill="clear"

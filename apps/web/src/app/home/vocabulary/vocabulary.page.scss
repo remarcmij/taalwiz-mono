@@ -78,12 +78,6 @@ p.back-preview {
       font-size: 1rem;
     }
   }
-
-  // Non-interactive "this list is shared" status glyph.
-  .public-indicator {
-    color: var(--ion-color-medium);
-    font-size: 0.9rem;
-  }
 }
 
 // Hidden-but-space-reserving check, so non-current rows align with the
