@@ -50,7 +50,8 @@
         class="list-popover"
         trigger="list-selector-trigger"
         side="bottom"
-        alignment="start">
+        alignment="start"
+        (ionPopoverWillPresent)="blurActiveElement()">
         <ng-template>
           <ion-content>
             <ion-list lines="full">

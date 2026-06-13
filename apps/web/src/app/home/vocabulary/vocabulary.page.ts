@@ -112,6 +112,16 @@ export class VocabularyPage {
     });
   }
 
+  /**
+   * Drop focus off the trigger button before the popover applies aria-hidden to
+   * the background page, otherwise the browser warns about an aria-hidden
+   * ancestor of a focused element. Same idiom as the navigation handler in
+   * app.component.ts.
+   */
+  protected blurActiveElement(): void {
+    (document.activeElement as HTMLElement | null)?.blur();
+  }
+
   async openSharedListsBrowser(): Promise<void> {
     const modal = await this.#modalCtrl.create({ component: SharedListsBrowserComponent });
     await modal.present();
