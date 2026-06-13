@@ -45,7 +45,12 @@
         </ion-button>
       </ion-buttons>
 
-      <ion-popover #listPopover trigger="list-selector-trigger" side="bottom" alignment="start">
+      <ion-popover
+        #listPopover
+        class="list-popover"
+        trigger="list-selector-trigger"
+        side="bottom"
+        alignment="start">
         <ng-template>
           <ion-content>
             <ion-list lines="full">
@@ -59,7 +64,7 @@
                     name="checkmark-outline"
                     [class.invisible]="list.id !== vocabularyService.currentListId()"
                     color="primary"></ion-icon>
-                  <ion-label>{{ list.name }}</ion-label>
+                  <ion-label class="row-name">{{ list.name }}</ion-label>
                   @if (list.isPublic) {
                     <ion-icon name="globe" slot="end" class="public-indicator"></ion-icon>
                   }
