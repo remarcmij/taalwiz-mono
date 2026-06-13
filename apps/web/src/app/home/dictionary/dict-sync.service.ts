@@ -52,8 +52,20 @@ export class DictSyncService {
     try {
       const response = await fetch('/assets/dict-manifest.json');
       if (!response.ok) {
-        // 404 = no dict uploaded yet; anything else = server-side problem
-        this.status$.next(response.status === 404 ? 'done' : 'error');
+        if (response.status === 404) {
+          // 404 = no dict uploaded yet.
+          this.status$.next('done');
+        } else if (response.status === 504 || !navigator.onLine) {
+          // When a service worker controls the page, an offline fetch of the
+          // (deliberately un-cached) manifest does not throw — ngsw resolves it
+          // with a synthetic 504. So treat a 504, or a falsy navigator.onLine,
+          // as offline rather than a server-side error. (The catch below only
+          // fires when there is no SW to intercept the failed request.)
+          this.status$.next('offline');
+        } else {
+          // A reachable server returning a genuine error.
+          this.status$.next('error');
+        }
         return;
       }
       manifest = (await response.json()) as DictManifest;
