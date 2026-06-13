@@ -113,13 +113,29 @@ export class VocabularyPage {
   }
 
   /**
-   * Drop focus off the trigger button before the popover applies aria-hidden to
+   * Drop focus off the active control before an overlay applies aria-hidden to
    * the background page, otherwise the browser warns about an aria-hidden
    * ancestor of a focused element. Same idiom as the navigation handler in
-   * app.component.ts.
+   * app.component.ts, but pierces shadow roots: ion-button focuses an inner
+   * `button.button-native`, and document.activeElement only reports the host.
    */
   protected blurActiveElement(): void {
-    (document.activeElement as HTMLElement | null)?.blur();
+    let el = document.activeElement as (HTMLElement & { shadowRoot?: ShadowRoot }) | null;
+    while (el?.shadowRoot?.activeElement) {
+      el = el.shadowRoot.activeElement as HTMLElement & { shadowRoot?: ShadowRoot };
+    }
+    el?.blur();
+  }
+
+  /**
+   * Open the per-list menu from a dropdown row: dismiss the popover first (and
+   * await it, so its focus-restoration to the trigger completes) before the
+   * action sheet presents — otherwise the restored focus trips the aria-hidden
+   * warning.
+   */
+  protected async openListMenuFromRow(list: VocabularyList, popover: IonPopover): Promise<void> {
+    await popover.dismiss();
+    await this.openListMenu(list);
   }
 
   async openSharedListsBrowser(): Promise<void> {
@@ -272,6 +288,7 @@ export class VocabularyPage {
         },
       ],
     });
+    this.blurActiveElement();
     await alert.present();
   }
 

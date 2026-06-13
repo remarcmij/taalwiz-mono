@@ -81,7 +81,7 @@
                     slot="end"
                     fill="clear"
                     [title]="'common.options' | translate"
-                    (click)="$event.stopPropagation(); listPopover.dismiss(); openListMenu(list)">
+                    (click)="$event.stopPropagation(); openListMenuFromRow(list, listPopover)">
                     <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
                   </ion-button>
                 </ion-item>
