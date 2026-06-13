@@ -48,6 +48,15 @@ export class LanguageService {
   async #applyLocal(lang: AppLanguage): Promise<void> {
     await Preferences.set({ key: PREFS_KEY, value: lang });
     this.language.set(lang);
-    await firstValueFrom(this.#translate.use(lang));
+    // Loading the translation bundle must never hard-fail app bootstrap: this
+    // runs from a blocking APP_INITIALIZER, so a rejected fetch (e.g. the i18n
+    // file missing from the SW cache while offline) would leave the app a blank
+    // page. The bundles are precached by the service worker (ngsw-config.json),
+    // but degrade to untranslated rather than blank if that ever misses.
+    try {
+      await firstValueFrom(this.#translate.use(lang));
+    } catch (err) {
+      console.warn(`Failed to load '${lang}' translations; continuing untranslated`, err);
+    }
   }
 }
