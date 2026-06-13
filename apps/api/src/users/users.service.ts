@@ -12,6 +12,7 @@ import {
   TOKEN_INVALID,
 } from '@repo/shared';
 import bcrypt from 'bcrypt';
+import { createHash } from 'node:crypto';
 import type { AuthResponse } from '../auth/types/auth-response.interface.js';
 import {
   JwtPayload,
@@ -36,6 +37,14 @@ export class UsersService {
 
   async encryptPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
+  }
+
+  // A short, non-reversible fingerprint of the stored password hash. Embedded in
+  // a reset token at mint time and re-checked on use, so a token stops working
+  // the moment the password changes (i.e. after a successful reset, or once a
+  // newer reset has been completed). Makes reset links effectively single-use.
+  private passwordFingerprint(passwordHash: string): string {
+    return createHash('sha256').update(passwordHash).digest('hex').slice(0, 16);
   }
 
   async generateRefreshToken(user: UserDoc): Promise<{ token: string; exp: number }> {
@@ -213,7 +222,11 @@ export class UsersService {
       return;
     }
 
-    const payload: JwtPayload = { sub: user._id.toString(), email: user.email };
+    const payload: JwtPayload = {
+      sub: user._id.toString(),
+      email: user.email,
+      pwh: this.passwordFingerprint(user.password),
+    };
     const resetToken = this.jwtService.sign(payload, {
       secret: this.config.get('JWT_SECRET'),
       expiresIn: '1h',
@@ -233,8 +246,8 @@ export class UsersService {
     });
   }
 
-  async changePassword(email: string, password: string, newPassword: string) {
-    const user = await User.findOne({ email }).exec();
+  async changePassword(id: string, password: string, newPassword: string) {
+    const user = await User.findById(id).exec();
     if (!user) {
       throw new NotFoundException(EMAIL_NOT_FOUND);
     }
@@ -279,6 +292,14 @@ export class UsersService {
 
     if (user.email !== decoded.email) {
       throw new ForbiddenException(EMAIL_MISMATCH);
+    }
+
+    // Reject a token whose fingerprint no longer matches the current password
+    // hash: it was already used to reset, or superseded by a newer reset. This
+    // makes reset links single-use even though the JWT itself is still unexpired.
+    if (decoded.pwh !== this.passwordFingerprint(user.password)) {
+      this.logger.error('Password reset token already used or superseded');
+      throw new ForbiddenException(TOKEN_INVALID);
     }
 
     if (user.roles.includes('demo')) {

@@ -1,9 +1,6 @@
-import { IsEmail, MinLength } from 'class-validator';
+import { MinLength } from 'class-validator';
 
 export class ChangePasswordDto {
-  @IsEmail()
-  email = '';
-
   @MinLength(6)
   password = '';
 

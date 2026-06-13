@@ -6,6 +6,10 @@ export const JwtPayloadSchema = z.object({
   lang: z.string().optional(),
   roles: z.array(z.string()).optional(),
   groups: z.array(z.string()).optional(),
+  // Fingerprint of the password hash at mint time. Present only on
+  // password-reset tokens; lets resetPassword reject a token once the password
+  // has changed, making reset links single-use. See UsersService.
+  pwh: z.string().optional(),
   iss: z.string().optional(),
   aud: z.union([z.string(), z.array(z.string())]).optional(),
   exp: z.number().optional(),

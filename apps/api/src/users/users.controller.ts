@@ -19,6 +19,7 @@ import { ChangePasswordDto } from './dto/change-password.dto.js';
 import { ContactRequestDto } from './dto/contact-request.dto.js';
 import { EmailLangDto } from './dto/email-lang.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { SetSuspendedDto } from './dto/set-suspended.dto.js';
 import { UpdateLangDto } from './dto/update-lang.dto.js';
@@ -92,8 +93,8 @@ export class UsersController {
 
   @Public()
   @Post('request-password-reset')
-  async requestPasswordReset(@Body('email') email: string) {
-    return await this.usersService.requestPasswordReset(email);
+  async requestPasswordReset(@Body() dto: RequestPasswordResetDto) {
+    return await this.usersService.requestPasswordReset(dto.email);
   }
 
   @Post('register')
@@ -109,9 +110,12 @@ export class UsersController {
 
   @Post('change-password')
   @HttpCode(204)
-  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+  async changePassword(
+    @CurrentUser() currentUser: JwtPayload,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
     return await this.usersService.changePassword(
-      changePasswordDto.email,
+      currentUser.sub,
       changePasswordDto.password,
       changePasswordDto.newPassword,
     );
