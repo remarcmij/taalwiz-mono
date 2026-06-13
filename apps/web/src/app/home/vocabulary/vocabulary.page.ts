@@ -153,6 +153,7 @@ export class VocabularyPage {
         { text: this.#translate.instant('common.close'), role: 'cancel' },
       ],
     });
+    this.blurActiveElement(); // drop focus off the ⋮ button before aria-hidden is applied
     await sheet.present();
   }
 
