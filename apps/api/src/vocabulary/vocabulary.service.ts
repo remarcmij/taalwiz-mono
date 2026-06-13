@@ -141,6 +141,7 @@ export class VocabularyService {
 
     const sourceItems = await VocabularyItem.find({ listId: sourceObjectId })
       .select('term lang back')
+      .sort({ savedAt: -1 }) // same order the source list is displayed in, so the clone preserves it
       .lean()
       .exec();
 
@@ -180,9 +181,15 @@ export class VocabularyService {
   async addMany(userId: string, items: CreateVocabularyItemDto[]): Promise<void> {
     if (items.length === 0) return;
     const userObjectId = new Types.ObjectId(userId);
+    // Stamp the batch with strictly decreasing savedAt values (base − index) so
+    // the first item is the newest. The list view sorts savedAt descending, so
+    // this makes a bulk import read top-to-bottom in the order it was pasted,
+    // as one block at the top of the list. Without distinct timestamps every
+    // item shares a single millisecond and the sort tie-breaks unpredictably.
+    const base = Date.now();
     const ops: AnyBulkWriteOperation<VocabularyItemDoc>[] = items.map(
-      ({ term, lang, listId, back }) => {
-        const setOnInsert: Record<string, unknown> = { savedAt: new Date() };
+      ({ term, lang, listId, back }, index) => {
+        const setOnInsert: Record<string, unknown> = { savedAt: new Date(base - index) };
         const update: Record<string, unknown> = { $setOnInsert: setOnInsert };
         if (back !== undefined) update['$set'] = { back };
         return {

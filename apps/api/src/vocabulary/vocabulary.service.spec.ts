@@ -20,7 +20,7 @@ const LIST = oid('2').toString();
 
 const execResolving = (value: unknown) => ({ exec: vi.fn().mockResolvedValue(value) });
 const findChainResolving = (value: unknown) => ({
-  select: () => ({ lean: () => execResolving(value) }),
+  select: () => ({ sort: () => ({ lean: () => execResolving(value) }) }),
 });
 
 describe('VocabularyService', () => {
