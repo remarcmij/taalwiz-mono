@@ -29,6 +29,7 @@ import {
 } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 import { VocabularyEntry, VocabularyService } from '../vocabulary.service';
+import { splitImportLine } from './import-line-parser';
 
 @Component({
   selector: 'app-vocabulary-entry-modal',
@@ -83,10 +84,7 @@ export class VocabularyEntryModalComponent {
       .split('\n')
       .map((l) => l.trim())
       .filter((l) => l.length > 0 && !l.startsWith('#'))
-      .map((l) => {
-        const [first, ...rest] = l.split(';');
-        return { term: (first ?? '').trim(), back: rest.join(';').trim() || undefined };
-      })
+      .map((l) => splitImportLine(l))
       .filter((e) => e.term.length > 0),
   );
 
