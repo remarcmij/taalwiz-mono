@@ -74,7 +74,10 @@ export class UsersController {
 
   @Roles('admin')
   @Delete(':id')
-  async deleteUserById(@Param('id') id: string) {
+  async deleteUserById(@Param('id') id: string, @CurrentUser() currentUser: JwtPayload) {
+    if (id === currentUser.sub) {
+      throw new ForbiddenException('Cannot delete your own account');
+    }
     const deletedUser = await this.usersService.deleteUserById(id);
     if (!deletedUser) {
       throw new NotFoundException('User not found');

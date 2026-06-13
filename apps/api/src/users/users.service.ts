@@ -74,7 +74,7 @@ export class UsersService {
   }
 
   async getUsers(): Promise<UserDoc[]> {
-    return await User.find().lean().exec();
+    return await User.find().select('-password').lean().exec();
   }
 
   async deleteUserById(id: string): Promise<UserDoc | null> {
