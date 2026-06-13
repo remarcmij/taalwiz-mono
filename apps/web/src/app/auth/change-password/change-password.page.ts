@@ -102,20 +102,32 @@ export class ChangePasswordPage {
           this.#router.navigateByUrl(homeUrl, { replaceUrl: true });
         },
         error: (errResp) => {
-          this.#logger.error('ChangePasswordPage', errResp.error.message);
+          // Read the server message defensively: an offline/unreachable request
+          // has no JSON body, so errResp.error is often null and a bare
+          // errResp.error.message would throw here, killing the handler before
+          // any alert shows (a silent failure).
+          const serverMessage: string | undefined = errResp?.error?.message;
+          this.#logger.error('ChangePasswordPage', serverMessage ?? errResp?.message);
           let messageKey: string;
-          switch (errResp.error.message) {
-            case AUTH_FAILED:
-              messageKey = 'auth.password-change-wrong-current';
-              break;
-            case DEMO_ACCOUNT:
-              messageKey = 'auth.demo-account-no-password-change';
-              break;
-            case EMAIL_NOT_FOUND:
-              messageKey = 'auth.email-not-found';
-              break;
-            default:
-              messageKey = 'auth.password-change-failed';
+          if (errResp?.status === 0 || errResp?.status === 504) {
+            // status 0 = network error (no service worker); 504 = the service
+            // worker's synthetic response for a request it could not fetch.
+            // Either way the server was never reached.
+            messageKey = 'common.network-unreachable';
+          } else {
+            switch (serverMessage) {
+              case AUTH_FAILED:
+                messageKey = 'auth.password-change-wrong-current';
+                break;
+              case DEMO_ACCOUNT:
+                messageKey = 'auth.demo-account-no-password-change';
+                break;
+              case EMAIL_NOT_FOUND:
+                messageKey = 'auth.email-not-found';
+                break;
+              default:
+                messageKey = 'auth.password-change-failed';
+            }
           }
           this.#alertCtrl
             .create({

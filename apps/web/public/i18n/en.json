@@ -28,6 +28,7 @@
     "open-entry": "Open full entry ({{word}})",
     "word-not-found": "Not found in dictionary:",
     "something-went-wrong": "Something went wrong. Please try again later.",
+    "network-unreachable": "Could not reach the server. Check your connection and try again.",
     "send": "Send",
     "server-error": "Server Error",
     "no-data": "No data available",

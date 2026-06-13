@@ -28,6 +28,7 @@
     "open-entry": "Volledig artikel openen ({{word}})",
     "word-not-found": "Niet gevonden in woordenbook:",
     "something-went-wrong": "Er is iets fout gegaan. Probeer het later nog eens.",
+    "network-unreachable": "Kan de server niet bereiken. Controleer je verbinding en probeer het opnieuw.",
     "send": "Verzenden",
     "server-error": "Serverfout",
     "no-data": "Geen gegevens beschikbaar",

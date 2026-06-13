@@ -86,9 +86,14 @@ export class ContactPage {
             this.#navCtrl.navigateBack(homeUrl);
           });
         },
-        error: () => {
+        error: (errResp) => {
           loadingEl.dismiss();
-          this.showAlert(this.#translate.instant('user.contact-failed'));
+          // status 0 = network error (no service worker); 504 = the service
+          // worker's synthetic response when it could not reach the server.
+          const offline = errResp?.status === 0 || errResp?.status === 504;
+          this.showAlert(
+            this.#translate.instant(offline ? 'common.network-unreachable' : 'user.contact-failed'),
+          );
         },
       });
   }
