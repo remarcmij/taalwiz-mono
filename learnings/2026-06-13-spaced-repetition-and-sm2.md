@@ -113,8 +113,21 @@ shortcoming.
   [srs.service.ts](../apps/api/src/srs/srs.service.ts) (`applySm2()` and
   `reviewCard()`). The exact constants (EF steps, starting intervals) live there
   and are worth reading alongside the canonical SM-2 above.
-- **Buttons:** three — **Again / Good / Easy** (vs Anki's four). Roughly: Again ≈
-  a failure (q < 3), Good ≈ q≈4, Easy ≈ q≈5.
+- **Buttons:** three — **Again / Good / Easy** (vs Anki's four). Each button maps
+  **directly to an action** in `applySm2()`; there is no intermediate `q` grade or
+  the canonical EF formula above. Instead:
+
+  | Button   | Interval                                  | EF change             | reps / lapses     |
+  | -------- | ----------------------------------------- | --------------------- | ----------------- |
+  | **Again** | reset to **1**                            | EF − 0.2 (clamp 1.3–4.0) | reps → 0, lapses + 1 |
+  | **Good**  | 1 → 6 → `round(I × EF)` (cap 365)         | unchanged             | reps + 1          |
+  | **Easy**  | 4 → 10 → `round(I × EF × 1.3)` (cap 365)  | EF + 0.15 (clamp 1.3–4.0) | reps + 1      |
+
+  So the EF adjustments are flat per-button constants, not the
+  `EF' = EF + (0.1 − (5 − q)…)` curve. Three things here go beyond canonical SM-2:
+  a separate **Easy** track with its own interval ladder (closer to Anki's "easy
+  bonus" than to SM-2, which has no Easy concept); an **EF ceiling of 4.0** and an
+  **interval cap of 365 days**; and **lapse counting** on Again.
 - **Granularity:** whole **days** (no sub-day "learning steps" like Anki's), so a
   card never becomes newly due _during_ a sitting.
 - **Again behaviour:** the server sets the card's `dueDate = now` (it stays due),
