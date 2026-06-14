@@ -38,6 +38,8 @@ yarn-error.log*
 .claude/*
 !.claude/skills/
 !.claude/settings.json
+# deploy-to-pi is a personal infra runbook (LAN IPs, hostnames, NAS) — keep local
+.claude/skills/deploy-to-pi/
 
 # Misc
 .DS_Store
