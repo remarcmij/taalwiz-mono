@@ -57,8 +57,8 @@ in 1987. Each card carries three numbers:
   below **1.3**. Higher EF = intervals grow faster.
 - **interval (I)** — days until the next review.
 
-After each review you grade recall quality. Original SM-2 uses a **0–5** scale
-(0 = blackout, 5 = perfect). Modern apps collapse this to a few buttons.
+After each review you grade recall quality (**q**). Original SM-2 uses a **0–5**
+scale (0 = blackout, 5 = perfect). Modern apps collapse this to a few buttons.
 
 **On a correct recall (q ≥ 3):**
 
