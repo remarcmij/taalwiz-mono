@@ -39,6 +39,7 @@
     "help": "Help",
     "bookmarks": "Woordenschat",
     "remove": "Verwijderen",
+    "undo": "Ongedaan maken",
     "ok": "OK",
     "offline-header": "Niet offline beschikbaar",
     "offline-message": "Deze inhoud is nog niet gedownload en kan niet worden weergegeven zonder internetverbinding.",
@@ -101,8 +102,13 @@
     "import-button": "{{count}} items importeren",
     "import-invalid-lines": "{{count}} regel(s) overgeslagen — term ontbreekt",
     "import-dict-lookup": "{{count}} term(en) gebruiken het woordenboek",
-    "import-success": "{{count}} items geïmporteerd",
+    "import-success-locked": "{{count}} items geïmporteerd, nu vergrendeld",
     "import-failed": "Importeren mislukt: {{count}} items konden niet worden opgeslagen",
+    "locked": "Vergrendeld",
+    "list-locked": "'{{name}}' is vergrendeld",
+    "lock-list": "Lijst vergrendelen",
+    "unlock-list": "Lijst ontgrendelen",
+    "bookmark-removed": "Verwijderd uit '{{name}}'",
     "save": "Opslaan"
   },
   "shared-lists": {

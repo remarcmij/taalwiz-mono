@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
+import { ToastController } from '@ionic/angular/standalone';
+import { TranslateService } from '@ngx-translate/core';
 import { EMPTY, catchError, firstValueFrom, map, of } from 'rxjs';
 import { langConfig } from '../../app.constants';
 import { AuthService } from '../../auth/auth.service';
@@ -19,6 +21,7 @@ export interface VocabularyList {
   name: string;
   count: number;
   isPublic: boolean;
+  isLocked: boolean;
 }
 
 export interface PublicVocabularyList {
@@ -37,6 +40,8 @@ export class VocabularyService {
   #http = inject(HttpClient);
   #authService = inject(AuthService);
   #studyService = inject(StudyService);
+  #toastCtrl = inject(ToastController);
+  #translate = inject(TranslateService);
 
   readonly bookmarks = signal<VocabularyEntry[]>([]);
   readonly bookmarkedKeys = signal<Set<string>>(new Set());
@@ -45,6 +50,7 @@ export class VocabularyService {
   readonly currentList = computed(
     () => this.lists().find((l) => l.id === this.currentListId()) ?? null,
   );
+  readonly currentListLocked = computed(() => this.currentList()?.isLocked ?? false);
   readonly isEnabled = computed(() => !!this.#authService.user() && this.currentListId() !== null);
 
   constructor() {
@@ -67,11 +73,63 @@ export class VocabularyService {
 
   toggle(term: string, lang: string): void {
     if (!this.currentListId()) return;
+    // A locked list is read-only: explain via a toast rather than silently
+    // doing nothing or flashing the change and reverting on the server's 409.
+    if (this.currentListLocked()) {
+      void this.#showLockedToast();
+      return;
+    }
     if (this.isBookmarked(term, lang)) {
       this.#remove(term, lang);
     } else {
       this.#add(term, lang);
     }
+  }
+
+  async #showLockedToast(): Promise<void> {
+    const toast = await this.#toastCtrl.create({
+      message: this.#translate.instant('vocabulary.list-locked', {
+        name: this.currentList()?.name ?? '',
+      }),
+      duration: 2500,
+      position: 'bottom',
+      color: 'medium',
+    });
+    await toast.present();
+  }
+
+  /** Offer a one-tap undo after a bookmark is removed (the accident-prone action). */
+  async #showRemovedToast(term: string, back: string | undefined): Promise<void> {
+    const toast = await this.#toastCtrl.create({
+      message: this.#translate.instant('vocabulary.bookmark-removed', {
+        name: this.currentList()?.name ?? '',
+      }),
+      duration: 4000,
+      position: 'bottom',
+      buttons: [
+        {
+          text: this.#translate.instant('common.undo'),
+          handler: () => this.addEntry(term, back),
+        },
+      ],
+    });
+    await toast.present();
+  }
+
+  /** Lock or unlock a list (content becomes immutable; SRS review is unaffected). */
+  setListLocked(id: string, isLocked: boolean): void {
+    const snapshot = this.lists();
+    this.lists.update((ls) => ls.map((l) => (l.id === id ? { ...l, isLocked } : l)));
+
+    this.#http
+      .patch(`/api/v1/vocabulary/lists/${id}`, { isLocked })
+      .pipe(
+        catchError(() => {
+          this.lists.set(snapshot);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   addEntry(term: string, back?: string): void {
@@ -339,6 +397,7 @@ export class VocabularyService {
     const listId = this.currentListId()!;
     const key = `${term}:${lang}`;
     const bookmarksSnapshot = this.bookmarks();
+    const removedBack = bookmarksSnapshot.find((b) => b.term === term && b.lang === lang)?.back;
     const listsSnapshot = this.lists();
 
     this.bookmarkedKeys.update((s) => {
@@ -361,6 +420,9 @@ export class VocabularyService {
           return EMPTY;
         }),
       )
-      .subscribe(() => void this.#studyService.refreshStats());
+      .subscribe(() => {
+        void this.#studyService.refreshStats();
+        void this.#showRemovedToast(term, removedBack);
+      });
   }
 }

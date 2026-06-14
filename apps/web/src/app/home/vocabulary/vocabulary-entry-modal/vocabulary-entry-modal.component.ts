@@ -147,17 +147,23 @@ export class VocabularyEntryModalComponent {
   protected async submitImport(): Promise<void> {
     const entries = this.parsedEntries();
     if (entries.length === 0) return;
+    const listId = this.#vocabularyService.currentListId();
     this.importing.set(true);
     const succeeded = await this.#vocabularyService.addEntries(entries);
     this.importing.set(false);
 
     const ok = succeeded === entries.length;
+    // A bulk-imported deck is meant to be studied as-is, so lock it by default;
+    // the owner can unlock it from the list menu to edit.
+    if (ok && listId) {
+      this.#vocabularyService.setListLocked(listId, true);
+    }
     const toast = await this.#toastCtrl.create({
       message: this.#translate.instant(
-        ok ? 'vocabulary.import-success' : 'vocabulary.import-failed',
+        ok ? 'vocabulary.import-success-locked' : 'vocabulary.import-failed',
         { count: ok ? succeeded : entries.length },
       ),
-      duration: 2500,
+      duration: 3000,
       position: 'bottom',
       color: ok ? 'success' : 'danger',
     });

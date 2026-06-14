@@ -91,7 +91,21 @@ p.back-preview {
       margin-left: 4px;
       font-size: 1rem;
     }
+
+    // Small padlock shown next to the current list's name when it is locked.
+    .lock-badge {
+      flex: 0 0 auto;
+      margin-left: 6px;
+      font-size: 0.95rem;
+      color: var(--ion-color-medium);
+    }
   }
+}
+
+// Padlock on a locked row in the list dropdown, sitting just before the globe.
+.row-lock {
+  margin-inline-end: 8px;
+  font-size: 1.05rem;
 }
 
 // Hidden-but-space-reserving check, so non-current rows align with the

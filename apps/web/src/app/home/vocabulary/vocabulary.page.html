@@ -14,7 +14,11 @@
             }
           </div>
         </ion-button>
-        <ion-button [title]="'vocabulary.add-entry' | translate" (click)="openAddEntryModal()">
+        <ion-button
+          [title]="'vocabulary.add-entry' | translate"
+          [disabled]="vocabularyService.currentListLocked()"
+          (click)="openAddEntryModal()"
+        >
           <ion-icon slot="icon-only" name="create-outline"></ion-icon>
         </ion-button>
       }
@@ -30,6 +34,9 @@
     <ion-toolbar class="list-selector-bar">
       <button id="list-selector-trigger" type="button" class="list-selector-trigger">
         <span class="trigger-name">{{ current.name }}</span>
+        @if (current.isLocked) {
+          <ion-icon name="lock-closed" class="lock-badge" aria-hidden="true"></ion-icon>
+        }
         <ion-icon name="chevron-down-outline" class="caret" aria-hidden="true"></ion-icon>
       </button>
       <ion-buttons slot="end">
@@ -67,6 +74,15 @@
                     [class.invisible]="list.id !== vocabularyService.currentListId()"
                     color="primary"></ion-icon>
                   <ion-label class="row-name">{{ list.name }}</ion-label>
+                  @if (list.isLocked) {
+                    <ion-icon
+                      slot="end"
+                      name="lock-closed"
+                      class="row-lock"
+                      color="medium"
+                      [attr.aria-label]="'vocabulary.locked' | translate"
+                    ></ion-icon>
+                  }
                   <ion-button
                     class="row-action"
                     slot="end"
@@ -108,7 +124,7 @@
     } @else {
       <ion-list lines="full">
         @for (entry of vocabularyService.bookmarks(); track entry.term + ':' + entry.lang) {
-          <ion-item-sliding>
+          <ion-item-sliding [disabled]="vocabularyService.currentListLocked()">
             <ion-item-options side="start">
               <ion-item-option (click)="openEditModal(entry)">
                 {{ 'vocabulary.edit-entry' | translate }}
@@ -122,7 +138,7 @@
                 }
               </ion-label>
               <ion-note slot="end">{{ relativeTime(entry.savedAt) }}</ion-note>
-              @if (isDesktop) {
+              @if (isDesktop && !vocabularyService.currentListLocked()) {
                 <ion-buttons slot="end">
                   <ion-button fill="clear" (click)="$event.stopPropagation(); openEditModal(entry)">
                     <ion-icon slot="icon-only" name="create-outline"></ion-icon>

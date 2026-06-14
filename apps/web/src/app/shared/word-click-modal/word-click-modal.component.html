@@ -34,12 +34,27 @@
         @if (vocabularyService.isEnabled()) {
           <ion-button
             (click)="vocabularyService.toggle(clickedWord(), lang())"
-            [title]="(isBookmarked() ? 'common.remove-bookmark' : 'common.bookmark') | translate"
+            [title]="
+              (vocabularyService.currentListLocked()
+                ? 'vocabulary.locked'
+                : isBookmarked()
+                  ? 'common.remove-bookmark'
+                  : 'common.bookmark'
+              ) | translate
+            "
           >
             <ion-icon
               slot="icon-only"
               [name]="isBookmarked() ? 'bookmark' : 'bookmark-outline'"
-              [attr.aria-label]="(isBookmarked() ? 'common.remove-bookmark' : 'common.bookmark') | translate"
+              [color]="vocabularyService.currentListLocked() ? 'medium' : null"
+              [attr.aria-label]="
+                (vocabularyService.currentListLocked()
+                  ? 'vocabulary.locked'
+                  : isBookmarked()
+                    ? 'common.remove-bookmark'
+                    : 'common.bookmark'
+                ) | translate
+              "
             ></ion-icon>
           </ion-button>
         }

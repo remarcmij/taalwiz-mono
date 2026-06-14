@@ -11,6 +11,7 @@ export interface VocabularyListInfo {
   name: string;
   count: number;
   isPublic: boolean;
+  isLocked: boolean;
 }
 
 export interface PublicVocabularyListInfo {
@@ -57,6 +58,7 @@ export class VocabularyService {
         name: l.name,
         count: countMap.get(l._id.toString()) ?? 0,
         isPublic: l.isPublic ?? false,
+        isLocked: l.isLocked ?? false,
       }))
       .sort(byPinnedThenName);
   }
@@ -64,7 +66,7 @@ export class VocabularyService {
   async createList(userId: string, name: string): Promise<VocabularyListInfo> {
     try {
       const list = await VocabularyList.create({ userId: new Types.ObjectId(userId), name });
-      return { id: list._id.toString(), name: list.name, count: 0, isPublic: false };
+      return { id: list._id.toString(), name: list.name, count: 0, isPublic: false, isLocked: false };
     } catch (err: unknown) {
       if ((err as { code?: number }).code === 11000) {
         throw new ConflictException(`List '${name}' already exists`);
@@ -84,11 +86,12 @@ export class VocabularyService {
   async updateList(
     userId: string,
     listId: string,
-    changes: { name?: string; isPublic?: boolean },
+    changes: { name?: string; isPublic?: boolean; isLocked?: boolean },
   ): Promise<void> {
     const set: Record<string, unknown> = {};
     if (changes.name !== undefined) set['name'] = changes.name;
     if (changes.isPublic !== undefined) set['isPublic'] = changes.isPublic;
+    if (changes.isLocked !== undefined) set['isLocked'] = changes.isLocked;
     if (Object.keys(set).length === 0) return;
     try {
       await VocabularyList.findOneAndUpdate(
@@ -170,7 +173,12 @@ export class VocabularyService {
       })),
     );
 
-    return { id: newListId, name: newList.name, count: sourceItems.length, isPublic: false };
+    // Lock the clone by default: a copied list is meant to be studied as-is, so
+    // protect it from accidental edits. Done AFTER addMany so the populate isn't
+    // rejected by the locked-list guard; the owner can unlock it to edit.
+    await VocabularyList.updateOne({ _id: newList._id }, { $set: { isLocked: true } }).exec();
+
+    return { id: newListId, name: newList.name, count: sourceItems.length, isPublic: false, isLocked: true };
   }
 
   /** Create a list, auto-suffixing the name on collision with the caller's existing lists. */
@@ -192,8 +200,27 @@ export class VocabularyService {
       .exec();
   }
 
+  /**
+   * Reject a write that targets any locked list. The membership/content of a
+   * locked list is immutable (its SRS review state is not). Internal callers
+   * that populate a list before locking it (e.g. cloneList) pass while the list
+   * is still unlocked.
+   */
+  async #assertNotLocked(userId: string, listIds: string[]): Promise<void> {
+    const ids = [...new Set(listIds)].map((id) => new Types.ObjectId(id));
+    const locked = await VocabularyList.findOne({
+      _id: { $in: ids },
+      userId: new Types.ObjectId(userId),
+      isLocked: true,
+    }).exec();
+    if (locked) {
+      throw new ConflictException(`List '${locked.name}' is locked`);
+    }
+  }
+
   async addMany(userId: string, items: CreateVocabularyItemDto[]): Promise<void> {
     if (items.length === 0) return;
+    await this.#assertNotLocked(userId, items.map((i) => i.listId));
     const userObjectId = new Types.ObjectId(userId);
     // Stamp the batch with strictly decreasing savedAt values (base − index) so
     // the first item is the newest. The list view sorts savedAt descending, so
@@ -220,6 +247,7 @@ export class VocabularyService {
   }
 
   async remove(userId: string, term: string, lang: string, listId: string): Promise<void> {
+    await this.#assertNotLocked(userId, [listId]);
     await VocabularyItem.deleteOne({
       userId: new Types.ObjectId(userId),
       listId: new Types.ObjectId(listId),

@@ -9,4 +9,8 @@ export class UpdateVocabularyListDto {
   @IsOptional()
   @IsBoolean()
   isPublic?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isLocked?: boolean;
 }

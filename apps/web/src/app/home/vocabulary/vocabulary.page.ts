@@ -33,6 +33,9 @@ import {
   ellipsisVertical,
   globe,
   globeOutline,
+  lockClosed,
+  lockClosedOutline,
+  lockOpenOutline,
   pencilOutline,
   peopleOutline,
   schoolOutline,
@@ -114,6 +117,9 @@ export class VocabularyPage {
       ellipsisVertical,
       globe,
       globeOutline,
+      lockClosed,
+      lockClosedOutline,
+      lockOpenOutline,
       pencilOutline,
       peopleOutline,
       schoolOutline,
@@ -161,6 +167,13 @@ export class VocabularyPage {
       header: list.name,
       buttons: [
         {
+          text: this.#translate.instant(
+            list.isLocked ? 'vocabulary.unlock-list' : 'vocabulary.lock-list',
+          ),
+          icon: list.isLocked ? 'lock-open-outline' : 'lock-closed-outline',
+          handler: () => this.vocabularyService.setListLocked(list.id, !list.isLocked),
+        },
+        {
           text: this.#translate.instant('bookmarks.rename-list-title'),
           icon: 'pencil-outline',
           handler: () => void this.openRenameListAlert(list),
@@ -203,7 +216,9 @@ export class VocabularyPage {
   }
 
   async lookup(entry: VocabularyEntry): Promise<void> {
-    if (entry.back) {
+    // On a locked list, tapping a row is read-only: jump to the dictionary
+    // rather than opening the (would-be-rejected) edit modal.
+    if (entry.back && !this.vocabularyService.currentListLocked()) {
       await this.openEditModal(entry);
     } else {
       this.#router.navigate(['home/tabs/dictionary']);
@@ -233,7 +248,7 @@ export class VocabularyPage {
   }
 
   async openAddEntryModal(): Promise<void> {
-    if (!this.vocabularyService.currentListId()) return;
+    if (!this.vocabularyService.currentListId() || this.vocabularyService.currentListLocked()) return;
     const modal = await this.#modalCtrl.create({
       component: VocabularyEntryModalComponent,
       componentProps: { mode: 'add' },
