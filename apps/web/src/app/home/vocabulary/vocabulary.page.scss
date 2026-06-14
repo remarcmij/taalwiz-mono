@@ -86,15 +86,28 @@ p.back-preview {
   visibility: hidden;
 }
 
-// The list dropdown: wide enough that typical names stay on one line, and
-// names that are still too long ellipsis rather than wrapping mid-word.
+// The list dropdown: wide enough that typical names ("Ham les 12") stay on one
+// line, capped at the viewport on a narrow phone. Names still too long ellipsis
+// rather than wrapping mid-word.
 .list-popover {
-  --width: 280px;
+  --width: min(360px, 92vw);
   --max-height: 60vh;
 }
 
+// The name fills the row and stays left-aligned, so the lesson number is always
+// visible at the start instead of being centered and cut off mid-name.
 .row-name {
+  flex: 1;
+  text-align: start;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+// Trim the per-row action buttons' padding so they take less of the row, leaving
+// more room for the name.
+.row-action {
+  margin: 0;
+  --padding-start: 4px;
+  --padding-end: 4px;
 }

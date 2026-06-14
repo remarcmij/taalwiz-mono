@@ -68,6 +68,7 @@
                     color="primary"></ion-icon>
                   <ion-label class="row-name">{{ list.name }}</ion-label>
                   <ion-button
+                    class="row-action"
                     slot="end"
                     fill="clear"
                     [title]="(list.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list') | translate"
@@ -78,6 +79,7 @@
                       [color]="list.isPublic ? 'primary' : 'medium'"></ion-icon>
                   </ion-button>
                   <ion-button
+                    class="row-action"
                     slot="end"
                     fill="clear"
                     [title]="'common.options' | translate"
