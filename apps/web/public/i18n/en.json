@@ -106,7 +106,7 @@
   },
   "shared-lists": {
     "title": "Shared lists",
-    "empty": "No shared lists yet. Share one of your own lists with everyone to get started.",
+    "empty": "No one else has shared a list yet. When someone shares one of their lists with everyone, it appears here for you to copy.",
     "shared-by": "Shared by {{name}}",
     "word-count": "{{count}} words",
     "clone-button": "Copy to my lists",

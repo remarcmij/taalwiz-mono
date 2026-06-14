@@ -106,7 +106,7 @@
   },
   "shared-lists": {
     "title": "Gedeelde lijsten",
-    "empty": "Nog geen gedeelde lijsten. Deel een van je eigen lijsten met iedereen om te beginnen.",
+    "empty": "Nog niemand anders heeft een lijst gedeeld. Zodra iemand een lijst met iedereen deelt, verschijnt die hier om te kopiëren.",
     "shared-by": "Gedeeld door {{name}}",
     "word-count": "{{count}} woorden",
     "clone-button": "Naar mijn lijsten kopiëren",
