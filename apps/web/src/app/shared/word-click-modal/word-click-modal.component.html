@@ -58,7 +58,7 @@
       @for (h of homonyms(); track $index) {
         <ion-item>
           <ion-label>
-            @if (h.breakdown) {
+            @if (h.breakdown && !hideActions()) {
               @if (morphologyMode.quizMode() && !revealed().has($index)) {
                 <div
                   class="affix-quiz"
@@ -105,12 +105,10 @@
         </ion-item>
       }
     </ion-list>
-    <div class="resolution-hop">
-      @if (hideActions()) {
-        <span class="hop-static">→ {{ word() }}</span>
-      } @else {
+    @if (!hideActions()) {
+      <div class="resolution-hop">
         <span class="hop-link" (click)="dictionaryLookup()">→ {{ word() }}</span>
-      }
-    </div>
+      </div>
+    }
   </ion-content>
 }

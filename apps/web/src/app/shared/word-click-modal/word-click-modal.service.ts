@@ -61,6 +61,41 @@ export class WordClickModalService {
     });
   }
 
+  /**
+   * View-only lookup from an SRS study card back: definition + audio only, with
+   * no bookmark / dictionary-nav / quiz actions and no Cmd-click accelerator.
+   * Only fires when an emphasised word <span> is tapped; taps on other text in
+   * the definition are ignored, so it never competes with the (already inert)
+   * tap-to-flip gesture. Mirrors `onClicked` minus the desktop accelerator and
+   * the full action set.
+   */
+  openFromStudyCard(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.tagName !== 'SPAN') return;
+    event.stopPropagation();
+
+    const wordLang = this.getWordClickParams(target);
+    if (!wordLang) return;
+
+    const speech = target.parentElement?.textContent?.trim() ?? '';
+    target.classList.add('clicked');
+
+    this.fetchLemmas(removeAccents(wordLang.word), wordLang.lang).subscribe({
+      next: ({ word, lang, lemmas }) => {
+        this.#present({
+          clickedWord: wordLang.word,
+          word,
+          lang,
+          speech,
+          lemmas,
+          hideActions: true,
+          onDismiss: () => target.classList.remove('clicked'),
+        });
+      },
+      error: () => target.classList.remove('clicked'),
+    });
+  }
+
   #present(opts: {
     clickedWord: string;
     word: string;

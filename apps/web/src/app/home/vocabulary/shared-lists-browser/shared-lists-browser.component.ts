@@ -18,6 +18,7 @@ import {
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, downloadOutline } from 'ionicons/icons';
+import { MarkdownService } from '../../content/markdown.service';
 import {
   PublicVocabularyList,
   VocabularyEntry,
@@ -50,6 +51,13 @@ export class SharedListsBrowserComponent {
   #vocabularyService = inject(VocabularyService);
   #toastCtrl = inject(ToastController);
   #translate = inject(TranslateService);
+  #markdownService = inject(MarkdownService);
+
+  /** Render a list item's `**bold**`/`*italic*` back markup as plain emphasis for
+   * the preview (tinyMarkdown, so no tappable spans — this is a summary row). */
+  protected backPreviewHtml(text: string): string {
+    return this.#markdownService.tinyMarkdown(text);
+  }
 
   protected loading = signal(true);
   protected lists = signal<PublicVocabularyList[]>([]);

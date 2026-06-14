@@ -89,8 +89,9 @@ export class WordClickModalComponent implements OnInit {
    * the target-language voice. Falls back to the bare clicked word. */
   speech = input<string>('');
   lemmas = input.required<ILemma[]>();
-  /** When true (e.g. opened from SRS review) hide the bookmark and dictionary-lookup
-   * actions, leaving a view-only modal (definition + audio). */
+  /** When true (opened from an SRS study card back) reduce the modal to
+   * definition + audio only: hide the quiz toggle, bookmark and dictionary-lookup
+   * actions, the affix breakdown, and the "→ word" hop. */
   hideActions = input<boolean>(false);
   homonyms = signal<HomonymView[]>([]);
   /** Indices whose nasal-allomorphy rule note is expanded. */

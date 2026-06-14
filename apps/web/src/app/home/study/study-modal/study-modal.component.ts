@@ -33,6 +33,7 @@ import { firstValueFrom } from 'rxjs';
 import { MarkdownService } from '../../content/markdown.service';
 import { DictionaryService } from '../../dictionary/dictionary.service';
 import { PointerService } from '../../../shared/pointer.service';
+import { WordClickModalService } from '../../../shared/word-click-modal/word-click-modal.service';
 import { VocabularyService } from '../../vocabulary/vocabulary.service';
 import { SrsItem, SrsRating, StudyService } from '../study.service';
 
@@ -78,6 +79,7 @@ export class StudyModalComponent implements OnInit {
   #studyService = inject(StudyService);
   #dictionaryService = inject(DictionaryService);
   #markdownService = inject(MarkdownService);
+  #wordClickModal = inject(WordClickModalService);
   protected vocabularyService = inject(VocabularyService);
   protected pointer = inject(PointerService);
 
@@ -200,6 +202,15 @@ export class StudyModalComponent implements OnInit {
       this.baseWordNote.set(result.word !== card.term ? result.word : null);
     }
     this.flipped.set(true);
+  }
+
+  /**
+   * Tap on an emphasised word on the card back: open a view-only lookup
+   * (definition + audio only). The flip gesture is already inert once flipped,
+   * so this competes with nothing; the service ignores taps that miss a word.
+   */
+  onBackWordTap(event: MouseEvent): void {
+    this.#wordClickModal.openFromStudyCard(event);
   }
 
   rate(rating: SrsRating): void {

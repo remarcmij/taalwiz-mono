@@ -38,6 +38,7 @@ import {
   schoolOutline,
   trashOutline,
 } from 'ionicons/icons';
+import { MarkdownService } from '../content/markdown.service';
 import { DictionaryService } from '../dictionary/dictionary.service';
 import { WordLang } from '../dictionary/word-lang.model';
 import { StudyModalComponent } from '../study/study-modal/study-modal.component';
@@ -78,6 +79,7 @@ export class VocabularyPage {
   protected pointer = inject(PointerService);
   #studyService = inject(StudyService);
   #dictionaryService = inject(DictionaryService);
+  #markdownService = inject(MarkdownService);
   #router = inject(Router);
   #alertCtrl = inject(AlertController);
   #actionSheetCtrl = inject(ActionSheetController);
@@ -86,6 +88,13 @@ export class VocabularyPage {
   #platform = inject(Platform);
 
   protected isDesktop = this.#platform.is('desktop');
+
+  /** Render a card back's `**bold**`/`*italic*` markup for the list preview as
+   * plain emphasis. Uses `tinyMarkdown` (not `convertMarkdown`) so preview words
+   * are NOT wrapped in tappable spans — this row is a summary, not a lookup. */
+  protected backPreviewHtml(text: string): string {
+    return this.#markdownService.tinyMarkdown(text);
+  }
 
   protected dueForCurrentList = computed(() => {
     const listId = this.vocabularyService.currentListId();

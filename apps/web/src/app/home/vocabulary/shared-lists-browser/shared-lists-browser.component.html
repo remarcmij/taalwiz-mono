@@ -60,8 +60,8 @@
           <ion-item>
             <ion-label>
               <h2>{{ item.term }}</h2>
-              @if (item.back) {
-                <p class="back-preview">{{ item.back }}</p>
+              @if (item.back; as back) {
+                <p class="back-preview" [innerHTML]="backPreviewHtml(back)"></p>
               }
             </ion-label>
           </ion-item>

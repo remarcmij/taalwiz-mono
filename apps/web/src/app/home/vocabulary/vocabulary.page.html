@@ -115,8 +115,8 @@
             <ion-item button (click)="lookup(entry)">
               <ion-label>
                 <h2>{{ entry.term }}</h2>
-                @if (entry.back) {
-                  <p class="back-preview">{{ entry.back }}</p>
+                @if (entry.back; as back) {
+                  <p class="back-preview" [innerHTML]="backPreviewHtml(back)"></p>
                 }
               </ion-label>
               <ion-note slot="end">{{ relativeTime(entry.savedAt) }}</ion-note>

@@ -80,7 +80,9 @@
                 <p class="base-word-note">→ {{ baseWordNote() }}</p>
               }
               @if (definition()) {
-                <p class="definition markdown-body" [innerHTML]="definitionHtml()"></p>
+                <p class="definition markdown-body text-content"
+                   [innerHTML]="definitionHtml()"
+                   (click)="onBackWordTap($event)"></p>
               } @else {
                 <p class="no-definition">{{ 'study.no-definition' | translate }}</p>
               }
