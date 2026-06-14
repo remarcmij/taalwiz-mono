@@ -84,6 +84,7 @@ During a session:
 
 - The front of the card is shown first. Tap the card (or press __Space__) to reveal the back.
 - The back shows the translation: your own __back__ note if you wrote one, otherwise the dictionary's definition.
+- On the back, you can tap a highlighted word for a quick definition lookup (meaning plus audio where available).
 - Rate how well you knew the answer: __Again__ (didn't know it; the card comes back later in the same session), __Good__ (got it with some effort), or __Easy__ (knew it immediately). You can also use the keyboard shortcuts __1__, __2__, __3__.
 - A badge on the Study button shows how many cards are due for review today.
 

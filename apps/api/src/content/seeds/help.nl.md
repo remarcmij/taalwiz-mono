@@ -84,6 +84,7 @@ Tijdens een sessie:
 
 - De voorkant van de kaart wordt als eerste getoond. Tik op de kaart (of druk op __Spatie__) om de achterkant te onthullen.
 - De achterkant toont de vertaling: je eigen __achterkant__-aantekening als je die hebt geschreven, anders de definitie uit het woordenboek.
+- Op de achterkant kun je een gemarkeerd woord aantikken voor een snelle definitie (betekenis plus audio waar beschikbaar).
 - Beoordeel hoe goed je het antwoord kende: __Opnieuw__ (wist het niet; de kaart komt later in dezelfde sessie terug), __Goed__ (gelukt met enige moeite), of __Makkelijk__ (wist het meteen). Je kunt ook de sneltoetsen __1__, __2__, __3__ gebruiken.
 - Een badge op de knop Studeren toont hoeveel kaarten er vandaag ter herhaling klaarstaan.
 

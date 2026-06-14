@@ -213,8 +213,9 @@ Mechanics:
   toggling Show -> Quiz clears any reveals so an answer never survives the round trip.
 - Non-decomposable words (roots, native words) show the toggle as a global mode indicator but
   have nothing to reveal — acceptable, since it is a persistent setting, not a per-word action.
-- In SRS view-only mode (`hideActions`) the toggle button is hidden, but a globally-on quiz
-  mode still hides the breakdown behind the (still tappable) reveal prompt.
+- In the study-card view-only lookup (`hideActions`, opened by tapping a word on a flashcard
+  back) the breakdown is hidden entirely: that surface is definition + audio only, so quiz
+  mode does not apply there.
 
 **Dropped (the heavier graded quiz), 2026-06-06.** Tile / word-bank assembly with
 auto-grading against the segmenter was considered and declined after a concrete walk-through.
