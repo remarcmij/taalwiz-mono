@@ -102,6 +102,7 @@
     "import-invalid-lines": "{{count}} regel(s) overgeslagen — term ontbreekt",
     "import-dict-lookup": "{{count}} term(en) gebruiken het woordenboek",
     "import-success": "{{count}} items geïmporteerd",
+    "import-failed": "Importeren mislukt: {{count}} items konden niet worden opgeslagen",
     "save": "Opslaan"
   },
   "shared-lists": {

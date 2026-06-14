@@ -13,6 +13,11 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService<EnvDto, true>);
 
+  // Raise the JSON body limit from Express's 100 KB default so bulk vocabulary
+  // imports (large SRS decks pasted as one request) aren't rejected with 413.
+  // The production nginx already allows 10M; keep the app comfortably under that.
+  app.useBodyParser('json', { limit: '1mb' });
+
   app.enableCors();
 
   if (config.get('NODE_ENV') === 'development') {

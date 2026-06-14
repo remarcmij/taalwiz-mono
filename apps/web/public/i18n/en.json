@@ -102,6 +102,7 @@
     "import-invalid-lines": "{{count}} line(s) skipped — term missing",
     "import-dict-lookup": "{{count}} term(s) will use dictionary lookup",
     "import-success": "Imported {{count}} entries",
+    "import-failed": "Import failed: {{count}} entries could not be saved",
     "save": "Save"
   },
   "shared-lists": {

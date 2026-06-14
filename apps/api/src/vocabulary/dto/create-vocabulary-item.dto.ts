@@ -30,7 +30,7 @@ export class CreateVocabularyItemDto {
 export class BulkAddVocabularyDto {
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(1000)
+  @ArrayMaxSize(5000)
   @ValidateNested({ each: true })
   @Type(() => CreateVocabularyItemDto)
   items: CreateVocabularyItemDto[] = [];

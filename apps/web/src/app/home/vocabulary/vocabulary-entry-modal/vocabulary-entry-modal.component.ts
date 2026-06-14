@@ -26,8 +26,9 @@ import {
   IonToolbar,
   ModalController,
   Platform,
+  ToastController,
 } from '@ionic/angular/standalone';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { VocabularyEntry, VocabularyService } from '../vocabulary.service';
 import { splitImportLine } from './import-line-parser';
 
@@ -63,6 +64,8 @@ export class VocabularyEntryModalComponent {
   @ViewChild(IonTextarea) private csvTextarea?: IonTextarea;
 
   #modalCtrl = inject(ModalController);
+  #toastCtrl = inject(ToastController);
+  #translate = inject(TranslateService);
   #vocabularyService = inject(VocabularyService);
 
   protected isDesktop = inject(Platform).is('desktop');
@@ -145,9 +148,23 @@ export class VocabularyEntryModalComponent {
     const entries = this.parsedEntries();
     if (entries.length === 0) return;
     this.importing.set(true);
-    await this.#vocabularyService.addEntries(entries);
+    const succeeded = await this.#vocabularyService.addEntries(entries);
     this.importing.set(false);
-    await this.#modalCtrl.dismiss({ action: 'imported' });
+
+    const ok = succeeded === entries.length;
+    const toast = await this.#toastCtrl.create({
+      message: this.#translate.instant(
+        ok ? 'vocabulary.import-success' : 'vocabulary.import-failed',
+        { count: ok ? succeeded : entries.length },
+      ),
+      duration: 2500,
+      position: 'bottom',
+      color: ok ? 'success' : 'danger',
+    });
+    await toast.present();
+
+    // Keep the modal (and the pasted text) open on failure so the user can retry.
+    if (ok) await this.#modalCtrl.dismiss({ action: 'imported' });
   }
 
   protected close(): Promise<boolean> {
