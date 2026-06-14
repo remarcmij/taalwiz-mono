@@ -20,6 +20,18 @@ export interface PublicVocabularyListInfo {
   count: number;
 }
 
+// Natural, case-insensitive ordering so "Ham les 2" sorts before "Ham les 11".
+const nameCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+
+// "Favorites" is the default home list and stays pinned to the top; the rest
+// are sorted by name so a list is easy to find in the dropdown.
+function byPinnedThenName(a: VocabularyListInfo, b: VocabularyListInfo): number {
+  const aFav = a.name === 'Favorites';
+  const bFav = b.name === 'Favorites';
+  if (aFav !== bFav) return aFav ? -1 : 1;
+  return nameCollator.compare(a.name, b.name);
+}
+
 @Injectable()
 export class VocabularyService {
   constructor(private readonly srsService: SrsService) {}
@@ -39,12 +51,14 @@ export class VocabularyService {
     ]).exec();
 
     const countMap = new Map(counts.map((c) => [c._id.toString(), c.count]));
-    return lists.map((l) => ({
-      id: l._id.toString(),
-      name: l.name,
-      count: countMap.get(l._id.toString()) ?? 0,
-      isPublic: l.isPublic ?? false,
-    }));
+    return lists
+      .map((l) => ({
+        id: l._id.toString(),
+        name: l.name,
+        count: countMap.get(l._id.toString()) ?? 0,
+        isPublic: l.isPublic ?? false,
+      }))
+      .sort(byPinnedThenName);
   }
 
   async createList(userId: string, name: string): Promise<VocabularyListInfo> {
