@@ -6,9 +6,19 @@
     color: var(--ion-color-medium);
     margin-bottom: 8px;
   }
+}
+
+// Pinned action bar so START / PRACTICE stay reachable regardless of how
+// many lists the picker scrolls through. Needs an opaque background and a top
+// border so the scrolling list cannot bleed through the buttons (the outline
+// PRACTICE button is transparent).
+.picker-actions {
+  padding: 12px 16px;
+  background: var(--ion-background-color, #fff);
+  border-top: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.1));
 
   .start-button {
-    margin-top: 24px;
+    margin-bottom: 8px;
   }
 }
 

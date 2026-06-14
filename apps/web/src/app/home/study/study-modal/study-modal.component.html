@@ -32,12 +32,6 @@
             }
           </ion-list>
         </ion-radio-group>
-        <ion-button expand="block" class="start-button" (click)="startSession()">
-          {{ 'study.start' | translate }}
-        </ion-button>
-        <ion-button expand="block" fill="outline" (click)="startPractice()">
-          {{ 'study.practice' | translate }}
-        </ion-button>
       </div>
     }
 
@@ -134,3 +128,16 @@
   }
 
 </ion-content>
+
+@if (screen() === 'picker') {
+  <ion-footer>
+    <div class="picker-actions">
+      <ion-button expand="block" class="start-button" (click)="startSession()">
+        {{ 'study.start' | translate }}
+      </ion-button>
+      <ion-button expand="block" fill="outline" (click)="startPractice()">
+        {{ 'study.practice' | translate }}
+      </ion-button>
+    </div>
+  </ion-footer>
+}
