@@ -58,22 +58,36 @@ p.back-preview {
   --min-height: auto;
   padding-block: 4px;
 
-  // The current-list trigger: a left-aligned, normal-case label + caret,
-  // not an uppercase button.
+  // The current-list trigger that opens the list popover. A plain button (not
+  // ion-button) so we control the inner flex layout: the name is left-aligned
+  // with the caret hugging it, and it fills the bar so it ellipsises only when
+  // the name actually reaches the globe, never while space remains. (ion-button
+  // forces its inner content centered and doesn't expose it for styling.)
   .list-selector-trigger {
-    --padding-start: 8px;
-    --padding-end: 8px;
-    text-transform: none;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 4px 8px;
+    border: 0;
+    background: transparent;
+    font: inherit;
     font-weight: 600;
-    max-width: 70%;
+    color: var(--ion-color-primary);
+    cursor: pointer;
 
-    ion-label {
+    .trigger-name {
+      // Shrinkable (min-width:0) and content-sized, so the caret sits right
+      // after the name; it only ellipsises once the name fills the bar.
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .caret {
+      flex: 0 0 auto;
       margin-left: 4px;
       font-size: 1rem;
     }

@@ -28,10 +28,10 @@
   </ion-toolbar>
   @if (vocabularyService.currentList(); as current) {
     <ion-toolbar class="list-selector-bar">
-      <ion-button id="list-selector-trigger" fill="clear" class="list-selector-trigger">
-        <ion-label>{{ current.name }}</ion-label>
-        <ion-icon name="chevron-down-outline" slot="end" class="caret"></ion-icon>
-      </ion-button>
+      <button id="list-selector-trigger" type="button" class="list-selector-trigger">
+        <span class="trigger-name">{{ current.name }}</span>
+        <ion-icon name="chevron-down-outline" class="caret" aria-hidden="true"></ion-icon>
+      </button>
       <ion-buttons slot="end">
         <ion-button
           [title]="(current.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list') | translate"
