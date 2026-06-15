@@ -4,24 +4,26 @@ _This guide is for content creators and administrators of Taalwiz, not for end u
 End-user help lives inside the app itself (the **Help** item in the sidebar) and is
 maintained separately from this site.
 
-This guide describes how to create, organise, and publish content in Taalwiz. Content is managed as plain Markdown files that are uploaded through the admin interface.
+This guide describes how to create, organise, and publish content in Taalwiz. Content is managed as plain text files that are uploaded through the admin interface.
 
 ---
 
 ## Getting started
 
-If you have only ever written documents in a word processor like Microsoft Word, start here. Taalwiz content is not written in Word; it is written in **Markdown**. The workflow is a little different, but it is quick to learn.
+If you have only ever written documents in a word processor like Microsoft Word, start here. Taalwiz content is not written in Word; it is written in plain text files using an annotation format known as **Markdown**. The workflow is a little different from what you are accustomed to with Word, but it is quick to learn.
 
 ### What is Markdown?
 
-Markdown is **plain text** with a few simple symbols that add formatting. Instead of clicking a **Bold** button you type `**word**`; instead of a bullet-list button you start a line with `- `. A live preview shows the formatted result as you type, so you are never working blind.
+Markdown is **plain text** with special formatting annotation understood by a Markdown formatter to produce richly formatted text. Instead of clicking a **Bold** button you type `**word**`; instead of a bullet-list button you start a line with `- `. A live preview shows the formatted result as you type, so you are never working blind.
 
-In Taalwiz those same symbols do one extra job: they mark which words a learner can tap to look up in the dictionary. That is why you type them by hand rather than clicking buttons, and why getting them right matters. The [Writing Article Content](#writing-article-content) section covers every symbol you will need.
+In Taalwiz some of that same formatting annotation plays a dual role: for formatting the text, and for indicating which words should be *tappable*. For instance, when a word marked up with asterisks is tapped, that word is looked up in the dictionary and Taalwiz will open a dialog box to show the lookup results. That is why you mark up words with the Markdown annotation rather than clicking buttons to make words bold, etc. as you would do in Word, and why getting them right matters. The [Writing Article Content](#writing-article-content) section covers every symbol you will need.
 
 ### Get an editor with live preview
 
 You need an editor that understands Markdown and shows a live preview side by side. Two good choices:
 
+
+<!--We need to handhold content creator in their first StackEdit session. Merely pointing to url is not very helpful. How do you create a file, how do you get it into your computer? How can you edit a file that is on your computer etc.-->
 - **Easiest, nothing to install:** [StackEdit](https://stackedit.io) runs in your web browser. Write in the left pane and the formatted result appears on the right; when you are done, use its _Download_ menu to save the file.
 - **More powerful (what we use):** [Visual Studio Code](https://code.visualstudio.com) is a free desktop editor. Open a `.md` file and press `Ctrl`/`Cmd` + `Shift` + `V` to open the preview beside your text.
 
