@@ -212,10 +212,29 @@ export class VocabularyPage {
     // rather than opening the (would-be-rejected) edit modal.
     if (entry.back && !this.vocabularyService.currentListLocked()) {
       await this.openEditModal(entry);
-    } else {
+    } else if (this.#isSingleWordTerm(entry.term)) {
+      // Only jump to the dictionary for single-word terms. The dictionary is
+      // single-headword, so a multi-word phrase (e.g. "sama dengan") can never
+      // match and would dead-end on an empty result. Its translation is already
+      // shown inline via the card's back, so suppress the search instead.
       this.#router.navigate(['home/tabs/dictionary']);
       this.#dictionaryService.lookup(new WordLang(entry.term, entry.lang));
     }
+  }
+
+  // Whether tapping the row does anything: opens the editor (own, unlocked card
+  // with a back) or looks the term up in the dictionary (single word). A phrase
+  // on a locked/back-only card has no action, so its row drops the `button`
+  // affordance rather than rippling to no effect.
+  hasTapAction(entry: VocabularyEntry): boolean {
+    if (entry.back && !this.vocabularyService.currentListLocked()) {
+      return true;
+    }
+    return this.#isSingleWordTerm(entry.term);
+  }
+
+  #isSingleWordTerm(term: string): boolean {
+    return !/\s/.test(term.trim());
   }
 
   relativeTime(isoString: string): string {

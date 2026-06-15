@@ -137,7 +137,7 @@
                 {{ 'vocabulary.edit-entry' | translate }}
               </ion-item-option>
             </ion-item-options>
-            <ion-item button (click)="lookup(entry)">
+            <ion-item [button]="hasTapAction(entry)" (click)="lookup(entry)">
               <ion-label>
                 <h2>{{ entry.term }}</h2>
                 @if (entry.back; as back) {
