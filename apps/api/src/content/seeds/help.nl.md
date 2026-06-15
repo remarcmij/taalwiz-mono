@@ -48,7 +48,7 @@ Het tabblad Woordenschat is waar je je persoonlijke woordenlijsten opbouwt en be
 
 ### Lijsten beheren
 
-Je kunt zo veel woordenlijsten aanmaken als je wilt, bijvoorbeeld één per artikel, per onderwerp of per moeilijkheidsgraad. Tik op de __+__-knop om een nieuwe lijst toe te voegen (de nieuwe lijst wordt meteen de actieve lijst), of houd een bestaand lijsttabblad lang ingedrukt om het te hernoemen of te verwijderen.
+Je kunt zo veel woordenlijsten aanmaken als je wilt, bijvoorbeeld één per artikel, per onderwerp of per moeilijkheidsgraad. Tik op de __+__-knop om een nieuwe lijst toe te voegen (de nieuwe lijst wordt meteen de actieve lijst). Tik op de naam van de huidige lijst om de lijstkeuze te openen en tussen lijsten te wisselen; elke lijst heeft een __menu__ (de knop met drie puntjes) waarmee je hem kunt vergrendelen, hernoemen of verwijderen.
 
 ### Woorden toevoegen
 
@@ -68,13 +68,23 @@ Je kunt meerdere woorden tegelijk toevoegen via het tabblad __Lijst importeren__
 
 Regels die beginnen met `#` worden als commentaar beschouwd en genegeerd. Lege regels worden ook genegeerd en kunnen gebruikt worden om secties visueel te scheiden.
 
+Een lijst die je zo vult, wordt automatisch __vergrendeld__ (zie __Een lijst vergrendelen__ hieronder), omdat een geïmporteerde lijst meestal bedoeld is om zo te bestuderen. Ontgrendel hem via het lijstmenu als je hem wilt bewerken.
+
+### Een lijst vergrendelen
+
+Een __vergrendelde__ lijst is alleen-lezen: er kunnen geen woorden worden toegevoegd, verwijderd of bewerkt, zodat een onbedoelde tik een afgeronde lijst nooit kan wijzigen. Studeren wordt niet beïnvloed: een vergrendelde lijst herhaalt gewoon en de spaced-repetition-voortgang blijft bijgewerkt worden.
+
+Naast de naam van een vergrendelde lijst verschijnt een klein __slotje__. Open het __menu__ van een lijst (de knop met drie puntjes) en kies __Lijst vergrendelen__ of __Lijst ontgrendelen__. Op een vergrendelde lijst wordt het bladwijzerpictogram grijs en zijn de toevoeg-, bewerk- en verwijderacties niet beschikbaar tot je hem ontgrendelt.
+
+Lijsten die bedoeld zijn om zo te gebruiken, worden automatisch voor je vergrendeld: een lijst die je aanmaakt door te __importeren__, en een lijst die je van iemand anders __kopieert__ (zie hieronder).
+
 ### Lijsten delen
 
 Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Open het __menu__ van een lijst (de knop met drie puntjes op het lijsttabblad) en kies __Met iedereen delen__: iedereen die Taalwiz gebruikt kan hem dan vinden, en er verschijnt een wereldbol op het tabblad om aan te geven dat hij gedeeld is. Kies __Privé maken__ in hetzelfde menu om te stoppen met delen; wie hem al heeft gekopieerd, behoudt de eigen kopie.
 
 Om lijsten te vinden die anderen hebben gedeeld, tik je op het __personen__-icoon in de bovenbalk. Dit opent het overzicht van gedeelde lijsten, waar je per lijst de naam, wie hem deelde en het aantal woorden ziet. Tik op een lijst om de woorden te bekijken en tik daarna op __Naar mijn lijsten kopiëren__ om een kopie aan je eigen account toe te voegen.
 
-Een gekopieerde lijst is een momentopname: hij wordt een gewone eigen lijst, met eigen studievoortgang. Latere wijzigingen van de oorspronkelijke eigenaar hebben geen invloed op jouw kopie, en jouw studeren heeft geen invloed op die van hen.
+Een gekopieerde lijst is een momentopname: hij wordt een gewone eigen lijst, met eigen studievoortgang. Hij komt __vergrendeld__ binnen zodat je hem kunt bestuderen zoals de maker hem heeft samengesteld; ontgrendel hem via het lijstmenu als je hem wilt wijzigen. Latere wijzigingen van de oorspronkelijke eigenaar hebben geen invloed op jouw kopie, en jouw studeren heeft geen invloed op die van hen.
 
 ### Studeren met flashcards
 
@@ -110,3 +120,4 @@ Open het zijmenu door op het menupictogram linksboven te tikken. Van hieruit kun
 - Terwijl het woordenboek op de achtergrond wordt bijgewerkt, verschijnt rechtsboven op elk scherm een __Woordenboek bijwerken__-chip; tik erop om naar de Woordenboek-pagina te gaan.
 - Sneltoetsen werken in de webversie: __Spatie__ draait een flashcard om, __1 / 2 / 3__ beoordeelt hem.
 - Als je een eigen aantekening aan een woordenschatitem hebt toegevoegd, wordt die getoond op de achterkant van de flashcard in plaats van de woordenboekdefinitie.
+- Verwijder je per ongeluk een woord, dan biedt de bevestigingsmelding __Ongedaan maken__, waarmee het woord terugkomt, samen met de aantekening die je eventueel had geschreven.

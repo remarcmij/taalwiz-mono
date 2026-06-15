@@ -48,7 +48,7 @@ The Vocabulary tab is where you build and study your personal word lists.
 
 ### Managing lists
 
-You can create as many vocabulary lists as you like, for example one per article, per topic, or per difficulty level. Tap the __+__ button to add a new list (the new list immediately becomes the active one), or long-press an existing list tab to rename or delete it.
+You can create as many vocabulary lists as you like, for example one per article, per topic, or per difficulty level. Tap the __+__ button to add a new list (the new list immediately becomes the active one). Tap the current list's name to open the list dropdown and switch between lists; each list has a __menu__ (the three-dots button) where you can lock, rename, or delete it.
 
 ### Adding words
 
@@ -68,13 +68,23 @@ You can add multiple words at once using the __Import list__ tab in the vocabula
 
 Lines starting with `#` are treated as comments and ignored. Blank lines are also ignored and can be used to visually separate sections.
 
+A list you fill this way is __locked__ automatically (see __Locking a list__ below), because an imported deck is normally meant to be studied as-is. Unlock it from the list menu if you want to edit it.
+
+### Locking a list
+
+A __locked__ list is read-only: its words cannot be added, removed, or edited, so a stray tap can never change a finished deck. Studying is unaffected: a locked list still reviews normally and its spaced-repetition progress keeps updating.
+
+A small __padlock__ appears next to a locked list's name. To lock or unlock a list, open its __menu__ (the three-dots button) and choose __Lock list__ or __Unlock list__. On a locked list the bookmark icon turns grey and the add, edit, and delete actions are unavailable until you unlock it.
+
+Lists that are meant to be used as-is are locked for you automatically: a list you create by __importing__, and a list you __copy__ from someone else (see below).
+
 ### Sharing lists
 
 If you have built a list you think others would find useful, you can share it. Open a list's __menu__ (the three-dots button on the list tab) and choose __Share with everyone__: everyone using Taalwiz can then find it, and a globe appears on the tab to show it is shared. Choose __Make private__ from the same menu to stop sharing; people who already copied it keep their own copy.
 
 To find lists others have shared, tap the __people__ icon in the top bar. This opens the shared-lists browser, where each entry shows the list name, who shared it, and how many words it contains. Tap a list to preview its words, then tap __Copy to my lists__ to add a copy to your own account.
 
-A copied list is a snapshot: it becomes a normal list of your own, with its own study progress. Later changes the original owner makes do not affect your copy, and your studying never affects theirs.
+A copied list is a snapshot: it becomes a normal list of your own, with its own study progress. It arrives __locked__ so you can study it as the author put it together; unlock it from the list menu if you want to change it. Later changes the original owner makes do not affect your copy, and your studying never affects theirs.
 
 ### Studying with flashcards
 
@@ -110,3 +120,4 @@ Open the side menu by tapping the menu icon in the top-left corner. From here yo
 - While the dictionary is updating in the background, an __Updating dictionary__ chip appears in the top-right corner of every screen; tap it to jump to the Dictionary page.
 - Keyboard shortcuts work on the web version: __Space__ flips a flashcard, __1 / 2 / 3__ rate it.
 - If you added a custom note to a vocabulary entry, it is shown on the back of the flashcard instead of the dictionary definition.
+- If you remove a word by accident, the confirmation toast offers __Undo__, which puts the word back together with any note you had written for it.
