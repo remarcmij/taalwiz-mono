@@ -32,6 +32,7 @@ import { PointerService } from '../../../shared/pointer.service';
 import { AffixBreakdownComponent } from '../../../shared/morphology/affix-breakdown/affix-breakdown.component';
 import { WordClickModalService } from '../../../shared/word-click-modal/word-click-modal.service';
 import { SrsItem, SrsRating, StudyService } from '../study.service';
+import { VocabularyService } from '../../vocabulary/vocabulary.service';
 
 type Screen = 'loading' | 'card' | 'no-due' | 'complete';
 
@@ -71,6 +72,7 @@ export class StudyModalComponent implements OnInit {
   #dictionaryService = inject(DictionaryService);
   #markdownService = inject(MarkdownService);
   #wordClickModal = inject(WordClickModalService);
+  #vocabularyService = inject(VocabularyService);
   protected pointer = inject(PointerService);
 
   readonly screen = signal<Screen>('loading');
@@ -91,6 +93,13 @@ export class StudyModalComponent implements OnInit {
   // Practice ("cram") session: review every card in the list regardless of due date,
   // flip-and-next, without submitting reviews — the SRS schedule is left untouched.
   readonly practiceMode = signal<boolean>(false);
+
+  // Whether the studied list has any cards at all. Distinguishes "no cards due"
+  // (offer Practice) from an empty list (Practice would be a no-op, so hide it).
+  readonly listHasCards = computed(
+    () =>
+      (this.#vocabularyService.lists().find((l) => l.id === this.selectedListId())?.count ?? 0) > 0,
+  );
 
   readonly currentCard = computed(() => this.queue()[this.currentIndex()] ?? null);
   readonly definitionHtml = computed(() =>

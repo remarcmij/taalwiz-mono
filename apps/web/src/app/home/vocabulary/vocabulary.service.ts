@@ -98,8 +98,10 @@ export class VocabularyService {
     await toast.present();
   }
 
-  /** Offer a one-tap undo after a bookmark is removed (the accident-prone action). */
-  async #showRemovedToast(term: string, back: string | undefined): Promise<void> {
+  /** Offer a one-tap undo after a bookmark is removed (the accident-prone action).
+   * The originating `listId` is captured so undo restores the card to that list
+   * even if the user has switched lists in the meantime. */
+  async #showRemovedToast(term: string, back: string | undefined, listId: string): Promise<void> {
     const toast = await this.#toastCtrl.create({
       message: this.#translate.instant('vocabulary.bookmark-removed', {
         name: this.currentList()?.name ?? '',
@@ -109,7 +111,7 @@ export class VocabularyService {
       buttons: [
         {
           text: this.#translate.instant('common.undo'),
-          handler: () => this.addEntry(term, back),
+          handler: () => this.addEntry(term, back, listId),
         },
       ],
     });
@@ -132,28 +134,48 @@ export class VocabularyService {
       .subscribe();
   }
 
-  addEntry(term: string, back?: string): void {
-    if (!this.currentListId()) return;
-    const listId = this.currentListId()!;
+  /**
+   * Add (or restore) an entry. `targetListId` defaults to the current list but is
+   * passed explicitly by the remove-undo path so the card returns to the list it
+   * came from even if the user has since switched lists.
+   */
+  addEntry(term: string, back?: string, targetListId?: string): void {
+    const listId = targetListId ?? this.currentListId();
+    if (!listId) return;
     const lang = langConfig.targetLang;
+    const isCurrent = listId === this.currentListId();
+
+    // Adding a term already in the current list must not insert a second row:
+    // the list tracks by `term:lang`, so a duplicate key breaks rendering. Update
+    // the back instead (only when one was supplied, so an existing definition is
+    // not wiped). A non-current target is an undo of a just-removed card, so no
+    // duplicate is possible there.
+    if (isCurrent && this.isBookmarked(term, lang)) {
+      if (back) this.updateBack(term, lang, back);
+      return;
+    }
+
     const key = `${term}:${lang}`;
     const entry: VocabularyEntry = { term, lang, listId, back, savedAt: new Date().toISOString() };
     const listsSnapshot = this.lists();
+    const bookmarksSnapshot = this.bookmarks();
+    const keysSnapshot = this.bookmarkedKeys();
 
-    this.bookmarkedKeys.update((s) => new Set([...s, key]));
-    this.bookmarks.update((bs) => [entry, ...bs]);
+    // Only touch the visible list/keys when adding to the list on screen.
+    if (isCurrent) {
+      this.bookmarkedKeys.update((s) => new Set([...s, key]));
+      this.bookmarks.update((bs) => [entry, ...bs]);
+    }
     this.lists.update((ls) => ls.map((l) => (l.id === listId ? { ...l, count: l.count + 1 } : l)));
 
     this.#http
       .post('/api/v1/vocabulary', { items: [{ term, lang, listId, back }] })
       .pipe(
         catchError(() => {
-          this.bookmarkedKeys.update((s) => {
-            const n = new Set(s);
-            n.delete(key);
-            return n;
-          });
-          this.bookmarks.update((bs) => bs.filter((b) => !(b.term === term && b.lang === lang)));
+          if (isCurrent) {
+            this.bookmarkedKeys.set(keysSnapshot);
+            this.bookmarks.set(bookmarksSnapshot);
+          }
           this.lists.set(listsSnapshot);
           return EMPTY;
         }),
@@ -422,7 +444,7 @@ export class VocabularyService {
       )
       .subscribe(() => {
         void this.#studyService.refreshStats();
-        void this.#showRemovedToast(term, removedBack);
+        void this.#showRemovedToast(term, removedBack, listId);
       });
   }
 }

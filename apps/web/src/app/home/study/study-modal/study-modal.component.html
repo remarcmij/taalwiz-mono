@@ -25,7 +25,7 @@
     @case ('no-due') {
       <div class="center-state">
         <p>{{ 'study.no-cards-due' | translate }}</p>
-        @if (!practiceMode()) {
+        @if (!practiceMode() && listHasCards()) {
           <ion-button (click)="startPractice()">{{ 'study.practice-anyway' | translate }}</ion-button>
         }
         <ion-button fill="outline" (click)="close()">{{ 'common.close' | translate }}</ion-button>
