@@ -34,12 +34,17 @@
     <ion-toolbar class="list-selector-bar">
       <button id="list-selector-trigger" type="button" class="list-selector-trigger">
         <span class="trigger-name">{{ current.name }}</span>
-        @if (current.isLocked) {
-          <ion-icon name="lock-closed" class="lock-badge" aria-hidden="true"></ion-icon>
-        }
         <ion-icon name="chevron-down-outline" class="caret" aria-hidden="true"></ion-icon>
       </button>
       <ion-buttons slot="end">
+        <ion-button
+          [title]="(current.isLocked ? 'vocabulary.unlock-list' : 'vocabulary.lock-list') | translate"
+          (click)="vocabularyService.setListLocked(current.id, !current.isLocked)">
+          <ion-icon
+            slot="icon-only"
+            [name]="current.isLocked ? 'lock-closed' : 'lock-open-outline'"
+            [color]="current.isLocked ? 'primary' : 'medium'"></ion-icon>
+        </ion-button>
         <ion-button
           [title]="(current.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list') | translate"
           (click)="toggleListPublic(current)">
@@ -74,15 +79,17 @@
                     [class.invisible]="list.id !== vocabularyService.currentListId()"
                     color="primary"></ion-icon>
                   <ion-label class="row-name">{{ list.name }}</ion-label>
-                  @if (list.isLocked) {
+                  <ion-button
+                    class="row-action"
+                    slot="end"
+                    fill="clear"
+                    [title]="(list.isLocked ? 'vocabulary.unlock-list' : 'vocabulary.lock-list') | translate"
+                    (click)="$event.stopPropagation(); vocabularyService.setListLocked(list.id, !list.isLocked)">
                     <ion-icon
-                      slot="end"
-                      name="lock-closed"
-                      class="row-lock"
-                      color="medium"
-                      [attr.aria-label]="'vocabulary.locked' | translate"
-                    ></ion-icon>
-                  }
+                      slot="icon-only"
+                      [name]="list.isLocked ? 'lock-closed' : 'lock-open-outline'"
+                      [color]="list.isLocked ? 'primary' : 'medium'"></ion-icon>
+                  </ion-button>
                   <ion-button
                     class="row-action"
                     slot="end"

@@ -34,7 +34,6 @@ import {
   globe,
   globeOutline,
   lockClosed,
-  lockClosedOutline,
   lockOpenOutline,
   pencilOutline,
   peopleOutline,
@@ -118,7 +117,6 @@ export class VocabularyPage {
       globe,
       globeOutline,
       lockClosed,
-      lockClosedOutline,
       lockOpenOutline,
       pencilOutline,
       peopleOutline,
@@ -159,20 +157,14 @@ export class VocabularyPage {
   }
 
   /**
-   * Per-list overflow menu — rename / delete. Public/private is toggled directly
-   * via the globe button on the list, so it is intentionally not repeated here.
+   * Per-list overflow menu — rename / delete. Public/private and locked/unlocked
+   * are each toggled directly via their own button on the list, so they are
+   * intentionally not repeated here.
    */
   async openListMenu(list: VocabularyList): Promise<void> {
     const sheet = await this.#actionSheetCtrl.create({
       header: list.name,
       buttons: [
-        {
-          text: this.#translate.instant(
-            list.isLocked ? 'vocabulary.unlock-list' : 'vocabulary.lock-list',
-          ),
-          icon: list.isLocked ? 'lock-open-outline' : 'lock-closed-outline',
-          handler: () => this.vocabularyService.setListLocked(list.id, !list.isLocked),
-        },
         {
           text: this.#translate.instant('bookmarks.rename-list-title'),
           icon: 'pencil-outline',
