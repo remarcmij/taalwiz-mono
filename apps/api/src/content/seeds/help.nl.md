@@ -48,7 +48,7 @@ Het tabblad Woordenschat is waar je je persoonlijke woordenlijsten opbouwt en be
 
 ### Lijsten beheren
 
-Je kunt zo veel woordenlijsten aanmaken als je wilt, bijvoorbeeld één per artikel, per onderwerp of per moeilijkheidsgraad. Tik op de __+__-knop om een nieuwe lijst toe te voegen (de nieuwe lijst wordt meteen de actieve lijst). Tik op de naam van de huidige lijst om de lijstkeuze te openen en tussen lijsten te wisselen; elke lijst heeft een __menu__ (de knop met drie puntjes) waarmee je hem kunt vergrendelen, hernoemen of verwijderen.
+Je kunt zo veel woordenlijsten aanmaken als je wilt, bijvoorbeeld één per artikel, per onderwerp of per moeilijkheidsgraad. Tik op de __+__-knop om een nieuwe lijst toe te voegen (de nieuwe lijst wordt meteen de actieve lijst). Tik op de naam van de huidige lijst om de lijstkeuze te openen en tussen lijsten te wisselen; elke lijst heeft eigen knoppen om te __vergrendelen__ en te __delen__ (zie hieronder) en een __menu__ (de knop met drie puntjes) om hem te hernoemen of te verwijderen.
 
 ### Woorden toevoegen
 
@@ -68,33 +68,34 @@ Je kunt meerdere woorden tegelijk toevoegen via het tabblad __Lijst importeren__
 
 Regels die beginnen met `#` worden als commentaar beschouwd en genegeerd. Lege regels worden ook genegeerd en kunnen gebruikt worden om secties visueel te scheiden.
 
-Een lijst die je zo vult, wordt automatisch __vergrendeld__ (zie __Een lijst vergrendelen__ hieronder), omdat een geïmporteerde lijst meestal bedoeld is om zo te bestuderen. Ontgrendel hem via het lijstmenu als je hem wilt bewerken.
+Een lijst die je zo vult, wordt automatisch __vergrendeld__ (zie __Een lijst vergrendelen__ hieronder), omdat een geïmporteerde lijst meestal bedoeld is om zo te bestuderen. Ontgrendel hem met de slotknop als je hem wilt bewerken.
 
 ### Een lijst vergrendelen
 
 Een __vergrendelde__ lijst is alleen-lezen: er kunnen geen woorden worden toegevoegd, verwijderd of bewerkt, zodat een onbedoelde tik een afgeronde lijst nooit kan wijzigen. Studeren wordt niet beïnvloed: een vergrendelde lijst herhaalt gewoon en de spaced-repetition-voortgang blijft bijgewerkt worden.
 
-Naast de naam van een vergrendelde lijst verschijnt een klein __slotje__. Open het __menu__ van een lijst (de knop met drie puntjes) en kies __Lijst vergrendelen__ of __Lijst ontgrendelen__. Op een vergrendelde lijst wordt het bladwijzerpictogram grijs en zijn de toevoeg-, bewerk- en verwijderacties niet beschikbaar tot je hem ontgrendelt.
+Elke lijst heeft een __slot__-knop (naast de wereldbol om te delen): een open slot betekent ontgrendeld, een gesloten slot betekent vergrendeld. Tik erop om de lijst te vergrendelen of te ontgrendelen. Op een vergrendelde lijst wordt het bladwijzerpictogram grijs en zijn de toevoeg-, bewerk- en verwijderacties niet beschikbaar tot je hem ontgrendelt.
 
 Lijsten die bedoeld zijn om zo te gebruiken, worden automatisch voor je vergrendeld: een lijst die je aanmaakt door te __importeren__, en een lijst die je van iemand anders __kopieert__ (zie hieronder).
 
 ### Lijsten delen
 
-Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Open het __menu__ van een lijst (de knop met drie puntjes op het lijsttabblad) en kies __Met iedereen delen__: iedereen die Taalwiz gebruikt kan hem dan vinden, en er verschijnt een wereldbol op het tabblad om aan te geven dat hij gedeeld is. Kies __Privé maken__ in hetzelfde menu om te stoppen met delen; wie hem al heeft gekopieerd, behoudt de eigen kopie.
+Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Tik op de __wereldbol__-knop bij de lijst: hij wordt groen en iedereen die Taalwiz gebruikt kan hem dan vinden. Tik nogmaals op de wereldbol om hem weer privé te maken (je wordt om bevestiging gevraagd); wie hem al heeft gekopieerd, behoudt de eigen kopie.
 
 Om lijsten te vinden die anderen hebben gedeeld, tik je op het __personen__-icoon in de bovenbalk. Dit opent het overzicht van gedeelde lijsten, waar je per lijst de naam, wie hem deelde en het aantal woorden ziet. Tik op een lijst om de woorden te bekijken en tik daarna op __Naar mijn lijsten kopiëren__ om een kopie aan je eigen account toe te voegen.
 
-Een gekopieerde lijst is een momentopname: hij wordt een gewone eigen lijst, met eigen studievoortgang. Hij komt __vergrendeld__ binnen zodat je hem kunt bestuderen zoals de maker hem heeft samengesteld; ontgrendel hem via het lijstmenu als je hem wilt wijzigen. Latere wijzigingen van de oorspronkelijke eigenaar hebben geen invloed op jouw kopie, en jouw studeren heeft geen invloed op die van hen.
+Een gekopieerde lijst is een momentopname: hij wordt een gewone eigen lijst, met eigen studievoortgang. Hij komt __vergrendeld__ binnen zodat je hem kunt bestuderen zoals de maker hem heeft samengesteld; ontgrendel hem met de slotknop als je hem wilt wijzigen. Latere wijzigingen van de oorspronkelijke eigenaar hebben geen invloed op jouw kopie, en jouw studeren heeft geen invloed op die van hen.
 
 ### Studeren met flashcards
 
-Tik op de knop __Studeren__ bij een woordenlijst om een flashcardsessie te starten. De app gebruikt __Spaced Repetition (SRS)__ om te bepalen welke kaarten worden getoond: kaarten die je moeilijk vindt komen eerder terug, terwijl kaarten die je goed kent verder in de toekomst worden gepland.
+Tik op de knop __Studeren__ in de bovenbalk om een flashcardsessie voor de huidige lijst te starten. De app gebruikt __Spaced Repetition (SRS)__ om te bepalen welke kaarten worden getoond: kaarten die je moeilijk vindt komen eerder terug, terwijl kaarten die je goed kent verder in de toekomst worden gepland.
 
 Tijdens een sessie:
 
 - De voorkant van de kaart wordt als eerste getoond. Tik op de kaart (of druk op __Spatie__) om de achterkant te onthullen.
 - De achterkant toont de vertaling: je eigen __achterkant__-aantekening als je die hebt geschreven, anders de definitie uit het woordenboek.
 - Op de achterkant kun je een gemarkeerd woord aantikken voor een snelle definitie (betekenis plus audio waar beschikbaar).
+- Als de achterkant de woordenboekdefinitie toont (je hebt geen eigen aantekening geschreven) en het woord is een afgeleide vorm, laat de achterkant ook zien hoe het is opgebouwd uit voorvoegsel, stam en achtervoegsel, bijvoorbeeld _meN- + sapu + -kan_. Waar een klank verandert, klap je met een klein pijltje een korte uitleg uit.
 - Beoordeel hoe goed je het antwoord kende: __Opnieuw__ (wist het niet; de kaart komt later in dezelfde sessie terug), __Goed__ (gelukt met enige moeite), of __Makkelijk__ (wist het meteen). Je kunt ook de sneltoetsen __1__, __2__, __3__ gebruiken.
 - Een badge op de knop Studeren toont hoeveel kaarten er vandaag ter herhaling klaarstaan.
 

@@ -48,7 +48,7 @@ The Vocabulary tab is where you build and study your personal word lists.
 
 ### Managing lists
 
-You can create as many vocabulary lists as you like, for example one per article, per topic, or per difficulty level. Tap the __+__ button to add a new list (the new list immediately becomes the active one). Tap the current list's name to open the list dropdown and switch between lists; each list has a __menu__ (the three-dots button) where you can lock, rename, or delete it.
+You can create as many vocabulary lists as you like, for example one per article, per topic, or per difficulty level. Tap the __+__ button to add a new list (the new list immediately becomes the active one). Tap the current list's name to open the list dropdown and switch between lists; each list has its own __lock__ and __share__ buttons (see below) and a __menu__ (the three-dots button) for renaming or deleting it.
 
 ### Adding words
 
@@ -68,33 +68,34 @@ You can add multiple words at once using the __Import list__ tab in the vocabula
 
 Lines starting with `#` are treated as comments and ignored. Blank lines are also ignored and can be used to visually separate sections.
 
-A list you fill this way is __locked__ automatically (see __Locking a list__ below), because an imported deck is normally meant to be studied as-is. Unlock it from the list menu if you want to edit it.
+A list you fill this way is __locked__ automatically (see __Locking a list__ below), because an imported deck is normally meant to be studied as-is. Unlock it with its padlock button if you want to edit it.
 
 ### Locking a list
 
 A __locked__ list is read-only: its words cannot be added, removed, or edited, so a stray tap can never change a finished deck. Studying is unaffected: a locked list still reviews normally and its spaced-repetition progress keeps updating.
 
-A small __padlock__ appears next to a locked list's name. To lock or unlock a list, open its __menu__ (the three-dots button) and choose __Lock list__ or __Unlock list__. On a locked list the bookmark icon turns grey and the add, edit, and delete actions are unavailable until you unlock it.
+Each list has a __padlock__ button (next to its share globe): an open padlock means it is unlocked, a closed padlock means it is locked. Tap it to lock or unlock the list. On a locked list the bookmark icon turns grey and the add, edit, and delete actions are unavailable until you unlock it.
 
 Lists that are meant to be used as-is are locked for you automatically: a list you create by __importing__, and a list you __copy__ from someone else (see below).
 
 ### Sharing lists
 
-If you have built a list you think others would find useful, you can share it. Open a list's __menu__ (the three-dots button on the list tab) and choose __Share with everyone__: everyone using Taalwiz can then find it, and a globe appears on the tab to show it is shared. Choose __Make private__ from the same menu to stop sharing; people who already copied it keep their own copy.
+If you have built a list you think others would find useful, you can share it. Tap the __globe__ button on the list: it turns green, and everyone using Taalwiz can then find it. Tap the globe again to make it private (you will be asked to confirm); people who already copied it keep their own copy.
 
 To find lists others have shared, tap the __people__ icon in the top bar. This opens the shared-lists browser, where each entry shows the list name, who shared it, and how many words it contains. Tap a list to preview its words, then tap __Copy to my lists__ to add a copy to your own account.
 
-A copied list is a snapshot: it becomes a normal list of your own, with its own study progress. It arrives __locked__ so you can study it as the author put it together; unlock it from the list menu if you want to change it. Later changes the original owner makes do not affect your copy, and your studying never affects theirs.
+A copied list is a snapshot: it becomes a normal list of your own, with its own study progress. It arrives __locked__ so you can study it as the author put it together; unlock it with its padlock button if you want to change it. Later changes the original owner makes do not affect your copy, and your studying never affects theirs.
 
 ### Studying with flashcards
 
-Tap the __Study__ button on any vocabulary list to start a flashcard session. The app uses __Spaced Repetition (SRS)__ to decide which cards to show: cards you find difficult come back sooner, while cards you know well are scheduled further into the future.
+Tap the __Study__ button in the top bar to start a flashcard session for the current list. The app uses __Spaced Repetition (SRS)__ to decide which cards to show: cards you find difficult come back sooner, while cards you know well are scheduled further into the future.
 
 During a session:
 
 - The front of the card is shown first. Tap the card (or press __Space__) to reveal the back.
 - The back shows the translation: your own __back__ note if you wrote one, otherwise the dictionary's definition.
 - On the back, you can tap a highlighted word for a quick definition lookup (meaning plus audio where available).
+- When the back shows the dictionary definition (you did not write your own note) and the word is a derived form, it also shows how the word is built from prefix, root, and suffix, for example _meN- + sapu + -kan_. Where a sound changes, a small arrow expands a short explanation.
 - Rate how well you knew the answer: __Again__ (didn't know it; the card comes back later in the same session), __Good__ (got it with some effort), or __Easy__ (knew it immediately). You can also use the keyboard shortcuts __1__, __2__, __3__.
 - A badge on the Study button shows how many cards are due for review today.
 
