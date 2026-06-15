@@ -36,12 +36,16 @@ export class PromptUpdateService {
         const alertEl = await this.#alertCtrl.create({
           header: this.#translate.instant('update.update-available'),
           message: this.#translate.instant('update.update-message'),
+          // OK is listed last on purpose: Ionic's iOS alert bolds the last
+          // button, so this makes OK the emphasised default (updating is safe,
+          // no work is lost). "Update Later" keeps role 'cancel', so a backdrop
+          // tap or Escape still dismisses without updating.
           buttons: [
-            { text: 'OK', role: 'confirm' },
             {
               text: this.#translate.instant('update.update-later'),
               role: 'cancel',
             },
+            { text: 'OK', role: 'confirm' },
           ],
         });
         await alertEl.present();
