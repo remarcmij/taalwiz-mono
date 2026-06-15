@@ -88,31 +88,7 @@
                   }}
                 </div>
               } @else {
-                <div class="affix-breakdown">
-                  <span>{{ h.breakdown.display }}</span>
-                  @if (h.breakdown.ruleNote) {
-                    <ion-icon
-                      class="affix-expand"
-                      [name]="expanded().has($index) ? 'chevron-up-outline' : 'chevron-down-outline'"
-                      (click)="toggleExpanded($index)"
-                      role="button"
-                      aria-label="explain"
-                    ></ion-icon>
-                  }
-                </div>
-              }
-              @if (h.breakdown.ruleNote && expanded().has($index)) {
-                <div class="affix-rule">
-                  {{
-                    "morphology.nasal-rule"
-                      | translate
-                        : {
-                            archiphoneme: h.breakdown.ruleNote.archiphoneme,
-                            surface: h.breakdown.ruleNote.surface,
-                            letter: h.breakdown.ruleNote.letter
-                          }
-                  }}
-                </div>
+                <app-affix-breakdown [breakdown]="h.breakdown" />
               }
             }
             <div [innerHTML]="h.definition" class="homonym"></div>

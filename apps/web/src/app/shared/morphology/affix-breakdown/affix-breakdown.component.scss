@@ -1,0 +1,23 @@
+// The affix breakdown is an automated annotation, not authoritative Teeuw content.
+// Dimming is its provenance signal (no chips/borders — phone real-estate is scarce).
+// Uses opacity rather than `color`, which Ionic's ion-label text cascade overrides.
+.affix-breakdown {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9em;
+  opacity: 0.55;
+  margin-bottom: 0.15rem;
+}
+
+.affix-expand {
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.affix-rule {
+  font-size: 0.8em;
+  font-style: italic;
+  opacity: 0.55;
+  margin-bottom: 0.25rem;
+}

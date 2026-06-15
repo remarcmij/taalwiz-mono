@@ -1,0 +1,22 @@
+<div class="affix-breakdown">
+  <span>{{ breakdown().display }}</span>
+  @if (breakdown().ruleNote) {
+    <ion-icon
+      class="affix-expand"
+      [name]="expanded() ? 'chevron-up-outline' : 'chevron-down-outline'"
+      (click)="toggleExpanded()"
+      role="button"
+      aria-label="explain"
+    ></ion-icon>
+  }
+</div>
+@if (breakdown().ruleNote; as rule) {
+  @if (expanded()) {
+    <div class="affix-rule">
+      {{
+        'morphology.nasal-rule'
+          | translate: { archiphoneme: rule.archiphoneme, surface: rule.surface, letter: rule.letter }
+      }}
+    </div>
+  }
+}

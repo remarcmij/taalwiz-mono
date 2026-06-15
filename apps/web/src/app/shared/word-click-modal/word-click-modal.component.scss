@@ -1,15 +1,3 @@
-// The affix breakdown is an automated annotation, not authoritative Teeuw content.
-// Dimming is its provenance signal (no chips/borders — phone real-estate is scarce).
-// Uses opacity rather than `color`, which Ionic's ion-label text cascade overrides.
-.affix-breakdown {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.9em;
-  opacity: 0.55;
-  margin-bottom: 0.15rem;
-}
-
 // The clicked-word -> headword hop. Dimmed (same provenance signal as the affix
 // breakdown: an automated relationship, not authored content). Right-aligned to snap to
 // the border, echoing Teeuw's cross-reference arrows and separating it from the
@@ -47,11 +35,6 @@ ion-item {
   --padding-bottom: 0.35rem;
 }
 
-.affix-expand {
-  font-size: 1rem;
-  cursor: pointer;
-}
-
 // Quiz mode: stands in for the breakdown until the learner taps to reveal. Dimmed and
 // italic so it reads as a prompt, not content; sized to match the breakdown line.
 .affix-quiz {
@@ -62,9 +45,3 @@ ion-item {
   margin-bottom: 0.15rem;
 }
 
-.affix-rule {
-  font-size: 0.8em;
-  font-style: italic;
-  opacity: 0.55;
-  margin-bottom: 0.25rem;
-}

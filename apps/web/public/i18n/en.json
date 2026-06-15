@@ -127,8 +127,6 @@
   },
   "study": {
     "title": "Study",
-    "select-list": "Select a list to study",
-    "start": "Start",
     "practice": "Practice",
     "practice-anyway": "Practice anyway",
     "next": "Next",
@@ -139,7 +137,6 @@
     "easy": "Easy",
     "session-complete": "Session complete",
     "cards-reviewed": "{{count}} cards reviewed",
-    "due-count": "{{count}} due",
     "no-definition": "No definition found",
     "rating-hint": "Your rating determines when this card reappears"
   },

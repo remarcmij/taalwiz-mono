@@ -27,12 +27,11 @@ import {
   arrowForwardOutline,
   bookmark,
   bookmarkOutline,
-  chevronDownOutline,
-  chevronUpOutline,
   eyeOutline,
   schoolOutline,
   volumeHighOutline,
 } from 'ionicons/icons';
+import { AffixBreakdownComponent } from '../morphology/affix-breakdown/affix-breakdown.component';
 import { VocabularyService } from '../../home/vocabulary/vocabulary.service';
 import { MarkdownService } from '../../home/content/markdown.service';
 import { DictionaryService } from '../../home/dictionary/dictionary.service';
@@ -63,6 +62,7 @@ interface HomonymView {
     IonList,
     IonItem,
     TranslatePipe,
+    AffixBreakdownComponent,
   ],
   templateUrl: './word-click-modal.component.html',
   styleUrl: './word-click-modal.component.scss',
@@ -94,8 +94,6 @@ export class WordClickModalComponent implements OnInit {
    * actions, the affix breakdown, and the "→ word" hop. */
   hideActions = input<boolean>(false);
   homonyms = signal<HomonymView[]>([]);
-  /** Indices whose nasal-allomorphy rule note is expanded. */
-  expanded = signal<Set<number>>(new Set());
   /** Indices whose breakdown has been revealed in quiz mode. Starts empty on each
    * open (the modal is recreated per tap), so quiz mode always hides first. */
   revealed = signal<Set<number>>(new Set());
@@ -148,18 +146,6 @@ export class WordClickModalComponent implements OnInit {
     return segmentIndonesian(this.clickedWord(), baseWord);
   }
 
-  toggleExpanded(index: number) {
-    this.expanded.update((set) => {
-      const next = new Set(set);
-      if (next.has(index)) {
-        next.delete(index);
-      } else {
-        next.add(index);
-      }
-      return next;
-    });
-  }
-
   // Invoked by the `→ word` hop link. Navigates to the full dictionary entry for the
   // resolved headword (`word`). The hop is shown even when `word === clickedWord`
   // (a plain root): it is NOT a no-op, because the modal body is the CONDENSED entry
@@ -201,8 +187,6 @@ export class WordClickModalComponent implements OnInit {
       bookmark,
       bookmarkOutline,
       volumeHighOutline,
-      chevronDownOutline,
-      chevronUpOutline,
       eyeOutline,
       schoolOutline,
       arrowForwardOutline,

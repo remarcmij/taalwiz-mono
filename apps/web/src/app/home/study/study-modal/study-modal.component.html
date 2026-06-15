@@ -16,25 +16,6 @@
 
   @switch (screen()) {
 
-    @case ('picker') {
-      <div class="picker-container">
-        <p class="picker-label">{{ 'study.select-list' | translate }}</p>
-        <ion-radio-group [value]="selectedListId()" (ionChange)="selectList($any($event).detail.value)">
-          <ion-list>
-            @for (entry of listsWithStats(); track entry.list.id) {
-              <ion-item button [detail]="false" (click)="selectList(entry.list.id)">
-                <ion-radio slot="start" [value]="entry.list.id"></ion-radio>
-                <ion-label>{{ entry.list.name }}</ion-label>
-                <ion-badge slot="end" [color]="entry.due > 0 ? 'primary' : 'medium'">
-                  {{ 'study.due-count' | translate: { count: entry.due } }}
-                </ion-badge>
-              </ion-item>
-            }
-          </ion-list>
-        </ion-radio-group>
-      </div>
-    }
-
     @case ('loading') {
       <div class="center-state">
         <ion-progress-bar type="indeterminate"></ion-progress-bar>
@@ -72,6 +53,9 @@
             <div class="card-face card-back">
               @if (baseWordNote()) {
                 <p class="base-word-note">→ {{ baseWordNote() }}</p>
+              }
+              @if (breakdown(); as bd) {
+                <app-affix-breakdown [breakdown]="bd" class="card-breakdown" />
               }
               @if (definition()) {
                 <p class="definition markdown-body text-content"
@@ -129,15 +113,3 @@
 
 </ion-content>
 
-@if (screen() === 'picker') {
-  <ion-footer>
-    <div class="picker-actions">
-      <ion-button expand="block" class="start-button" (click)="startSession()">
-        {{ 'study.start' | translate }}
-      </ion-button>
-      <ion-button expand="block" fill="outline" (click)="startPractice()">
-        {{ 'study.practice' | translate }}
-      </ion-button>
-    </div>
-  </ion-footer>
-}

@@ -127,8 +127,6 @@
   },
   "study": {
     "title": "Studeren",
-    "select-list": "Kies een lijst om te studeren",
-    "start": "Starten",
     "practice": "Oefenen",
     "practice-anyway": "Toch oefenen",
     "next": "Volgende",
@@ -139,7 +137,6 @@
     "easy": "Makkelijk",
     "session-complete": "Sessie voltooid",
     "cards-reviewed": "{{count}} kaarten geoefend",
-    "due-count": "{{count}} te doen",
     "no-definition": "Geen definitie gevonden",
     "rating-hint": "Je beoordeling bepaalt wanneer je deze kaart terugziet"
   },
