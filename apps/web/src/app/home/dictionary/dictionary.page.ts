@@ -196,7 +196,15 @@ export class DictionaryPage implements OnDestroy {
         map((event) => (event.target as HTMLInputElement).value),
         switchMap((term) =>
           keyupKey === 'Enter'
-            ? of(this.suggestions())
+            ? // Fetch suggestions fresh for the typed term rather than reading the
+              // `suggestions` signal: typing a word and pressing Enter before the
+              // 250ms debounce fires leaves the signal empty, dropping the lookup
+              // into the target-language fallback below and missing native-language
+              // words whose only resolution is a literal suggestion (e.g. the Dutch
+              // "dozijn", which has no target-language variation match).
+              term
+              ? this.getSuggestions(term)
+              : of<WordLang[]>([])
             : timer(250).pipe(
                 switchMap(() => (term ? this.getSuggestions(term) : of<WordLang[]>([]))),
               ),
