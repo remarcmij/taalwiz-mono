@@ -74,6 +74,18 @@ describe('IndonesianVariationGenerator', () => {
 
     it('ber-', () => expect(variations('berbicara')).toContain('bicara'));
 
+    it('ber- (be- allomorph) reaches the root', () => {
+      expect(variations('bekerja')).toContain('kerja');
+      expect(variations('beragam')).toContain('ragam');
+    });
+
+    it('ber- (be- allomorph) is not applied to be-initial non-derivations', () => {
+      // The guard must keep "be" from being stripped off roots that are neither
+      // r-initial nor -er-first-syllable, so these never reach a spurious root.
+      expect(variations('betapa')).not.toContain('tapa');
+      expect(variations('begitu')).not.toContain('gitu');
+    });
+
     it('se-', () => expect(variations('sehari')).toContain('hari'));
 
     it('ke-', () => expect(variations('ketua')).toContain('tua'));

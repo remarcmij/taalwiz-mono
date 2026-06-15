@@ -84,9 +84,10 @@ html.ion-palette-dark {
 }
 
 // Teeuw supplement entries (post-1996 additions): colour their defined
-// Indonesian headwords amber and underline them. The underline is a second,
-// colour-independent cue so the distinction survives for colour-blind readers;
-// supplements are sparse, so this does not flood the screen with underlines.
+// Indonesian headwords amber and italicise them. The italic is a second,
+// colour-independent cue (a shape difference, not a colour) so the distinction
+// survives for colour-blind readers, replacing the earlier underline, which was
+// visually noisy and overlapped the underline used for the just-tapped state above.
 //
 // Scoped to `strong span` (defined headwords) and NOT `em span`: the markup
 // converter wraps `**word**` keywords in <strong> and `*word*` references in
@@ -95,8 +96,7 @@ html.ion-palette-dark {
 // what the supplement actually introduces, not what it references.
 .text-content.is-supplement strong span {
   color: var(--supplement-text-color);
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  font-style: italic;
 }
 
 .markdown-body {

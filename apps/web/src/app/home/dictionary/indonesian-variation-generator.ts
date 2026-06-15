@@ -1,4 +1,5 @@
 import { nasalCandidates, prefixWithMeN } from './indonesian-nasal-rules';
+import { BE_ALLOMORPH_STRIP } from './indonesian-ber-rules';
 import type { VariationGenerator } from './variation-generator';
 
 const WordExemptions: string[] = [
@@ -100,6 +101,11 @@ const AFFIX_STRIPS: SimpleStrip[] = [
   { kind: 'strip', label: '-kah/-lah/-tah/-pun', pattern: /^(.{2,})(?:[klt]ah|pun)$/ },
   { kind: 'strip', label: 'ter-', pattern: /^ter(.{2,})$/ },
   { kind: 'strip', label: 'ber-', pattern: /^ber(.{2,})$/ },
+  // be- allomorph of ber- (elided -r before r-initial / -er-first-syllable roots:
+  // bekerja -> kerja, beragam -> ragam). Guarded by the shared pattern so it does
+  // not over-strip be-initial non-derivations (betapa, begitu); over-generated
+  // misses are harmless here since the dictionary validates every candidate.
+  { kind: 'strip', label: 'ber- (be-)', pattern: BE_ALLOMORPH_STRIP },
   { kind: 'strip', label: 'per-', pattern: /^per(.{2,})$/ },
   { kind: 'strip', label: 'se-', pattern: /^se(.{2,})$/ },
   { kind: 'strip', label: '-kan', pattern: /^(.{2,})kan$/ },

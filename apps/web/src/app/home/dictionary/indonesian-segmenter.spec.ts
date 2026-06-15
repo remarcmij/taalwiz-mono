@@ -16,6 +16,15 @@ describe('segmentIndonesian', () => {
       ['dipukul', 'pukul', ['di-', 'pukul']],
       ['terbesar', 'besar', ['ter-', 'besar']],
       ['beruang', 'uang', ['ber-', 'uang']],
+      // ber- -> be- allomorph: the -r elides before an -er-first-syllable or
+      // r-initial root. Labelled by the ber- archiphoneme.
+      ['bekerja', 'kerja', ['ber-', 'kerja']],
+      ['beternak', 'ternak', ['ber-', 'ternak']],
+      ['beserta', 'serta', ['ber-', 'serta']],
+      ['beragam', 'ragam', ['ber-', 'ragam']],
+      ['berumah', 'rumah', ['ber-', 'rumah']],
+      // bel- lexical exception (belajar / belunjur).
+      ['belajar', 'ajar', ['ber-', 'ajar']],
       ['kebesaran', 'besar', ['ke-', 'besar', '-an']],
       ['keberuntungan', 'untung', ['ke-', 'ber-', 'untung', '-an']],
       ['penyapu', 'sapu', ['peN-', 'sapu']],
@@ -95,6 +104,14 @@ describe('segmentIndonesian', () => {
       expect(seg('kucing', 'anjing')).toBeNull();
       expect(seg('rumah', 'mobil')).toBeNull();
       expect(seg('membaca', 'tulis')).toBeNull();
+    });
+
+    it('does not apply the be- allomorph to be-initial non-derivations', () => {
+      // The root is neither r-initial nor -er-first-syllable, so "be" is not ber-.
+      expect(seg('betapa', 'tapa')).toBeNull();
+      expect(seg('begitu', 'gitu')).toBeNull();
+      expect(seg('belum', 'lum')).toBeNull();
+      expect(seg('benar', 'nar')).toBeNull();
     });
 
     it('returns null for empty input', () => {

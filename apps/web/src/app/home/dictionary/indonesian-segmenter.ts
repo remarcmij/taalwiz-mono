@@ -21,6 +21,7 @@
  */
 
 import { nasalCandidates } from './indonesian-nasal-rules';
+import { takesBeAllomorph } from './indonesian-ber-rules';
 
 /** Restored-consonant note for meN-/peN- allomorphy, parameterised for i18n. */
 export interface SegmentRuleNote {
@@ -149,6 +150,23 @@ export function segmentIndonesian(surface: string, root: string): SegmentResult 
       if (m) {
         dfs(m[1], [...prefixes, prefix.label], suffixes, ruleNote);
       }
+    }
+
+    // ber- has a be- allomorph (the -r elides) before r-initial or
+    // -er-first-syllable roots: bekerja = ber- + kerja, berumah = ber- + rumah.
+    // Guarded via the shared predicate so it never mis-segments be-initial
+    // non-derivations (betapa, begitu). Labelled by the ber- archiphoneme, the
+    // same way the nasal prefixes label by meN-/peN- regardless of surface.
+    const beMatch = form.match(/^be(.{2,})$/);
+    if (beMatch && takesBeAllomorph(beMatch[1])) {
+      dfs(beMatch[1], [...prefixes, 'ber-'], suffixes, ruleNote);
+    }
+
+    // bel- allomorph: a closed lexical exception, only "ajar" (belajar) and the
+    // rare "unjur" (belunjur).
+    const belMatch = form.match(/^bel(.{2,})$/);
+    if (belMatch && (belMatch[1] === 'ajar' || belMatch[1] === 'unjur')) {
+      dfs(belMatch[1], [...prefixes, 'ber-'], suffixes, ruleNote);
     }
 
     // meN-/peN- are always the OUTERMOST prefix in Indonesian, so only try them
