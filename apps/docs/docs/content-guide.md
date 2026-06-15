@@ -8,6 +8,60 @@ This guide describes how to create, organise, and publish content in Taalwiz. Co
 
 ---
 
+## Getting started
+
+If you have only ever written documents in a word processor like Microsoft Word, start here. Taalwiz content is not written in Word; it is written in **Markdown**. The workflow is a little different, but it is quick to learn.
+
+### What is Markdown?
+
+Markdown is **plain text** with a few simple symbols that add formatting. Instead of clicking a **Bold** button you type `**word**`; instead of a bullet-list button you start a line with `- `. A live preview shows the formatted result as you type, so you are never working blind.
+
+In Taalwiz those same symbols do one extra job: they mark which words a learner can tap to look up in the dictionary. That is why you type them by hand rather than clicking buttons, and why getting them right matters. The [Writing Article Content](#writing-article-content) section covers every symbol you will need.
+
+### Get an editor with live preview
+
+You need an editor that understands Markdown and shows a live preview side by side. Two good choices:
+
+- **Easiest, nothing to install:** [StackEdit](https://stackedit.io) runs in your web browser. Write in the left pane and the formatted result appears on the right; when you are done, use its _Download_ menu to save the file.
+- **More powerful (what we use):** [Visual Studio Code](https://code.visualstudio.com) is a free desktop editor. Open a `.md` file and press `Ctrl`/`Cmd` + `Shift` + `V` to open the preview beside your text.
+
+A few habits keep your text clean:
+
+- **Open existing files; do not paste them in.** To work from an existing article (the recommended way to start, below), open it directly — in StackEdit via the ☰ menu → _Import/export → Import Markdown_, in VS Code by opening the `.md` file. Copying Markdown out of a rendered page and pasting it back in can drag in hidden formatting that shows up as stray blank lines or broken tables.
+- **Paste as plain text.** If you do paste text in (from Word, an email, a web page), use plain-text paste (`Ctrl`/`Cmd` + `Shift` + `V`).
+- **Do not author in Word.** A Word document ("Save As") is not plain text and will not work.
+
+### Files are plain text named `.md`
+
+Each article is one plain-text file whose name ends in `.md` (for example `indonesian.greetings.md`), never `.docx`. The [File Naming](#file-naming) section explains the naming rules.
+
+### Write your first article
+
+The easiest way to start is from an article that already exists. Open an existing `{group}.{name}.md` file in your editor (see the note above on opening rather than pasting), save it under a new name, and change the text. You get a working file with the front matter already correct, plus a real example to copy the conventions from.
+
+Prefer to start from scratch? Here is a minimal article:
+
+```markdown
+---
+title: My First Article
+targetLang: id
+---
+
+# My First Article
+
+Hello in Indonesian is *halo*.
+```
+
+Then:
+
+1. Change the text and watch the preview update. `*halo*`, wrapped in asterisks, shows in italics and becomes tappable in the app.
+2. Save the file with a name like `indonesian.first.md`.
+3. Upload it yourself if you have admin access (see [Upload Workflow](#upload-workflow)), or hand it to an administrator.
+
+The block between the `---` lines at the top is the **front matter**: a few required settings. Keep its layout exactly as shown, indentation included, or the upload will be rejected. The **Article Files** section below lists every field.
+
+---
+
 ## Overview
 
 Content is organised in **publications**. Each publication is a named group of articles, for example a language course or a reference guide. Three types of file exist:
@@ -22,223 +76,9 @@ All files are Markdown with a YAML front matter block enclosed by `---` lines.
 
 ---
 
-## File Naming
+## Writing Article Content
 
-The **group name** is the short identifier for a publication (e.g. `indonesian`, `grammar-ref`). It must be lowercase, use only letters, digits, and hyphens, and must not be `main` (that is reserved).
-
-| File type | Example |
-|---|---|
-| Main manifest | `main.manifest.md` |
-| Group manifest | `indonesian.manifest.md` |
-| Article | `indonesian.intro.md` |
-| Article | `indonesian.verb-forms.md` |
-
-The part after the group name and before `.md` is the article's **short name** (e.g. `intro`, `verb-forms`). It must be unique within the group and must not be `manifest`.
-
----
-
-## The Main Manifest (`main.manifest.md`)
-
-The main manifest controls which publications exist and in what order they appear in the app.
-
-```markdown
----
-groups:
-  - indonesian
-  - grammar-ref
-  - dutch-basics
----
-```
-
-**Front matter fields:**
-
-| Field | Required | Description |
-|---|---|---|
-| `groups` | Yes | Ordered list of group names. Display order follows this list. |
-
-The file has no body text. The main manifest does **not** take a `targetLang` field; it is a language-agnostic index of publications.
-
-**To add a publication:** add its group name to the `groups` list, then upload the updated `main.manifest.md` together with the corresponding `{group}.manifest.md`.
-
-**To remove a publication:** remove its group name from the list and upload the updated file. The publication's articles become orphans (they remain in the database but are no longer shown). Use the admin orphan tool to delete them.
-
-**To reorder publications:** change the order in the `groups` list and re-upload the file.
-
----
-
-## Group Manifests (`{group}.manifest.md`)
-
-Each publication has one group manifest. It carries the publication's metadata and the ordered list of its articles. The body text (below the closing `---`) becomes the **preface article**, the first article shown in the article list.
-
-```markdown
----
-title: Indonesian for Dutch Speakers
-author: J. de Vries
-targetLang: id
-articles:
-  - intro
-  - greetings
-  - numbers
-  - verb-forms
----
-
-# Welcome
-
-This course introduces Indonesian to speakers of Dutch.
-Work through the articles in order for the best results.
-```
-
-**Front matter fields:**
-
-| Field | Required | Description |
-|---|---|---|
-| `title` | Yes (or H1 in body) | Publication title shown in the app |
-| `articles` | Yes | Ordered list of article short names. Display order follows this list. |
-| `targetLang` | Yes | Must equal the deployment's target language (currently `id`). The upload is rejected if it is missing or different. |
-| `author` | No | Author name |
-| `subtitle` | No | Short description shown under the title |
-| `image` | No | Publication cover image filename (e.g. `bumi-manusia.jpg`); upload the image alongside the manifest |
-| `publisher` | No | Publisher name |
-| `publicationYear` | No | Year of publication (integer) |
-| `copyright` | No | Copyright notice |
-| `isbn` | No | ISBN |
-
-**To add an article:** add its short name to the `articles` list in the desired position, then upload the updated manifest and the new article file.
-
-**To remove an article from the list:** remove its short name from `articles` and re-upload the manifest. The article file remains in the database as an orphan but is no longer shown. Use the admin orphan tool to delete it.
-
-**To reorder articles:** change the order in the `articles` list and re-upload the manifest.
-
----
-
-## Article Files (`{group}.{name}.md`)
-
-Each article is a Markdown file with front matter. The body is standard Markdown.
-
-```markdown
----
-title: Greetings
-subtitle: Common greetings and polite expressions
-targetLang: id
----
-
-# Greetings
-
-## Formal greetings
-
-Use *Selamat pagi* in the morning...
-```
-
-**Front matter fields:**
-
-| Field | Required | Description |
-|---|---|---|
-| `title` | No | Article title. If omitted, the first `# H1` heading is used. |
-| `subtitle` | No | Short description. If omitted, all `## H2` headings are concatenated. |
-| `targetLang` | Yes | Must equal the deployment's target language (currently `id`). The upload is rejected if it is missing or different. |
-| `author` | No | Author (if different from publication author) |
-
-**Title and subtitle fallback rules:**
-
-- If `title` is absent, the first `# Heading` in the body is used. If there is no H1 either, the title becomes `untitled`.
-- If `subtitle` is absent, all `## Headings` are joined with ` • ` as the subtitle.
-
----
-
-## Hashtags
-
-Hashtags mark topics or index terms within article text. They appear as clickable links in the app, and tapping one opens an index of all articles that carry the same hashtag.
-
-### Syntax
-
-Single-word tag, write `#` directly before the word:
-
-```
-The word #selamat means "greetings".
-```
-
-Multi-word tag, wrap in curly braces:
-
-```
-The phrase #{selamat pagi} means "good morning".
-```
-
-Tags are **case-insensitive**: they are stored and indexed in lowercase (so the Hashtags tab always shows them lowercase), but the rendered tag keeps the casing you wrote, so `#Verkeersborden` displays as written while still matching `#verkeersborden`. Tags must be at least two characters long.
-
-Tags work anywhere in the text, **including inside headings**. A heading's own leading `#`/`##` marker is never treated as a tag; only `#tag` words within the heading text are indexed (use the `#{...}` braces form for a multi-word tag in a heading).
-
-### Requirements
-
-Hashtag extraction requires the group manifest to exist in the database. If articles are uploaded before their group manifest, hashtags are not extracted at that point. When the group manifest is subsequently uploaded, the system automatically reprocesses all existing articles in the group and extracts their hashtags. No manual re-upload of articles is needed.
-
-### Reviewing hashtag usage (admin only)
-
-To keep tags consistent, it helps to see which hashtags already exist before inventing a new one. **Admin → Hashtag Usage** (under the **Hashtags** section of the admin sidebar) shows a glossary of every hashtag currently in use across all content. _This page requires admin rights._
-
-The page lists each tag alphabetically with two counts:
-
-| Column | Meaning |
-|---|---|
-| Articles | Number of distinct articles that contain the tag |
-| Uses | Total number of occurrences across all articles |
-
-A search box filters the list as you type. You can **copy** the full glossary to the clipboard, **download** it as `taalwiz-hashtags.txt`, or **print** it. The export and print actions always use the complete list, not the filtered view, so you get the whole glossary regardless of any active filter.
-
-Use this glossary to spot near-duplicates (for example `#verb` versus `#verbs`) and reuse an existing tag rather than creating a variant.
-
----
-
-## Upload Workflow
-
-Files are uploaded one at a time (or in a batch) via **Admin → Upload**. The system accepts `.md` and `.json` content files plus publication images (`.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`). Upload order does not matter; the system handles any order correctly.
-
-### Target language check
-
-Every uploaded **article** and **group manifest** must declare a `targetLang` in its front matter equal to the deployment's target language (currently `id`). If `targetLang` is missing or different, the upload is rejected with a `400` error naming the file. This guards against accidentally uploading content prepared for a different language deployment.
-
-The **main manifest is exempt** (it is a language-agnostic index), and **dictionaries are not checked**: a dictionary's `targetLang` is its _headword_ language, which may legitimately differ from the deployment language (e.g. a reverse-direction dictionary), so dictionaries remain language-agnostic.
-
-### First-time setup (new publication)
-
-Upload all files in any order:
-
-- `main.manifest.md`
-- `{group}.manifest.md` for each publication
-- All article files (`{group}.{name}.md`)
-
-When a group manifest is processed, the system automatically reprocesses hashtag extraction for any articles of that group that are already in the database. Everything will be consistent once all files have been uploaded.
-
-### Adding a new article to an existing publication
-
-1. Write the article file `{group}.{name}.md`
-2. Add the short name to the `articles` list in `{group}.manifest.md`
-3. Upload both files in any order
-
-### Reordering or updating articles
-
-Edit the relevant manifest's `articles` list or update the article file and re-upload. The system uses an MD5 checksum; files whose content has not changed are silently skipped.
-
-### Removing a publication
-
-1. Remove the group name from `main.manifest.md` and upload it
-2. Use the admin orphan tool to delete the group manifest and its articles from the database
-
----
-
-## Orphaned Files
-
-An **orphan** is a file that exists in the database but is not referenced by any manifest:
-
-- An article whose short name has been removed from its group manifest
-- A group manifest whose group name has been removed from `main.manifest.md`
-
-Orphans are not shown to users. Use the admin orphan management tool to review and delete them.
-
----
-
-## Markdown Reference
-
-The body of every file supports standard Markdown:
+The body of an article (everything below the front-matter block) is where you do most of your work. It supports standard Markdown, plus two Taalwiz-specific features: clickable dictionary words and inline quiz blanks. If you are used to a word processor, each symbol below replaces a button you would normally click. The basics:
 
 - `# Heading 1` / `## Heading 2` / `### Heading 3`
 - Emphasis, see the asterisk vs. underscore rule below
@@ -295,3 +135,221 @@ De actieve vorm is ~~=membuka|buka|terbuka|dibuka|membukakan~~.
 - Quiz blanks do **not** interfere with tap-to-search: the hidden text is never a clickable dictionary word. Conversely, keep the answer and options as **plain words**, do not put emphasis inside a blank (write `~~=membuka|buka~~`, not `~~=*membuka*|buka~~`), otherwise the emphasised word is treated as a separate lookup word.
 - Answers and options may be more than one word (e.g. `~~tidak ada~~`, `~~=tidak ada|belum ada~~`).
 - The answer's length is not leaked: the placeholder is a fixed width regardless of how long the answer is.
+
+---
+
+## Hashtags
+
+Hashtags mark topics or index terms within article text. They appear as clickable links in the app, and tapping one opens an index of all articles that carry the same hashtag.
+
+### Syntax
+
+Single-word tag, write `#` directly before the word:
+
+```
+The word #selamat means "greetings".
+```
+
+Multi-word tag, wrap in curly braces:
+
+```
+The phrase #{selamat pagi} means "good morning".
+```
+
+Tags are **case-insensitive**: they are stored and indexed in lowercase (so the Hashtags tab always shows them lowercase), but the rendered tag keeps the casing you wrote, so `#Verkeersborden` displays as written while still matching `#verkeersborden`. Tags must be at least two characters long.
+
+Tags work anywhere in the text, **including inside headings**. A heading's own leading `#`/`##` marker is never treated as a tag; only `#tag` words within the heading text are indexed (use the `#{...}` braces form for a multi-word tag in a heading).
+
+### Requirements
+
+Hashtag extraction requires the group manifest to exist in the database. If articles are uploaded before their group manifest, hashtags are not extracted at that point. When the group manifest is subsequently uploaded, the system automatically reprocesses all existing articles in the group and extracts their hashtags. No manual re-upload of articles is needed.
+
+### Reviewing hashtag usage (admin only)
+
+To keep tags consistent, it helps to see which hashtags already exist before inventing a new one. **Admin → Hashtag Usage** (under the **Hashtags** section of the admin sidebar) shows a glossary of every hashtag currently in use across all content. _This page requires admin rights._
+
+The page lists each tag alphabetically with two counts:
+
+| Column | Meaning |
+|---|---|
+| Articles | Number of distinct articles that contain the tag |
+| Uses | Total number of occurrences across all articles |
+
+A search box filters the list as you type. You can **copy** the full glossary to the clipboard, **download** it as `taalwiz-hashtags.txt`, or **print** it. The export and print actions always use the complete list, not the filtered view, so you get the whole glossary regardless of any active filter.
+
+Use this glossary to spot near-duplicates (for example `#verb` versus `#verbs`) and reuse an existing tag rather than creating a variant.
+
+---
+
+> **Ready to publish?** Writing the body is only half of it. To publish an article you must give the file the right name, add a small front-matter block (notably the required `targetLang`), and list it in a manifest. Those mechanics are covered below.
+
+---
+
+## File Naming
+
+The **group name** is the short identifier for a publication (e.g. `indonesian`, `grammar-ref`). It must be lowercase, use only letters, digits, and hyphens, and must not be `main` (that is reserved).
+
+| File type | Example |
+|---|---|
+| Main manifest | `main.manifest.md` |
+| Group manifest | `indonesian.manifest.md` |
+| Article | `indonesian.intro.md` |
+| Article | `indonesian.verb-forms.md` |
+
+The part after the group name and before `.md` is the article's **short name** (e.g. `intro`, `verb-forms`). It must be unique within the group and must not be `manifest`.
+
+---
+
+## Article Files (`{group}.{name}.md`)
+
+Each article is a Markdown file with front matter. The body is standard Markdown (see [Writing Article Content](#writing-article-content) above for the markup, emphasis, and quiz-blank rules). Use the block below as a template, replacing the values with your own:
+
+```markdown
+---
+title: Greetings
+subtitle: Common greetings and polite expressions
+targetLang: id
+---
+
+# Greetings
+
+## Formal greetings
+
+Use *Selamat pagi* in the morning...
+```
+
+**Front matter fields:**
+
+| Field | Required | Description |
+|---|---|---|
+| `title` | No | Article title. If omitted, the first `# H1` heading is used. |
+| `subtitle` | No | Short description. If omitted, all `## H2` headings are concatenated. |
+| `targetLang` | Yes | Must equal the deployment's target language (currently `id`). The upload is rejected if it is missing or different. |
+| `author` | No | Author (if different from publication author) |
+
+**Title and subtitle fallback rules:**
+
+- If `title` is absent, the first `# Heading` in the body is used. If there is no H1 either, the title becomes `untitled`.
+- If `subtitle` is absent, all `## Headings` are joined with ` • ` as the subtitle.
+
+---
+
+## Group Manifests (`{group}.manifest.md`)
+
+Each publication has one group manifest. It carries the publication's metadata and the ordered list of its articles. The body text (below the closing `---`) becomes the **preface article**, the first article shown in the article list. Use the block below as a template:
+
+```markdown
+---
+title: Indonesian for Dutch Speakers
+author: J. de Vries
+targetLang: id
+articles:
+  - intro
+  - greetings
+  - numbers
+  - verb-forms
+---
+
+# Welcome
+
+This course introduces Indonesian to speakers of Dutch.
+Work through the articles in order for the best results.
+```
+
+**Front matter fields:**
+
+| Field | Required | Description |
+|---|---|---|
+| `title` | Yes (or H1 in body) | Publication title shown in the app |
+| `articles` | Yes | Ordered list of article short names. Display order follows this list. |
+| `targetLang` | Yes | Must equal the deployment's target language (currently `id`). The upload is rejected if it is missing or different. |
+| `author` | No | Author name |
+| `subtitle` | No | Short description shown under the title |
+| `image` | No | Publication cover image filename (e.g. `bumi-manusia.jpg`); upload the image alongside the manifest |
+| `publisher` | No | Publisher name |
+| `publicationYear` | No | Year of publication (integer) |
+| `copyright` | No | Copyright notice |
+| `isbn` | No | ISBN |
+
+**To add an article:** add its short name to the `articles` list in the desired position, then upload the updated manifest and the new article file.
+
+**To remove an article from the list:** remove its short name from `articles` and re-upload the manifest. The article file remains in the database as an orphan but is no longer shown. Use the admin orphan tool to delete it.
+
+**To reorder articles:** change the order in the `articles` list and re-upload the manifest.
+
+---
+
+## The Main Manifest (`main.manifest.md`)
+
+The main manifest controls which publications exist and in what order they appear in the app.
+
+```markdown
+---
+groups:
+  - indonesian
+  - grammar-ref
+  - dutch-basics
+---
+```
+
+**Front matter fields:**
+
+| Field | Required | Description |
+|---|---|---|
+| `groups` | Yes | Ordered list of group names. Display order follows this list. |
+
+The file has no body text. The main manifest does **not** take a `targetLang` field; it is a language-agnostic index of publications.
+
+**To add a publication:** add its group name to the `groups` list, then upload the updated `main.manifest.md` together with the corresponding `{group}.manifest.md`.
+
+**To remove a publication:** remove its group name from the list and upload the updated file. The publication's articles become orphans (they remain in the database but are no longer shown). Use the admin orphan tool to delete them.
+
+**To reorder publications:** change the order in the `groups` list and re-upload the file.
+
+---
+
+## Upload Workflow
+
+Files are uploaded one at a time (or in a batch) via **Admin → Upload**. The system accepts `.md` and `.json` content files plus publication images (`.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`). Upload order does not matter; the system handles any order correctly.
+
+### Target language check
+
+Every uploaded **article** and **group manifest** must declare a `targetLang` in its front matter equal to the deployment's target language (currently `id`). If `targetLang` is missing or different, the upload is rejected with a `400` error naming the file. This guards against accidentally uploading content prepared for a different language deployment.
+
+The **main manifest is exempt** (it is a language-agnostic index), and **dictionaries are not checked**: a dictionary's `targetLang` is its _headword_ language, which may legitimately differ from the deployment language (e.g. a reverse-direction dictionary), so dictionaries remain language-agnostic.
+
+### First-time setup (new publication)
+
+Upload all files in any order:
+
+- `main.manifest.md`
+- `{group}.manifest.md` for each publication
+- All article files (`{group}.{name}.md`)
+
+When a group manifest is processed, the system automatically reprocesses hashtag extraction for any articles of that group that are already in the database. Everything will be consistent once all files have been uploaded.
+
+### Adding a new article to an existing publication
+
+1. Write the article file `{group}.{name}.md`
+2. Add the short name to the `articles` list in `{group}.manifest.md`
+3. Upload both files in any order
+
+### Reordering or updating articles
+
+Edit the relevant manifest's `articles` list or update the article file and re-upload. The system uses an MD5 checksum; files whose content has not changed are silently skipped.
+
+### Removing a publication
+
+1. Remove the group name from `main.manifest.md` and upload it
+2. Use the admin orphan tool to delete the group manifest and its articles from the database
+
+---
+
+## Orphaned Files
+
+An **orphan** is a file that exists in the database but is not referenced by any manifest:
+
+- An article whose short name has been removed from its group manifest
+- A group manifest whose group name has been removed from `main.manifest.md`
+
+Orphans are not shown to users. Use the admin orphan management tool to review and delete them.
