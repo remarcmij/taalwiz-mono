@@ -58,12 +58,14 @@ Hello in Indonesian is **halo**.
 
 **Figure 2**: Markdown content entered in StackEdit
 
+StackEdit shows only the Markdown formatting, so `**halo**` simply appears in bold. Only Taalwiz adds a further meaning to that bold (and italic) markup: the word becomes **tappable**, opening a dictionary lookup. That behaviour appears only in the app (Figure 3), not in an editor's preview.
+
 When starting from scratch:
 
 1. Enter the text while also watching the preview update. `**halo**`, wrapped in double asterisks, shows in bold and becomes tappable in the app. 
 2. Save the file with a name like `example.first.md`.
 
-The block between the `---` lines at the top is referred to as **front matter**: it is *metadata* defining a few required settings. Keep its layout exactly as shown, indentation included, or the upload will be rejected. The **Article Files** section below lists every field. (StackEdit's preview shows this block as ordinary text, as in Figure 2; the Taalwiz app hides it, as in Figure 3.)
+The block between the `---` lines at the top is referred to as **front matter**: it is *metadata* defining a few required settings. Keep its layout exactly as shown, indentation included, or the upload will be rejected. The **Article Files** section below lists every field. (StackEdit's preview shows this front-matter block, as in Figure 2, whereas the Taalwiz app hides it, as in Figure 3.)
 
 You cannot publish a single article on its own: to appear in the app it must belong to a publication, which means adding it to a manifest and uploading. The sections below cover both. Once published, it looks like this in the Taalwiz app:
 
