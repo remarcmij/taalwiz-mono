@@ -22,8 +22,6 @@ In Taalwiz some of that same formatting annotation plays a dual role: for format
 
 You need an editor that understands Markdown and shows a live preview side by side. Two good choices:
 
-
-<!--We need to handhold content creator in their first StackEdit session. Merely pointing to url is not very helpful. How do you create a file, how do you get it into your computer? How can you edit a file that is on your computer etc.-->
 - **Easiest, nothing to install:** [StackEdit](https://stackedit.io) runs in your web browser. Write in the left pane and the formatted result appears on the right; when you are done, use its _Download_ menu to save the file.
 - **More powerful (what we use):** [Visual Studio Code](https://code.visualstudio.com) is a free desktop editor. Open a `.md` file and press `Ctrl`/`Cmd` + `Shift` + `V` to open the preview beside your text.
 
@@ -41,7 +39,7 @@ Each article is one plain-text file whose name ends in `.md` (for example `indon
 
 The easiest way to start is from an article that already exists. Open an existing `{group}.{name}.md` file in your editor (see the note above on opening rather than pasting), save it under a new name, and change the text. You get a working file with the front matter already correct, plus a real example to copy the conventions from.
 
-Prefer to start from scratch? Here is a minimal article:
+Prefer to start from scratch? Here is a minimal article as plain text and what it looks like in StackEdit (Figure 1 and 2):
 
 ```markdown
 ---
@@ -51,16 +49,27 @@ targetLang: id
 
 # My First Article
 
-Hello in Indonesian is *halo*.
+Hello in Indonesian is **halo**.
 ```
 
-Then:
+**Figure 1**: Plain text markdown content
 
-1. Change the text and watch the preview update. `*halo*`, wrapped in asterisks, shows in italics and becomes tappable in the app.
-2. Save the file with a name like `indonesian.first.md`.
-3. Upload it yourself if you have admin access (see [Upload Workflow](#upload-workflow)), or hand it to an administrator.
+![stackedit](./images/stackedit.png)
 
-The block between the `---` lines at the top is the **front matter**: a few required settings. Keep its layout exactly as shown, indentation included, or the upload will be rejected. The **Article Files** section below lists every field.
+**Figure 2**: Markdown content entered in StackEdit
+
+When starting from scratch:
+
+1. Enter the text while also watching the preview update. `**halo**`, wrapped in double asterisks, shows in bold and becomes tappable in the app. 
+2. Save the file with a name like `example.first.md`.
+
+The block between the `---` lines at the top is referred to as **front matter**: it is *meta data* defining a few required settings. Keep its layout exactly as shown, indentation included, or the upload will be rejected. The **Article Files** section below lists every field.
+
+You cannot publish a single article on its own: to appear in the app it must belong to a publication, which means adding it to a manifest and uploading. The sections below cover both. Once published, it looks like this in the Taalwiz app:
+
+![first-iphone](./images/first-iphone.png)
+
+**Figure 3**: Example article in Taalwiz with bold word **halo** tapped
 
 ---
 
