@@ -19,11 +19,13 @@
  *
  * where the decomposition is `segmentIndonesian(term, root)` (only shown when the
  * surface form differs from its root) and the lemma text is the dictionary's
- * first line, trailing `;`/`,` trimmed. A line that already has a back is emitted
- * verbatim. Output is sorted alphabetically by resolved root (the dictionary's
- * own ordering principle); items that share a root group together. Words that
- * resolve to nothing (typos or post-1996 coinages) are logged to stderr and
- * dropped.
+ * first line, trailing `;`/`,` trimmed and a leading bold headword stripped when
+ * it just repeats the term. A line that already has a back is emitted verbatim.
+ * Output is sorted alphabetically by resolved root (the dictionary's own ordering
+ * principle); items that share a root group together, separated by a blank line,
+ * and every content line ends with two spaces (a Markdown hard break). The file
+ * opens with `title:`/`targetLang:` front matter. Words that resolve to nothing
+ * (typos or post-1996 coinages) are logged to stderr and dropped.
  *
  * Like lookup-trace.mts this reuses the *real* web-app language code and the
  * *real* compiled JSON, so output can never drift from what the app shows. It
@@ -32,10 +34,11 @@
  *
  * Run (no build needed):
  *
- *   pnpm --filter compiler run wordlist <input.txt> [output.md]
+ *   pnpm --filter compiler run wordlist [-w] <input.txt> [output.md]
  *
  * With no output path the content goes to stdout (redirect it where you like);
- * miss diagnostics always go to stderr.
+ * `-w`/`--write` instead writes it next to the input file (e.g. duolingo.txt ->
+ * duolingo.md). Miss diagnostics always go to stderr.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -123,11 +126,27 @@ function lookup(term: string): { word: string; lemmas: DictRecord[] } | null {
   return null;
 }
 
-// --- Drive the list.
-const [, , inputPath, outputPath] = process.argv;
+// --- CLI: [-w|--write] <input.txt> [output.md]. With -w (and no explicit output
+// path) the content is written next to the input file, saving a second argument.
+const argv = process.argv.slice(2);
+const writeFlag = argv.includes('-w') || argv.includes('--write');
+const positionals = argv.filter((a) => !a.startsWith('-'));
+const inputPath = positionals[0];
 if (!inputPath) {
-  console.error('usage: pnpm --filter compiler run wordlist <input.txt> [output.md]');
+  console.error('usage: pnpm --filter compiler run wordlist [-w] <input.txt> [output.md]');
   process.exit(1);
+}
+
+const inputExt = path.extname(inputPath);
+const inputBase = path.basename(inputPath, inputExt);
+let outputPath = positionals[1];
+if (!outputPath && writeFlag) {
+  const candidate = path.join(path.dirname(inputPath), `${inputBase}.md`);
+  // Don't clobber the input if it is itself a .md file.
+  outputPath =
+    path.resolve(candidate) === path.resolve(inputPath)
+      ? path.join(path.dirname(inputPath), `${inputBase}.content.md`)
+      : candidate;
 }
 
 interface Entry {
@@ -138,6 +157,21 @@ interface Entry {
 const entries: Entry[] = [];
 const seen = new Set<string>(); // dedup key: lowercased term
 const misses: string[] = [];
+
+/**
+ * Strip the lemma text's leading bold headword when it merely repeats the surface
+ * term, so a bare root does not render as "**abad** **abad**, 1 eeuw". A homonym
+ * roman numeral (e.g. "abang I,") and a different root headword (the common case
+ * for a derived form, e.g. "dianggap" -> "**anggap** ...") are kept, since those
+ * are informative rather than duplicated.
+ */
+function stripLeadingHeadword(text: string, term: string): string {
+  const m = text.match(/^\*\*([^*]+)\*\*/);
+  if (!m) return text;
+  const headwords = m[1].split(',').map((h) => h.trim().toLowerCase());
+  if (!headwords.includes(term.toLowerCase())) return text;
+  return text.slice(m[0].length).replace(/^\s*,\s*/, '').trimStart();
+}
 
 const source = fs.readFileSync(inputPath, 'utf8').replace(/^﻿/, '');
 for (const rawLine of source.split('\n')) {
@@ -166,7 +200,7 @@ for (const rawLine of source.split('\n')) {
   }
 
   const firstLemma = hit.lemmas[0];
-  const definition = firstLemma.text.replace(/[;,]\s*$/, '');
+  const definition = stripLeadingHeadword(firstLemma.text, term).replace(/[;,]\s*$/, '');
   const root = firstLemma.baseWord;
   // Only a genuinely derived form gets a decomposition; compare case-insensitively
   // so a capitalised list entry ("Ambil") is not segmented against its root "ambil".
@@ -180,9 +214,26 @@ for (const rawLine of source.split('\n')) {
 // line so items sharing a root keep a stable, readable order.
 entries.sort((a, b) => a.sortKey.localeCompare(b.sortKey) || a.line.localeCompare(b.line));
 
-const output = entries.map((e) => e.line).join('\n') + '\n';
-if (outputPath) fs.writeFileSync(outputPath, output);
-else process.stdout.write(output);
+// Assemble: YAML front matter, then the content. Each content line ends with two
+// spaces (a Markdown hard break) so consecutive entries render on their own line,
+// and a blank line precedes each new root group for readability. The title
+// defaults to the input file name without its extension (e.g. "duolingo").
+const title = inputBase;
+const body: string[] = [];
+let prevKey: string | null = null;
+for (const entry of entries) {
+  if (prevKey !== null && entry.sortKey !== prevKey) body.push('');
+  body.push(`${entry.line}  `);
+  prevKey = entry.sortKey;
+}
+
+const output = `---\ntitle: ${title}\ntargetLang: ${targetLang}\n---\n\n${body.join('\n')}\n`;
+if (outputPath) {
+  fs.writeFileSync(outputPath, output);
+  console.error(`wrote ${entries.length} entries to ${outputPath}`);
+} else {
+  process.stdout.write(output);
+}
 
 if (misses.length > 0) {
   console.error(`\n${misses.length} word(s) did not resolve (typos or post-1996 coinages):`);
