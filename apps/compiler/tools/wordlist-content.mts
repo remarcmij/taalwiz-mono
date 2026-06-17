@@ -1,0 +1,190 @@
+/**
+ * wordlist-content — turn a flat word list into a sorted, deduplicated content
+ * file, looking every word up against the compiled Teeuw dictionary.
+ *
+ * The list is source-agnostic (it happens to be collected from Duolingo, a
+ * course book, etc.). Each line is one item in the bulk-import `term;back`
+ * format (see apps/web/.../import-line-parser.ts):
+ *
+ *   - `term`            -> a single target-language word to be looked up
+ *   - `term;back`       -> a line whose back is already authored
+ *   - `# ...`           -> a comment, ignored
+ *   - blank             -> ignored
+ *
+ * For a bare term we mirror the web app EXACTLY (DictionaryService.fetchWordLemmas
+ * + StudyModal.flipCard): run the real IndonesianVariationGenerator, take the
+ * first keyword/headword hit, and format
+ *
+ *   **term** (decomposition if derived) <first lemma's text>
+ *
+ * where the decomposition is `segmentIndonesian(term, root)` (only shown when the
+ * surface form differs from its root) and the lemma text is the dictionary's
+ * first line, trailing `;`/`,` trimmed. A line that already has a back is emitted
+ * verbatim. Output is sorted alphabetically by resolved root (the dictionary's
+ * own ordering principle); items that share a root group together. Words that
+ * resolve to nothing (typos or post-1996 coinages) are logged to stderr and
+ * dropped.
+ *
+ * Like lookup-trace.mts this reuses the *real* web-app language code and the
+ * *real* compiled JSON, so output can never drift from what the app shows. It
+ * reaches into apps/web with .ts-extension imports that only the tsx runtime
+ * resolves, so it lives outside src/ and is excluded from the tsc build.
+ *
+ * Run (no build needed):
+ *
+ *   pnpm --filter compiler run wordlist <input.txt> [output.md]
+ *
+ * With no output path the content goes to stdout (redirect it where you like);
+ * miss diagnostics always go to stderr.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import * as genModule from '../../web/src/app/home/dictionary/indonesian-variation-generator.ts';
+import * as segModule from '../../web/src/app/home/dictionary/indonesian-segmenter.ts';
+import * as parseModule from '../../web/src/app/home/vocabulary/vocabulary-entry-modal/import-line-parser.ts';
+
+// tsx's CJS interop can surface a named export under `default`; resolve via both.
+function pick<T>(mod: Record<string, unknown> & { default?: Record<string, unknown> }, name: string): T {
+  return (mod[name] ?? mod.default?.[name]) as T;
+}
+
+interface Generator {
+  getWordVariations(word: string): string[];
+}
+type SegmentResult = { display: string };
+const GenCtor = pick<new () => Generator>(genModule, 'IndonesianVariationGenerator');
+const generator = new GenCtor();
+const segmentIndonesian = pick<(surface: string, root: string) => SegmentResult | null>(
+  segModule,
+  'segmentIndonesian',
+);
+const splitImportLine = pick<(line: string) => { term: string; back?: string }>(
+  parseModule,
+  'splitImportLine',
+);
+
+// --- Dictionary index, mirroring dict-db.ts transformDict + findByWordAndLang.
+interface DictRecord {
+  word: string;
+  lang: string;
+  keyword: number;
+  baseWord: string;
+  text: string;
+  homonym: number;
+}
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const jsonDir = path.join(__dirname, '..', 'json');
+
+const index = new Map<string, DictRecord[]>(); // key: `${lang}|${wordLower}`
+let targetLang = 'id';
+
+for (const file of fs.readdirSync(jsonDir).sort()) {
+  if (!file.endsWith('.json')) continue;
+  const raw = JSON.parse(fs.readFileSync(path.join(jsonDir, file), 'utf8'));
+  const lemmas = Array.isArray(raw) ? raw : raw.lemmas;
+  if (!Array.isArray(raw) && typeof raw.targetLang === 'string') targetLang = raw.targetLang;
+  for (const lemma of lemmas) {
+    for (const w of lemma.words) {
+      const rec: DictRecord = {
+        word: w.word,
+        lang: w.lang,
+        keyword: w.keyword,
+        baseWord: lemma.base,
+        text: lemma.text,
+        homonym: lemma.homonym,
+      };
+      const key = `${w.lang}|${w.word.toLowerCase()}`;
+      const bucket = index.get(key);
+      if (bucket) bucket.push(rec);
+      else index.set(key, [rec]);
+    }
+  }
+}
+
+function findByWordAndLang(word: string, lang: string, keywordOnly: boolean): DictRecord[] {
+  const bucket = index.get(`${lang}|${word.toLowerCase()}`) ?? [];
+  return bucket
+    .filter((r) => !keywordOnly || (r.keyword ?? 1) === 1)
+    .sort((a, b) => a.homonym - b.homonym);
+}
+
+/** The web app's lookup: first hit across [keywordOnly, then any] × variations. */
+function lookup(term: string): { word: string; lemmas: DictRecord[] } | null {
+  const variations = generator.getWordVariations(term);
+  for (const keywordOnly of [true, false]) {
+    for (const w of variations) {
+      const lemmas = findByWordAndLang(w, targetLang, keywordOnly);
+      if (lemmas.length > 0) return { word: w, lemmas };
+    }
+  }
+  return null;
+}
+
+// --- Drive the list.
+const [, , inputPath, outputPath] = process.argv;
+if (!inputPath) {
+  console.error('usage: pnpm --filter compiler run wordlist <input.txt> [output.md]');
+  process.exit(1);
+}
+
+interface Entry {
+  sortKey: string; // resolved root (preferred) or the raw term, for ordering
+  line: string; // the formatted content line
+}
+
+const entries: Entry[] = [];
+const seen = new Set<string>(); // dedup key: lowercased term
+const misses: string[] = [];
+
+const source = fs.readFileSync(inputPath, 'utf8').replace(/^﻿/, '');
+for (const rawLine of source.split('\n')) {
+  const line = rawLine.trim();
+  if (!line || line.startsWith('#')) continue;
+
+  const { term, back } = splitImportLine(line);
+  if (!term) continue;
+
+  const dedupKey = term.toLowerCase();
+  if (seen.has(dedupKey)) continue;
+  seen.add(dedupKey);
+
+  // An authored back is emitted verbatim; still try to resolve the term so the
+  // line sorts into its root group (fall back to the term itself).
+  if (back) {
+    const hit = lookup(term);
+    entries.push({ sortKey: (hit?.lemmas[0].baseWord ?? term).toLowerCase(), line: back });
+    continue;
+  }
+
+  const hit = lookup(term);
+  if (!hit) {
+    misses.push(term);
+    continue;
+  }
+
+  const firstLemma = hit.lemmas[0];
+  const definition = firstLemma.text.replace(/[;,]\s*$/, '');
+  const root = firstLemma.baseWord;
+  // Only a genuinely derived form gets a decomposition; compare case-insensitively
+  // so a capitalised list entry ("Ambil") is not segmented against its root "ambil".
+  const isDerived = root && root.toLowerCase() !== term.toLowerCase();
+  const seg = isDerived ? segmentIndonesian(term, root) : null;
+  const deco = seg ? ` (${seg.display})` : '';
+  entries.push({ sortKey: root.toLowerCase(), line: `**${term}**${deco} ${definition}` });
+}
+
+// Sort by root (the dictionary's alphabetical principle), then by the rendered
+// line so items sharing a root keep a stable, readable order.
+entries.sort((a, b) => a.sortKey.localeCompare(b.sortKey) || a.line.localeCompare(b.line));
+
+const output = entries.map((e) => e.line).join('\n') + '\n';
+if (outputPath) fs.writeFileSync(outputPath, output);
+else process.stdout.write(output);
+
+if (misses.length > 0) {
+  console.error(`\n${misses.length} word(s) did not resolve (typos or post-1996 coinages):`);
+  for (const m of misses) console.error(`  ${m}`);
+}
