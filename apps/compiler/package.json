@@ -11,7 +11,7 @@
     "watch": "tsc --watch",
     "build": "tsc",
     "trace": "node tools/lookup-trace.mts",
-    "wordlist": "tsx tools/wordlist-content.mts",
+    "wordlist": "NODE_OPTIONS=--no-warnings tsx tools/wordlist-content.mts",
     "check-types": "tsc --noEmit",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
   },
