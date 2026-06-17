@@ -4,7 +4,10 @@ import UserPreferences from './models/user-preferences.model.js';
 
 export interface UserPreferencesData {
   currentVocabularyListId: string | null;
+  newCardsPerDay: number;
 }
+
+export const DEFAULT_NEW_CARDS_PER_DAY = 20;
 
 @Injectable()
 export class UserPreferencesService {
@@ -12,6 +15,7 @@ export class UserPreferencesService {
     const prefs = await UserPreferences.findOne({ userId: new Types.ObjectId(userId) }).exec();
     return {
       currentVocabularyListId: prefs?.currentVocabularyListId?.toString() ?? null,
+      newCardsPerDay: prefs?.newCardsPerDay ?? DEFAULT_NEW_CARDS_PER_DAY,
     };
   }
 

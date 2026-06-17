@@ -20,6 +20,9 @@ export interface SrsStatsEntry {
   due: number;
   new: number;
   total: number;
+  /** Cards a study session would actually serve now (due reviews + the day's
+   * remaining new-card allotment). This is what the study badge shows. */
+  available: number;
 }
 
 export type SrsRating = 'again' | 'good' | 'easy';

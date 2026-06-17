@@ -101,10 +101,9 @@ export class VocabularyPage {
   protected dueForCurrentList = computed(() => {
     const listId = this.vocabularyService.currentListId();
     if (!listId) return 0;
-    return (
-      this.#studyService.stats().find((s: { listId: string; due: number }) => s.listId === listId)
-        ?.due ?? 0
-    );
+    // `available` (not raw `due`) so the badge reflects what a session will actually
+    // serve under the daily new-card cap, not the full unstudied backlog.
+    return this.#studyService.stats().find((s) => s.listId === listId)?.available ?? 0;
   });
 
   constructor() {
