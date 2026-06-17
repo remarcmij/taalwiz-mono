@@ -56,7 +56,7 @@ function pick<T>(mod: Record<string, unknown> & { default?: Record<string, unkno
 interface Generator {
   getWordVariations(word: string): string[];
 }
-type SegmentResult = { display: string };
+type SegmentResult = { display: string; morphemes: string[] };
 const GenCtor = pick<new () => Generator>(genModule, 'IndonesianVariationGenerator');
 const generator = new GenCtor();
 const segmentIndonesian = pick<(surface: string, root: string) => SegmentResult | null>(
@@ -206,7 +206,11 @@ for (const rawLine of source.split('\n')) {
   // so a capitalised list entry ("Ambil") is not segmented against its root "ambil".
   const isDerived = root && root.toLowerCase() !== term.toLowerCase();
   const seg = isDerived ? segmentIndonesian(term, root) : null;
-  const deco = seg ? ` (${seg.display})` : '';
+  // Bold the root morpheme so it is tappable too (e.g. "peN- + **acara**"); the
+  // affixes stay plain text. The root element equals `root` (the segmenter's anchor).
+  const deco = seg
+    ? ` (${seg.morphemes.map((m) => (m === root ? `**${m}**` : m)).join(' + ')})`
+    : '';
   entries.push({ sortKey: root.toLowerCase(), line: `**${term}**${deco} ${definition}` });
 }
 
