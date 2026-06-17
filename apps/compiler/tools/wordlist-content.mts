@@ -218,11 +218,17 @@ for (const rawLine of source.split('\n')) {
   if (seen.has(dedupKey)) continue;
   seen.add(dedupKey);
 
-  // An authored back is emitted verbatim; still try to resolve the term so the
-  // line sorts into its root group (fall back to the term itself).
+  // An authored back is used as the line; still resolve the term so the line sorts
+  // into its root group (fall back to the term itself). A back that already shows
+  // the word (e.g. "**Tidurlah**! Ga slapen!") is kept verbatim; a bare gloss
+  // ("lima;5", "kalian;jullie ...") gets the term prepended as a tappable bold
+  // prefix so the headword is not lost: "**lima** 5".
   if (back) {
     const hit = lookup(term);
-    entries.push({ sortKey: (hit?.lemmas[0].baseWord ?? term).toLowerCase(), line: back });
+    const termCore = term.replace(/[^\p{L}\p{N} ]/gu, '').trim().toLowerCase();
+    const backHasTerm = termCore !== '' && back.replace(/\*/g, '').toLowerCase().includes(termCore);
+    const line = backHasTerm ? back : `**${term}** ${back}`;
+    entries.push({ sortKey: (hit?.lemmas[0].baseWord ?? term).toLowerCase(), line });
     continue;
   }
 
