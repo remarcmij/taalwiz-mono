@@ -50,15 +50,15 @@ All endpoints are under the global prefix `/api/v1/`. By default they require a 
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/v1/user-preferences` | Get `{ currentVocabularyListId }` |
-| `PATCH` | `/api/v1/user-preferences` | Set `{ currentVocabularyListId }` (204) |
+| `GET` | `/api/v1/user-preferences` | Get `{ currentVocabularyListId, newCardsPerDay }` |
+| `PATCH` | `/api/v1/user-preferences` | Set `{ currentVocabularyListId?, newCardsPerDay? }` — only the fields present are written (204). `newCardsPerDay` is an int 1–100 (default 20) |
 
 ### SRS Flashcards (`/api/v1/srs`)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/v1/srs/due?listId=<id>` | Cards due for review today in the specified list; response includes `back` field when set |
-| `GET` | `/api/v1/srs/stats` | Per-list counts `{ listId, due, new, total }[]` for all lists |
+| `GET` | `/api/v1/srs/due?listId=<id>` | A study session for the list: all due reviews, then the day's remaining new-card allotment (≤ `newCardsPerDay`, in list order). New cards already introduced today count against the allotment, so it survives cancel/restart. `back` field included when set. `&all=true` = practice mode: every card, uncapped, unordered |
+| `GET` | `/api/v1/srs/stats` | Per-list counts `{ listId, due, new, total, available }[]` for all lists. `available` = what a session would actually serve now (due reviews + remaining new allotment) — the study-badge number |
 | `POST` | `/api/v1/srs/review` | Submit rating `{ term, lang, listId, rating: 'again'\|'good'\|'easy' }`; returns `{ dueDate }` |
 
 ### System Settings (`/api/v1/admin/settings`) — admin only

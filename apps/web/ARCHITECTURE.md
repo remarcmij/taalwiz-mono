@@ -317,7 +317,9 @@ graph TD
     StudyService -->|signal| stats
 ```
 
-`lists`: `VocabularyList[]` with counts. `bookmarks`: `VocabularyEntry[]` for current list. `bookmarkedKeys`: `Set<string>` for O(1) lookup. `stats`: `SrsStatsEntry[]` per-list due/new/total.
+`lists`: `VocabularyList[]` with counts. `bookmarks`: `VocabularyEntry[]` for current list. `bookmarkedKeys`: `Set<string>` for O(1) lookup. `stats`: `SrsStatsEntry[]` per-list `due`/`new`/`total`/`available`, where `available` is what a session actually serves under the daily new-card cap and is the value the study-button badge shows.
+
+**Daily new-card cap.** A study session serves all due reviews plus at most `newCardsPerDay` (a per-user `UserPreferences` value, default 20, set on the Settings page) never-introduced cards, in list order — so large cloned/imported lists are paced rather than dumped all at once. A card is "introduced" on its first review (`introducedAt` on the SRS record); cards introduced earlier the same day count against the allotment, so the cap holds across cancel/restart instead of refilling. The server (`SrsService.getDueCards` / `getAllStats`) owns this; the study modal just renders the capped, ordered list it receives.
 
 **Content & Search**
 
