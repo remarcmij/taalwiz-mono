@@ -50,4 +50,22 @@
       </ion-item>
     </ion-radio-group>
   </ion-list>
+
+  <ion-list>
+    <ion-list-header>
+      <ion-label>{{ 'settings.study' | translate }}</ion-label>
+    </ion-list-header>
+    <ion-item>
+      <ion-select
+        [label]="'settings.new-cards-per-day' | translate"
+        [value]="userPreferencesService.newCardsPerDay()"
+        (ionChange)="onNewCardsPerDayChange($any($event.detail.value))"
+        interface="popover"
+      >
+        @for (n of newCardOptions; track n) {
+          <ion-select-option [value]="n">{{ n }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+  </ion-list>
 </ion-content>

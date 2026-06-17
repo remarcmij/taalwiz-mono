@@ -152,7 +152,9 @@
     "theme-system": "Systeemstandaard",
     "theme-light": "Licht",
     "theme-dark": "Donker",
-    "language": "Taal"
+    "language": "Taal",
+    "study": "Studeren",
+    "new-cards-per-day": "Nieuwe kaarten per dag"
   },
   "admin": {
     "admin-tasks": "Beheerderstaken"

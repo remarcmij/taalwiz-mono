@@ -152,7 +152,9 @@
     "theme-system": "System default",
     "theme-light": "Light",
     "theme-dark": "Dark",
-    "language": "Language"
+    "language": "Language",
+    "study": "Study",
+    "new-cards-per-day": "New cards per day"
   },
   "admin": {
     "admin-tasks": "Administative Tasks"

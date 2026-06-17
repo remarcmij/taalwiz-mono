@@ -19,6 +19,9 @@ export class UserPreferencesController {
     @CurrentUser() user: JwtPayload,
     @Body() dto: UpdateUserPreferencesDto,
   ): Promise<void> {
-    await this.userPreferencesService.patch(user.sub, dto.currentVocabularyListId);
+    await this.userPreferencesService.patch(user.sub, {
+      currentVocabularyListId: dto.currentVocabularyListId,
+      newCardsPerDay: dto.newCardsPerDay,
+    });
   }
 }

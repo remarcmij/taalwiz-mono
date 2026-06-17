@@ -19,11 +19,23 @@ export class UserPreferencesService {
     };
   }
 
-  async patch(userId: string, currentVocabularyListId: string | undefined): Promise<void> {
-    await UserPreferences.findOneAndUpdate(
-      { userId: new Types.ObjectId(userId) },
-      { $set: { currentVocabularyListId: currentVocabularyListId ? new Types.ObjectId(currentVocabularyListId) : null } },
-      { upsert: true },
-    ).exec();
+  // Sets only the fields actually present in `changes`, so callers updating one
+  // preference (e.g. the cap) never clobber another (e.g. the current list).
+  async patch(
+    userId: string,
+    changes: { currentVocabularyListId?: string; newCardsPerDay?: number },
+  ): Promise<void> {
+    const set: Record<string, unknown> = {};
+    if (changes.currentVocabularyListId !== undefined) {
+      set['currentVocabularyListId'] = changes.currentVocabularyListId
+        ? new Types.ObjectId(changes.currentVocabularyListId)
+        : null;
+    }
+    if (changes.newCardsPerDay !== undefined) {
+      set['newCardsPerDay'] = changes.newCardsPerDay;
+    }
+    if (Object.keys(set).length === 0) return;
+
+    await UserPreferences.findOneAndUpdate({ userId: new Types.ObjectId(userId) }, { $set: set }, { upsert: true }).exec();
   }
 }
