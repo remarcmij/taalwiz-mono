@@ -57,9 +57,11 @@ All endpoints are under the global prefix `/api/v1/`. By default they require a 
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/v1/srs/due?listId=<id>` | A study session for the list: all due reviews, then the day's remaining new-card allotment (≤ `newCardsPerDay`, in list order). New cards already introduced today count against the allotment, so it survives cancel/restart. `back` field included when set. `&all=true` = practice mode: every card, uncapped, unordered |
+| `GET` | `/api/v1/srs/due?listId=<id>` | A study session for the list: all due reviews, then the day's remaining new-card allotment (≤ `newCardsPerDay`, in list order). New cards already introduced today count against the allotment, so it survives cancel/restart. Each item includes `lemmaIndex` (which dictionary line a back-less card shows) and `back` (when set). `&all=true` = practice mode: every card, uncapped, unordered |
 | `GET` | `/api/v1/srs/stats` | Per-list counts `{ listId, due, new, total, available }[]` for all lists. `available` = what a session would actually serve now (due reviews + remaining new allotment) — the study-badge number |
 | `POST` | `/api/v1/srs/review` | Submit rating `{ term, lang, listId, rating: 'again'\|'good'\|'easy' }`; returns `{ dueDate }` |
+| `GET` | `/api/v1/srs/lemma-index?listId=&term=&lang=` | Get `{ lemmaIndex }` — which dictionary line a back-less card uses (0 = first) |
+| `POST` | `/api/v1/srs/lemma-index` | Set `{ term, lang, listId, lemmaIndex }` (200). Personal study state, so **not** blocked when the list is locked, unlike vocabulary content edits |
 
 ### System Settings (`/api/v1/admin/settings`) — admin only
 

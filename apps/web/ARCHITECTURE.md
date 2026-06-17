@@ -90,10 +90,14 @@ src/app/
 │   │   ├── vocabulary.page.ts
 │   │   ├── vocabulary.page.html
 │   │   ├── vocabulary.page.scss
-│   │   └── vocabulary-entry-modal/   # Add / edit / CSV-import modal
-│   │       ├── vocabulary-entry-modal.component.ts
-│   │       ├── vocabulary-entry-modal.component.html
-│   │       └── vocabulary-entry-modal.component.scss
+│   │   ├── vocabulary-entry-modal/   # Add / edit / CSV-import modal
+│   │   │   ├── vocabulary-entry-modal.component.ts
+│   │   │   ├── vocabulary-entry-modal.component.html
+│   │   │   └── vocabulary-entry-modal.component.scss
+│   │   └── dictionary-line-picker/   # Pick which dictionary line a back-less card shows
+│   │       ├── dictionary-line-picker.component.ts
+│   │       ├── dictionary-line-picker.component.html
+│   │       └── dictionary-line-picker.component.scss
 │   ├── study/                # SRS flashcard sub-feature
 │   │   ├── study.service.ts
 │   │   └── study-modal/
@@ -140,7 +144,7 @@ src/app/
 │
 ├── help/                     # Help page (markdown, per user.lang)
 │
-├── settings/                 # Theme selector (light/dark/system)
+├── settings/                 # Theme (light/dark/system), language, SRS new-cards-per-day
 │
 ├── shared/                   # Non-feature utilities
 │   ├── logger.service.ts
@@ -321,6 +325,8 @@ graph TD
 
 **Daily new-card cap.** A study session serves all due reviews plus at most `newCardsPerDay` (a per-user `UserPreferences` value, default 20, set on the Settings page) never-introduced cards, in list order — so large cloned/imported lists are paced rather than dumped all at once. A card is "introduced" on its first review (`introducedAt` on the SRS record); cards introduced earlier the same day count against the allotment, so the cap holds across cancel/restart instead of refilling. The server (`SrsService.getDueCards` / `getAllStats`) owns this; the study modal just renders the capped, ordered list it receives.
 
+**Lemma-index override.** A back-less card resolves its answer from the dictionary at flip time. By default it shows the first line (`lemmas[0]`); the user can pin a different line per card, stored as `lemmaIndex` on the SRS record. This is **study state**, so it is editable even on a locked list (unlike a typed `back`, which is list content). The list-row pencil is shown on every row — `editCard()` routes a back-less card to `DictionaryLinePickerComponent`, a card-with-back to the text editor (or a "list is locked" alert when locked). `flipCard` resolves `lemmas[lemmaIndex] ?? lemmas[0]`. Closing the study modal returns the last-shown card so the list scrolls to it (`#scrollToCard`), letting the user jump straight to a card whose line they want to change.
+
 **Content & Search**
 
 ```mermaid
@@ -342,7 +348,7 @@ graph TD
 | -------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `AuthService`              | `auth/`                   | JWT + refresh-token management, login/logout, auto-login (Capacitor Preferences)                                                                                                                                                                                       |
 | `VocabularyService`        | `home/vocabulary/`        | Named list management; vocabulary item add/remove/update with optimistic UI; `addEntry()`, `updateBack()`, `addEntries()` for modal-driven input; cross-device current-list sync via `UserPreferences` API; calls `StudyService.refreshStats()` after every add/remove |
-| `StudyService`             | `home/study/`             | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)` and `submitReview()` observables for the SRS API                                                                                                                                                  |
+| `StudyService`             | `home/study/`             | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)`, `submitReview()`, and `getLemmaIndex()` / `setLemmaIndex()` observables for the SRS API                                                                                                            |
 | `DictSyncService`          | `home/dictionary/`        | Fetch manifest, compare versions on the main thread, spawn `dict-import.worker` for the actual import, re-emit worker progress/status, expose `hasCompleteDict$` readiness                                                                                             |
 | `DictStoreService`         | `home/dictionary/`        | **Read-only** IndexedDB wrapper (`taalwiz-dict` DB): `open`, `getStoredVersion`, `findByWordAndLang`, `findWordsStartingWith`, `count`. All writes belong to `dict-import.worker.ts`                                                                                   |
 | `DictionaryService`        | `home/dictionary/`        | Offline lookup via `DictStoreService` using `langConfig.variationGenerator` (pluggable); manages `lookupResult$`                                                                                                                                                       |
@@ -672,6 +678,7 @@ classDiagram
         +string dueDate
         +number reps
         +number lapses
+        +number lemmaIndex
     }
 
     VocabularyEntry --> VocabularyList : belongs to
