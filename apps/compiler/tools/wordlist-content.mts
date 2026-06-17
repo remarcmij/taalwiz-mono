@@ -114,13 +114,39 @@ function findByWordAndLang(word: string, lang: string, keywordOnly: boolean): Di
     .sort((a, b) => a.homonym - b.homonym);
 }
 
+interface LookupHit {
+  word: string; // the matched headword (the variation that hit)
+  lemmas: DictRecord[];
+  /**
+   * Keyword headwords that matched, are LONGER than `word`, AND are a valid fuller
+   * affix-analysis of the surface (the segmenter can derive the surface from them).
+   * Non-empty means the first-hit rule may have over-stripped to a shorter, unrelated
+   * root while a fuller form was available (e.g. "memasakan" -> "asa" with "masak"
+   * still deriving the surface). The segmenter check excludes the generator's
+   * SYNTHESISED meN- forms (e.g. "jadi" -> "menjadi"), which are longer but not
+   * reductions, so confident bare roots and clean derivations are not flagged.
+   */
+  longerHits: string[];
+}
+
 /** The web app's lookup: first hit across [keywordOnly, then any] × variations. */
-function lookup(term: string): { word: string; lemmas: DictRecord[] } | null {
+function lookup(term: string): LookupHit | null {
   const variations = generator.getWordVariations(term);
   for (const keywordOnly of [true, false]) {
     for (const w of variations) {
       const lemmas = findByWordAndLang(w, targetLang, keywordOnly);
-      if (lemmas.length > 0) return { word: w, lemmas };
+      if (lemmas.length === 0) continue;
+      // Over-stripping is only meaningful against the keyword pass that the web app
+      // resolves on; a non-keyword fallback hit has no "fuller form" to compare to.
+      const longerHits = keywordOnly
+        ? variations.filter(
+            (v) =>
+              v.length > w.length &&
+              findByWordAndLang(v, targetLang, true).length > 0 &&
+              segmentIndonesian(term, v) !== null,
+          )
+        : [];
+      return { word: w, lemmas, longerHits };
     }
   }
   return null;
@@ -157,6 +183,7 @@ interface Entry {
 const entries: Entry[] = [];
 const seen = new Set<string>(); // dedup key: lowercased term
 const misses: string[] = [];
+const suspicious: { term: string; root: string; longer: string[] }[] = [];
 
 /**
  * Strip the lemma text's leading bold headword when it merely repeats the surface
@@ -204,6 +231,9 @@ for (const rawLine of source.split('\n')) {
     misses.push(term);
     continue;
   }
+  if (hit.longerHits.length > 0) {
+    suspicious.push({ term, root: hit.lemmas[0].baseWord, longer: hit.longerHits });
+  }
 
   const firstLemma = hit.lemmas[0];
   const definition = stripLeadingHeadword(firstLemma.text, term).replace(/[;,]\s*$/, '');
@@ -243,6 +273,15 @@ if (outputPath) {
   console.error(`wrote ${entries.length} entries to ${outputPath}`);
 } else {
   process.stdout.write(output);
+}
+
+if (suspicious.length > 0) {
+  console.error(
+    `\n${suspicious.length} word(s) may be over-stripped to a shorter root (review — a longer dictionary form also matched, likely a typo):`,
+  );
+  for (const s of suspicious) {
+    console.error(`  ${s.term} -> ${s.root}  (longer match: ${s.longer.join(', ')})`);
+  }
 }
 
 if (misses.length > 0) {
