@@ -1,0 +1,19 @@
+{
+  // Editor-only config for the standalone tools/*.mts scripts. They are EXCLUDED
+  // from the build (../tsconfig.json) because they import apps/web source with
+  // .ts extensions, which only the tsx runtime resolves. This config exists so
+  // the language server still type-checks them with Node globals and tolerates
+  // those .ts-extension imports — it is never used by `tsc` / `check-types`.
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["**/*.mts"]
+}
