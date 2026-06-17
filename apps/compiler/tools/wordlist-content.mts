@@ -173,6 +173,12 @@ function stripLeadingHeadword(text: string, term: string): string {
   return text.slice(m[0].length).replace(/^\s*,\s*/, '').trimStart();
 }
 
+/** Ensure a line ends in sentence punctuation, appending a period when it lacks one. */
+function ensureTerminalPeriod(s: string): string {
+  const trimmed = s.trimEnd();
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
 const source = fs.readFileSync(inputPath, 'utf8').replace(/^﻿/, '');
 for (const rawLine of source.split('\n')) {
   const line = rawLine.trim();
@@ -227,7 +233,7 @@ const body: string[] = [];
 let prevKey: string | null = null;
 for (const entry of entries) {
   if (prevKey !== null && entry.sortKey !== prevKey) body.push('');
-  body.push(`${entry.line}  `);
+  body.push(`${ensureTerminalPeriod(entry.line)}  `);
   prevKey = entry.sortKey;
 }
 
