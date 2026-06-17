@@ -165,9 +165,12 @@ interface TraceNode {
 
 function isTraceEnabled(): boolean {
   try {
-    return (
-      typeof localStorage !== 'undefined' && !!localStorage.getItem('taalwiz.trace-variations')
-    );
+    if (typeof localStorage === 'undefined') return false;
+    // localStorage holds strings, and '0'/'false' are truthy strings — so gate on
+    // explicit opt-in values rather than mere presence. Otherwise setting the flag
+    // to '0' would fail to disable the trace.
+    const value = localStorage.getItem('taalwiz.trace-variations');
+    return value === '1' || value?.toLowerCase() === 'true';
   } catch {
     return false;
   }
