@@ -14,6 +14,10 @@ const SrsRecordSchema = new Schema({
   // then. This, not `reps`, marks "already introduced" because an "Again" review
   // resets reps to 0 — so a failed-today new card still reads as introduced.
   introducedAt: { type: Date, default: null },
+  // For a back-less card, which dictionary lemma line to show as the answer
+  // (default 0 = the first line). Personal study state, so it is editable even on
+  // a locked list. Ignored when the card has a custom `back`.
+  lemmaIndex: { type: Number, required: true, default: 0 },
 });
 
 SrsRecordSchema.index({ userId: 1, listId: 1, term: 1, lang: 1 }, { unique: true });

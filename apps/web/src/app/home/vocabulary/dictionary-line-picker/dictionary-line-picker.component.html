@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'line-picker.title' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (loading()) {
+    <div class="centered"><ion-spinner></ion-spinner></div>
+  } @else if (lemmas().length === 0) {
+    <div class="centered empty">
+      <p>{{ 'line-picker.no-results' | translate }}</p>
+      @if (!locked()) {
+        <ion-button fill="outline" (click)="typeInstead()">
+          {{ 'line-picker.type-instead' | translate }}
+        </ion-button>
+      } @else {
+        <ion-note>{{ 'line-picker.unlock-hint' | translate }}</ion-note>
+      }
+    </div>
+  } @else {
+    <ion-list lines="full">
+      @for (lemma of lemmas(); track $index) {
+        <ion-item button [detail]="false" (click)="select($index)">
+          <ion-icon
+            slot="start"
+            name="checkmark-outline"
+            color="primary"
+            [class.invisible]="$index !== currentIndex()"></ion-icon>
+          <ion-label class="line-text" [innerHTML]="lineHtml(lemma.text)"></ion-label>
+        </ion-item>
+      }
+    </ion-list>
+    <div class="footer-hint">
+      @if (!locked()) {
+        <ion-button fill="clear" size="small" (click)="typeInstead()">
+          {{ 'line-picker.type-instead' | translate }}
+        </ion-button>
+      } @else {
+        <ion-note>{{ 'line-picker.unlock-hint' | translate }}</ion-note>
+      }
+    </div>
+  }
+</ion-content>

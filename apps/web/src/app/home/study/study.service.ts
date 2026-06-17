@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, effect, inject, signal } from '@angular/core';
-import { EMPTY, Observable, catchError, firstValueFrom, of } from 'rxjs';
+import { EMPTY, Observable, catchError, firstValueFrom, map, of } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 
 export interface SrsItem {
@@ -13,6 +13,8 @@ export interface SrsItem {
   dueDate: string;
   reps: number;
   lapses: number;
+  /** For a back-less card: which dictionary lemma line to show (default 0). */
+  lemmaIndex: number;
 }
 
 export interface SrsStatsEntry {
@@ -67,6 +69,22 @@ export class StudyService {
   ): Observable<{ dueDate: string }> {
     return this.#http
       .post<{ dueDate: string }>('/api/v1/srs/review', { term, lang, listId, rating })
+      .pipe(catchError(() => EMPTY));
+  }
+
+  /** The pinned dictionary line for a back-less card (0 = first line). */
+  getLemmaIndex(term: string, lang: string, listId: string): Observable<number> {
+    return this.#http
+      .get<{ lemmaIndex: number }>('/api/v1/srs/lemma-index', { params: { listId, term, lang } })
+      .pipe(
+        map((r) => r.lemmaIndex),
+        catchError(() => of(0)),
+      );
+  }
+
+  setLemmaIndex(term: string, lang: string, listId: string, lemmaIndex: number): Observable<void> {
+    return this.#http
+      .post<void>('/api/v1/srs/lemma-index', { term, lang, listId, lemmaIndex })
       .pipe(catchError(() => EMPTY));
   }
 }

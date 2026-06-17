@@ -3,6 +3,7 @@ import {
   Component,
   HostListener,
   computed,
+  effect,
   inject,
   input,
   OnInit,
@@ -110,8 +111,17 @@ export class StudyModalComponent implements OnInit {
     return total > 0 ? this.completed() / total : 0;
   });
 
+  // The last card actually shown, captured so closing the modal can tell the
+  // vocabulary list which card to scroll to (currentCard() is null once the
+  // session completes).
+  #lastShownCard: { term: string; lang: string } | null = null;
+
   constructor() {
     addIcons({ closeOutline });
+    effect(() => {
+      const card = this.currentCard();
+      if (card) this.#lastShownCard = { term: card.term, lang: card.lang };
+    });
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -191,14 +201,17 @@ export class StudyModalComponent implements OnInit {
       const result = await firstValueFrom(
         this.#dictionaryService.fetchWordLemmas(card.term, card.lang),
       );
-      const firstLemma = result.lemmas[0];
-      this.definition.set(firstLemma?.text.replace(/[;,]\s*$/, '') ?? '');
+      // The user may have pinned a non-default line for this back-less card; fall
+      // back to the first line if the index is out of range (e.g. the lemma set
+      // shrank since it was chosen).
+      const lemma = result.lemmas[card.lemmaIndex] ?? result.lemmas[0];
+      this.definition.set(lemma?.text.replace(/[;,]\s*$/, '') ?? '');
       this.baseWordNote.set(result.word !== card.term ? result.word : null);
       // For a derived target-language form, add the same affix decomposition the
       // word-tap modal shows. Segment against the lemma's ROOT (baseWord), not the
       // headword `result.word` — a headword can itself be affixed, which the
       // segmenter can't anchor on. Mirrors WordClickModal's #breakdownFor.
-      const baseWord = firstLemma?.baseWord;
+      const baseWord = lemma?.baseWord;
       this.breakdown.set(
         baseWord && baseWord !== card.term && card.lang === langConfig.targetLang
           ? segmentIndonesian(card.term, baseWord)
@@ -256,6 +269,8 @@ export class StudyModalComponent implements OnInit {
     // A session may have rescheduled cards; refresh so the due-count badges
     // (picker and the vocabulary-page Study button) reflect reality.
     void this.#studyService.refreshStats();
-    this.#modalCtrl.dismiss();
+    // Hand back the last card shown so the list can scroll to it (lets the user
+    // jump straight to a card whose dictionary line they want to change).
+    this.#modalCtrl.dismiss(this.#lastShownCard);
   }
 }

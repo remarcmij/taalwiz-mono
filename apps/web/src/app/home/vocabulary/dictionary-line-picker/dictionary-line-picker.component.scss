@@ -1,0 +1,30 @@
+.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.empty p {
+  color: var(--ion-color-medium);
+}
+
+// Truncate each line to one row — the headword/gloss leads, which is the part
+// that matters for telling the lines apart.
+.line-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.footer-hint {
+  padding: 8px 16px 16px;
+  text-align: center;
+}

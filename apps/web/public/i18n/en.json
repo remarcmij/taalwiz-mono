@@ -146,6 +146,12 @@
     "show-breakdown": "Show the decomposition",
     "quiz-breakdown": "Quiz the decomposition"
   },
+  "line-picker": {
+    "title": "Choose answer line",
+    "no-results": "No dictionary entry found for this word.",
+    "type-instead": "Type a custom answer instead",
+    "unlock-hint": "Unlock the list to type a custom answer."
+  },
   "settings": {
     "title": "Settings",
     "appearance": "Appearance",

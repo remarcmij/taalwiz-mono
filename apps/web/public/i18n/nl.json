@@ -146,6 +146,12 @@
     "show-breakdown": "Toon de woordopbouw",
     "quiz-breakdown": "Oefen de woordopbouw"
   },
+  "line-picker": {
+    "title": "Antwoordregel kiezen",
+    "no-results": "Geen woordenboekvermelding gevonden voor dit woord.",
+    "type-instead": "Typ in plaats daarvan een eigen antwoord",
+    "unlock-hint": "Ontgrendel de lijst om een eigen antwoord te typen."
+  },
   "settings": {
     "title": "Instellingen",
     "appearance": "Weergave",

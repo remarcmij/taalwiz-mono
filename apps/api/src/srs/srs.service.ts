@@ -20,6 +20,8 @@ export interface SrsItemInfo {
   dueDate: string;
   reps: number;
   lapses: number;
+  /** For a back-less card: which dictionary lemma line to show (default 0). */
+  lemmaIndex: number;
 }
 
 export interface SrsStatsEntry {
@@ -188,6 +190,28 @@ export class SrsService {
 
     return { dueDate: newDueDate };
   }
+
+  /** Which dictionary line a back-less card shows. Study state, so it is NOT
+   * gated by the list lock. */
+  async getLemmaIndex(userId: string, term: string, lang: string, listId: string): Promise<number> {
+    const card = await SrsRecord.findOne({
+      userId: new Types.ObjectId(userId),
+      listId: new Types.ObjectId(listId),
+      term,
+      lang,
+    })
+      .select('lemmaIndex')
+      .lean()
+      .exec();
+    return card?.lemmaIndex ?? 0;
+  }
+
+  async setLemmaIndex(userId: string, term: string, lang: string, listId: string, lemmaIndex: number): Promise<void> {
+    await SrsRecord.updateOne(
+      { userId: new Types.ObjectId(userId), listId: new Types.ObjectId(listId), term, lang },
+      { $set: { lemmaIndex } },
+    ).exec();
+  }
 }
 
 export interface StudyCard {
@@ -254,7 +278,7 @@ export function applySm2(state: Sm2State, rating: 'again' | 'good' | 'easy'): Sm
 }
 
 function toSrsItemInfo(
-  card: { term: string; lang: string; listId: unknown; interval: number; easeFactor: number; dueDate: unknown; reps: number; lapses: number },
+  card: { term: string; lang: string; listId: unknown; interval: number; easeFactor: number; dueDate: unknown; reps: number; lapses: number; lemmaIndex: number },
   back: string | undefined,
 ): SrsItemInfo {
   const info: SrsItemInfo = {
@@ -266,6 +290,7 @@ function toSrsItemInfo(
     dueDate: (card.dueDate as Date).toISOString(),
     reps: card.reps,
     lapses: card.lapses,
+    lemmaIndex: card.lemmaIndex,
   };
   if (back !== undefined) info.back = back;
   return info;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   ActionSheetController,
@@ -45,6 +45,7 @@ import { DictionaryService } from '../dictionary/dictionary.service';
 import { WordLang } from '../dictionary/word-lang.model';
 import { StudyModalComponent } from '../study/study-modal/study-modal.component';
 import { StudyService } from '../study/study.service';
+import { DictionaryLinePickerComponent } from './dictionary-line-picker/dictionary-line-picker.component';
 import { SharedListsBrowserComponent } from './shared-lists-browser/shared-lists-browser.component';
 import { VocabularyEntryModalComponent } from './vocabulary-entry-modal/vocabulary-entry-modal.component';
 import { VocabularyEntry, VocabularyList, VocabularyService } from './vocabulary.service';
@@ -90,6 +91,9 @@ export class VocabularyPage {
   #platform = inject(Platform);
 
   protected isDesktop = this.#platform.is('desktop');
+
+  @ViewChild(IonContent) private content?: IonContent;
+  readonly #host = inject(ElementRef);
 
   /** Render a card back's `**bold**`/`*italic*` markup for the list preview as
    * plain emphasis. Uses `tinyMarkdown` (not `convertMarkdown`) so preview words
@@ -255,6 +259,65 @@ export class VocabularyPage {
       componentProps: { defaultListId: listId },
     });
     await modal.present();
+    // On exit, scroll the list to the last card shown so the user can jump
+    // straight to a card whose dictionary line they want to change.
+    const { data } = await modal.onWillDismiss<{ term: string; lang: string } | null>();
+    if (data) this.#scrollToCard(data.term, data.lang);
+  }
+
+  #scrollToCard(term: string, lang: string): void {
+    const key = `${term}:${lang}`;
+    // Defer so the list has settled after the modal teardown before scrolling.
+    setTimeout(async () => {
+      const row = this.#host.nativeElement.querySelector(
+        `ion-item-sliding[data-card-key="${CSS.escape(key)}"]`,
+      ) as HTMLElement | null;
+      const content = this.content;
+      if (!row || !content) return;
+      const scrollEl = await content.getScrollElement();
+      // The content is fullscreen (scrolls behind the header), so align the row's
+      // top to just below the header rather than to y=0. Jump instantly — a smooth
+      // animation across a 1000+ item list is slow and distracting.
+      const headerHeight =
+        (this.#host.nativeElement.querySelector('ion-header') as HTMLElement | null)?.offsetHeight ??
+        0;
+      const top = scrollEl.scrollTop + row.getBoundingClientRect().top - headerHeight;
+      scrollEl.scrollTo({ top, behavior: 'instant' });
+    });
+  }
+
+  /**
+   * Edit a card from the list. Routes by (locked, has-back): a card with a back
+   * opens the text editor (or, when locked, just reports the lock); a back-less
+   * card opens the dictionary-line picker, which works even on a locked list
+   * because the chosen line is personal study state, not list content.
+   */
+  async editCard(entry: VocabularyEntry): Promise<void> {
+    const locked = this.vocabularyService.currentListLocked();
+    if (entry.back) {
+      if (locked) await this.#showListLockedAlert();
+      else await this.openEditModal(entry);
+      return;
+    }
+    const modal = await this.#modalCtrl.create({
+      component: DictionaryLinePickerComponent,
+      componentProps: { term: entry.term, lang: entry.lang, listId: entry.listId, locked },
+    });
+    await modal.present();
+    // Unlocked picker offers "type a custom answer instead" → fall through to the editor.
+    const { data } = await modal.onWillDismiss<{ action?: 'type' }>();
+    if (data?.action === 'type') await this.openEditModal(entry);
+  }
+
+  async #showListLockedAlert(): Promise<void> {
+    const name = this.vocabularyService.currentList()?.name ?? '';
+    const alert = await this.#alertCtrl.create({
+      header: this.#translate.instant('vocabulary.locked'),
+      message: this.#translate.instant('vocabulary.list-locked', { name }),
+      buttons: [{ text: this.#translate.instant('common.close'), role: 'cancel' }],
+    });
+    this.blurActiveElement();
+    await alert.present();
   }
 
   async openAddEntryModal(): Promise<void> {
