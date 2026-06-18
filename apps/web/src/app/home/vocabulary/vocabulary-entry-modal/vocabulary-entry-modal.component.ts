@@ -59,6 +59,9 @@ import { splitImportLine } from './import-line-parser';
 export class VocabularyEntryModalComponent {
   mode = input<'add' | 'edit'>('add');
   existingEntry = input<VocabularyEntry | null>(null);
+  // The active deck is locked. Single-word add targets that deck, so it is
+  // disabled; bulk import picks its own target and stays available.
+  currentLocked = input<boolean>(false);
 
   @ViewChild(IonInput) private termInput?: IonInput;
   @ViewChild(IonTextarea) private csvTextarea?: IonTextarea;
@@ -111,6 +114,11 @@ export class VocabularyEntryModalComponent {
         this.back.set(entry.back ?? '');
       }
     });
+    // When the current deck is locked, single-add is unavailable — open straight
+    // on the import tab.
+    effect(() => {
+      if (this.currentLocked()) this.activeTab.set('import');
+    });
   }
 
   ionViewDidEnter(): void {
@@ -120,6 +128,8 @@ export class VocabularyEntryModalComponent {
   }
 
   protected setActiveTab(value: string | number | undefined): void {
+    // Single-add is disabled while the current deck is locked; ignore a switch to it.
+    if (this.currentLocked() && value !== 'import') return;
     this.activeTab.set(value === 'import' ? 'import' : 'single');
     if (this.isDesktop) {
       setTimeout(() => {
@@ -147,20 +157,20 @@ export class VocabularyEntryModalComponent {
   protected async submitImport(): Promise<void> {
     const entries = this.parsedEntries();
     if (entries.length === 0) return;
+    // Paste import follows the app's active-deck model (like bookmarking): the
+    // words land in the deck you are on. A fresh deck is made the usual way —
+    // create it, then import. (Allowed even when that deck is locked.)
     const listId = this.#vocabularyService.currentListId();
+    if (!listId) return;
+
     this.importing.set(true);
-    const succeeded = await this.#vocabularyService.addEntries(entries);
+    const succeeded = await this.#vocabularyService.importEntries(entries, listId);
     this.importing.set(false);
 
     const ok = succeeded === entries.length;
-    // A bulk-imported deck is meant to be studied as-is, so lock it by default;
-    // the owner can unlock it from the list menu to edit.
-    if (ok && listId) {
-      this.#vocabularyService.setListLocked(listId, true);
-    }
     const toast = await this.#toastCtrl.create({
       message: this.#translate.instant(
-        ok ? 'vocabulary.import-success-locked' : 'vocabulary.import-failed',
+        ok ? 'vocabulary.import-success' : 'vocabulary.import-failed',
         { count: ok ? succeeded : entries.length },
       ),
       duration: 3000,

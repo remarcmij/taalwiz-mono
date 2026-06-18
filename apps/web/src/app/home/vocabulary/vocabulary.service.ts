@@ -208,23 +208,30 @@ export class VocabularyService {
       .subscribe();
   }
 
-  async addEntries(entries: { term: string; back?: string }[]): Promise<number> {
-    const listId = this.currentListId();
-    if (!listId) return 0;
+  /**
+   * Deliberate bulk import into an existing deck — pasted text, or the contents
+   * of a public list. Hits the import endpoint, which is allowed even when the
+   * target deck is locked (locking only guards incidental per-word edits). The
+   * deck's own lock state is left untouched. Returns the number of rows accepted.
+   */
+  async importEntries(entries: { term: string; back?: string }[], targetListId: string): Promise<number> {
+    if (entries.length === 0) return 0;
     const lang = langConfig.targetLang;
 
-    const items = entries.map(({ term, back }) => ({ term, lang, listId, back }));
+    const items = entries.map(({ term, back }) => ({ term, lang, listId: targetListId, back }));
     const succeeded = await firstValueFrom(
-      this.#http.post('/api/v1/vocabulary', { items }).pipe(
+      this.#http.post('/api/v1/vocabulary/import', { items }).pipe(
         map(() => entries.length),
         catchError(() => of(0)),
       ),
     );
 
-    this.#loadItems(listId);
-    const updatedLists = await this.#fetchLists();
-    this.lists.set(updatedLists);
-    void this.#studyService.refreshStats();
+    if (succeeded > 0) {
+      const updatedLists = await this.#fetchLists();
+      this.lists.set(updatedLists);
+      if (targetListId === this.currentListId()) this.#loadItems(targetListId);
+      void this.#studyService.refreshStats();
+    }
     return succeeded;
   }
 
@@ -236,15 +243,23 @@ export class VocabularyService {
   }
 
   createList(name: string): void {
-    this.#http
-      .post<VocabularyList>('/api/v1/vocabulary/lists', { name })
-      .pipe(catchError(() => EMPTY))
-      .subscribe((list) => {
-        this.lists.update((ls) => [...ls, list]);
-        // Creating a list switches to it — users expect the list they just made
-        // to become the active one.
-        this.setCurrentList(list.id);
-      });
+    // Creating a list switches to it — users expect the list they just made to
+    // become the active one.
+    void this.#createListReturning(name).then((list) => {
+      if (list) this.setCurrentList(list.id);
+    });
+  }
+
+  /** Create a deck and add it to the in-memory list, returning it (or null on
+   * failure) so a caller can immediately import into it. */
+  async #createListReturning(name: string): Promise<VocabularyList | null> {
+    const list = await firstValueFrom(
+      this.#http
+        .post<VocabularyList>('/api/v1/vocabulary/lists', { name })
+        .pipe(catchError(() => of(null))),
+    );
+    if (list) this.lists.update((ls) => [...ls, list]);
+    return list;
   }
 
   deleteList(id: string): void {
@@ -321,20 +336,6 @@ export class VocabularyService {
         .get<VocabularyEntry[]>(`/api/v1/vocabulary/public/${listId}/items`)
         .pipe(catchError(() => of([]))),
     );
-  }
-
-  /** Clone a public list into the user's own account, then switch to it. Returns the new list. */
-  async cloneList(publicListId: string): Promise<VocabularyList | null> {
-    const list = await firstValueFrom(
-      this.#http
-        .post<VocabularyList>(`/api/v1/vocabulary/public/${publicListId}/clone`, {})
-        .pipe(catchError(() => of(null))),
-    );
-    if (!list) return null;
-    this.lists.update((ls) => [...ls, list]);
-    this.setCurrentList(list.id);
-    void this.#studyService.refreshStats();
-    return list;
   }
 
   async #initLists(): Promise<void> {

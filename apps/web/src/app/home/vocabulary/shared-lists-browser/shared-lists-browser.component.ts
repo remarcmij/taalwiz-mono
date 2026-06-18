@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -65,7 +65,10 @@ export class SharedListsBrowserComponent {
   protected selected = signal<PublicVocabularyList | null>(null);
   protected items = signal<VocabularyEntry[]>([]);
   protected itemsLoading = signal(false);
-  protected cloning = signal(false);
+  protected importing = signal(false);
+
+  /** The deck an import will land in — the active deck, same model as paste. */
+  protected currentDeckName = computed(() => this.#vocabularyService.currentList()?.name ?? '');
 
   constructor() {
     addIcons({ chevronBackOutline, downloadOutline });
@@ -88,21 +91,32 @@ export class SharedListsBrowserComponent {
     this.items.set([]);
   }
 
-  protected async clone(list: PublicVocabularyList): Promise<void> {
-    this.cloning.set(true);
-    const cloned = await this.#vocabularyService.cloneList(list.id);
-    this.cloning.set(false);
+  protected async importList(list: PublicVocabularyList): Promise<void> {
+    // Import into the active deck — same active-deck model as paste import. A
+    // different/new target is set up the usual way (create the deck, make it
+    // active) before opening this browser, so lessons grow one deck rather than
+    // spawning a deck per lesson.
+    const targetListId = this.#vocabularyService.currentListId();
+    if (!targetListId) return;
+
+    this.importing.set(true);
+    const items = await this.#vocabularyService.fetchPublicItems(list.id);
+    const entries = items.map((i) => ({ term: i.term, back: i.back }));
+    const succeeded = await this.#vocabularyService.importEntries(entries, targetListId);
+    this.importing.set(false);
+
+    const ok = entries.length > 0 && succeeded === entries.length;
     const toast = await this.#toastCtrl.create({
       message: this.#translate.instant(
-        cloned ? 'shared-lists.clone-success' : 'shared-lists.clone-failed',
+        ok ? 'shared-lists.import-success' : 'shared-lists.import-failed',
         { name: list.name },
       ),
       duration: 2500,
       position: 'bottom',
-      color: cloned ? 'success' : 'danger',
+      color: ok ? 'success' : 'danger',
     });
     await toast.present();
-    if (cloned) await this.#modalCtrl.dismiss({ action: 'cloned', listId: cloned.id });
+    if (ok) await this.#modalCtrl.dismiss({ action: 'imported' });
   }
 
   protected close(): Promise<boolean> {

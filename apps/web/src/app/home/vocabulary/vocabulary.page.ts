@@ -194,7 +194,7 @@ export class VocabularyPage {
       return;
     }
     // Making a public list private: confirm, since others may want to keep finding it.
-    // (Copies already cloned are unaffected — they are independent.)
+    // (Decks others already imported from it are unaffected — they are independent.)
     const alert = await this.#alertCtrl.create({
       header: this.#translate.instant('shared-lists.unpublish-title'),
       message: this.#translate.instant('shared-lists.unpublish-message', { name: list.name }),
@@ -323,10 +323,13 @@ export class VocabularyPage {
   }
 
   async openAddEntryModal(): Promise<void> {
-    if (!this.vocabularyService.currentListId() || this.vocabularyService.currentListLocked()) return;
+    if (!this.vocabularyService.currentListId()) return;
+    // A locked current deck disables only the single-add tab inside the modal
+    // (that is the incidental per-word edit the lock guards); import is a
+    // deliberate act that picks its own target, so it stays available.
     const modal = await this.#modalCtrl.create({
       component: VocabularyEntryModalComponent,
-      componentProps: { mode: 'add' },
+      componentProps: { mode: 'add', currentLocked: this.vocabularyService.currentListLocked() },
     });
     await modal.present();
   }

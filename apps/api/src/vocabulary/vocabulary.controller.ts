@@ -68,14 +68,6 @@ export class VocabularyController {
     return this.vocabularyService.findPublicItems(id);
   }
 
-  @Post('public/:id/clone')
-  async clonePublicList(
-    @CurrentUser() user: JwtPayload,
-    @Param('id') id: string,
-  ): Promise<VocabularyListInfo> {
-    return this.vocabularyService.cloneList(user.sub, id);
-  }
-
   // --- Vocabulary item CRUD routes ---
 
   @Get()
@@ -87,6 +79,14 @@ export class VocabularyController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async add(@CurrentUser() user: JwtPayload, @Body() dto: BulkAddVocabularyDto) {
     await this.vocabularyService.addMany(user.sub, dto.items);
+  }
+
+  // Deliberate bulk import — into a new or existing deck. Unlike the single add
+  // above, this is allowed even when the target list is locked.
+  @Post('import')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async import(@CurrentUser() user: JwtPayload, @Body() dto: BulkAddVocabularyDto) {
+    await this.vocabularyService.importMany(user.sub, dto.items);
   }
 
   @Delete()

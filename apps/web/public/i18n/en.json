@@ -102,7 +102,8 @@
     "import-button": "Import {{count}} entries",
     "import-invalid-lines": "{{count}} line(s) skipped — term missing",
     "import-dict-lookup": "{{count}} term(s) will use dictionary lookup",
-    "import-success-locked": "Imported {{count}} entries, now locked",
+    "import-success": "Imported {{count}} entries",
+    "import-locked-hint": "The active deck is locked, so single-word add is off — but importing into it still works.",
     "import-failed": "Import failed: {{count}} entries could not be saved",
     "locked": "Locked",
     "list-locked": "'{{name}}' is locked",
@@ -113,17 +114,17 @@
   },
   "shared-lists": {
     "title": "Shared lists",
-    "empty": "No one else has shared a list yet. When someone shares one of their lists with everyone, it appears here for you to copy.",
+    "empty": "No one else has shared a list yet. When someone shares one of their lists with everyone, it appears here for you to import.",
     "shared-by": "Shared by {{name}}",
     "word-count": "{{count}} words",
-    "clone-button": "Copy to my lists",
-    "clone-success": "Copied '{{name}}' to your lists",
-    "clone-failed": "Could not copy '{{name}}'",
+    "import-button": "Import into '{{name}}'",
+    "import-success": "Imported '{{name}}'",
+    "import-failed": "Could not import '{{name}}'",
     "shared-status": "Shared with everyone",
     "share-list": "Share with everyone",
     "make-private": "Make private",
     "unpublish-title": "Make private",
-    "unpublish-message": "Stop sharing '{{name}}'? Anyone who already copied it keeps their own copy."
+    "unpublish-message": "Stop sharing '{{name}}'? Anyone who already imported from it keeps their own deck."
   },
   "study": {
     "title": "Study",

@@ -4,13 +4,12 @@ const VocabularyListSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
   name: { type: String, required: true },
   isPublic: { type: Boolean, default: false },
-  // A locked list is immutable: its items cannot be added, removed or edited
-  // (its SRS review state is unaffected). Cloned lists start locked, since the
-  // intent is to study them as-is; the owner can unlock to edit.
+  // A locked list rejects interactive, per-word edits — bookmarking or
+  // un-bookmarking a single word from the word-click dialog or the list view.
+  // Deliberate bulk import is still allowed (it is how a list grows), and SRS
+  // review state is unaffected. A freshly imported list starts locked, since the
+  // intent is to study it as-is; the owner can unlock to hand-edit.
   isLocked: { type: Boolean, default: false },
-  // Set when this list was cloned from a public list. Recorded for a future
-  // "re-sync from source" feature; nothing reads it yet.
-  clonedFrom: { type: Schema.Types.ObjectId, ref: 'VocabularyList', default: null },
   createdAt: { type: Date, default: Date.now },
 });
 

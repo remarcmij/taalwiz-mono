@@ -147,53 +147,6 @@ export class VocabularyService {
     return VocabularyItem.find({ listId: listObjectId }).sort({ savedAt: -1 }).exec();
   }
 
-  /** Clone a public list into the caller's own account (snapshot copy + SRS cards). */
-  async cloneList(callerUserId: string, sourceListId: string): Promise<VocabularyListInfo> {
-    const sourceObjectId = new Types.ObjectId(sourceListId);
-    const source = await VocabularyList.findOne({ _id: sourceObjectId, isPublic: true }).exec();
-    if (!source) throw new NotFoundException('Public list not found');
-
-    const callerObjectId = new Types.ObjectId(callerUserId);
-    const newList = await this.#createListWithUniqueName(callerObjectId, source.name, sourceObjectId);
-
-    const sourceItems = await VocabularyItem.find({ listId: sourceObjectId })
-      .select('term lang back')
-      .sort({ savedAt: -1 }) // same order the source list is displayed in, so the clone preserves it
-      .lean()
-      .exec();
-
-    const newListId = newList._id.toString();
-    await this.addMany(
-      callerUserId,
-      sourceItems.map((i) => ({
-        term: i.term,
-        lang: i.lang,
-        listId: newListId,
-        back: i.back as string | undefined,
-      })),
-    );
-
-    // Lock the clone by default: a copied list is meant to be studied as-is, so
-    // protect it from accidental edits. Done AFTER addMany so the populate isn't
-    // rejected by the locked-list guard; the owner can unlock it to edit.
-    await VocabularyList.updateOne({ _id: newList._id }, { $set: { isLocked: true } }).exec();
-
-    return { id: newListId, name: newList.name, count: sourceItems.length, isPublic: false, isLocked: true };
-  }
-
-  /** Create a list, auto-suffixing the name on collision with the caller's existing lists. */
-  async #createListWithUniqueName(userId: Types.ObjectId, baseName: string, clonedFrom: Types.ObjectId) {
-    for (let attempt = 0; ; attempt++) {
-      const name = attempt === 0 ? baseName : attempt === 1 ? `${baseName} (copy)` : `${baseName} (copy ${attempt})`;
-      try {
-        return await VocabularyList.create({ userId, name, clonedFrom });
-      } catch (err: unknown) {
-        if ((err as { code?: number }).code === 11000) continue;
-        throw err;
-      }
-    }
-  }
-
   async findAll(userId: string, listId: string): Promise<VocabularyItemDoc[]> {
     return VocabularyItem.find({ userId: new Types.ObjectId(userId), listId: new Types.ObjectId(listId) })
       .sort({ savedAt: -1 })
@@ -201,10 +154,10 @@ export class VocabularyService {
   }
 
   /**
-   * Reject a write that targets any locked list. The membership/content of a
-   * locked list is immutable (its SRS review state is not). Internal callers
-   * that populate a list before locking it (e.g. cloneList) pass while the list
-   * is still unlocked.
+   * Reject an interactive per-word change that targets a locked list (a single
+   * bookmark add or removal). Deliberate bulk import does not call this — it goes
+   * through `importMany`, which is allowed on a locked list. SRS review state is
+   * never affected by the lock.
    */
   async #assertNotLocked(userId: string, listIds: string[]): Promise<void> {
     const ids = [...new Set(listIds)].map((id) => new Types.ObjectId(id));
@@ -218,9 +171,28 @@ export class VocabularyService {
     }
   }
 
+  /**
+   * Interactive single-word add (bookmark a word, restore an undone removal).
+   * Rejected on a locked list, since locking exists to stop exactly this kind of
+   * incidental per-word change.
+   */
   async addMany(userId: string, items: CreateVocabularyItemDto[]): Promise<void> {
     if (items.length === 0) return;
     await this.#assertNotLocked(userId, items.map((i) => i.listId));
+    await this.#upsertItems(userId, items);
+  }
+
+  /**
+   * Deliberate bulk import (pasted text, or pulling in a public list). This is
+   * how a list grows, so it is allowed even on a locked list — locking only
+   * guards incidental per-word edits, never an explicit import.
+   */
+  async importMany(userId: string, items: CreateVocabularyItemDto[]): Promise<void> {
+    if (items.length === 0) return;
+    await this.#upsertItems(userId, items);
+  }
+
+  async #upsertItems(userId: string, items: CreateVocabularyItemDto[]): Promise<void> {
     const userObjectId = new Types.ObjectId(userId);
     // Stamp the batch with strictly decreasing savedAt values (base − index) so
     // the first item is the newest. The list view sorts savedAt descending, so

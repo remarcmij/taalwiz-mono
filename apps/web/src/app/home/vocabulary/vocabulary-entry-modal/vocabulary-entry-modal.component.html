@@ -8,7 +8,7 @@
   @if (!isEditMode()) {
     <ion-toolbar>
       <ion-segment [value]="activeTab()" (ionChange)="setActiveTab($event.detail.value)">
-        <ion-segment-button value="single">
+        <ion-segment-button value="single" [disabled]="currentLocked()">
           <ion-label>{{ 'vocabulary.single' | translate }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="import">
@@ -44,6 +44,11 @@
       </ion-textarea>
     </ion-item>
   } @else {
+    @if (currentLocked()) {
+      <ion-note color="medium" class="entry-count">
+        {{ 'vocabulary.import-locked-hint' | translate }}
+      </ion-note>
+    }
     <ion-item lines="full">
       <ion-textarea
         [label]="'vocabulary.import-label' | translate"

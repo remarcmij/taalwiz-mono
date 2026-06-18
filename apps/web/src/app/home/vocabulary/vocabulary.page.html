@@ -16,7 +16,6 @@
         </ion-button>
         <ion-button
           [title]="'vocabulary.add-entry' | translate"
-          [disabled]="vocabularyService.currentListLocked()"
           (click)="openAddEntryModal()"
         >
           <ion-icon slot="icon-only" name="create-outline"></ion-icon>

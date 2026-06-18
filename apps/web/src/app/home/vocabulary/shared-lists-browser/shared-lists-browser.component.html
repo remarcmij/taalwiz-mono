@@ -42,14 +42,14 @@
     <!-- Read-only preview of the selected public list -->
     <ion-button
       expand="block"
-      [disabled]="cloning()"
-      (click)="clone(selected()!)">
-      @if (cloning()) {
+      [disabled]="importing()"
+      (click)="importList(selected()!)">
+      @if (importing()) {
         <ion-spinner slot="start" name="dots"></ion-spinner>
       } @else {
         <ion-icon slot="start" name="download-outline"></ion-icon>
       }
-      {{ 'shared-lists.clone-button' | translate }}
+      {{ 'shared-lists.import-button' | translate: { name: currentDeckName() } }}
     </ion-button>
 
     @if (itemsLoading()) {

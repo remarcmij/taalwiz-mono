@@ -102,7 +102,8 @@
     "import-button": "{{count}} items importeren",
     "import-invalid-lines": "{{count}} regel(s) overgeslagen — term ontbreekt",
     "import-dict-lookup": "{{count}} term(en) gebruiken het woordenboek",
-    "import-success-locked": "{{count}} items geïmporteerd, nu vergrendeld",
+    "import-success": "{{count}} items geïmporteerd",
+    "import-locked-hint": "De actieve lijst is vergrendeld, dus losse woorden toevoegen kan niet — importeren in deze lijst kan wel.",
     "import-failed": "Importeren mislukt: {{count}} items konden niet worden opgeslagen",
     "locked": "Vergrendeld",
     "list-locked": "'{{name}}' is vergrendeld",
@@ -113,17 +114,17 @@
   },
   "shared-lists": {
     "title": "Gedeelde lijsten",
-    "empty": "Nog niemand anders heeft een lijst gedeeld. Zodra iemand een lijst met iedereen deelt, verschijnt die hier om te kopiëren.",
+    "empty": "Nog niemand anders heeft een lijst gedeeld. Zodra iemand een lijst met iedereen deelt, verschijnt die hier om te importeren.",
     "shared-by": "Gedeeld door {{name}}",
     "word-count": "{{count}} woorden",
-    "clone-button": "Naar mijn lijsten kopiëren",
-    "clone-success": "'{{name}}' naar je lijsten gekopieerd",
-    "clone-failed": "Kon '{{name}}' niet kopiëren",
+    "import-button": "Importeren in '{{name}}'",
+    "import-success": "'{{name}}' geïmporteerd",
+    "import-failed": "Kon '{{name}}' niet importeren",
     "shared-status": "Gedeeld met iedereen",
     "share-list": "Met iedereen delen",
     "make-private": "Privé maken",
     "unpublish-title": "Privé maken",
-    "unpublish-message": "Stoppen met delen van '{{name}}'? Wie het al heeft gekopieerd, behoudt de eigen kopie."
+    "unpublish-message": "Stoppen met delen van '{{name}}'? Wie het al heeft geïmporteerd, behoudt de eigen lijst."
   },
   "study": {
     "title": "Studeren",

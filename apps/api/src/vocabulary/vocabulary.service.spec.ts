@@ -25,9 +25,6 @@ const USER = oid('1').toString();
 const LIST = oid('2').toString();
 
 const execResolving = (value: unknown) => ({ exec: vi.fn().mockResolvedValue(value) });
-const findChainResolving = (value: unknown) => ({
-  select: () => ({ sort: () => ({ lean: () => execResolving(value) }) }),
-});
 
 // The locked-list guard queries `findOne({ isLocked: true })`; every other
 // findOne in these flows fetches a list by id. This helper lets a test say
@@ -76,54 +73,32 @@ describe('VocabularyService', () => {
     });
   });
 
-  describe('cloneList', () => {
-    it('throws NotFoundException when the source is not a public list', async () => {
-      vi.mocked(VocabularyList.findOne).mockReturnValue(execResolving(null) as never);
-      await expect(service.cloneList(USER, LIST)).rejects.toBeInstanceOf(NotFoundException);
-    });
-
-    it('auto-suffixes the name on collision with an existing list', async () => {
-      const source = { _id: oid('2'), name: 'Greetings', isPublic: true };
-      findOneUnlocked(source);
-      vi.mocked(VocabularyList.updateOne).mockReturnValue(execResolving({}) as never);
-      vi.mocked(VocabularyList.create)
-        .mockRejectedValueOnce({ code: 11000 })
-        .mockResolvedValueOnce({ _id: oid('9'), name: 'Greetings (copy)' } as never);
-      vi.mocked(VocabularyItem.find).mockReturnValue(findChainResolving([]) as never);
-
-      const result = await service.cloneList(USER, LIST);
-
-      expect(vi.mocked(VocabularyList.create)).toHaveBeenCalledTimes(2);
-      expect(vi.mocked(VocabularyList.create).mock.calls[1][0]).toMatchObject({
-        name: 'Greetings (copy)',
-      });
-      expect(result).toMatchObject({ name: 'Greetings (copy)', isPublic: false, count: 0 });
-    });
-
-    it('copies items into the new list, creates SRS cards, and locks the clone', async () => {
-      const source = { _id: oid('2'), name: 'Animals', isPublic: true };
-      const newId = oid('9');
-      findOneUnlocked(source);
-      vi.mocked(VocabularyList.create).mockResolvedValue({ _id: newId, name: 'Animals' } as never);
-      vi.mocked(VocabularyList.updateOne).mockReturnValue(execResolving({}) as never);
-      vi.mocked(VocabularyItem.find).mockReturnValue(
-        findChainResolving([{ term: 'anjing', lang: 'id', back: 'dog' }]) as never,
-      );
+  describe('importMany', () => {
+    it('upserts the items and creates SRS cards', async () => {
       vi.mocked(VocabularyItem.bulkWrite).mockResolvedValue({} as never);
 
-      const result = await service.cloneList(USER, LIST);
+      await service.importMany(USER, [{ term: 'anjing', lang: 'id', listId: LIST, back: 'dog' }]);
 
       expect(VocabularyItem.bulkWrite).toHaveBeenCalled();
       expect(srs.createCards).toHaveBeenCalledWith(
         USER,
         expect.arrayContaining([
-          expect.objectContaining({ term: 'anjing', lang: 'id', listId: newId.toString() }),
+          expect.objectContaining({ term: 'anjing', lang: 'id', listId: LIST }),
         ]),
       );
-      // The clone is locked by default, after its items are populated.
-      const updateArgs = vi.mocked(VocabularyList.updateOne).mock.calls[0] as unknown[];
-      expect(updateArgs[1]).toEqual({ $set: { isLocked: true } });
-      expect(result).toMatchObject({ id: newId.toString(), name: 'Animals', count: 1, isLocked: true });
+    });
+
+    it('is allowed even when the target list is locked (never consults the lock guard)', async () => {
+      // A deliberate import must go through regardless of the lock, so it must not
+      // query the locked-list guard at all — make any findOne blow up to prove it.
+      vi.mocked(VocabularyList.findOne).mockImplementation((() => {
+        throw new Error('importMany must not consult the lock guard');
+      }) as never);
+      vi.mocked(VocabularyItem.bulkWrite).mockResolvedValue({} as never);
+
+      await service.importMany(USER, [{ term: 'anjing', lang: 'id', listId: LIST }]);
+
+      expect(VocabularyItem.bulkWrite).toHaveBeenCalled();
     });
   });
 
