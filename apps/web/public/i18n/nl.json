@@ -126,6 +126,10 @@
     "unpublish-title": "Privé maken",
     "unpublish-message": "Stoppen met delen van '{{name}}'? Wie het al heeft geïmporteerd, behoudt de eigen lijst."
   },
+  "deck-content": {
+    "title": "Als tekst lezen",
+    "empty": "Deze lijst heeft nog geen kaarten."
+  },
   "study": {
     "title": "Studeren",
     "practice": "Oefenen",

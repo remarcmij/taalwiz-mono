@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="home/tabs/bookmarks"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ deckName() }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (!firstPainted()) {
+    <div class="centered"><ion-spinner></ion-spinner></div>
+  } @else if (isEmpty()) {
+    <div class="centered empty">
+      <p>{{ 'deck-content.empty' | translate }}</p>
+    </div>
+  } @else {
+    <div
+      class="text-content markdown-body ion-padding"
+      [innerHTML]="html()"
+      (click)="onContentClick($event)"></div>
+    @if (!done()) {
+      <div class="streaming"><ion-spinner name="dots"></ion-spinner></div>
+    }
+  }
+</ion-content>

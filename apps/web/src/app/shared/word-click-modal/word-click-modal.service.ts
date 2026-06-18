@@ -62,14 +62,30 @@ export class WordClickModalService {
   }
 
   /**
-   * View-only lookup from an SRS study card back: definition + audio only, with
-   * no bookmark / dictionary-nav / quiz actions and no Cmd-click accelerator.
-   * Only fires when an emphasised word <span> is tapped; taps on other text in
-   * the definition are ignored, so it never competes with the (already inert)
-   * tap-to-flip gesture. Mirrors `onClicked` minus the desktop accelerator and
-   * the full action set.
+   * View-only lookup from an SRS study card back: definition + audio only, with no
+   * bookmark / dictionary-nav / quiz actions and no Cmd-click accelerator (mid-study
+   * the user should not wander off).
    */
-  openFromStudyCard(event: MouseEvent): void {
+  openViewOnly(event: MouseEvent): void {
+    this.#openSpanLookup(event, { hideActions: true });
+  }
+
+  /**
+   * Lookup from the deck-as-content view: the full reading actions (dictionary-nav,
+   * breakdown, audio) EXCEPT the bookmark — every tappable word is already a card in
+   * this deck, so its toggle would only remove it (the accidental un-bookmark lock
+   * guards against). Not a session, so the dictionary jump is welcome.
+   */
+  openWithoutBookmark(event: MouseEvent): void {
+    this.#openSpanLookup(event, { hideBookmark: true });
+  }
+
+  /** Shared span-tap lookup for the reduced-action surfaces (study card / content
+   *  view). Only fires on an emphasised word <span>; other taps are ignored. */
+  #openSpanLookup(
+    event: MouseEvent,
+    flags: { hideActions?: boolean; hideBookmark?: boolean },
+  ): void {
     const target = event.target as HTMLElement;
     if (target.tagName !== 'SPAN') return;
     event.stopPropagation();
@@ -88,7 +104,8 @@ export class WordClickModalService {
           lang,
           speech,
           lemmas,
-          hideActions: true,
+          hideActions: flags.hideActions,
+          hideBookmark: flags.hideBookmark,
           onDismiss: () => target.classList.remove('clicked'),
         });
       },
@@ -103,6 +120,7 @@ export class WordClickModalService {
     speech?: string;
     lemmas: ILemma[];
     hideActions?: boolean;
+    hideBookmark?: boolean;
     onDismiss?: () => void;
   }): void {
     this.#modalCtrl
@@ -115,6 +133,7 @@ export class WordClickModalService {
           speech: opts.speech ?? '',
           lemmas: opts.lemmas,
           hideActions: opts.hideActions ?? false,
+          hideBookmark: opts.hideBookmark ?? false,
         },
         cssClass: 'word-click-modal',
         initialBreakpoint: 0.25,

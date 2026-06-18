@@ -38,6 +38,7 @@ import {
   lockOpenOutline,
   pencilOutline,
   peopleOutline,
+  readerOutline,
   schoolOutline,
   trashOutline,
 } from 'ionicons/icons';
@@ -125,6 +126,7 @@ export class VocabularyPage {
       lockOpenOutline,
       pencilOutline,
       peopleOutline,
+      readerOutline,
       schoolOutline,
       trashOutline,
     });
@@ -159,6 +161,13 @@ export class VocabularyPage {
   async openSharedListsBrowser(): Promise<void> {
     const modal = await this.#modalCtrl.create({ component: SharedListsBrowserComponent });
     await modal.present();
+  }
+
+  /** Read the active deck as a content article (tappable words, decomposition).
+   * A routed page (not a modal) so it behaves like a Library article. */
+  openDeckContent(): void {
+    if (!this.vocabularyService.currentListId()) return;
+    void this.#router.navigate(['home/tabs/bookmarks/content']);
   }
 
   /**

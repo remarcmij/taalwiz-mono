@@ -25,10 +25,9 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import { closeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
-import { langConfig } from '../../../app.constants';
 import { MarkdownService } from '../../content/markdown.service';
-import { DictionaryService } from '../../dictionary/dictionary.service';
-import { segmentIndonesian, type SegmentResult } from '../../dictionary/indonesian-segmenter';
+import { type SegmentResult } from '../../dictionary/indonesian-segmenter';
+import { CardDefinitionService } from '../card-definition.service';
 import { PointerService } from '../../../shared/pointer.service';
 import { AffixBreakdownComponent } from '../../../shared/morphology/affix-breakdown/affix-breakdown.component';
 import { WordClickModalService } from '../../../shared/word-click-modal/word-click-modal.service';
@@ -70,7 +69,7 @@ export class StudyModalComponent implements OnInit {
 
   #modalCtrl = inject(ModalController);
   #studyService = inject(StudyService);
-  #dictionaryService = inject(DictionaryService);
+  #cardDefinition = inject(CardDefinitionService);
   #markdownService = inject(MarkdownService);
   #wordClickModal = inject(WordClickModalService);
   #vocabularyService = inject(VocabularyService);
@@ -198,25 +197,14 @@ export class StudyModalComponent implements OnInit {
       this.baseWordNote.set(null);
       this.breakdown.set(null);
     } else {
-      const result = await firstValueFrom(
-        this.#dictionaryService.fetchWordLemmas(card.term, card.lang),
+      const { lemma, word, breakdown } = await this.#cardDefinition.resolve(
+        card.term,
+        card.lang,
+        card.lemmaIndex,
       );
-      // The user may have pinned a non-default line for this back-less card; fall
-      // back to the first line if the index is out of range (e.g. the lemma set
-      // shrank since it was chosen).
-      const lemma = result.lemmas[card.lemmaIndex] ?? result.lemmas[0];
       this.definition.set(lemma?.text.replace(/[;,]\s*$/, '') ?? '');
-      this.baseWordNote.set(result.word !== card.term ? result.word : null);
-      // For a derived target-language form, add the same affix decomposition the
-      // word-tap modal shows. Segment against the lemma's ROOT (baseWord), not the
-      // headword `result.word` — a headword can itself be affixed, which the
-      // segmenter can't anchor on. Mirrors WordClickModal's #breakdownFor.
-      const baseWord = lemma?.baseWord;
-      this.breakdown.set(
-        baseWord && baseWord !== card.term && card.lang === langConfig.targetLang
-          ? segmentIndonesian(card.term, baseWord)
-          : null,
-      );
+      this.baseWordNote.set(word !== card.term ? word : null);
+      this.breakdown.set(breakdown);
     }
     this.flipped.set(true);
   }
@@ -227,7 +215,7 @@ export class StudyModalComponent implements OnInit {
    * so this competes with nothing; the service ignores taps that miss a word.
    */
   onBackWordTap(event: MouseEvent): void {
-    this.#wordClickModal.openFromStudyCard(event);
+    this.#wordClickModal.openViewOnly(event);
   }
 
   rate(rating: SrsRating): void {

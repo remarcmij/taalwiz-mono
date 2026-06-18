@@ -70,6 +70,11 @@ export const HOME_ROUTES: Routes = [
             loadComponent: () =>
               import('./vocabulary/vocabulary.page').then((p) => p.VocabularyPage),
           },
+          {
+            path: 'content',
+            loadComponent: () =>
+              import('./vocabulary/deck-content-page/deck-content.page').then((p) => p.DeckContentPage),
+          },
         ],
       },
       {

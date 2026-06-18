@@ -93,6 +93,10 @@ export class WordClickModalComponent implements OnInit {
    * definition + audio only: hide the quiz toggle, bookmark and dictionary-lookup
    * actions, the affix breakdown, and the "→ word" hop. */
   hideActions = input<boolean>(false);
+  /** When true (opened from the deck-as-content view) hide only the bookmark
+   * button: the word is already a card in the active deck, so its toggle would
+   * just remove it. The dictionary-lookup, breakdown and audio stay available. */
+  hideBookmark = input<boolean>(false);
   homonyms = signal<HomonymView[]>([]);
   /** Indices whose breakdown has been revealed in quiz mode. Starts empty on each
    * open (the modal is recreated per tap), so quiz mode always hides first. */

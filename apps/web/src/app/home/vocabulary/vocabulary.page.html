@@ -14,6 +14,9 @@
             }
           </div>
         </ion-button>
+        <ion-button [title]="'deck-content.title' | translate" (click)="openDeckContent()">
+          <ion-icon slot="icon-only" name="reader-outline"></ion-icon>
+        </ion-button>
         <ion-button
           [title]="'vocabulary.add-entry' | translate"
           (click)="openAddEntryModal()"

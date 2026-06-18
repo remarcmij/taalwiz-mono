@@ -31,7 +31,7 @@
             [name]="morphologyMode.quizMode() ? 'school-outline' : 'eye-outline'"
           ></ion-icon>
         </ion-button>
-        @if (vocabularyService.isEnabled()) {
+        @if (vocabularyService.isEnabled() && !hideBookmark()) {
           <ion-button
             (click)="vocabularyService.toggle(clickedWord(), lang())"
             [title]="
