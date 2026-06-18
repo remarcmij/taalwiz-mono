@@ -5,7 +5,7 @@ import type { ResolvedCard } from '../../study/card-definition.service';
  * term, so a bare root does not render as "**abad** **abad**, 1 eeuw". A homonym
  * roman numeral ("abang I,") and a different root headword (the common case for a
  * derived form, "dianggap" -> "**anggap** ...") are kept — informative, not
- * duplicated. Ported from the wordlist-content compiler tool.
+ * duplicated.
  */
 export function stripLeadingHeadword(text: string, term: string): string {
   const m = text.match(/^\*\*([^*]+)\*\*/);
@@ -22,16 +22,19 @@ function ensureTerminalPeriod(s: string): string {
 }
 
 /**
- * Build the markdown content line for one deck card, mirroring the wordlist-content
- * tool. A curated back is shown with the term prefixed (unless the back already
- * contains it); a back-less card uses its resolved lemma line plus the affix
- * decomposition. An unresolved back-less card keeps its bare (tappable) term so the
- * word is never silently lost.
+ * Build the markdown content line for one deck card. A curated back is shown with
+ * the term prefixed (unless the back already contains it); a back-less card uses
+ * its resolved lemma line plus the affix decomposition. A back-less card the
+ * dictionary cannot resolve (typo / post-1996 coinage) keeps its term, flagged with
+ * `notFoundLabel` — a lightweight, at-a-glance QA check the reader doubles as. The
+ * term uses `__...__` (bold but NOT tappable: a lookup would be futile) and the
+ * label `_..._` (muted italic), since neither is a real, searchable dictionary word.
  */
 export function buildCardContentLine(
   term: string,
   back: string | undefined,
   resolved: ResolvedCard | null,
+  notFoundLabel: string,
 ): string {
   if (back) {
     const termCore = term.replace(/[^\p{L}\p{N} ]/gu, '').trim().toLowerCase();
@@ -40,7 +43,7 @@ export function buildCardContentLine(
   }
 
   const lemma = resolved?.lemma;
-  if (!lemma) return `**${term}**`;
+  if (!lemma) return `__${term}__ _(${notFoundLabel})_`;
 
   const definition = stripLeadingHeadword(lemma.text, term).replace(/[;,]\s*$/, '');
   const root = lemma.baseWord;

@@ -20,4 +20,10 @@
 // Each card reads as its own line; a little breathing room between them.
 .card-line {
   margin: 0 0 0.7em;
+
+  // The "(not found)" QA marker is a bare <em> (no inner word <span>), so it greys
+  // out as a muted flag; dictionary italics keep their teal via their inner span.
+  em {
+    color: var(--ion-color-medium);
+  }
 }

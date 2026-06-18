@@ -128,7 +128,8 @@
   },
   "deck-content": {
     "title": "Als tekst lezen",
-    "empty": "Deze lijst heeft nog geen kaarten."
+    "empty": "Deze lijst heeft nog geen kaarten.",
+    "not-found": "niet gevonden"
   },
   "study": {
     "title": "Studeren",

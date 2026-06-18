@@ -128,7 +128,8 @@
   },
   "deck-content": {
     "title": "Read as content",
-    "empty": "This deck has no cards yet."
+    "empty": "This deck has no cards yet.",
+    "not-found": "not found"
   },
   "study": {
     "title": "Study",
