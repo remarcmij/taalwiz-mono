@@ -5,25 +5,9 @@
     </ion-buttons>
     <ion-title>{{ 'common.bookmarks' | translate }}</ion-title>
     <ion-buttons slot="end">
-      @if (vocabularyService.lists().length > 0) {
-        <ion-button class="study-btn" [title]="'study.title' | translate" (click)="openStudyModal()">
-          <div class="icon-with-badge">
-            <ion-icon name="school-outline"></ion-icon>
-            @if (dueForCurrentList() > 0) {
-              <ion-badge color="danger">{{ dueForCurrentList() }}</ion-badge>
-            }
-          </div>
-        </ion-button>
-        <ion-button [title]="'deck-content.title' | translate" (click)="openDeckContent()">
-          <ion-icon slot="icon-only" name="reader-outline"></ion-icon>
-        </ion-button>
-        <ion-button
-          [title]="'vocabulary.add-entry' | translate"
-          (click)="openAddEntryModal()"
-        >
-          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-        </ion-button>
-      }
+      <!-- Top bar holds only the two global actions: browse other users' shared
+           lists, and create a new list. All deck-scoped actions (study, read,
+           add, lock, share, …) live on the list-selector bar below. -->
       <ion-button [title]="'shared-lists.title' | translate" (click)="openSharedListsBrowser()">
         <ion-icon slot="icon-only" name="people-outline"></ion-icon>
       </ion-button>
@@ -36,27 +20,30 @@
     <ion-toolbar class="list-selector-bar">
       <button id="list-selector-trigger" type="button" class="list-selector-trigger">
         <span class="trigger-name">{{ current.name }}</span>
+        <!-- Passive status glyphs: lock/share state shown next to the deck name
+             (the toggles themselves live in the ⋮ menu). Non-interactive. -->
+        @if (current.isLocked) {
+          <ion-icon name="lock-closed" class="trigger-status" color="medium" aria-hidden="true"></ion-icon>
+        }
+        @if (current.isPublic) {
+          <ion-icon name="globe" class="trigger-status" color="medium" aria-hidden="true"></ion-icon>
+        }
         <span class="trigger-count">({{ current.count }})</span>
         <ion-icon name="chevron-down-outline" class="caret" aria-hidden="true"></ion-icon>
       </button>
       <ion-buttons slot="end">
-        <ion-button
-          [title]="(current.isLocked ? 'vocabulary.unlock-list' : 'vocabulary.lock-list') | translate"
-          (click)="vocabularyService.setListLocked(current.id, !current.isLocked)">
-          <ion-icon
-            slot="icon-only"
-            [name]="current.isLocked ? 'lock-closed' : 'lock-open-outline'"
-            [color]="current.isLocked ? 'primary' : 'medium'"></ion-icon>
+        <ion-button class="study-btn" [title]="'study.title' | translate" (click)="openStudyModal()">
+          <div class="icon-with-badge">
+            <ion-icon name="school-outline"></ion-icon>
+            @if (dueForCurrentList() > 0) {
+              <ion-badge color="danger">{{ dueForCurrentList() }}</ion-badge>
+            }
+          </div>
         </ion-button>
-        <ion-button
-          [title]="(current.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list') | translate"
-          (click)="toggleListPublic(current)">
-          <ion-icon
-            slot="icon-only"
-            [name]="current.isPublic ? 'globe' : 'globe-outline'"
-            [color]="current.isPublic ? 'primary' : 'medium'"></ion-icon>
+        <ion-button [title]="'deck-content.title' | translate" (click)="openDeckContent()">
+          <ion-icon slot="icon-only" name="reader-outline"></ion-icon>
         </ion-button>
-        <ion-button [title]="'common.options' | translate" (click)="openListMenu(current)">
+        <ion-button [title]="'common.options' | translate" (click)="openListMenu(current, true)">
           <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
         </ion-button>
       </ion-buttons>

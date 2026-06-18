@@ -171,26 +171,49 @@ export class VocabularyPage {
   }
 
   /**
-   * Per-list overflow menu — rename / delete. Public/private and locked/unlocked
-   * are each toggled directly via their own button on the list, so they are
-   * intentionally not repeated here.
+   * Per-list overflow menu. `full` (the active deck's toolbar ⋮) prepends the
+   * deck-scoped actions that no longer have their own toolbar button — add entry,
+   * lock/unlock, share/make-private. The popover-row ⋮ (`full` omitted) keeps the
+   * minimal rename / delete set, since those rows carry their own lock/share
+   * quick-toggles and "add entry" only ever targets the active deck.
    */
-  async openListMenu(list: VocabularyList): Promise<void> {
+  async openListMenu(list: VocabularyList, full = false): Promise<void> {
+    const t = (key: string) => this.#translate.instant(key);
+    const deckActions = full
+      ? [
+          {
+            text: t('vocabulary.add-entry'),
+            icon: 'create-outline',
+            handler: () => void this.openAddEntryModal(),
+          },
+          {
+            text: t(list.isLocked ? 'vocabulary.unlock-list' : 'vocabulary.lock-list'),
+            icon: list.isLocked ? 'lock-open-outline' : 'lock-closed',
+            handler: () => this.vocabularyService.setListLocked(list.id, !list.isLocked),
+          },
+          {
+            text: t(list.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list'),
+            icon: list.isPublic ? 'globe-outline' : 'globe',
+            handler: () => void this.toggleListPublic(list),
+          },
+        ]
+      : [];
     const sheet = await this.#actionSheetCtrl.create({
       header: list.name,
       buttons: [
+        ...deckActions,
         {
-          text: this.#translate.instant('bookmarks.rename-list-title'),
+          text: t('bookmarks.rename-list-title'),
           icon: 'pencil-outline',
           handler: () => void this.openRenameListAlert(list),
         },
         {
-          text: this.#translate.instant('bookmarks.delete-list-title'),
+          text: t('bookmarks.delete-list-title'),
           icon: 'trash-outline',
           role: 'destructive',
           handler: () => void this.confirmDeleteList(list),
         },
-        { text: this.#translate.instant('common.close'), role: 'cancel' },
+        { text: t('common.close'), role: 'cancel' },
       ],
     });
     this.blurActiveElement(); // drop focus off the ⋮ button before aria-hidden is applied
