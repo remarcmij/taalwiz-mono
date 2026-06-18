@@ -3,7 +3,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { ToastController } from '@ionic/angular/standalone';
 import { TranslateService } from '@ngx-translate/core';
-import { EMPTY, catchError, firstValueFrom, map, of } from 'rxjs';
+import { EMPTY, catchError, finalize, firstValueFrom, map, of } from 'rxjs';
 import { langConfig } from '../../app.constants';
 import { AuthService } from '../../auth/auth.service';
 import { StudyService } from '../study/study.service';
@@ -44,6 +44,10 @@ export class VocabularyService {
   #translate = inject(TranslateService);
 
   readonly bookmarks = signal<VocabularyEntry[]>([]);
+  // True while a list's items are being fetched, so the page can show a spinner
+  // rather than briefly flashing the "no items" empty state before a large list
+  // arrives.
+  readonly bookmarksLoading = signal(false);
   readonly bookmarkedKeys = signal<Set<string>>(new Set());
   readonly lists = signal<VocabularyList[]>([]);
   readonly currentListId = signal<string | null>(null);
@@ -63,6 +67,7 @@ export class VocabularyService {
         void Preferences.remove({ key: PREFS_KEY });
         this.bookmarks.set([]);
         this.bookmarkedKeys.set(new Set());
+        this.bookmarksLoading.set(false);
       }
     });
   }
@@ -333,6 +338,10 @@ export class VocabularyService {
   }
 
   async #initLists(): Promise<void> {
+    // Mark loading up front: there are awaits before #loadItems runs, and without
+    // this the empty state would flash between `lists` being set and the items
+    // arriving.
+    this.bookmarksLoading.set(true);
     const [loadedLists, serverPrefs] = await Promise.all([
       this.#fetchLists(),
       this.#fetchServerPrefs(),
@@ -354,6 +363,8 @@ export class VocabularyService {
     if (resolved) {
       void Preferences.set({ key: PREFS_KEY, value: resolved });
       this.#loadItems(resolved);
+    } else {
+      this.bookmarksLoading.set(false); // no list to load items for
     }
   }
 
@@ -379,9 +390,13 @@ export class VocabularyService {
   }
 
   #loadItems(listId: string): void {
+    this.bookmarksLoading.set(true);
     this.#http
       .get<VocabularyEntry[]>('/api/v1/vocabulary', { params: { listId } })
-      .pipe(catchError(() => EMPTY))
+      .pipe(
+        catchError(() => EMPTY),
+        finalize(() => this.bookmarksLoading.set(false)),
+      )
       .subscribe((entries) => {
         this.bookmarks.set(entries);
         this.bookmarkedKeys.set(new Set(entries.map((e) => `${e.term}:${e.lang}`)));

@@ -127,6 +127,8 @@
         <p>{{ 'bookmarks.no-lists' | translate }}</p>
         <ion-button (click)="openCreateListAlert()">{{ 'bookmarks.create-list' | translate }}</ion-button>
       </div>
+    } @else if (vocabularyService.bookmarksLoading()) {
+      <div class="empty-state"><ion-spinner></ion-spinner></div>
     } @else if (vocabularyService.bookmarks().length === 0) {
       <p class="empty-state">{{ 'bookmarks.empty' | translate: { action: pointer.actionKey() | translate } }}</p>
     } @else {
