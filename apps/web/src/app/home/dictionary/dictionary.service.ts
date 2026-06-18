@@ -3,6 +3,7 @@ import { BehaviorSubject, from, Observable } from 'rxjs';
 
 import { langConfig } from '../../app.constants';
 import { DictStoreService } from './dict-store.service';
+import { getTraceLevel } from './indonesian-variation-generator';
 import { type ILemma } from './lemma/lemma.model';
 import { WordLang } from './word-lang.model';
 
@@ -139,12 +140,14 @@ export class DictionaryService {
     return result ?? { word, lang, lemmas: [], haveMore: false };
   }
 
-  // Demo/debug trace (intentionally kept in production): the variation generator's
-  // output for a target-language lookup, with the matched variation flagged by a
-  // leading '=' -- the same marker the multiple-choice quiz uses for the correct
-  // option. Used by both the search box (#searchLocal) and the word-click modal
-  // (#fetchWordLemmasAsync).
+  // Dev trace (gated, off by default): the variation generator's output for a
+  // target-language lookup, with the matched variation flagged by a leading '='
+  // -- the same marker the multiple-choice quiz uses for the correct option. Used
+  // by both the search box (#searchLocal) and the word-click modal
+  // (#fetchWordLemmasAsync). Logged at trace level >= 1; the recursive tree (level
+  // 2) is printed separately by the variation generator. See getTraceLevel().
   #logVariations(word: string, variations: string[], foundWord: string | null) {
+    if (getTraceLevel() < 1) return;
     const marked = variations.map((w) => (w === foundWord ? `=${w}` : w));
     console.log(`${word} -> [${marked.map((w) => `'${w}'`).join(', ')}]`);
   }

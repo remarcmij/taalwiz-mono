@@ -137,12 +137,16 @@ const RULES: Rule[] = [
 ];
 
 // --------------------------------------------------------------------------
-// Optional dev trace. When the localStorage flag `taalwiz.trace-variations` is
-// set (e.g. `localStorage.setItem('taalwiz.trace-variations', '1')` in the
-// browser console), getWordVariations() prints the recursive stripping tree to
-// the console — the same shape as the worked trace in SEARCH.md. Pure debugging
-// aid: it builds a parallel TraceNode tree alongside the real Set recursion and
-// never affects the returned variations. Off (and zero-cost) by default.
+// Optional dev trace, driven by the `taalwiz.trace-variations` localStorage flag
+// read as a verbosity level (set it in the browser console, e.g.
+// `localStorage.setItem('taalwiz.trace-variations', '2')`):
+//   0 (or unset/invalid) — no tracing
+//   1 — the flat `word -> [...]` variations line only (logged by DictionaryService)
+//   2 — also print the recursive stripping tree below — the same shape as the
+//       worked trace in SEARCH.md
+// The tree is a pure debugging aid: it builds a parallel TraceNode tree alongside
+// the real Set recursion and never affects the returned variations. Off (and
+// zero-cost) by default.
 // --------------------------------------------------------------------------
 
 interface TraceNode {
@@ -163,16 +167,25 @@ interface TraceNode {
   children: TraceNode[];
 }
 
-function isTraceEnabled(): boolean {
+/**
+ * Read the `taalwiz.trace-variations` localStorage flag as a verbosity level:
+ *   0 — no tracing (also the result for an unset or non-numeric value)
+ *   1 — log the flat variations array only (DictionaryService.#logVariations)
+ *   2 — also print the recursive stripping tree (this module)
+ * localStorage holds strings, and '0' is itself a truthy string, so we parse the
+ * value rather than test for presence — otherwise setting the flag to '0' would
+ * fail to disable the trace. The legacy 'true' value maps to full tracing (2).
+ */
+export function getTraceLevel(): number {
   try {
-    if (typeof localStorage === 'undefined') return false;
-    // localStorage holds strings, and '0'/'false' are truthy strings — so gate on
-    // explicit opt-in values rather than mere presence. Otherwise setting the flag
-    // to '0' would fail to disable the trace.
-    const value = localStorage.getItem('taalwiz.trace-variations');
-    return value === '1' || value?.toLowerCase() === 'true';
+    if (typeof localStorage === 'undefined') return 0;
+    const raw = localStorage.getItem('taalwiz.trace-variations');
+    if (raw === null) return 0;
+    if (raw.toLowerCase() === 'true') return 2;
+    const level = Number.parseInt(raw, 10);
+    return Number.isFinite(level) && level > 0 ? level : 0;
   } catch {
-    return false;
+    return 0;
   }
 }
 
@@ -216,7 +229,7 @@ export class IndonesianVariationGenerator implements VariationGenerator {
   getWordVariations(word: string): string[] {
     const variations: Set<string> = new Set();
 
-    if (isTraceEnabled()) {
+    if (getTraceLevel() >= 2) {
       // The recursion attaches each visited word to its trace parent; a throwaway
       // holder collects the real root as its single child. `shown` tracks which
       // words have already been displayed, so re-visits render as `(dup)`.

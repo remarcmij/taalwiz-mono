@@ -10,17 +10,19 @@ not a code note: the morphology lives in
 
 ## Turning the trace on
 
-The tree is off by default and printed only when a localStorage flag is set. In
-the browser DevTools console:
+The tree is off by default and printed only when the `taalwiz.trace-variations`
+localStorage flag is set, read as a verbosity level. In the browser DevTools
+console:
 
 ```js
-localStorage.setItem('taalwiz.trace-variations', '1'); // enable
+localStorage.setItem('taalwiz.trace-variations', '1'); // flat variations line only
+localStorage.setItem('taalwiz.trace-variations', '2'); // + the tree
 localStorage.removeItem('taalwiz.trace-variations');   // disable
 ```
 
-With it enabled, every dictionary lookup prints its tree (and the flat
-`word -> [...]` list) to the console. The flag is read from `localStorage`, so it
-persists across reloads until you remove it.
+At level `2`, every dictionary lookup prints its tree (and the flat
+`word -> [...]` list) to the console; level `1` logs just the flat list. The flag
+is read from `localStorage`, so it persists across reloads until you remove it.
 
 ---
 

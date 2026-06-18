@@ -173,14 +173,15 @@ So there are exactly **two deliberate ordering decisions** in the whole generato
 
 #### Trace logging (dev aid)
 
-`getWordVariations()` can print this stripping tree to the browser console at runtime, gated behind a localStorage flag so it is off (and zero-cost) by default. In the DevTools console:
+Trace output is gated behind the `taalwiz.trace-variations` localStorage flag, read as a verbosity level so it is off (and zero-cost) by default. In the DevTools console:
 
 ```js
-localStorage.setItem('taalwiz.trace-variations', '1'); // enable
+localStorage.setItem('taalwiz.trace-variations', '1'); // flat variations line only
+localStorage.setItem('taalwiz.trace-variations', '2'); // + the recursion tree
 localStorage.removeItem('taalwiz.trace-variations');   // disable
 ```
 
-With it enabled, every lookup logs the actual recursion (rule label ► produced form). Each form is numbered `#N` by its slot in the returned array; `(dup)` marks a repeat of a form already numbered higher up. A meN-/peN- nasal strip that restores an elided root consonant annotates it as `+<letter>` (e.g. `nasal men- +t ► terima`, `nasal mem- +p ► potong`), surfacing the `nasalCandidates()` restoration. For example `dibakar`:
+At level `1`, each target-language lookup logs the flat `word -> [...]` line (with the matched variation flagged `=`). At level `2`, `getWordVariations()` additionally prints the actual recursion (rule label ► produced form). Each form is numbered `#N` by its slot in the returned array; `(dup)` marks a repeat of a form already numbered higher up. A meN-/peN- nasal strip that restores an elided root consonant annotates it as `+<letter>` (e.g. `nasal men- +t ► terima`, `nasal mem- +p ► potong`), surfacing the `nasalCandidates()` restoration. For example `dibakar`:
 
 ```
 dibakar  #1
@@ -221,7 +222,7 @@ berikan  #1
 → [berikan, memberikan, memberi, member, ber, mber, beri, mberi, memberik, berik, ik, mberik, ikan, mberikan]
 ```
 
-The flag only controls the tree; the flat `word -> [...]` line (with the matched variation flagged `=`) is logged unconditionally by `DictionaryService.#logVariations()`. The full-recursion bookkeeping and the prune are paid only while the flag is on — the production path builds no trace nodes — and never change the returned variations.
+The flat `word -> [...]` line (with the matched variation flagged `=`) is logged by `DictionaryService.#logVariations()` at level `1`; the tree above it needs level `2`. The full-recursion bookkeeping and the prune are paid only at level `2` — at lower levels the production path builds no trace nodes — and never change the returned variations.
 
 #### mePrefixed Flag
 
