@@ -55,7 +55,7 @@ You can create as many vocabulary lists as you like, for example one per article
 Words can be added to a list in two ways:
 
 - From an __article__: tap a highlighted word, then tap the bookmark icon in the word detail panel. The word is saved in the form it appeared in the text (e.g. _dibakar_, not the base form _membakar_).
-- Directly in the Vocabulary tab: tap the __+__ button inside a list and type the word manually.
+- Directly in the Vocabulary tab: open the list's __menu__ (the three-dots button) and choose __Add to vocabulary__, then type the word manually.
 
 Each entry has a __back__ field where you can write your own definition, example sentence, or translation note. Tap an entry to edit it.
 
@@ -74,13 +74,13 @@ An import always adds to the __active list__ (the one currently shown), just lik
 
 Locking protects a list against accidental changes to its individual words. On a __locked__ list you cannot add, remove, or edit a single word (for example a stray un-bookmark while reading), so a finished deck stays exactly as you left it. Two things are deliberately still allowed: __importing__ into the list (importing is always an intentional act, so it is the one way a locked list can still grow), and __studying__, which reviews normally and keeps updating your spaced-repetition progress.
 
-Each list has a __padlock__ button (next to its share globe): an open padlock means it is unlocked, a closed padlock means it is locked. Tap it to lock or unlock the list. On a locked list the bookmark icon turns grey and the single-word add, edit, and delete actions are unavailable; importing still works.
+When the active list is locked, a small grey padlock appears next to its name in the list bar (an unlocked list shows none). To lock or unlock it, open the list's __menu__ (the three-dots button) and choose __Lock list__ or __Unlock list__; you can also toggle the lock for any list from the list dropdown. On a locked list the bookmark icon turns grey and the single-word add, edit, and delete actions are unavailable; importing still works.
 
 Locking is your own choice, made when you consider a list finished; lists are never locked for you automatically.
 
 ### Sharing lists
 
-If you have built a list you think others would find useful, you can share it. Tap the __globe__ button on the list: it turns green, and everyone using Taalwiz can then find it. Tap the globe again to make it private (you will be asked to confirm); anyone who already imported from it keeps their own list.
+If you have built a list you think others would find useful, you can share it. Open the list's __menu__ (the three-dots button) and choose __Share with everyone__; a grey globe then appears next to the list name to show it is public, and everyone using Taalwiz can find it. Choose __Make private__ from the same menu to unshare it (you will be asked to confirm); anyone who already imported from it keeps their own list. You can also toggle sharing for any list from the list dropdown.
 
 To find lists others have shared, tap the __people__ icon in the top bar. This opens the shared-lists browser, where each entry shows the list name, who shared it, and how many words it contains. Tap a list to preview its words, then tap __Import__ to add them to your active list. To keep a shared list separate, create a new list first so it is the active one, then import.
 
@@ -88,7 +88,7 @@ Importing a shared list copies its words into a list of your own, with its own s
 
 ### Studying with flashcards
 
-Tap the __Study__ button in the top bar to start a flashcard session for the current list. The app uses __Spaced Repetition (SRS)__ to decide which cards to show: cards you find difficult come back sooner, while cards you know well are scheduled further into the future.
+Tap the __Study__ button (the graduation-cap icon in the list bar) to start a flashcard session for the current list. The app uses __Spaced Repetition (SRS)__ to decide which cards to show: cards you find difficult come back sooner, while cards you know well are scheduled further into the future.
 
 During a session:
 
@@ -103,7 +103,7 @@ To go over a list whenever you like, tap __Practice__ (or __Practice anyway__ wh
 
 ### Reading a list as an article
 
-Tap the __reader__ button (the open-book icon) in the top bar to read the current list as a single page, like an article. Each word becomes a line with its definition, and a derived word also shows how it is built from prefix, root, and suffix. Tap any highlighted word for a quick lookup, or follow its arrow to the full dictionary entry. It is a relaxed way to review a whole list without flipping cards.
+Tap the __reader__ button (the page icon, next to Study in the list bar) to read the current list as a single page, like an article. Each word becomes a line with its definition, and a derived word also shows how it is built from prefix, root, and suffix. Tap any highlighted word for a quick lookup, or follow its arrow to the full dictionary entry. It is a relaxed way to review a whole list without flipping cards.
 
 ---
 

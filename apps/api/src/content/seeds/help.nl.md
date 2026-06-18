@@ -55,7 +55,7 @@ Je kunt zo veel woordenlijsten aanmaken als je wilt, bijvoorbeeld één per arti
 Woorden kunnen op twee manieren aan een lijst worden toegevoegd:
 
 - Vanuit een __artikel__: tik op een gemarkeerd woord en tik vervolgens op het bladwijzerpictogram in het woorddetailvenster. Het woord wordt opgeslagen in de vorm zoals het in de tekst staat (bijv. _dibakar_, niet de basisvorm _membakar_).
-- Rechtstreeks in het tabblad Woordenschat: tik op de __+__-knop in een lijst en typ het woord handmatig.
+- Rechtstreeks in het tabblad Woordenschat: open het __menu__ van de lijst (de knop met drie puntjes), kies __Aan woordenschat toevoegen__ en typ het woord handmatig.
 
 Elk item heeft een __achterkant__-veld waar je je eigen definitie, voorbeeldzin of vertaalaantekening kunt schrijven. Tik op een item om het te bewerken.
 
@@ -74,13 +74,13 @@ Een import voegt altijd toe aan de __actieve lijst__ (de lijst die nu wordt geto
 
 Vergrendelen beschermt een lijst tegen onbedoelde wijzigingen aan de afzonderlijke woorden. Op een __vergrendelde__ lijst kun je geen los woord toevoegen, verwijderen of bewerken (bijvoorbeeld een per ongeluk verwijderde bladwijzer tijdens het lezen), zodat een afgeronde lijst precies blijft zoals je hem hebt achtergelaten. Twee dingen blijven bewust wél mogelijk: __importeren__ in de lijst (importeren is altijd een bewuste handeling, en dus de enige manier waarop een vergrendelde lijst nog kan groeien), en __studeren__, dat gewoon herhaalt en je spaced-repetition-voortgang blijft bijwerken.
 
-Elke lijst heeft een __slot__-knop (naast de wereldbol om te delen): een open slot betekent ontgrendeld, een gesloten slot betekent vergrendeld. Tik erop om de lijst te vergrendelen of te ontgrendelen. Op een vergrendelde lijst wordt het bladwijzerpictogram grijs en zijn het toevoegen, bewerken en verwijderen van losse woorden niet beschikbaar; importeren werkt nog wel.
+Als de actieve lijst vergrendeld is, verschijnt er een klein grijs slot naast de naam in de lijstbalk (een ontgrendelde lijst toont er geen). Om te vergrendelen of te ontgrendelen, open je het __menu__ van de lijst (de knop met drie puntjes) en kies je __Lijst vergrendelen__ of __Lijst ontgrendelen__; je kunt het slot ook voor elke lijst omschakelen vanuit de lijstkeuze. Op een vergrendelde lijst wordt het bladwijzerpictogram grijs en zijn het toevoegen, bewerken en verwijderen van losse woorden niet beschikbaar; importeren werkt nog wel.
 
 Vergrendelen is je eigen keuze, die je maakt wanneer je een lijst af vindt; lijsten worden nooit automatisch voor je vergrendeld.
 
 ### Lijsten delen
 
-Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Tik op de __wereldbol__-knop bij de lijst: hij wordt groen en iedereen die Taalwiz gebruikt kan hem dan vinden. Tik nogmaals op de wereldbol om hem weer privé te maken (je wordt om bevestiging gevraagd); wie er al uit heeft geïmporteerd, behoudt de eigen lijst.
+Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Open het __menu__ van de lijst (de knop met drie puntjes) en kies __Met iedereen delen__; er verschijnt dan een grijze wereldbol naast de lijstnaam om aan te geven dat hij openbaar is, en iedereen die Taalwiz gebruikt kan hem vinden. Kies __Privé maken__ in hetzelfde menu om het delen te stoppen (je wordt om bevestiging gevraagd); wie er al uit heeft geïmporteerd, behoudt de eigen lijst. Je kunt het delen ook voor elke lijst omschakelen vanuit de lijstkeuze.
 
 Om lijsten te vinden die anderen hebben gedeeld, tik je op het __personen__-icoon in de bovenbalk. Dit opent het overzicht van gedeelde lijsten, waar je per lijst de naam, wie hem deelde en het aantal woorden ziet. Tik op een lijst om de woorden te bekijken en tik daarna op __Importeren__ om ze aan je actieve lijst toe te voegen. Wil je een gedeelde lijst apart houden, maak dan eerst een nieuwe lijst aan zodat die de actieve is, en importeer dan.
 
@@ -88,7 +88,7 @@ Een gedeelde lijst importeren kopieert de woorden naar een eigen lijst, met eige
 
 ### Studeren met flashcards
 
-Tik op de knop __Studeren__ in de bovenbalk om een flashcardsessie voor de huidige lijst te starten. De app gebruikt __Spaced Repetition (SRS)__ om te bepalen welke kaarten worden getoond: kaarten die je moeilijk vindt komen eerder terug, terwijl kaarten die je goed kent verder in de toekomst worden gepland.
+Tik op de knop __Studeren__ (het pictogram met de afstudeerhoed, in de lijstbalk) om een flashcardsessie voor de huidige lijst te starten. De app gebruikt __Spaced Repetition (SRS)__ om te bepalen welke kaarten worden getoond: kaarten die je moeilijk vindt komen eerder terug, terwijl kaarten die je goed kent verder in de toekomst worden gepland.
 
 Tijdens een sessie:
 
@@ -103,7 +103,7 @@ Om een lijst te herhalen wanneer je maar wilt, tik je op __Oefenen__ (of __Toch 
 
 ### Een lijst als tekst lezen
 
-Tik op de __lezer__-knop (het boekpictogram) in de bovenbalk om de huidige lijst als één pagina te lezen, net als een artikel. Elk woord wordt een regel met zijn betekenis, en bij een afgeleid woord zie je ook hoe het is opgebouwd uit voorvoegsel, stam en achtervoegsel. Tik op een gemarkeerd woord voor een snelle opzoeking, of volg de pijl naar de volledige woordenboekvermelding. Het is een ontspannen manier om een hele lijst door te nemen zonder kaarten om te draaien.
+Tik op de __lezer__-knop (het paginapictogram, naast Studeren in de lijstbalk) om de huidige lijst als één pagina te lezen, net als een artikel. Elk woord wordt een regel met zijn betekenis, en bij een afgeleid woord zie je ook hoe het is opgebouwd uit voorvoegsel, stam en achtervoegsel. Tik op een gemarkeerd woord voor een snelle opzoeking, of volg de pijl naar de volledige woordenboekvermelding. Het is een ontspannen manier om een hele lijst door te nemen zonder kaarten om te draaien.
 
 ---
 
