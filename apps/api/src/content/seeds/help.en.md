@@ -68,23 +68,23 @@ You can add multiple words at once using the __Import list__ tab in the vocabula
 
 Lines starting with `#` are treated as comments and ignored. Blank lines are also ignored and can be used to visually separate sections.
 
-A list you fill this way is __locked__ automatically (see __Locking a list__ below), because an imported deck is normally meant to be studied as-is. Unlock it with its padlock button if you want to edit it.
+An import always adds to the __active list__ (the one currently shown), just like bookmarking a word does. To keep an import separate, create a new list first so it becomes the active one, then import into it. You can import into the same list more than once: words already in it keep their study progress, and only the new words are added, so you can grow a single list lesson by lesson over time.
 
 ### Locking a list
 
-A __locked__ list is read-only: its words cannot be added, removed, or edited, so a stray tap can never change a finished deck. Studying is unaffected: a locked list still reviews normally and its spaced-repetition progress keeps updating.
+Locking protects a list against accidental changes to its individual words. On a __locked__ list you cannot add, remove, or edit a single word (for example a stray un-bookmark while reading), so a finished deck stays exactly as you left it. Two things are deliberately still allowed: __importing__ into the list (importing is always an intentional act, so it is the one way a locked list can still grow), and __studying__, which reviews normally and keeps updating your spaced-repetition progress.
 
-Each list has a __padlock__ button (next to its share globe): an open padlock means it is unlocked, a closed padlock means it is locked. Tap it to lock or unlock the list. On a locked list the bookmark icon turns grey and the add, edit, and delete actions are unavailable until you unlock it.
+Each list has a __padlock__ button (next to its share globe): an open padlock means it is unlocked, a closed padlock means it is locked. Tap it to lock or unlock the list. On a locked list the bookmark icon turns grey and the single-word add, edit, and delete actions are unavailable; importing still works.
 
-Lists that are meant to be used as-is are locked for you automatically: a list you create by __importing__, and a list you __copy__ from someone else (see below).
+Locking is your own choice, made when you consider a list finished; lists are never locked for you automatically.
 
 ### Sharing lists
 
-If you have built a list you think others would find useful, you can share it. Tap the __globe__ button on the list: it turns green, and everyone using Taalwiz can then find it. Tap the globe again to make it private (you will be asked to confirm); people who already copied it keep their own copy.
+If you have built a list you think others would find useful, you can share it. Tap the __globe__ button on the list: it turns green, and everyone using Taalwiz can then find it. Tap the globe again to make it private (you will be asked to confirm); anyone who already imported from it keeps their own list.
 
-To find lists others have shared, tap the __people__ icon in the top bar. This opens the shared-lists browser, where each entry shows the list name, who shared it, and how many words it contains. Tap a list to preview its words, then tap __Copy to my lists__ to add a copy to your own account.
+To find lists others have shared, tap the __people__ icon in the top bar. This opens the shared-lists browser, where each entry shows the list name, who shared it, and how many words it contains. Tap a list to preview its words, then tap __Import__ to add them to your active list. To keep a shared list separate, create a new list first so it is the active one, then import.
 
-A copied list is a snapshot: it becomes a normal list of your own, with its own study progress. It arrives __locked__ so you can study it as the author put it together; unlock it with its padlock button if you want to change it. Later changes the original owner makes do not affect your copy, and your studying never affects theirs.
+Importing a shared list copies its words into a list of your own, with its own study progress: your studying never affects the author's, and theirs never affects yours. If the author later adds words, import the list again to pick up the additions; words you already have keep their progress, and only the new ones are added.
 
 ### Studying with flashcards
 
@@ -100,6 +100,10 @@ During a session:
 - A badge on the Study button shows how many cards are due for review today.
 
 To go over a list whenever you like, tap __Practice__ (or __Practice anyway__ when nothing is due). Practice runs through every card in the list in random order and does **not** change the review schedule, so it is a no-pressure way to revisit a deck without disturbing your spaced-repetition progress.
+
+### Reading a list as an article
+
+Tap the __reader__ button (the open-book icon) in the top bar to read the current list as a single page, like an article. Each word becomes a line with its definition, and a derived word also shows how it is built from prefix, root, and suffix. Tap any highlighted word for a quick lookup, or follow its arrow to the full dictionary entry. It is a relaxed way to review a whole list without flipping cards.
 
 ---
 

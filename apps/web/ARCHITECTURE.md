@@ -90,16 +90,26 @@ src/app/
 │   │   ├── vocabulary.page.ts
 │   │   ├── vocabulary.page.html
 │   │   ├── vocabulary.page.scss
-│   │   ├── vocabulary-entry-modal/   # Add / edit / CSV-import modal
+│   │   ├── vocabulary-entry-modal/   # Add / edit single card, or paste-import a list
 │   │   │   ├── vocabulary-entry-modal.component.ts
 │   │   │   ├── vocabulary-entry-modal.component.html
 │   │   │   └── vocabulary-entry-modal.component.scss
+│   │   ├── shared-lists-browser/     # Browse public lists, import one into the active deck
+│   │   │   ├── shared-lists-browser.component.ts
+│   │   │   ├── shared-lists-browser.component.html
+│   │   │   └── shared-lists-browser.component.scss
+│   │   ├── deck-content-page/        # Read the active deck as a tappable content article
+│   │   │   ├── deck-content.page.ts
+│   │   │   ├── deck-content.page.html
+│   │   │   ├── deck-content.page.scss
+│   │   │   └── deck-content.util.ts  # Per-card markdown line (term + decomposition + def)
 │   │   └── dictionary-line-picker/   # Pick which dictionary line a back-less card shows
 │   │       ├── dictionary-line-picker.component.ts
 │   │       ├── dictionary-line-picker.component.html
 │   │       └── dictionary-line-picker.component.scss
 │   ├── study/                # SRS flashcard sub-feature
 │   │   ├── study.service.ts
+│   │   ├── card-definition.service.ts   # Resolve a back-less card → lemma + decomposition
 │   │   └── study-modal/
 │   │       ├── study-modal.component.ts
 │   │       ├── study-modal.component.html
@@ -196,6 +206,7 @@ flowchart TD
 
     tabs --> hashtags_tab["/home/tabs/hashtags"]
     tabs --> vocabulary_tab["/home/tabs/bookmarks"]
+    vocabulary_tab --> deck_content["/home/tabs/bookmarks/content"]
 ```
 
 **Admin** (requires `adminGuard`)
@@ -323,9 +334,13 @@ graph TD
 
 `lists`: `VocabularyList[]` with counts. `bookmarks`: `VocabularyEntry[]` for current list. `bookmarkedKeys`: `Set<string>` for O(1) lookup. `stats`: `SrsStatsEntry[]` per-list `due`/`new`/`total`/`available`, where `available` is what a session actually serves under the daily new-card cap and is the value the study-button badge shows.
 
-**Daily new-card cap.** A study session serves all due reviews plus at most `newCardsPerDay` (a per-user `UserPreferences` value, default 20, set on the Settings page) never-introduced cards, in list order — so large cloned/imported lists are paced rather than dumped all at once. A card is "introduced" on its first review (`introducedAt` on the SRS record); cards introduced earlier the same day count against the allotment, so the cap holds across cancel/restart instead of refilling. The server (`SrsService.getDueCards` / `getAllStats`) owns this; the study modal just renders the capped, ordered list it receives.
+**Daily new-card cap.** A study session serves all due reviews plus at most `newCardsPerDay` (a per-user `UserPreferences` value, default 20, set on the Settings page) never-introduced cards, in list order — so large imported lists are paced rather than dumped all at once. A card is "introduced" on its first review (`introducedAt` on the SRS record); cards introduced earlier the same day count against the allotment, so the cap holds across cancel/restart instead of refilling. The server (`SrsService.getDueCards` / `getAllStats`) owns this; the study modal just renders the capped, ordered list it receives.
 
 **Lemma-index override.** A back-less card resolves its answer from the dictionary at flip time. By default it shows the first line (`lemmas[0]`); the user can pin a different line per card, stored as `lemmaIndex` on the SRS record. This is **study state**, so it is editable even on a locked list (unlike a typed `back`, which is list content). The list-row pencil is shown on every row — `editCard()` routes a back-less card to `DictionaryLinePickerComponent`, a card-with-back to the text editor (or a "list is locked" alert when locked). `flipCard` resolves `lemmas[lemmaIndex] ?? lemmas[0]`. Closing the study modal returns the last-shown card so the list scrolls to it (`#scrollToCard`), letting the user jump straight to a card whose line they want to change.
+
+**Import model & list locking.** Import is the one way a deck grows, and it always targets the **active deck** (like bookmarking), with no target picker. Two sources feed it — pasted text (the entry modal's Import tab) and a public list (the shared-lists browser) — both call `VocabularyService.importEntries(targetListId)` → `POST /vocabulary/import`. Re-importing a list is the re-sync: the server upserts by `term:lang`, so existing words keep their SRS schedule and only new words are added (there is no separate clone/snapshot — `cloneList` was removed). **A locked list** rejects only incidental per-word edits (bookmark / un-bookmark from the word-click dialog or the list view, on any surface), but a deliberate import is still allowed — the server splits `addMany` (lock-guarded single add) from `importMany` (lock-exempt). Locking guards a curated deck against the accidental un-bookmark, not against growing it.
+
+**Deck-as-content reader.** The reader button on a deck opens `/home/tabs/bookmarks/content` (`DeckContentPage`) — a routed page (not a modal) that renders the active deck as a Library-style article: each card a tappable line, curated back or a back-less card resolved live to its dictionary line + decomposition. Cards resolve and paint in chunks (first screen immediately, the rest streamed) so a 1000-card deck opens at once. `CardDefinitionService.resolve()` does the back-less lemma + decomposition resolution and is shared with the study-modal flip so the flashcard back and the reader can't drift; per-card line assembly is in `deck-content.util.ts`. Word taps use `WordClickModalService.openWithoutBookmark()` (dictionary-nav + breakdown + audio, no bookmark — the word is already a card here).
 
 **Content & Search**
 
@@ -347,7 +362,8 @@ graph TD
 | Service                    | Location                  | Responsibility                                                                                                                                                                                                                                                         |
 | -------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `AuthService`              | `auth/`                   | JWT + refresh-token management, login/logout, auto-login (Capacitor Preferences)                                                                                                                                                                                       |
-| `VocabularyService`        | `home/vocabulary/`        | Named list management; vocabulary item add/remove/update with optimistic UI; `addEntry()`, `updateBack()`, `addEntries()` for modal-driven input; cross-device current-list sync via `UserPreferences` API; calls `StudyService.refreshStats()` after every add/remove |
+| `VocabularyService`        | `home/vocabulary/`        | Named list management; vocabulary item add/remove/update with optimistic UI; `addEntry()` / `updateBack()` for single entries, `importEntries(targetListId)` for bulk import (paste or a public list) into the active deck; cross-device current-list sync via `UserPreferences` API; calls `StudyService.refreshStats()` after every add/remove |
+| `CardDefinitionService`    | `home/study/`             | Resolve a back-less card to its dictionary lemma line + affix decomposition; shared by the study-modal flip and the deck-as-content reader so the two never drift |
 | `StudyService`             | `home/study/`             | Reactive `stats` signal (per-list SRS counts); `getDueCards(listId)`, `submitReview()`, and `getLemmaIndex()` / `setLemmaIndex()` observables for the SRS API                                                                                                            |
 | `DictSyncService`          | `home/dictionary/`        | Fetch manifest, compare versions on the main thread, spawn `dict-import.worker` for the actual import, re-emit worker progress/status, expose `hasCompleteDict$` readiness                                                                                             |
 | `DictStoreService`         | `home/dictionary/`        | **Read-only** IndexedDB wrapper (`taalwiz-dict` DB): `open`, `getStoredVersion`, `findByWordAndLang`, `findWordsStartingWith`, `count`. All writes belong to `dict-import.worker.ts`                                                                                   |
@@ -358,7 +374,7 @@ graph TD
 | `TocService`               | `home/content/…/article/` | Extract headings, scroll-to signal                                                                                                                                                                                                                                     |
 | `HashtagsService`          | `home/content/hashtags/`  | Hashtag index fetching; `findHashtag()` lists occurrences for the hashtag modal                                                                                                                                                                                        |
 | `SpeechSynthesizerService` | `home/`                   | Web Speech API wrapper (single word or foreign phrase)                                                                                                                                                                                                                  |
-| `WordClickModalService`    | `shared/`                 | Coordinate article word taps → dictionary lookup → modal display via `onClicked()`                                                                                                                                                                                      |
+| `WordClickModalService`    | `shared/`                 | Coordinate word taps → dictionary lookup → modal display: `onClicked()` (full actions), `openViewOnly()` (study card back: definition + audio only), `openWithoutBookmark()` (deck reader: full actions minus the bookmark)                                              |
 | `ApiErrorAlertService`     | `shared/`                 | Display Ionic alert on HTTP errors                                                                                                                                                                                                                                     |
 | `LoggerService`            | `shared/`                 | Levelled logging (dev: `silly`, prod: `info`)                                                                                                                                                                                                                          |
 | `PromptUpdateService`      | `sw-update/`              | PWA version-update detection and reload prompt                                                                                                                                                                                                                         |

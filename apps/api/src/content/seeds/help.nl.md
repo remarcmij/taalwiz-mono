@@ -68,23 +68,23 @@ Je kunt meerdere woorden tegelijk toevoegen via het tabblad __Lijst importeren__
 
 Regels die beginnen met `#` worden als commentaar beschouwd en genegeerd. Lege regels worden ook genegeerd en kunnen gebruikt worden om secties visueel te scheiden.
 
-Een lijst die je zo vult, wordt automatisch __vergrendeld__ (zie __Een lijst vergrendelen__ hieronder), omdat een geïmporteerde lijst meestal bedoeld is om zo te bestuderen. Ontgrendel hem met de slotknop als je hem wilt bewerken.
+Een import voegt altijd toe aan de __actieve lijst__ (de lijst die nu wordt getoond), net zoals het bookmarken van een woord. Wil je een import apart houden, maak dan eerst een nieuwe lijst aan zodat die de actieve wordt, en importeer er vervolgens in. Je kunt meerdere keren in dezelfde lijst importeren: woorden die er al in staan behouden hun studievoortgang en alleen de nieuwe woorden worden toegevoegd, zodat je één lijst stap voor stap kunt laten groeien.
 
 ### Een lijst vergrendelen
 
-Een __vergrendelde__ lijst is alleen-lezen: er kunnen geen woorden worden toegevoegd, verwijderd of bewerkt, zodat een onbedoelde tik een afgeronde lijst nooit kan wijzigen. Studeren wordt niet beïnvloed: een vergrendelde lijst herhaalt gewoon en de spaced-repetition-voortgang blijft bijgewerkt worden.
+Vergrendelen beschermt een lijst tegen onbedoelde wijzigingen aan de afzonderlijke woorden. Op een __vergrendelde__ lijst kun je geen los woord toevoegen, verwijderen of bewerken (bijvoorbeeld een per ongeluk verwijderde bladwijzer tijdens het lezen), zodat een afgeronde lijst precies blijft zoals je hem hebt achtergelaten. Twee dingen blijven bewust wél mogelijk: __importeren__ in de lijst (importeren is altijd een bewuste handeling, en dus de enige manier waarop een vergrendelde lijst nog kan groeien), en __studeren__, dat gewoon herhaalt en je spaced-repetition-voortgang blijft bijwerken.
 
-Elke lijst heeft een __slot__-knop (naast de wereldbol om te delen): een open slot betekent ontgrendeld, een gesloten slot betekent vergrendeld. Tik erop om de lijst te vergrendelen of te ontgrendelen. Op een vergrendelde lijst wordt het bladwijzerpictogram grijs en zijn de toevoeg-, bewerk- en verwijderacties niet beschikbaar tot je hem ontgrendelt.
+Elke lijst heeft een __slot__-knop (naast de wereldbol om te delen): een open slot betekent ontgrendeld, een gesloten slot betekent vergrendeld. Tik erop om de lijst te vergrendelen of te ontgrendelen. Op een vergrendelde lijst wordt het bladwijzerpictogram grijs en zijn het toevoegen, bewerken en verwijderen van losse woorden niet beschikbaar; importeren werkt nog wel.
 
-Lijsten die bedoeld zijn om zo te gebruiken, worden automatisch voor je vergrendeld: een lijst die je aanmaakt door te __importeren__, en een lijst die je van iemand anders __kopieert__ (zie hieronder).
+Vergrendelen is je eigen keuze, die je maakt wanneer je een lijst af vindt; lijsten worden nooit automatisch voor je vergrendeld.
 
 ### Lijsten delen
 
-Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Tik op de __wereldbol__-knop bij de lijst: hij wordt groen en iedereen die Taalwiz gebruikt kan hem dan vinden. Tik nogmaals op de wereldbol om hem weer privé te maken (je wordt om bevestiging gevraagd); wie hem al heeft gekopieerd, behoudt de eigen kopie.
+Heb je een lijst gemaakt waar anderen iets aan kunnen hebben, dan kun je die delen. Tik op de __wereldbol__-knop bij de lijst: hij wordt groen en iedereen die Taalwiz gebruikt kan hem dan vinden. Tik nogmaals op de wereldbol om hem weer privé te maken (je wordt om bevestiging gevraagd); wie er al uit heeft geïmporteerd, behoudt de eigen lijst.
 
-Om lijsten te vinden die anderen hebben gedeeld, tik je op het __personen__-icoon in de bovenbalk. Dit opent het overzicht van gedeelde lijsten, waar je per lijst de naam, wie hem deelde en het aantal woorden ziet. Tik op een lijst om de woorden te bekijken en tik daarna op __Naar mijn lijsten kopiëren__ om een kopie aan je eigen account toe te voegen.
+Om lijsten te vinden die anderen hebben gedeeld, tik je op het __personen__-icoon in de bovenbalk. Dit opent het overzicht van gedeelde lijsten, waar je per lijst de naam, wie hem deelde en het aantal woorden ziet. Tik op een lijst om de woorden te bekijken en tik daarna op __Importeren__ om ze aan je actieve lijst toe te voegen. Wil je een gedeelde lijst apart houden, maak dan eerst een nieuwe lijst aan zodat die de actieve is, en importeer dan.
 
-Een gekopieerde lijst is een momentopname: hij wordt een gewone eigen lijst, met eigen studievoortgang. Hij komt __vergrendeld__ binnen zodat je hem kunt bestuderen zoals de maker hem heeft samengesteld; ontgrendel hem met de slotknop als je hem wilt wijzigen. Latere wijzigingen van de oorspronkelijke eigenaar hebben geen invloed op jouw kopie, en jouw studeren heeft geen invloed op die van hen.
+Een gedeelde lijst importeren kopieert de woorden naar een eigen lijst, met eigen studievoortgang: jouw studeren heeft nooit invloed op die van de maker, en die van hen nooit op die van jou. Voegt de maker later woorden toe, importeer de lijst dan opnieuw om die toevoegingen op te halen; woorden die je al hebt behouden hun voortgang en alleen de nieuwe komen erbij.
 
 ### Studeren met flashcards
 
@@ -100,6 +100,10 @@ Tijdens een sessie:
 - Een badge op de knop Studeren toont hoeveel kaarten er vandaag ter herhaling klaarstaan.
 
 Om een lijst te herhalen wanneer je maar wilt, tik je op __Oefenen__ (of __Toch oefenen__ als er niets klaarstaat). Oefenen loopt in willekeurige volgorde door alle kaarten van de lijst en verandert het herhalingsschema **niet**, dus het is een vrijblijvende manier om een lijst nog eens door te nemen zonder je spaced-repetition-voortgang te verstoren.
+
+### Een lijst als tekst lezen
+
+Tik op de __lezer__-knop (het boekpictogram) in de bovenbalk om de huidige lijst als één pagina te lezen, net als een artikel. Elk woord wordt een regel met zijn betekenis, en bij een afgeleid woord zie je ook hoe het is opgebouwd uit voorvoegsel, stam en achtervoegsel. Tik op een gemarkeerd woord voor een snelle opzoeking, of volg de pijl naar de volledige woordenboekvermelding. Het is een ontspannen manier om een hele lijst door te nemen zonder kaarten om te draaien.
 
 ---
 
