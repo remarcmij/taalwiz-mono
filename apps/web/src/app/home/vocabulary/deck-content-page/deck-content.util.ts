@@ -27,8 +27,11 @@ function ensureTerminalPeriod(s: string): string {
  * its resolved lemma line plus the affix decomposition. A back-less card the
  * dictionary cannot resolve (typo / post-1996 coinage) keeps its term, flagged with
  * `notFoundLabel` — a lightweight, at-a-glance QA check the reader doubles as. The
- * term uses `__...__` (bold but NOT tappable: a lookup would be futile) and the
+ * term is wrapped in `<strong class="not-found">` (bold + struck-through, but NOT a
+ * `<span>`, so it stays black and non-tappable: a lookup would be futile) and the
  * label `_..._` (muted italic), since neither is a real, searchable dictionary word.
+ * The strikethrough is raw HTML, not markdown `~~...~~`, because that renders to
+ * `<del>`, which the reader repurposes as a quiz fill-in blank.
  */
 export function buildCardContentLine(
   term: string,
@@ -43,7 +46,7 @@ export function buildCardContentLine(
   }
 
   const lemma = resolved?.lemma;
-  if (!lemma) return `__${term}__ _(${notFoundLabel})_`;
+  if (!lemma) return `<strong class="not-found">${term}</strong> _(${notFoundLabel})_`;
 
   const definition = stripLeadingHeadword(lemma.text, term).replace(/[;,]\s*$/, '');
   const root = lemma.baseWord;

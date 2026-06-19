@@ -15,6 +15,7 @@ import {
   IonSpinner,
   IonTitle,
   IonToolbar,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
@@ -62,6 +63,7 @@ export class DeckContentPage implements OnInit {
   #wordClickModal = inject(WordClickModalService);
   #sanitizer = inject(DomSanitizer);
   #translate = inject(TranslateService);
+  #toastCtrl = inject(ToastController);
 
   protected deckName = computed(() => this.#vocabulary.currentList()?.name ?? '');
   protected html = signal<SafeHtml>('');
@@ -84,11 +86,13 @@ export class DeckContentPage implements OnInit {
     const lemmaIndex = await this.#lemmaIndexMap(listId, cards.some((c) => !c.back));
     const notFound = this.#translate.instant('deck-content.not-found');
     let buffer = '';
+    let notFoundCount = 0;
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i];
       const resolved = c.back
         ? null
         : await this.#cardDefinition.resolve(c.term, c.lang, lemmaIndex.get(`${c.term}:${c.lang}`) ?? 0);
+      if (!c.back && !resolved?.lemma) notFoundCount++;
       const line = buildCardContentLine(c.term, c.back, resolved, notFound);
       buffer += `<p class="card-line">${this.#markdown.convertMarkdown(line)}</p>`;
 
@@ -101,6 +105,20 @@ export class DeckContentPage implements OnInit {
       }
     }
     this.done.set(true);
+    if (notFoundCount > 0) await this.#showNotFoundToast();
+  }
+
+  /** Flag, once the deck has finished resolving, that one or more back-less cards
+   * had no dictionary definition. A general nudge to review the deck; the struck-
+   * through terms in the body show which ones, so the toast names none. */
+  async #showNotFoundToast(): Promise<void> {
+    const toast = await this.#toastCtrl.create({
+      message: this.#translate.instant('deck-content.some-not-found'),
+      duration: 4000,
+      position: 'bottom',
+      color: 'medium',
+    });
+    await toast.present();
   }
 
   /** Map of `term:lang` -> pinned lemma index for back-less cards (one SRS call).

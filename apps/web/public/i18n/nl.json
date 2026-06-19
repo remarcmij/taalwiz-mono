@@ -129,7 +129,8 @@
   "deck-content": {
     "title": "Als tekst lezen",
     "empty": "Deze lijst heeft nog geen kaarten.",
-    "not-found": "niet gevonden"
+    "not-found": "niet gevonden",
+    "some-not-found": "Een of meer woorden hebben geen definitie."
   },
   "study": {
     "title": "Studeren",

@@ -188,6 +188,14 @@ span.hashtag {
   pointer-events: none;
 }
 
+// Deck reader: a back-less card whose term the dictionary cannot resolve. Bold
+// black (it is not a `<span>`, so it escapes the teal "tappable" cue) and struck
+// through to read at a glance as "no definition". A plain strikethrough, distinct
+// from the `<del>` quiz blank above, which collapses to a `_____` placeholder.
+.text-content strong.not-found {
+  text-decoration: line-through;
+}
+
 .noselect {
   -webkit-user-select: none;
   user-select: none;

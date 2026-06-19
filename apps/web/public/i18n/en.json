@@ -129,7 +129,8 @@
   "deck-content": {
     "title": "Read as content",
     "empty": "This deck has no cards yet.",
-    "not-found": "not found"
+    "not-found": "not found",
+    "some-not-found": "One or more words have no definition."
   },
   "study": {
     "title": "Study",
