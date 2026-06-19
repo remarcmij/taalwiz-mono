@@ -40,8 +40,12 @@ export function buildCardContentLine(
   notFoundLabel: string,
 ): string {
   if (back) {
-    const termCore = term.replace(/[^\p{L}\p{N} ]/gu, '').trim().toLowerCase();
-    const backHasTerm = termCore !== '' && back.replace(/\*/g, '').toLowerCase().includes(termCore);
+    // Normalise BOTH sides identically (drop punctuation, lowercase) before the
+    // containment check, so a term with a hyphen/apostrophe (e.g. "laki-laki")
+    // still matches its echo in the back and is not prepended a second time.
+    const strip = (s: string) => s.replace(/[^\p{L}\p{N} ]/gu, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const termCore = strip(term);
+    const backHasTerm = termCore !== '' && strip(back).includes(termCore);
     return ensureTerminalPeriod(backHasTerm ? back : `**${term}** ${back}`);
   }
 
