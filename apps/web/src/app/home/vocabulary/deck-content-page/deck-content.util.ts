@@ -15,10 +15,18 @@ export function stripLeadingHeadword(text: string, term: string): string {
   return text.slice(m[0].length).replace(/^[\s,]+/, '');
 }
 
-/** Append a period when a line lacks terminal punctuation. */
-function ensureTerminalPeriod(s: string): string {
-  const trimmed = s.replace(/\s+$/, '');
-  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+/**
+ * Whether `back` already echoes `term`, comparing both sides with identical
+ * normalisation (drop punctuation, collapse spaces, lowercase) so a hyphenated or
+ * apostrophised term still matches its echo and is not prepended a second time.
+ * Shared by the reader and the study flashcard so a back is auto-prefixed with a
+ * tappable copy of its term in exactly the same cases.
+ */
+export function backContainsTerm(term: string, back: string): boolean {
+  const strip = (s: string) =>
+    s.replace(/[^\p{L}\p{N} ]/gu, '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const termCore = strip(term);
+  return termCore !== '' && strip(back).includes(termCore);
 }
 
 /**
@@ -40,13 +48,11 @@ export function buildCardContentLine(
   notFoundLabel: string,
 ): string {
   if (back) {
-    // Normalise BOTH sides identically (drop punctuation, lowercase) before the
-    // containment check, so a term with a hyphen/apostrophe (e.g. "laki-laki")
-    // still matches its echo in the back and is not prepended a second time.
-    const strip = (s: string) => s.replace(/[^\p{L}\p{N} ]/gu, '').replace(/\s+/g, ' ').trim().toLowerCase();
-    const termCore = strip(term);
-    const backHasTerm = termCore !== '' && strip(back).includes(termCore);
-    return ensureTerminalPeriod(backHasTerm ? back : `**${term}** ${back}`);
+    // Auto-prefix a tappable copy of the term inline (the term is the front of the
+    // card and would otherwise not be tappable), unless the back already echoes it.
+    // Inline, dictionary-style, to match a back-less card's resolved line; the
+    // study card uses an own-line variant of the same rule.
+    return backContainsTerm(term, back) ? back : `**${term}** ${back}`;
   }
 
   const lemma = resolved?.lemma;
@@ -59,5 +65,5 @@ export function buildCardContentLine(
   const deco = resolved?.breakdown
     ? ` (${resolved.breakdown.morphemes.map((m) => (m === root ? `**${m}**` : m)).join(' + ')})`
     : '';
-  return ensureTerminalPeriod(`**${term}**${deco} ${definition}`);
+  return `**${term}**${deco} ${definition}`;
 }

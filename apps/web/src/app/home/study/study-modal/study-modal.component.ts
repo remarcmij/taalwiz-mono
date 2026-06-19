@@ -33,6 +33,7 @@ import { AffixBreakdownComponent } from '../../../shared/morphology/affix-breakd
 import { WordClickModalService } from '../../../shared/word-click-modal/word-click-modal.service';
 import { SrsItem, SrsRating, StudyService } from '../study.service';
 import { VocabularyService } from '../../vocabulary/vocabulary.service';
+import { backContainsTerm } from '../../vocabulary/deck-content-page/deck-content.util';
 
 type Screen = 'loading' | 'card' | 'no-due' | 'complete';
 
@@ -193,7 +194,13 @@ export class StudyModalComponent implements OnInit {
     // (the "View full entry" button reveals the full Teeuw entry when that is
     // not enough).
     if (card.back) {
-      this.definition.set(card.back);
+      // Prefix a tappable copy of the term (the front) on its own line so it can
+      // be looked up too: only the back is tappable, and the front face is plain
+      // text. Skipped when the back already echoes the term. Same rule as the
+      // reader's deck view, via the shared backContainsTerm helper.
+      this.definition.set(
+        backContainsTerm(card.term, card.back) ? card.back : `**${card.term}**\n${card.back}`,
+      );
       this.baseWordNote.set(null);
       this.breakdown.set(null);
     } else {
