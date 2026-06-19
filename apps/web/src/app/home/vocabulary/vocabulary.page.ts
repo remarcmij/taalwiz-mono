@@ -199,7 +199,9 @@ export class VocabularyPage {
         ]
       : [];
     const sheet = await this.#actionSheetCtrl.create({
-      header: list.name,
+      // Card count lives here, in the sheet title, rather than the toolbar
+      // selector where it took scarce horizontal space for a secondary detail.
+      header: `${list.name} (${list.count})`,
       buttons: [
         ...deckActions,
         {
