@@ -15,12 +15,14 @@
       <p>{{ 'deck-content.empty' | translate }}</p>
     </div>
   } @else {
-    <div
-      class="text-content markdown-body ion-padding"
-      [innerHTML]="html()"
-      (click)="onContentClick($event)"></div>
-    @if (!done()) {
-      <div class="streaming"><ion-spinner name="dots"></ion-spinner></div>
-    }
+    <div class="content-container">
+      <div
+        class="text-content markdown-body ion-padding"
+        [innerHTML]="html()"
+        (click)="onContentClick($event)"></div>
+      @if (!done()) {
+        <div class="streaming"><ion-spinner name="dots"></ion-spinner></div>
+      }
+    </div>
   }
 </ion-content>
