@@ -419,6 +419,27 @@ describe('IndonesianVariationGenerator', () => {
     `));
   });
 
+  describe('minimum candidate length floor', () => {
+    // The generator over-generates and lets the dictionary validate, but a 0/1-char
+    // candidate can never match any headword — it is pure leakage (e.g. nasal-stripping
+    // `meng` -> ``). `kemudian` is the pathological case: a monomorphemic word whose
+    // spurious decomposition (via the unrelated kemudi/mengemudi family) used to bottom
+    // out in `''`, `k`, `ng`. Floor at 2 chars; the typed word itself is exempt.
+    it('kemudian produces no empty or single-char variations', () => {
+      const vars = variations('kemudian');
+      expect(vars).not.toContain('');
+      expect(vars.every((v) => v.length >= 2)).toBe(true);
+    });
+
+    it('keeps genuine 2-letter roots reachable from derived/clitic forms', () => {
+      // These 2-letter roots carry real derivations in Teeuw, so the floor must be 2,
+      // not 3: dropping them would break the lookup for the derived form.
+      expect(variations('amnya')).toContain('am'); // am -> mengamkan, *pada amnya*
+      expect(variations('esnya')).toContain('es'); // es (ijs) -> menges
+      expect(variations('ianya')).toContain('ia'); // ia -> mengiakan, beria
+    });
+  });
+
   describe('documented test cases from SEARCH.md', () => {
     it('membaca should include baca (original first)', () => {
       const vars = variations('membaca');

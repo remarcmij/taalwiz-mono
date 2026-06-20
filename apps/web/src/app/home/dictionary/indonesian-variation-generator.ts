@@ -225,6 +225,16 @@ function renderTrace(root: TraceNode, order: string[]): string {
   return lines.join('\n');
 }
 
+// Shortest candidate worth keeping. No Indonesian headword is 0 or 1 letter, so
+// a produced form below this can never match a dictionary entry — it is pure
+// over-generation leakage (e.g. nasal-stripping `meng` -> ``, or `k`/`ng`). The
+// floor is 2, NOT higher: genuine 2-letter roots that carry derivations do exist
+// and must stay reachable from their derived/clitic forms — e.g. `am` (mengamkan,
+// *amnya*), `es` (menges, *esnya*), `ia` (mengiakan, beria, *ianya*). The
+// typed word itself bypasses this guard (it is always candidate 0), so even a
+// sub-2-char query still self-hits; only *derived* candidates are floored.
+const MIN_CANDIDATE_LENGTH = 2;
+
 export class IndonesianVariationGenerator implements VariationGenerator {
   getWordVariations(word: string): string[] {
     const variations: Set<string> = new Set();
@@ -246,6 +256,24 @@ export class IndonesianVariationGenerator implements VariationGenerator {
 
     this.getVariations(word, variations, false);
     return [...variations];
+  }
+
+  // Recurse into a PRODUCED candidate, floored at MIN_CANDIDATE_LENGTH. Below the
+  // floor the form is dropped outright (neither added to the result Set nor traced),
+  // because nothing reachable from a 0/1-char form is ever a real word: a strip only
+  // shortens it, synthesis/nasal-strip require 2+ chars to match. The typed word does
+  // NOT come through here — it is added directly by getVariations — so this only ever
+  // suppresses garbage, never the query itself.
+  private recurse(
+    candidate: string,
+    variations: Set<string>,
+    mePrefixed: boolean,
+    traceParent?: TraceNode,
+    traceShown?: Set<string>,
+    ruleLabel?: string,
+  ) {
+    if (candidate.length < MIN_CANDIDATE_LENGTH) return;
+    this.getVariations(candidate, variations, mePrefixed, traceParent, traceShown, ruleLabel);
   }
 
   // `traceParent`/`traceShown` drive the optional dev trace: both `undefined`
@@ -289,7 +317,7 @@ export class IndonesianVariationGenerator implements VariationGenerator {
         case 'strip': {
           const match = word.match(rule.pattern);
           if (match) {
-            this.getVariations(
+            this.recurse(
               match[1],
               variations,
               mePrefixed,
@@ -307,10 +335,10 @@ export class IndonesianVariationGenerator implements VariationGenerator {
           const base = rule.base === 'group1' ? match[1] : word;
           const meWord = prefixWithMeN(base);
           if (meWord !== base) {
-            this.getVariations(meWord, variations, true, childTrace, traceShown, rule.label);
+            this.recurse(meWord, variations, true, childTrace, traceShown, rule.label);
           }
           if (rule.alsoBare) {
-            this.getVariations(
+            this.recurse(
               base,
               variations,
               true,
@@ -326,7 +354,7 @@ export class IndonesianVariationGenerator implements VariationGenerator {
             // Note the root-initial consonant that meN-/peN- elided and we
             // restored (e.g. men- + t -> menerima, traced as `nasal men- +t`).
             const restored = cand.restored ? ` +${cand.restored}` : '';
-            this.getVariations(
+            this.recurse(
               cand.remainder,
               variations,
               mePrefixed,
