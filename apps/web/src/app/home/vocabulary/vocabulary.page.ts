@@ -23,6 +23,7 @@ import {
   IonToolbar,
   ModalController,
   Platform,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
@@ -90,6 +91,7 @@ export class VocabularyPage {
   #alertCtrl = inject(AlertController);
   #actionSheetCtrl = inject(ActionSheetController);
   #modalCtrl = inject(ModalController);
+  #toastCtrl = inject(ToastController);
   #translate = inject(TranslateService);
   #platform = inject(Platform);
 
@@ -171,11 +173,12 @@ export class VocabularyPage {
   }
 
   /**
-   * Per-list overflow menu. `full` (the active deck's toolbar ⋮) prepends the
-   * deck-scoped actions that no longer have their own toolbar button — add entry,
-   * lock/unlock, share/make-private. The popover-row ⋮ (`full` omitted) keeps the
-   * minimal rename / delete set, since those rows carry their own lock/share
-   * quick-toggles and "add entry" only ever targets the active deck.
+   * Per-list overflow menu. `full` (the active deck's toolbar ⋮) prepends the one
+   * deck-scoped action that has no other home — add entry. Lock/unlock and
+   * share/make-private are NOT here: they are one-tap toggles on the dropdown
+   * rows (each with a confirmation toast), so duplicating them as labelled menu
+   * rows only added clicks. The popover-row ⋮ (`full` omitted) keeps the minimal
+   * rename / delete set, since "add entry" only ever targets the active deck.
    */
   async openListMenu(list: VocabularyList, full = false): Promise<void> {
     const t = (key: string) => this.#translate.instant(key);
@@ -185,16 +188,6 @@ export class VocabularyPage {
             text: t('vocabulary.add-entry'),
             icon: 'create-outline',
             handler: () => void this.openAddEntryModal(),
-          },
-          {
-            text: t(list.isLocked ? 'vocabulary.unlock-list' : 'vocabulary.lock-list'),
-            icon: list.isLocked ? 'lock-open-outline' : 'lock-closed',
-            handler: () => this.vocabularyService.setListLocked(list.id, !list.isLocked),
-          },
-          {
-            text: t(list.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list'),
-            icon: list.isPublic ? 'globe-outline' : 'globe',
-            handler: () => void this.toggleListPublic(list),
           },
         ]
       : [];
@@ -222,9 +215,33 @@ export class VocabularyPage {
     await sheet.present();
   }
 
+  /** Toggle a list's lock from a dropdown row. The glyph alone carries no label
+   * on touch (tooltips are desktop-only), so confirm the result with a toast. */
+  async toggleListLocked(list: VocabularyList): Promise<void> {
+    const next = !list.isLocked;
+    this.vocabularyService.setListLocked(list.id, next);
+    await this.#showStatusToast(
+      next ? 'vocabulary.list-locked-toast' : 'vocabulary.list-unlocked-toast',
+      list.name,
+    );
+  }
+
+  /** Brief confirmation that a deck-state toggle took effect — the touch-facing
+   * stand-in for the icon buttons' desktop-only tooltips. */
+  async #showStatusToast(key: string, name: string): Promise<void> {
+    const toast = await this.#toastCtrl.create({
+      message: this.#translate.instant(key, { name }),
+      duration: 2000,
+      position: 'bottom',
+      color: 'medium',
+    });
+    await toast.present();
+  }
+
   async toggleListPublic(list: VocabularyList): Promise<void> {
     if (!list.isPublic) {
       this.vocabularyService.setListPublic(list.id, true);
+      await this.#showStatusToast('shared-lists.now-shared', list.name);
       return;
     }
     // Making a public list private: confirm, since others may want to keep finding it.
@@ -236,7 +253,10 @@ export class VocabularyPage {
         { text: this.#translate.instant('common.close'), role: 'cancel' },
         {
           text: this.#translate.instant('shared-lists.make-private'),
-          handler: () => this.vocabularyService.setListPublic(list.id, false),
+          handler: () => {
+            this.vocabularyService.setListPublic(list.id, false);
+            void this.#showStatusToast('shared-lists.now-private', list.name);
+          },
         },
       ],
     });

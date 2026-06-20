@@ -8,10 +8,16 @@
       <!-- Top bar holds only the two global actions: browse other users' shared
            lists, and create a new list. All deck-scoped actions (study, read,
            add, lock, share, …) live on the list-selector bar below. -->
-      <ion-button [title]="'shared-lists.title' | translate" (click)="openSharedListsBrowser()">
+      <ion-button
+        [title]="'shared-lists.title' | translate"
+        [attr.aria-label]="'shared-lists.title' | translate"
+        (click)="openSharedListsBrowser()">
         <ion-icon slot="icon-only" name="people-outline"></ion-icon>
       </ion-button>
-      <ion-button [title]="'bookmarks.create-list' | translate" (click)="openCreateListAlert()">
+      <ion-button
+        [title]="'bookmarks.create-list' | translate"
+        [attr.aria-label]="'bookmarks.create-list' | translate"
+        (click)="openCreateListAlert()">
         <ion-icon slot="icon-only" name="add-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -31,7 +37,11 @@
         <ion-icon name="chevron-down-outline" class="caret" aria-hidden="true"></ion-icon>
       </button>
       <ion-buttons slot="end">
-        <ion-button class="study-btn" [title]="'study.title' | translate" (click)="openStudyModal()">
+        <ion-button
+          class="study-btn"
+          [title]="'study.title' | translate"
+          [attr.aria-label]="'study.title' | translate"
+          (click)="openStudyModal()">
           <div class="icon-with-badge">
             <ion-icon name="school-outline"></ion-icon>
             @if (dueForCurrentList() > 0) {
@@ -39,10 +49,16 @@
             }
           </div>
         </ion-button>
-        <ion-button [title]="'deck-content.title' | translate" (click)="openDeckContent()">
+        <ion-button
+          [title]="'deck-content.title' | translate"
+          [attr.aria-label]="'deck-content.title' | translate"
+          (click)="openDeckContent()">
           <ion-icon slot="icon-only" name="reader-outline"></ion-icon>
         </ion-button>
-        <ion-button [title]="'common.options' | translate" (click)="openListMenu(current, true)">
+        <ion-button
+          [title]="'common.options' | translate"
+          [attr.aria-label]="'common.options' | translate"
+          (click)="openListMenu(current, true)">
           <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -73,7 +89,10 @@
                     slot="end"
                     fill="clear"
                     [title]="(list.isLocked ? 'vocabulary.unlock-list' : 'vocabulary.lock-list') | translate"
-                    (click)="$event.stopPropagation(); vocabularyService.setListLocked(list.id, !list.isLocked)">
+                    [attr.aria-label]="
+                      (list.isLocked ? 'vocabulary.unlock-list' : 'vocabulary.lock-list') | translate
+                    "
+                    (click)="$event.stopPropagation(); toggleListLocked(list)">
                     <ion-icon
                       slot="icon-only"
                       [name]="list.isLocked ? 'lock-closed' : 'lock-open-outline'"
@@ -84,6 +103,9 @@
                     slot="end"
                     fill="clear"
                     [title]="(list.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list') | translate"
+                    [attr.aria-label]="
+                      (list.isPublic ? 'shared-lists.make-private' : 'shared-lists.share-list') | translate
+                    "
                     (click)="$event.stopPropagation(); toggleListPublic(list)">
                     <ion-icon
                       slot="icon-only"
@@ -95,6 +117,7 @@
                     slot="end"
                     fill="clear"
                     [title]="'common.options' | translate"
+                    [attr.aria-label]="'common.options' | translate"
                     (click)="$event.stopPropagation(); openListMenuFromRow(list, listPopover)">
                     <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
                   </ion-button>
@@ -142,11 +165,17 @@
                 <!-- Edit is always reachable, even on a locked list: for a back-less card it
                      opens the dictionary-line picker (lock-immune study state); other cases
                      are handled by editCard(). Remove stays lock-gated (desktop only). -->
-                <ion-button fill="clear" (click)="$event.stopPropagation(); editCard(entry)">
+                <ion-button
+                  fill="clear"
+                  [title]="'vocabulary.edit-entry' | translate"
+                  [attr.aria-label]="'vocabulary.edit-entry' | translate"
+                  (click)="$event.stopPropagation(); editCard(entry)">
                   <ion-icon slot="icon-only" name="create-outline"></ion-icon>
                 </ion-button>
                 @if (isDesktop && !vocabularyService.currentListLocked()) {
                   <ion-button fill="clear" color="danger"
+                              [title]="'common.remove' | translate"
+                              [attr.aria-label]="'common.remove' | translate"
                               (click)="$event.stopPropagation(); vocabularyService.toggle(entry.term, entry.lang)">
                     <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
                   </ion-button>

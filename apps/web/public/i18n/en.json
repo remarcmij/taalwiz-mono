@@ -109,6 +109,8 @@
     "list-locked": "'{{name}}' is locked",
     "lock-list": "Lock list",
     "unlock-list": "Unlock list",
+    "list-locked-toast": "'{{name}}' locked",
+    "list-unlocked-toast": "'{{name}}' unlocked",
     "bookmark-removed": "Removed from '{{name}}'",
     "save": "Save"
   },
@@ -123,6 +125,8 @@
     "shared-status": "Shared with everyone",
     "share-list": "Share with everyone",
     "make-private": "Make private",
+    "now-shared": "'{{name}}' shared with everyone",
+    "now-private": "'{{name}}' is now private",
     "unpublish-title": "Make private",
     "unpublish-message": "Stop sharing '{{name}}'? Anyone who already imported from it keeps their own deck."
   },

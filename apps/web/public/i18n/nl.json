@@ -109,6 +109,8 @@
     "list-locked": "'{{name}}' is vergrendeld",
     "lock-list": "Lijst vergrendelen",
     "unlock-list": "Lijst ontgrendelen",
+    "list-locked-toast": "'{{name}}' vergrendeld",
+    "list-unlocked-toast": "'{{name}}' ontgrendeld",
     "bookmark-removed": "Verwijderd uit '{{name}}'",
     "save": "Opslaan"
   },
@@ -123,6 +125,8 @@
     "shared-status": "Gedeeld met iedereen",
     "share-list": "Met iedereen delen",
     "make-private": "Privé maken",
+    "now-shared": "'{{name}}' met iedereen gedeeld",
+    "now-private": "'{{name}}' is nu privé",
     "unpublish-title": "Privé maken",
     "unpublish-message": "Stoppen met delen van '{{name}}'? Wie het al heeft geïmporteerd, behoudt de eigen lijst."
   },
