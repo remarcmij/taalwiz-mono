@@ -121,6 +121,34 @@ export class SrsService {
     return selectStudyQueue(enriched, newCardsPerDay, now).map((e) => toInfo(e.card));
   }
 
+  /**
+   * Per-card schedule for one list, keyed `term:lang`, so the vocabulary list
+   * view can show each row's next-review state instead of its saved-age. `isNew`
+   * is the Anki sense — never reviewed (`introducedAt == null`) — so a lapsed card
+   * (failed back to reps 0 but already introduced) reads as due, not new.
+   */
+  async getScheduleByList(
+    userId: string,
+    listId: string,
+  ): Promise<Map<string, { dueDate: string; isNew: boolean }>> {
+    const cards = await SrsRecord.find({
+      userId: new Types.ObjectId(userId),
+      listId: new Types.ObjectId(listId),
+    })
+      .select('term lang dueDate introducedAt')
+      .lean()
+      .exec();
+    return new Map(
+      cards.map((c) => [
+        `${c.term}:${c.lang}`,
+        {
+          dueDate: (c.dueDate as Date).toISOString(),
+          isNew: ((c.introducedAt as Date | null) ?? null) === null,
+        },
+      ]),
+    );
+  }
+
   async getAllStats(userId: string): Promise<SrsStatsEntry[]> {
     const now = new Date();
     const { newCardsPerDay } = await this.userPreferencesService.get(userId);

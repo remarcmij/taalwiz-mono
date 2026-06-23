@@ -112,7 +112,12 @@
     "list-locked-toast": "'{{name}}' locked",
     "list-unlocked-toast": "'{{name}}' unlocked",
     "bookmark-removed": "Removed from '{{name}}'",
-    "save": "Save"
+    "save": "Save",
+    "due-new": "new",
+    "due-now": "due",
+    "due-days": "{{n}}d",
+    "due-weeks": "{{n}}w",
+    "due-months": "{{n}}mo"
   },
   "shared-lists": {
     "title": "Shared lists",

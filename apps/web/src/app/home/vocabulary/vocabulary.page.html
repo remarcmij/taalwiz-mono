@@ -160,7 +160,7 @@
                   <p class="back-preview" [innerHTML]="backPreviewHtml(back)"></p>
                 }
               </ion-label>
-              <ion-note slot="end">{{ relativeTime(entry.savedAt) }}</ion-note>
+              <ion-note slot="end">{{ dueLabel(entry) }}</ion-note>
               <ion-buttons slot="end">
                 <!-- Edit is always reachable, even on a locked list: for a back-less card it
                      opens the dictionary-line picker (lock-immune study state); other cases

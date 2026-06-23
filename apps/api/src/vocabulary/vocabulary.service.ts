@@ -21,6 +21,19 @@ export interface PublicVocabularyListInfo {
   count: number;
 }
 
+export interface VocabularyEntryInfo {
+  term: string;
+  lang: string;
+  listId: string;
+  back?: string;
+  savedAt: string;
+  /** SRS next-review date (ISO). Present whenever the card has an SRS record,
+   * which it normally always does (created eagerly on add/import). */
+  dueDate?: string;
+  /** True until the card's first-ever review — the Anki "new" state. */
+  isNew?: boolean;
+}
+
 // Natural, case-insensitive ordering so "Ham les 2" sorts before "Ham les 11".
 const nameCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
@@ -147,10 +160,38 @@ export class VocabularyService {
     return VocabularyItem.find({ listId: listObjectId }).sort({ savedAt: -1 }).exec();
   }
 
-  async findAll(userId: string, listId: string): Promise<VocabularyItemDoc[]> {
-    return VocabularyItem.find({ userId: new Types.ObjectId(userId), listId: new Types.ObjectId(listId) })
+  /**
+   * List a deck's items, each enriched with its SRS schedule (`dueDate`, `isNew`)
+   * so the list row can show the next-review state rather than the saved-age. The
+   * join is on `term:lang`; an item missing an SRS record (shouldn't happen in
+   * normal use) simply carries no schedule.
+   */
+  async findAll(userId: string, listId: string): Promise<VocabularyEntryInfo[]> {
+    const items = await VocabularyItem.find({
+      userId: new Types.ObjectId(userId),
+      listId: new Types.ObjectId(listId),
+    })
       .sort({ savedAt: -1 })
+      .lean()
       .exec();
+    if (items.length === 0) return [];
+
+    const schedule = await this.srsService.getScheduleByList(userId, listId);
+    return items.map((it) => {
+      const entry: VocabularyEntryInfo = {
+        term: it.term,
+        lang: it.lang,
+        listId: it.listId.toString(),
+        savedAt: (it.savedAt as Date).toISOString(),
+      };
+      if (it.back != null) entry.back = it.back;
+      const sched = schedule.get(`${it.term}:${it.lang}`);
+      if (sched) {
+        entry.dueDate = sched.dueDate;
+        entry.isNew = sched.isNew;
+      }
+      return entry;
+    });
   }
 
   /**

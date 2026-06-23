@@ -14,6 +14,11 @@ export interface VocabularyEntry {
   listId: string;
   back?: string;
   savedAt: string;
+  /** SRS next-review date (ISO), joined server-side. Drives the row's schedule
+   * label. Absent only if the card has no SRS record (not expected in normal use). */
+  dueDate?: string;
+  /** True until the card's first-ever review — shows as `new` in the list. */
+  isNew?: boolean;
 }
 
 export interface VocabularyList {
@@ -161,7 +166,16 @@ export class VocabularyService {
     }
 
     const key = `${term}:${lang}`;
-    const entry: VocabularyEntry = { term, lang, listId, back, savedAt: new Date().toISOString() };
+    // A just-added (or just-restored) bookmark has a fresh SRS record, so it is
+    // `new` until first studied — surface that immediately, before the refetch.
+    const entry: VocabularyEntry = {
+      term,
+      lang,
+      listId,
+      back,
+      savedAt: new Date().toISOString(),
+      isNew: true,
+    };
     const listsSnapshot = this.lists();
     const bookmarksSnapshot = this.bookmarks();
     const keysSnapshot = this.bookmarkedKeys();
@@ -390,13 +404,24 @@ export class VocabularyService {
     );
   }
 
-  #loadItems(listId: string): void {
-    this.bookmarksLoading.set(true);
+  /** Re-fetch the active list so its due-date labels reflect reviews just
+   * submitted in a study session. Silent (no loading spinner): the list is
+   * already on screen and its rows are tracked by `term:lang`, so only the
+   * labels change in place — toggling the spinner would flash the list away. */
+  reloadCurrentList(): void {
+    const listId = this.currentListId();
+    if (listId) this.#loadItems(listId, true);
+  }
+
+  #loadItems(listId: string, silent = false): void {
+    if (!silent) this.bookmarksLoading.set(true);
     this.#http
       .get<VocabularyEntry[]>('/api/v1/vocabulary', { params: { listId } })
       .pipe(
         catchError(() => EMPTY),
-        finalize(() => this.bookmarksLoading.set(false)),
+        finalize(() => {
+          if (!silent) this.bookmarksLoading.set(false);
+        }),
       )
       .subscribe((entries) => {
         this.bookmarks.set(entries);
@@ -407,7 +432,13 @@ export class VocabularyService {
   #add(term: string, lang: string): void {
     const listId = this.currentListId()!;
     const key = `${term}:${lang}`;
-    const entry: VocabularyEntry = { term, lang, listId, savedAt: new Date().toISOString() };
+    const entry: VocabularyEntry = {
+      term,
+      lang,
+      listId,
+      savedAt: new Date().toISOString(),
+      isNew: true, // fresh SRS record → `new` until first studied
+    };
     const listsSnapshot = this.lists();
 
     this.bookmarkedKeys.update((s) => new Set([...s, key]));

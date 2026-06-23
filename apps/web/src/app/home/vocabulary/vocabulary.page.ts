@@ -296,15 +296,23 @@ export class VocabularyPage {
     return !/\s/.test(term.trim());
   }
 
-  relativeTime(isoString: string): string {
-    const diffMs = Date.now() - new Date(isoString).getTime();
-    const diffMin = Math.floor(diffMs / 60_000);
-    if (diffMin < 1) return '< 1m';
-    if (diffMin < 60) return `${diffMin}m`;
-    const diffH = Math.floor(diffMin / 60);
-    if (diffH < 24) return `${diffH}h`;
-    const diffD = Math.floor(diffH / 24);
-    return `${diffD}d`;
+  /**
+   * Compact SRS schedule label for a list row (replaces the old saved-age, which
+   * looked like scheduling info but wasn't). `new` until first studied; `due`
+   * once the card is due today or overdue (both just mean "comes up next
+   * session" — the overdue day-count isn't actionable, so it's collapsed); else a
+   * terse countdown to the next review (`4d`, `2w`, `3mo`). Intervals are whole
+   * days, so future labels never need sub-day units.
+   */
+  protected dueLabel(entry: VocabularyEntry): string {
+    if (entry.isNew) return this.#translate.instant('vocabulary.due-new');
+    if (!entry.dueDate) return '';
+    const diffMs = new Date(entry.dueDate).getTime() - Date.now();
+    if (diffMs <= 0) return this.#translate.instant('vocabulary.due-now');
+    const days = Math.ceil(diffMs / 86_400_000);
+    if (days < 7) return this.#translate.instant('vocabulary.due-days', { n: days });
+    if (days < 30) return this.#translate.instant('vocabulary.due-weeks', { n: Math.round(days / 7) });
+    return this.#translate.instant('vocabulary.due-months', { n: Math.round(days / 30) });
   }
 
   async openStudyModal(): Promise<void> {
@@ -315,9 +323,12 @@ export class VocabularyPage {
       componentProps: { defaultListId: listId },
     });
     await modal.present();
+    const { data } = await modal.onWillDismiss<{ term: string; lang: string } | null>();
+    // The session just rescheduled cards, so re-fetch the list to refresh the
+    // due-date labels (in 4d / due / new) in place — silently, no spinner.
+    this.vocabularyService.reloadCurrentList();
     // On exit, scroll the list to the last card shown so the user can jump
     // straight to a card whose dictionary line they want to change.
-    const { data } = await modal.onWillDismiss<{ term: string; lang: string } | null>();
     if (data) this.#scrollToCard(data.term, data.lang);
   }
 
