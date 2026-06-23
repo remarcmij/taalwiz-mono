@@ -267,9 +267,13 @@ export class VocabularyPage {
   }
 
   async lookup(entry: VocabularyEntry): Promise<void> {
-    // On a locked list, tapping a row is read-only: jump to the dictionary
-    // rather than opening the (would-be-rejected) edit modal.
-    if (entry.back && !this.vocabularyService.currentListLocked()) {
+    // A locked list is uniformly read-only: every row drops its tap action so
+    // the list reads as consistently "locked". Dictionary lookup is still
+    // available universally via the reader view.
+    if (this.vocabularyService.currentListLocked()) {
+      return;
+    }
+    if (entry.back) {
       await this.openEditModal(entry);
     } else if (this.#isSingleWordTerm(entry.term)) {
       // Only jump to the dictionary for single-word terms. The dictionary is
@@ -281,12 +285,15 @@ export class VocabularyPage {
     }
   }
 
-  // Whether tapping the row does anything: opens the editor (own, unlocked card
-  // with a back) or looks the term up in the dictionary (single word). A phrase
-  // on a locked/back-only card has no action, so its row drops the `button`
-  // affordance rather than rippling to no effect.
+  // Whether tapping the row does anything: opens the editor (own card with a
+  // back) or looks the term up in the dictionary (single word). A locked list
+  // is uniformly read-only, so every row drops the `button` affordance rather
+  // than showing the chevron on only the single-word rows.
   hasTapAction(entry: VocabularyEntry): boolean {
-    if (entry.back && !this.vocabularyService.currentListLocked()) {
+    if (this.vocabularyService.currentListLocked()) {
+      return false;
+    }
+    if (entry.back) {
       return true;
     }
     return this.#isSingleWordTerm(entry.term);
