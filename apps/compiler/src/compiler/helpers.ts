@@ -1,34 +1,27 @@
+// Removes balanced `(...)` fragments (the second pass of the parenthesis
+// double-pass; see TEEUW_PARSER.md §1.3). Tolerant of UNMATCHED parentheses: a
+// stray `)` is kept as a literal and a never-closed `(` drops the rest of the
+// line. This matters for Stevens, whose enumerated senses use `a)` `b)` `c)`
+// markers (a `)` with no opener) on tens of thousands of lines. For balanced
+// input (e.g. all of Teeuw) the output is identical to a strict pass.
 export function removeParenthesizedFragments(line: string) {
   let depth = 0;
-  let start = 0;
   let result = '';
-  const reParens = new RegExp('[()]', 'g');
 
-  let match = reParens.exec(line);
-
-  while (match) {
-    if (match[0] === '(') {
-      if (depth++ === 0) {
-        result += line.substring(start, match.index);
+  for (const ch of line) {
+    if (ch === '(') {
+      depth++;
+    } else if (ch === ')') {
+      if (depth > 0) {
+        depth--;
+      } else {
+        // Unmatched close: a literal `)` (e.g. an `a)` sense enumerator).
+        result += ch;
       }
-    } else {
-      if (--depth === 0) {
-        start = match.index + 1;
-      } else if (depth < 0) {
-        throw new Error('unbalanced parentheses');
-      }
+    } else if (depth === 0) {
+      result += ch;
     }
-    match = reParens.exec(line);
   }
 
-  if (depth > 0) {
-    throw new Error('unbalanced parentheses');
-  }
-
-  if (start === 0) {
-    return line;
-  }
-
-  result += line.substring(start);
   return result;
 }

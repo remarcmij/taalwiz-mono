@@ -1,5 +1,6 @@
 export const enum Token {
   Arrow,
+  Caret,
   Star,
   Comma,
   DblStar,
@@ -27,6 +28,7 @@ const TOKEN_PATTERNS = [
   { regex: /^__/, token: Token.DblUnder },
   { regex: /^_/, token: Token.Underscore },
   { regex: /^~/, token: Token.Tilde },
+  { regex: /^\^/, token: Token.Caret },
   { regex: /^,/, token: Token.Comma },
   { regex: /^;/, token: Token.Semicolon },
   { regex: /^[\d½¼¾²⁵]+/, token: Token.Numeric },

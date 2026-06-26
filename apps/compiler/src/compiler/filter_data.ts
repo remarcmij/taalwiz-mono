@@ -123,3 +123,59 @@ export const COMMON_WORDS_NL = new Set([
 ]);
 
 export const IGNORED_WORDS_ID = new Set(['di', 'tidak', 'nya']);
+
+// --- Stevens (Indonesian -> English) ---------------------------------------
+// Stevens' own editorial apparatus that can leak into an English fragment as a
+// PLAIN word (most markers are already `_italic_`/`__bold__`-wrapped and so are
+// dropped by the tokenizer; this catches the few that appear bare). Stripped
+// before counting content words in selectTargetWord. Hand-tunable, like the NL
+// lists above.
+export const EDITORIAL_MARKERS_EN = new Set([
+  'a)', // enumerated sense markers a), b), c) ...
+  'b)',
+  'c)',
+  'd)',
+  'esp', // especially
+  'usu', // usually
+  'etc', // etcetera
+  'cf', // confer (compare)
+  'eg', // for example
+  'ie', // that is
+  'fig', // figurative(ly)
+  'lit', // literal(ly)
+  'abbr', // abbreviation
+  'var', // variant
+  'I', // sense-numbering Roman numerals (when not __-wrapped)
+  'II',
+  'III',
+  'IV',
+  'V',
+  'VI',
+  'VII',
+  'VIII',
+  'IX',
+  'X',
+]);
+
+// Common English words used ONLY to disambiguate a multi-word fragment down to a
+// single content word (see selectTargetWord). NOT globally ignored: a word
+// standing alone in a fragment is still indexed even if it appears here.
+export const COMMON_WORDS_EN = new Set([
+  'a',
+  'an',
+  'the',
+  'to',
+  'of',
+  'for',
+  'in',
+  'on',
+  'at',
+  'with',
+  'one',
+  "one's",
+]);
+
+// Hard-ignored connectors that are never a valid standalone English gloss and
+// would otherwise be indexed via Rule 1 when left alone in a fragment (e.g. the
+// `and` bridging two headwords in `**X** and **Y**`). Dropped unconditionally.
+export const IGNORED_WORDS_EN = new Set(['and', 'or']);
