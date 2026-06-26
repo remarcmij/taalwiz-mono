@@ -33,7 +33,9 @@ async function bootstrap() {
   );
 
   await mongoose.connect(config.get('MONGO_URL'), {
-    dbName: 'taalwiz',
+    // Defaults to 'taalwiz'; a second instance (e.g. the en/Stevens deployment)
+    // sets MONGO_DB to an isolated database on the same MongoDB server.
+    dbName: config.get('MONGO_DB') ?? 'taalwiz',
   });
 
   const logger = new Logger('Bootstrap');

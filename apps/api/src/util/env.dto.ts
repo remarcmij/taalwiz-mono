@@ -1,5 +1,11 @@
 import { plainToInstance } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsNumberString, validateSync } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumberString,
+  IsOptional,
+  validateSync,
+} from 'class-validator';
 
 export class EnvDto {
   @IsNotEmpty()
@@ -7,6 +13,12 @@ export class EnvDto {
 
   @IsNotEmpty()
   MONGO_URL!: string;
+
+  // Optional; defaults to 'taalwiz' in main.ts. Set to isolate a second
+  // deployment's database on the same MongoDB server.
+  @IsOptional()
+  @IsNotEmpty()
+  MONGO_DB?: string;
 
   @IsNotEmpty()
   SITE_NAME!: string;
