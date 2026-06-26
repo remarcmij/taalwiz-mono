@@ -6,11 +6,13 @@
   "scripts": {
     "ng": "ng",
     "generate-version": "node scripts/generate-version.mjs",
-    "postinstall": "node scripts/generate-version.mjs",
-    "dev": "node scripts/generate-version.mjs && ng serve",
-    "start": "node scripts/generate-version.mjs && ng serve",
-    "build": "node scripts/generate-version.mjs && ng build",
-    "watch": "node scripts/generate-version.mjs && ng build --watch --configuration development",
+    "generate-deployment": "node scripts/generate-deployment.mjs",
+    "generate-config": "node scripts/generate-version.mjs && node scripts/generate-deployment.mjs",
+    "postinstall": "pnpm run generate-config",
+    "dev": "pnpm run generate-config && ng serve",
+    "start": "pnpm run generate-config && ng serve",
+    "build": "pnpm run generate-config && ng build",
+    "watch": "pnpm run generate-config && ng build --watch --configuration development",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "ng lint"

@@ -1,6 +1,8 @@
-// Deployment-fixed languages — single source of truth shared by web and api.
+// The headword (target) language — fixed for both dictionaries (Indonesian).
+// The native (gloss) language is NOT here: it varies per deployment (nl for
+// Teeuw, en for Stevens) and is baked into the web bundle at build time from
+// `NATIVE_LANG` (see apps/web/scripts/generate-deployment.mjs).
 export const TARGET_LANG = 'id';
-export const NATIVE_LANG = 'nl';
 
 export const MIN_PASSWORD_LENGTH = 6;
 

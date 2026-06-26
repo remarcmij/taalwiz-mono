@@ -32,6 +32,9 @@ log.txt
 # Auto-generated build metadata (see scripts/generate-version.mjs)
 /src/environments/version.ts
 
+# Auto-generated per-instance deployment config (see scripts/generate-deployment.mjs)
+/src/environments/deployment.ts
+
 # Node
 /node_modules
 npm-debug.log
