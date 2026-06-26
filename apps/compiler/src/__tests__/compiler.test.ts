@@ -342,6 +342,24 @@ describe('Compiler', () => {
     expect(warned.match(/out of alphabetical order/g)).toHaveLength(1);
   });
 
+  it('warns when a Stevens headword does not start with the chapter letter', async () => {
+    // `**2 to**` (a mangled `__2__ to` sense line) parses to base "to" in the `a`
+    // file — a conversion artifact the leading-letter rule catches.
+    const input = ['**abad** century.', '', '**to** think carefully about it.'].join('\n');
+    const inFile = path.join(tmpDir, 'stevens.a.md');
+    const outFile = path.join(tmpDir, 'stevens.a.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await new Compiler(inFile, outFile).run();
+    const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    warnSpy.mockRestore();
+
+    expect(fs.existsSync(outFile)).toBe(true);
+    expect(warned).toMatch(/does not start with the chapter letter "a"/);
+    expect(warned).toMatch(/"to"/);
+  });
+
   it('does not warn on alphabetical order when Stevens headwords ascend', async () => {
     const input = ['**abad** century.', '', '**baba** dad.', '', '**zebra** zebra.'].join('\n');
     const inFile = path.join(tmpDir, 'stevens.x.md');
@@ -356,8 +374,9 @@ describe('Compiler', () => {
     expect(warned).not.toMatch(/alphabetical/);
   });
 
-  it('does not run the alphabetical-order check for Teeuw (opt-in per parser)', async () => {
-    // Out of order, but Teeuw's ordering quirks are accepted, so no warning.
+  it('does not validate headwords for Teeuw (opt-in per parser)', async () => {
+    // Out of order AND not starting with the chapter letter, but Teeuw's
+    // editorial quirks are accepted, so neither rule fires.
     const input = ['**zebra**, zebra', '', '**abad**, eeuw'].join('\n');
     const inFile = path.join(tmpDir, 'teeuw.a.md');
     const outFile = path.join(tmpDir, 'teeuw.a.json');
@@ -369,6 +388,7 @@ describe('Compiler', () => {
     warnSpy.mockRestore();
 
     expect(warned).not.toMatch(/alphabetical/);
+    expect(warned).not.toMatch(/chapter letter/);
   });
 
   it('deletes the output file when a parse error occurs', async () => {

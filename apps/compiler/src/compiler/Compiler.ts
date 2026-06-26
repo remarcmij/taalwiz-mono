@@ -49,13 +49,17 @@ export class Compiler {
   private outFile: string;
   // Set per input file in run(); buildLemma() reads it to stamp supplements.
   private isSupplement = false;
-  // Headword alphabetical-order check (opt-in per parser; see parser-registry).
-  private checkHeadwordOrder = false;
+  // Headword validation (alphabetical order + leading letter), opt-in per parser
+  // (see parser-registry). For a dictionary generated from a correctly-ordered
+  // PDF, a violation marks a conversion artifact.
+  private validateHeadwords = false;
   private prevHeadword: string | null = null;
   private prevHeadwordNorm: string | null = null;
-  // Basename of the file currently being read, so warnings name their chapter
-  // (chapters compile in parallel, so a bare line number is ambiguous).
+  // Basename + chapter letter of the file currently being read, so warnings name
+  // their chapter (chapters compile in parallel, so a bare line number is
+  // ambiguous) and the leading-letter check knows the expected letter.
   private currentFile = '';
+  private chapterLetter = '';
 
   constructor(inFiles: string | string[], outFile: string) {
     this.inFiles = Array.isArray(inFiles) ? inFiles : [inFiles];
@@ -81,7 +85,7 @@ export class Compiler {
         throw new Error(`Skipping unrecognized file: ${currentBaseName}`);
       }
       this.parser = entry.factory();
-      this.checkHeadwordOrder = entry.checkHeadwordOrder ?? false;
+      this.validateHeadwords = entry.validateHeadwords ?? false;
 
       fsOut = fs.createWriteStream(this.outFile);
       fsOut.write(`{"targetLang": "${this.parser.sourceLang}", "lemmas": [\n`);
@@ -142,6 +146,7 @@ export class Compiler {
     let lineItems: LineItem[] = [];
 
     this.currentFile = path.basename(inFile);
+    this.chapterLetter = this.currentFile.match(/\.([a-z])\+?\.md$/)?.[1] ?? '';
 
     // Alphabetical order is checked per file, so a new chapter (or a Teeuw
     // supplement restarting at 'a') doesn't warn against the previous file.
@@ -209,16 +214,18 @@ export class Compiler {
       }
     }
 
-    this.checkHeadwordOrdering(lineItems);
+    this.validateHeadword(lineItems);
     this.dumpLemmas(fsOut, lemmas);
   }
 
-  // Warns (non-fatal) when this block's headword precedes the previous block's
-  // headword alphabetically — a likely misfiled or mistyped entry. Compares the
-  // normalized base of consecutive blocks; equal (a homonym / re-filed same
-  // word) is fine. No-op unless the parser opts in (Stevens, not Teeuw).
-  private checkHeadwordOrdering(lineItems: LineItem[]): void {
-    if (!this.checkHeadwordOrder) return;
+  // Warns (non-fatal) about a block's headword when the parser opts in (Stevens,
+  // not Teeuw). Two rules — for a dictionary built from a correctly-ordered PDF,
+  // either failure is a conversion artifact:
+  //   1. it precedes the previous headword alphabetically (misordered);
+  //   2. it does not start with the chapter's letter (an intruder/mangled entry).
+  // Equal-to-previous (a homonym / re-filed same word) is fine for rule 1.
+  private validateHeadword(lineItems: LineItem[]): void {
+    if (!this.validateHeadwords) return;
 
     const base = this.parser!.base;
     if (!base || lineItems.length === 0) return;
@@ -226,10 +233,19 @@ export class Compiler {
     const norm = normalizeForOrder(base);
     if (!norm) return;
 
+    const at = `${this.currentFile}[${lineItems[0].lineIndex + 1}]`;
+
+    if (this.chapterLetter && norm[0] !== this.chapterLetter) {
+      console.warn(
+        `${at} warning: headword "${base}" does not start with the chapter ` +
+          `letter "${this.chapterLetter}"`,
+      );
+    }
+
     if (this.prevHeadwordNorm !== null && norm < this.prevHeadwordNorm) {
       console.warn(
-        `${this.currentFile}[${lineItems[0].lineIndex + 1}] warning: headword ` +
-          `"${base}" is out of alphabetical order (after "${this.prevHeadword}")`,
+        `${at} warning: headword "${base}" is out of alphabetical order ` +
+          `(after "${this.prevHeadword}")`,
       );
     }
 
