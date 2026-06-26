@@ -138,6 +138,10 @@ json/
 
 dict/
 
+# Generated QA reports (regenerate via `pnpm --filter compiler run order-report`)
+STEVENS_ORDER_WARNINGS.md
+STEVENS_ERRORS.md
+
 # tsgo leaks emit for vitest.config.ts next to the source
 vitest.config.js
 vitest.config.js.map
