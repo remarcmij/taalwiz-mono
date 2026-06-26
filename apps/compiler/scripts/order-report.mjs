@@ -78,15 +78,32 @@ if (parseErrors.length) {
   for (const e of parseErrors) md += `> - ${e.file} [${e.ln}]: ${e.msg}\n`;
   md += `\n`;
 }
+// Sub-split wrong-letter by repair shape: a headword that itself starts with a
+// derivational prefix is a split-off derivation (merge under its root); anything
+// else is a true intruder or a mangled entry (fix the conversion).
+const wlSplit = wrongLetter.filter((b) => hasPrefix(b.flagged));
+const wlIntruder = wrongLetter.filter((b) => !hasPrefix(b.flagged));
+
 md += `## Counts\n\n`;
-md += `- **wrong-letter**: ${wrongLetter.length} (headword doesn't start with its chapter letter)\n`;
+md += `- **wrong-letter**: ${wrongLetter.length} — split-derivation ${wlSplit.length}, intruder/mangled ${wlIntruder.length}\n`;
 for (const k of ORDER) md += `- **${k}**: ${buckets[k].length}\n`;
 
-md += `\n---\n\n# wrong-letter (${wrongLetter.length})\n\n`;
-md += `Headword does not start with its chapter's letter — an intruder or a mangled entry (e.g. a \`__2__ to\` sense line that became \`**2 to**\`). Often the most direct conversion-artifact signal.\n\n`;
-for (const b of wrongLetter.sort((a, b) => a.file.localeCompare(b.file) || a.ln - b.ln)) {
-  md += `- ${b.file}[${b.ln}] **${b.flagged}** (expected "${b.letter}…")\n`;
-}
+const wlSection = (title, list, note) => {
+  md += `\n---\n\n# wrong-letter / ${title} (${list.length})\n\n${note}\n\n`;
+  for (const b of list.sort((a, b) => a.file.localeCompare(b.file) || a.ln - b.ln)) {
+    md += `- ${b.file}[${b.ln}] **${b.flagged}** (expected "${b.letter}…")\n`;
+  }
+};
+wlSection(
+  'split-derivation',
+  wlSplit,
+  'Headword starts with a derivational prefix (se/ber/me/ke/peng...) but sits in the wrong chapter — a derivation split from its root. Fix: merge under its root (clears the warning).',
+);
+wlSection(
+  'intruder/mangled',
+  wlIntruder,
+  'Headword does not start with its chapter letter and is NOT an obvious derivation — a true intruder from another section or a mangled entry (e.g. `__2__ to` -> `**2 to**` -> bogus `to`). Fix: the conversion.',
+);
 
 for (const k of ORDER) {
   md += `\n---\n\n# ${k} (${buckets[k].length})\n\n${DESC[k]}\n\n`;
@@ -97,5 +114,5 @@ for (const k of ORDER) {
 
 writeFileSync(resolve(root, 'STEVENS_ORDER_WARNINGS.md'), md);
 console.log(`Wrote STEVENS_ORDER_WARNINGS.md — ${total} order + ${wrongLetter.length} wrong-letter${parseErrors.length ? `, ${parseErrors.length} parse error(s)` : ''}`);
-console.log(`  wrong-letter: ${wrongLetter.length}`);
+console.log(`  wrong-letter: ${wrongLetter.length} (split-derivation ${wlSplit.length}, intruder/mangled ${wlIntruder.length})`);
 for (const k of ORDER) console.log(`  ${k}: ${buckets[k].length}`);
