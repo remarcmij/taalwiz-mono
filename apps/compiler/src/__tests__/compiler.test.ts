@@ -295,6 +295,82 @@ describe('Compiler', () => {
     expect(fs.existsSync(outFile)).toBe(false);
   });
 
+  it('skips `//` comment lines without breaking the surrounding block', async () => {
+    const input = [
+      '// leading comment, ignored',
+      '**abad** I, eeuw',
+      '// a comment mid-entry must NOT split the block',
+      '2 tijd',
+      '',
+      '// another comment',
+      '**adat**, gewoonte',
+    ].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.a.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    await new Compiler(inFile, outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+
+    // Comments contribute no lemmas; the mid-entry comment kept abad's two lines
+    // in one block, so the bare "2" line still re-anchored to **abad**.
+    expect(lemmas).toHaveLength(3);
+    expect(lemmas[0].base).toBe('abad');
+    expect(lemmas[1].text).toBe('**abad**, 2 tijd');
+    expect(lemmas[2].base).toBe('adat');
+  });
+
+  it('warns (non-fatally) when a Stevens headword is out of alphabetical order', async () => {
+    const input = ['**abad** century.', '', '**zebra** zebra.', '', '**baba** dad.'].join('\n');
+    const inFile = path.join(tmpDir, 'stevens.x.md');
+    const outFile = path.join(tmpDir, 'stevens.x.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await new Compiler(inFile, outFile).run();
+    const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    warnSpy.mockRestore();
+
+    // Build still succeeds, and the warning names the misplaced headword + file.
+    expect(fs.existsSync(outFile)).toBe(true);
+    expect(warned).toMatch(/out of alphabetical order/);
+    expect(warned).toMatch(/"baba"/);
+    expect(warned).toMatch(/stevens\.x\.md/);
+    // Only the one descent (baba after zebra) is flagged.
+    expect(warned.match(/out of alphabetical order/g)).toHaveLength(1);
+  });
+
+  it('does not warn on alphabetical order when Stevens headwords ascend', async () => {
+    const input = ['**abad** century.', '', '**baba** dad.', '', '**zebra** zebra.'].join('\n');
+    const inFile = path.join(tmpDir, 'stevens.x.md');
+    const outFile = path.join(tmpDir, 'stevens.x.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await new Compiler(inFile, outFile).run();
+    const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    warnSpy.mockRestore();
+
+    expect(warned).not.toMatch(/alphabetical/);
+  });
+
+  it('does not run the alphabetical-order check for Teeuw (opt-in per parser)', async () => {
+    // Out of order, but Teeuw's ordering quirks are accepted, so no warning.
+    const input = ['**zebra**, zebra', '', '**abad**, eeuw'].join('\n');
+    const inFile = path.join(tmpDir, 'teeuw.a.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await new Compiler(inFile, outFile).run();
+    const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
+    warnSpy.mockRestore();
+
+    expect(warned).not.toMatch(/alphabetical/);
+  });
+
   it('deletes the output file when a parse error occurs', async () => {
     const input = '**unclosed\n';
     const inFile = path.join(tmpDir, 'teeuw.a.md');

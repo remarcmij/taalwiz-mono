@@ -33,12 +33,29 @@ interface Lemma {
 // compile into the same chapter JSON as the core file and carry `isSupplement`.
 const fileNameRegExp = /[\\/]([a-z]+)\.([a-z])(\+?)\.md$/;
 
+// Normalizes a headword for the alphabetical-order check: strip diacritics,
+// lowercase, drop everything that isn't a letter or digit (so spaces, hyphens,
+// apostrophes, and case don't affect ordering — letter-by-letter collation).
+const normalizeForOrder = (s: string): string =>
+  s
+    .normalize('NFD')
+    .replace(/\p{Mn}/gu, '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, '');
+
 export class Compiler {
   private parser: Parser | undefined;
   private inFiles: string[];
   private outFile: string;
   // Set per input file in run(); buildLemma() reads it to stamp supplements.
   private isSupplement = false;
+  // Headword alphabetical-order check (opt-in per parser; see parser-registry).
+  private checkHeadwordOrder = false;
+  private prevHeadword: string | null = null;
+  private prevHeadwordNorm: string | null = null;
+  // Basename of the file currently being read, so warnings name their chapter
+  // (chapters compile in parallel, so a bare line number is ambiguous).
+  private currentFile = '';
 
   constructor(inFiles: string | string[], outFile: string) {
     this.inFiles = Array.isArray(inFiles) ? inFiles : [inFiles];
@@ -64,6 +81,7 @@ export class Compiler {
         throw new Error(`Skipping unrecognized file: ${currentBaseName}`);
       }
       this.parser = entry.factory();
+      this.checkHeadwordOrder = entry.checkHeadwordOrder ?? false;
 
       fsOut = fs.createWriteStream(this.outFile);
       fsOut.write(`{"targetLang": "${this.parser.sourceLang}", "lemmas": [\n`);
@@ -123,6 +141,13 @@ export class Compiler {
     let lineNum = 0;
     let lineItems: LineItem[] = [];
 
+    this.currentFile = path.basename(inFile);
+
+    // Alphabetical order is checked per file, so a new chapter (or a Teeuw
+    // supplement restarting at 'a') doesn't warn against the previous file.
+    this.prevHeadword = null;
+    this.prevHeadwordNorm = null;
+
     const flush = () => {
       if (needComma) {
         fsOut.write(', ');
@@ -135,7 +160,10 @@ export class Compiler {
 
     for await (let line of rl) {
       line = line.trim();
-      if (!line) {
+      if (line.startsWith('//')) {
+        // Source comment: ignored entirely, and does not break the surrounding
+        // block (it is not treated as a blank-line separator).
+      } else if (!line) {
         if (lineItems.length > 0) {
           flush();
         }
@@ -172,7 +200,7 @@ export class Compiler {
         }
         const result = this.parser!.parseLine(text);
         if (result.warning) {
-          console.warn(`[${lineIndex + 1}] warning: ${result.warning}`);
+          console.warn(`${this.currentFile}[${lineIndex + 1}] warning: ${result.warning}`);
         }
         const lemma = this.buildLemma(result);
         lemmas.push(lemma);
@@ -181,7 +209,32 @@ export class Compiler {
       }
     }
 
+    this.checkHeadwordOrdering(lineItems);
     this.dumpLemmas(fsOut, lemmas);
+  }
+
+  // Warns (non-fatal) when this block's headword precedes the previous block's
+  // headword alphabetically — a likely misfiled or mistyped entry. Compares the
+  // normalized base of consecutive blocks; equal (a homonym / re-filed same
+  // word) is fine. No-op unless the parser opts in (Stevens, not Teeuw).
+  private checkHeadwordOrdering(lineItems: LineItem[]): void {
+    if (!this.checkHeadwordOrder) return;
+
+    const base = this.parser!.base;
+    if (!base || lineItems.length === 0) return;
+
+    const norm = normalizeForOrder(base);
+    if (!norm) return;
+
+    if (this.prevHeadwordNorm !== null && norm < this.prevHeadwordNorm) {
+      console.warn(
+        `${this.currentFile}[${lineItems[0].lineIndex + 1}] warning: headword ` +
+          `"${base}" is out of alphabetical order (after "${this.prevHeadword}")`,
+      );
+    }
+
+    this.prevHeadword = base;
+    this.prevHeadwordNorm = norm;
   }
 
   buildLemma(result: ParserResult): Lemma {
