@@ -11,10 +11,18 @@ import { ILemma } from './lemma/lemma.model';
 export const DICT_DB_NAME = 'taalwiz-dict';
 export const DICT_DB_VERSION = 4;
 
-// `wordLower` is a stored-only field: the lowercased `word` used as the lookup
-// key so searches are case-insensitive (e.g. typing "belanda" finds "Belanda").
-// `word` keeps its original casing for display.
+// `wordLower` is a stored-only field: the folded `word` used as the lookup key so
+// searches are case- AND accent-insensitive (typing "belanda" finds "Belanda";
+// typing "boleh" finds Stevens' "boléh", where é is a pronunciation aid).
+// `word` keeps its original casing and accents for display.
 export type DictRecord = ILemma & { wordLower: string };
+
+// Folds a word to its lookup key: NFD-decompose, drop combining diacritics, and
+// lowercase. Must be applied identically to the stored key (transformDict) and to
+// every query (dict-store) so they match. Display text is never folded.
+export function foldKey(word: string): string {
+  return word.normalize('NFD').replace(/\p{Mn}/gu, '').toLowerCase();
+}
 
 export interface MetaRecord {
   key: string;
@@ -61,7 +69,7 @@ export function transformDict(data: CompiledDict): DictRecord[] {
     for (const wordDef of lemma.words) {
       records.push({
         word: wordDef.word,
-        wordLower: wordDef.word.toLowerCase(),
+        wordLower: foldKey(wordDef.word),
         lang: wordDef.lang,
         keyword: wordDef.keyword,
         baseWord: lemma.base,

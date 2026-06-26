@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { IDBPDatabase } from 'idb';
-import { DictDB, openDictDb } from './dict-db';
+import { DictDB, foldKey, openDictDb } from './dict-db';
 import { ILemma } from './lemma/lemma.model';
 
 // This service is now read-only — the dictionary import runs in
@@ -23,12 +23,13 @@ export class DictStoreService {
   }
 
   async findByWordAndLang(word: string, lang: string, keywordOnly = false): Promise<ILemma[]> {
-    // Match on the lowercased key so lookups are case-insensitive — the headword
-    // "Belanda" is found whether the user typed "belanda" or "Belanda".
+    // Match on the folded key so lookups are case- and accent-insensitive — the
+    // headword "Belanda" is found whether the user typed "belanda" or "Belanda",
+    // and Stevens' "boléh" is found by typing "boleh".
     const results = await this.#db!.getAllFromIndex(
       'lemmas',
       'by-lang-wordlower',
-      IDBKeyRange.only([lang, word.toLowerCase()]),
+      IDBKeyRange.only([lang, foldKey(word)]),
     );
     return results
       .filter((lemma) => !keywordOnly || (lemma.keyword ?? 1) === 1)
@@ -43,7 +44,7 @@ export class DictStoreService {
     // [lang, wordLower] ordering lets the range pin lang as the primary key and
     // bound the lowercased word by prefix — IndexedDB never visits entries from
     // other languages, and matching is case-insensitive.
-    const start = startString.toLowerCase();
+    const start = foldKey(startString);
     const range = IDBKeyRange.bound([lang, start], [lang, start + '￿']);
     const index = this.#db!.transaction('lemmas', 'readonly').store.index('by-lang-wordlower');
     const results: { word: string; lang: string; isSupplement?: boolean }[] = [];

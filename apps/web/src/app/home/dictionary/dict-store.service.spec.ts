@@ -1,8 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { CompiledDict, transformDict } from './dict-db';
+import { CompiledDict, foldKey, transformDict } from './dict-db';
+
+describe('foldKey', () => {
+  it('lowercases', () => {
+    expect(foldKey('Belanda')).toBe('belanda');
+  });
+
+  it('strips diacritics so accented words fold to ASCII (Stevens uses é)', () => {
+    expect(foldKey('boléh')).toBe('boleh');
+    expect(foldKey('Café')).toBe('cafe');
+    expect(foldKey('coördinatie')).toBe('coordinatie');
+  });
+
+  it('leaves plain ASCII unchanged (the common case)', () => {
+    expect(foldKey('makan')).toBe('makan');
+  });
+});
 
 describe('transformDict', () => {
-  it('adds a lowercased wordLower key for each record while preserving the display word', () => {
+  it('adds a folded wordLower key for each record while preserving the display word', () => {
     const dict: CompiledDict = {
       targetLang: 'id',
       lemmas: [
@@ -19,6 +35,25 @@ describe('transformDict', () => {
 
     expect(record.word).toBe('Belanda');
     expect(record.wordLower).toBe('belanda');
+  });
+
+  it('folds accents in wordLower while keeping the accented display word', () => {
+    const dict: CompiledDict = {
+      targetLang: 'id',
+      lemmas: [
+        {
+          text: '**boléh**, may, can',
+          base: 'boléh',
+          homonym: 0,
+          words: [{ word: 'boléh', lang: 'id', keyword: 1 }],
+        },
+      ],
+    };
+
+    const [record] = transformDict(dict);
+
+    expect(record.word).toBe('boléh'); // display keeps the pronunciation accent
+    expect(record.wordLower).toBe('boleh'); // lookup key is ASCII
   });
 
   it('propagates isSupplement from a supplement lemma onto every word record, and omits it otherwise', () => {
