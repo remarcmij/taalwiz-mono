@@ -16,8 +16,12 @@ export const enum Token {
   Word,
 }
 
+// A word may carry internal `.` or `/` between letters so dotted/slashed
+// abbreviation headwords stay whole (`a.d.`, `Bc.Ac.P.`, `b/b`, `s/d`) instead of
+// splitting at the first period — the run must still END in a letter, so a
+// trailing sentence period is consumed by `[.!?]?`, not absorbed into the word.
 const RE_WORD = RegExp(
-  String.raw`^((?:-?[+'\p{L}][-+'\d\p{L}]*['\p{L}·]-?)|(?:-?[+'\p{L}]+-?))[.!?]?`,
+  String.raw`^((?:-?[+'\p{L}][-+'\d\p{L}./]*['\p{L}·]-?)|(?:-?[+'\p{L}]+-?))[.!?]?`,
   'u'
 );
 
