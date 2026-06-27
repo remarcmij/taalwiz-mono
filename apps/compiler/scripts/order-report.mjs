@@ -6,11 +6,21 @@
 //
 //   pnpm --filter compiler run order-report
 import { spawnSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+// `dist/index.js` reads the source .md fresh at runtime, so editing the source
+// needs no rebuild. Only build when dist is missing (first run / after `clean`,
+// or when the compiler's own .ts changed — re-run `pnpm --filter compiler build`
+// in that case).
+if (!existsSync(resolve(root, 'dist/index.js'))) {
+  console.log('dist/ missing — building compiler once...');
+  const b = spawnSync('npx', ['tsc'], { cwd: root, encoding: 'utf8', stdio: 'inherit' });
+  if (b.status !== 0) process.exit(b.status ?? 1);
+}
 
 // Run the real compile so the warnings (and their line numbers) are exactly the
 // compiler's. console.warn -> stderr, console.log -> stdout; read both.
