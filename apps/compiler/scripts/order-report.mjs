@@ -38,6 +38,14 @@ if (!existsSync(resolve(root, 'dist/compiler/Compiler.js'))) {
   if (b.status !== 0) process.exit(b.status ?? 1);
 }
 
+// Headword validation is OFF in the registry for a normal compile (it's a QA aid
+// that would otherwise spew accepted-quirk warnings). Flip it on for Stevens
+// in-process BEFORE importing the Compiler so both share the module instance.
+const { parserRegistry } = await import(
+  pathToFileURL(resolve(root, 'dist/compiler/parser-registry.js')).href
+);
+for (const e of parserRegistry) if (e.prefix === 'stevens') e.validateHeadwords = true;
+
 const { Compiler } = await import(
   pathToFileURL(resolve(root, 'dist/compiler/Compiler.js')).href
 );
