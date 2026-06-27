@@ -53,14 +53,23 @@ export class DictStoreService {
     // each group before emitting one suggestion. `isSupplement` is set only when
     // EVERY record for the word is a supplement, so a word that also exists in
     // core Teeuw (e.g. "aplikasi") is not marked as a new word.
+    //
+    // The display form prefers a true headword (`keyword === 1`) over a
+    // cross-reference mention (`keyword === 0`): the same folded key can be
+    // captured from another entry in capitalized form (a cross-ref like
+    // `→ KERÉTA` or an abbreviation expansion like `[Keréta Api]`), and that
+    // record may sort first. Without this preference the dropdown would show
+    // `KERÉTA`/`Keréta` instead of the actual headword `keréta`. A group with no
+    // headword record (a pure cross-ref target) falls back to its first form.
     let cursor = await index.openCursor(range);
     let curLower: string | null = null;
     let curWord = '';
+    let curHasHeadword = false;
     let curAllPlus = true;
     let have = false;
 
     while (cursor) {
-      const { word, wordLower, isSupplement } = cursor.value;
+      const { word, wordLower, isSupplement, keyword } = cursor.value;
       if (have && wordLower !== curLower) {
         // Dedupe case-insensitively so "Belanda" and "belanda" yield one suggestion.
         results.push({ word: curWord, lang, isSupplement: curAllPlus });
@@ -70,8 +79,14 @@ export class DictStoreService {
       if (!have) {
         curLower = wordLower;
         curWord = word;
+        curHasHeadword = keyword === 1;
         curAllPlus = true;
         have = true;
+      } else if (!curHasHeadword && keyword === 1) {
+        // First real headword in this group wins the display slot over the
+        // cross-reference form picked up earlier.
+        curWord = word;
+        curHasHeadword = true;
       }
       curAllPlus = curAllPlus && !!isSupplement;
       cursor = await cursor.continue();
