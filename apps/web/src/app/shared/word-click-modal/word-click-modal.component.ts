@@ -125,8 +125,12 @@ export class WordClickModalComponent implements OnInit {
           first = false;
           return text;
         }
-        // Remove redundant keyword prefix
-        const regexp = new RegExp(`\\*\\*${lemma.word}\\*\\*, *(\\d+)`);
+        // Remove the keyword the parser re-asserts before each extra sense so
+        // the dialog shows just the sense number, as Teeuw does. Teeuw uses a
+        // bare digit (`**keréta**, 2`); Stevens wraps it in `__n__` bold
+        // (`**keréta**, __2__`) — keep whichever form so the number still
+        // renders consistently with the first sense.
+        const regexp = new RegExp(`\\*\\*${lemma.word}\\*\\*, *(__\\d+__|\\d+)`);
         return text.replace(regexp, '$1');
       });
       const homonymText = this.#markdownService.tinyMarkdown(texts.join(' ').replace(/;$/, '.'));
