@@ -8,7 +8,7 @@
 //   pnpm --filter compiler run order-report <dir>      # explicit source dir
 //   STEVENS_DIR=/path pnpm --filter compiler run order-report
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -83,6 +83,28 @@ const family = (letter, prev) => {
   return 'other';
 };
 
+// Read a flagged line from the source to see whether its first `**...**` span
+// holds more than one word (`persona non grata`, `à décharge`). The base is
+// truncated to the first word, which is what trips the order check, so these are
+// pulled into their own slice instead of cluttering `other`.
+const srcCache = {};
+const srcLines = (file) =>
+  (srcCache[file] ??= readFileSync(join(stevensDir, file), 'utf8').split('\n'));
+const firstBoldSpan = (file, ln) => {
+  const m = (srcLines(file)[ln - 1] ?? '').trim().match(/^\*\*([^*]+)\*\*/);
+  return m ? m[1].replace(/\+/g, ' ').trim() : '';
+};
+// Within the multi-word slice, the few worth fixing are a root plus a split-off
+// derivation in one span (2nd word is a prefixed form of the 1st); the rest are
+// genuine phrases to leave. Heuristic only — verify against the PDF.
+const isSplitDerivation = (span) => {
+  const [w1, w2] = span.split(/\s+/);
+  if (!w2) return false;
+  const r = fold(w1);
+  const d = fold(w2);
+  return PREFIXES.some((p) => d.startsWith(p) && d.slice(p.length).includes(r.slice(0, 3)));
+};
+
 const ORDER = ['fragment', 'prefix-derivation', 'reduplication', 'cross-letter', 'other'];
 const DESC = {
   fragment: 'Predecessor is a 1-3 char stray — a word the converter broke apart (`p`, `to`, `a`).',
@@ -93,13 +115,19 @@ const DESC = {
 };
 
 const buckets = Object.fromEntries(ORDER.map((k) => [k, []]));
+const multiWord = [];
 const wrongLetter = [];
 const parseErrors = [];
 for (const line of lines) {
   const w = line.match(warnRe);
   if (w) {
     const [, file, letter, ln, flagged, prev] = w;
-    buckets[family(letter, prev)].push({ file, ln: +ln, flagged, prev });
+    const span = firstBoldSpan(file, +ln);
+    if (span.includes(' ')) {
+      multiWord.push({ file, ln: +ln, span, prev });
+    } else {
+      buckets[family(letter, prev)].push({ file, ln: +ln, flagged, prev });
+    }
     continue;
   }
   const lt = line.match(letterRe);
@@ -114,7 +142,7 @@ for (const line of lines) {
 const total = ORDER.reduce((n, k) => n + buckets[k].length, 0);
 let md = `# Stevens headword warnings, sliced by likely cause\n\n`;
 md += `Source: \`${stevensDir}\`\n\n`;
-md += `${total} out-of-order + ${wrongLetter.length} wrong-letter. The PDF is correctly ordered and every headword starts with its chapter letter, so each warning is a PDF->md conversion artifact to repair (not a re-sort).\n\n`;
+md += `${total + multiWord.length} out-of-order (${multiWord.length} multi-word headword spans split out below) + ${wrongLetter.length} wrong-letter. The PDF is correctly ordered and every headword starts with its chapter letter, so each warning is a PDF->md conversion artifact to repair (not a re-sort).\n\n`;
 if (parseErrors.length) {
   md += `> WARNING: ${parseErrors.length} chapter(s) hit a PARSE error and aborted, so their order warnings below are INCOMPLETE — fix these first:\n`;
   for (const e of parseErrors) md += `> - ${e.file} [${e.ln}]: ${e.msg}\n`;
@@ -126,8 +154,14 @@ if (parseErrors.length) {
 const wlSplit = wrongLetter.filter((b) => hasPrefix(b.flagged));
 const wlIntruder = wrongLetter.filter((b) => !hasPrefix(b.flagged));
 
+// Multi-word slice: split the few likely root+derivation spans (a source fix)
+// from the genuine phrases (correct source — leave them).
+const mwDeriv = multiWord.filter((b) => isSplitDerivation(b.span));
+const mwPhrase = multiWord.filter((b) => !isSplitDerivation(b.span));
+
 md += `## Counts\n\n`;
 md += `- **wrong-letter**: ${wrongLetter.length} — split-derivation ${wlSplit.length}, intruder/mangled ${wlIntruder.length}\n`;
+md += `- **multi-word headword spans**: ${multiWord.length} — likely root+derivation ${mwDeriv.length}, genuine phrase ${mwPhrase.length}\n`;
 for (const k of ORDER) md += `- **${k}**: ${buckets[k].length}\n`;
 
 const wlSection = (title, list, note) => {
@@ -147,6 +181,15 @@ wlSection(
   'Headword does not start with its chapter letter and is NOT an obvious derivation — a true intruder from another section or a mangled entry (e.g. `__2__ to` -> `**2 to**` -> bogus `to`). Fix: the conversion.',
 );
 
+const mwSort = (a, b) => a.file.localeCompare(b.file) || a.ln - b.ln;
+md += `\n---\n\n# multi-word headword spans (${multiWord.length})\n\n`;
+md += `The flagged line's first \`**...**\` span holds more than one word, so the base is truncated to its first word, which trips the order check. Most are genuine multi-word phrases (correct source — leave them); a few are a root plus a split-off derivation in one span (fix in source).\n\n`;
+md += `## likely root+derivation — fix in source (${mwDeriv.length})\n\n`;
+md += `Heuristic: the 2nd word is a prefixed form of the 1st (verify against the PDF). Split \`**root deriv**\` into \`**root** **deriv**\`.\n\n`;
+for (const b of mwDeriv.sort(mwSort)) md += `- ${b.file}[${b.ln}] **${b.span}**\n`;
+md += `\n## likely genuine phrase — leave (${mwPhrase.length})\n\n`;
+for (const b of mwPhrase.sort(mwSort)) md += `- ${b.file}[${b.ln}] **${b.span}** (after **${b.prev}**)\n`;
+
 for (const k of ORDER) {
   md += `\n---\n\n# ${k} (${buckets[k].length})\n\n${DESC[k]}\n\n`;
   for (const b of buckets[k].sort((a, b) => a.file.localeCompare(b.file) || a.ln - b.ln)) {
@@ -156,6 +199,7 @@ for (const k of ORDER) {
 
 writeFileSync(resolve(root, 'STEVENS_ORDER_WARNINGS.md'), md);
 console.log(`Source: ${stevensDir}`);
-console.log(`Wrote STEVENS_ORDER_WARNINGS.md — ${total} order + ${wrongLetter.length} wrong-letter${parseErrors.length ? `, ${parseErrors.length} parse error(s)` : ''}`);
+console.log(`Wrote STEVENS_ORDER_WARNINGS.md — ${total + multiWord.length} order + ${wrongLetter.length} wrong-letter${parseErrors.length ? `, ${parseErrors.length} parse error(s)` : ''}`);
 console.log(`  wrong-letter: ${wrongLetter.length} (split-derivation ${wlSplit.length}, intruder/mangled ${wlIntruder.length})`);
+console.log(`  multi-word spans: ${multiWord.length} (root+derivation ${mwDeriv.length}, phrase ${mwPhrase.length})`);
 for (const k of ORDER) console.log(`  ${k}: ${buckets[k].length}`);
