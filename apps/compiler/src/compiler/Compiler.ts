@@ -224,25 +224,47 @@ export class Compiler {
   //   1. it precedes the previous headword alphabetically (misordered);
   //   2. it does not start with the chapter's letter (an intruder/mangled entry).
   // Equal-to-previous (a homonym / re-filed same word) is fine for rule 1.
+  // The raw first `**...**` span of a block (skipping an optional `^` revert
+  // prefix), or null when the block opens with no bold headword (e.g. a
+  // `__N__`-led continuation). The base has already had its parenthesis
+  // characters stripped, so this is the only place to recover them.
+  private headwordSpan(lineItems: LineItem[]): string | null {
+    const first = lineItems[0]?.line.replace(/^\^\s*/, '') ?? '';
+    const m = first.match(/^\*\*([^*]+)\*\*/);
+    return m ? m[1].replace(/\+/g, ' ') : null;
+  }
+
   private validateHeadword(lineItems: LineItem[]): void {
     if (!this.validateHeadwords) return;
 
     const base = this.parser!.base;
     if (!base || lineItems.length === 0) return;
 
-    const norm = normalizeForOrder(base);
-    if (!norm) return;
+    const baseNorm = normalizeForOrder(base);
+    if (!baseNorm) return;
+
+    // Stevens files a headword by the part OUTSIDE any parentheses: `alit(an)`
+    // sorts as `alit`, not `alitan`. The base keeps the paren content (so both
+    // `alit` and `alitan` stay indexed), so derive the order key from the raw
+    // span's FIRST word with `(...)` fragments dropped — first word only, so a
+    // multi-word phrase still sorts on its leading word, not the whole phrase.
+    // Guard the rare leading-paren form (`(H)amba`, filed under H) by keeping
+    // the base key when dropping parens would change the first letter.
+    const firstWord = (this.headwordSpan(lineItems) ?? base).split(/\s+/)[0];
+    const orderNorm = normalizeForOrder(firstWord.replace(/\([^)]*\)/g, ''));
+    const cmpNorm =
+      orderNorm && orderNorm[0] === baseNorm[0] ? orderNorm : baseNorm;
 
     const at = `${this.currentFile}[${lineItems[0].lineIndex + 1}]`;
 
-    if (this.chapterLetter && norm[0] !== this.chapterLetter) {
+    if (this.chapterLetter && baseNorm[0] !== this.chapterLetter) {
       console.warn(
         `${at} warning: headword "${base}" does not start with the chapter ` +
           `letter "${this.chapterLetter}"`,
       );
     }
 
-    if (this.prevHeadwordNorm !== null && norm < this.prevHeadwordNorm) {
+    if (this.prevHeadwordNorm !== null && cmpNorm < this.prevHeadwordNorm) {
       console.warn(
         `${at} warning: headword "${base}" is out of alphabetical order ` +
           `(after "${this.prevHeadword}")`,
@@ -250,7 +272,7 @@ export class Compiler {
     }
 
     this.prevHeadword = base;
-    this.prevHeadwordNorm = norm;
+    this.prevHeadwordNorm = cmpNorm;
   }
 
   buildLemma(result: ParserResult): Lemma {
