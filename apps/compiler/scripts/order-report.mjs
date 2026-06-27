@@ -1,31 +1,63 @@
-// Regenerates STEVENS_ORDER_WARNINGS.md: runs the compiler, collects its
-// headword alphabetical-order warnings, and slices them by likely conversion
-// cause. The Stevens .md is generated from a correctly-ordered PDF, so every
-// warning marks a conversion artifact to repair. Re-run after editing the source
-// — line numbers track the current files.
+// Regenerates STEVENS_ORDER_WARNINGS.md: compiles each Stevens chapter, collects
+// the compiler's headword warnings (alphabetical order + leading letter), and
+// slices them by likely conversion cause. The Stevens .md is generated from a
+// correctly-ordered PDF, so every warning marks a conversion artifact to repair.
+// Re-run after editing the source — line numbers track the current files.
 //
-//   pnpm --filter compiler run order-report
+//   pnpm --filter compiler run order-report            # default source dir
+//   pnpm --filter compiler run order-report <dir>      # explicit source dir
+//   STEVENS_DIR=/path pnpm --filter compiler run order-report
 import { spawnSync } from 'node:child_process';
-import { existsSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-// `dist/index.js` reads the source .md fresh at runtime, so editing the source
-// needs no rebuild. Only build when dist is missing (first run / after `clean`,
-// or when the compiler's own .ts changed — re-run `pnpm --filter compiler build`
-// in that case).
-if (!existsSync(resolve(root, 'dist/index.js'))) {
+// Source dir: prefer the canonical git-tracked copy in the sibling
+// taalwiz-content repo; override with a CLI arg or STEVENS_DIR; fall back to this
+// repo's local copy.
+const stevensDir = [
+  process.argv[2],
+  process.env.STEVENS_DIR,
+  resolve(root, '../../../taalwiz-content/dict/stevens'),
+  resolve(root, 'dict/stevens'),
+].filter(Boolean).find((d) => existsSync(d));
+if (!stevensDir) {
+  console.error('No Stevens source dir found. Pass a path or set STEVENS_DIR.');
+  process.exit(1);
+}
+
+// dist reads the source .md fresh at runtime, so editing source needs no rebuild.
+// Build only when dist is missing (first run / after clean, or when the
+// compiler's own .ts changed — rebuild with `pnpm --filter compiler build`).
+if (!existsSync(resolve(root, 'dist/compiler/Compiler.js'))) {
   console.log('dist/ missing — building compiler once...');
-  const b = spawnSync('npx', ['tsc'], { cwd: root, encoding: 'utf8', stdio: 'inherit' });
+  const b = spawnSync('npx', ['tsc'], { cwd: root, stdio: 'inherit' });
   if (b.status !== 0) process.exit(b.status ?? 1);
 }
 
-// Run the real compile so the warnings (and their line numbers) are exactly the
-// compiler's. console.warn -> stderr, console.log -> stdout; read both.
-const res = spawnSync('node', ['dist/index.js'], { cwd: root, encoding: 'utf8' });
-const lines = `${res.stdout ?? ''}\n${res.stderr ?? ''}`.split('\n');
+const { Compiler } = await import(
+  pathToFileURL(resolve(root, 'dist/compiler/Compiler.js')).href
+);
+
+// Compile each chapter in-process so warnings (and line numbers) are exactly the
+// compiler's. Capture console.warn/error; JSON goes to a throwaway temp dir.
+const files = readdirSync(stevensDir)
+  .filter((f) => /^stevens\.[a-z]\.md$/.test(f))
+  .sort();
+const tmpOut = mkdtempSync(join(os.tmpdir(), 'stevens-order-'));
+const captured = [];
+const real = { warn: console.warn, error: console.error, log: console.log };
+console.warn = (m) => captured.push(String(m));
+console.error = (m) => captured.push(String(m));
+console.log = () => {};
+for (const f of files) {
+  await new Compiler(join(stevensDir, f), join(tmpOut, f.replace(/\.md$/, '.json'))).run();
+}
+Object.assign(console, real);
+const lines = captured;
 
 const warnRe =
   /^(stevens\.([a-z])\.md)\[(\d+)\] warning: headword "([^"]+)" is out of alphabetical order \(after "([^"]+)"\)$/;
@@ -33,8 +65,7 @@ const letterRe =
   /^(stevens\.([a-z])\.md)\[(\d+)\] warning: headword "([^"]+)" does not start with the chapter letter "([a-z])"$/;
 const errRe = /Error processing file '([^']+)': \[(\d+)\] (.+)$/;
 
-const fold = (s) =>
-  s.normalize('NFD').replace(/\p{Mn}/gu, '').toLowerCase();
+const fold = (s) => s.normalize('NFD').replace(/\p{Mn}/gu, '').toLowerCase();
 const PREFIXES = ['nge','ng','menge','meny','meng','mem','men','me','penge','peny','peng','pem','pen','pe','ber','ter','per','ke','se','di'];
 const isRedup = (w) => {
   const p = w.split('-');
@@ -82,6 +113,7 @@ for (const line of lines) {
 
 const total = ORDER.reduce((n, k) => n + buckets[k].length, 0);
 let md = `# Stevens headword warnings, sliced by likely cause\n\n`;
+md += `Source: \`${stevensDir}\`\n\n`;
 md += `${total} out-of-order + ${wrongLetter.length} wrong-letter. The PDF is correctly ordered and every headword starts with its chapter letter, so each warning is a PDF->md conversion artifact to repair (not a re-sort).\n\n`;
 if (parseErrors.length) {
   md += `> WARNING: ${parseErrors.length} chapter(s) hit a PARSE error and aborted, so their order warnings below are INCOMPLETE — fix these first:\n`;
@@ -123,6 +155,7 @@ for (const k of ORDER) {
 }
 
 writeFileSync(resolve(root, 'STEVENS_ORDER_WARNINGS.md'), md);
+console.log(`Source: ${stevensDir}`);
 console.log(`Wrote STEVENS_ORDER_WARNINGS.md — ${total} order + ${wrongLetter.length} wrong-letter${parseErrors.length ? `, ${parseErrors.length} parse error(s)` : ''}`);
 console.log(`  wrong-letter: ${wrongLetter.length} (split-derivation ${wlSplit.length}, intruder/mangled ${wlIntruder.length})`);
 for (const k of ORDER) console.log(`  ${k}: ${buckets[k].length}`);
