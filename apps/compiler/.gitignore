@@ -141,6 +141,7 @@ dict/
 # Generated QA reports (regenerate via `pnpm --filter compiler run order-report`)
 STEVENS_ORDER_WARNINGS.md
 STEVENS_ERRORS.md
+TEEUW_ORDER_WARNINGS.md
 
 # Session handover note (local; transient)
 STEVENS_HANDOVER.md
