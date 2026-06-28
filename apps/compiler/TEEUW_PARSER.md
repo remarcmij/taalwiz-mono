@@ -45,7 +45,9 @@ mechanically — not something we inferred.
 
 - **Block = the lines between blank lines.** A blank line triggers the parser's `reset()`
   (`src/compiler/Compiler.ts`, the read loop; `TeeuwParser.ts` `reset()`), which saves the
-  current base as `_prevBase` and clears `_base = null`.
+  current base as `_prevBase` and clears `_base = null`. It deliberately does **not** touch
+  `_homonym`: `setBase()` alone governs the homonym count (see below), so a repeated headword
+  keeps accumulating past II.
 - **The first `**bold**` word of a block becomes the `base` (headword).** It is set once per
   block, guarded by `if (!this._base) this.setBase(word)` (`TeeuwParser.ts`). The base then
   **persists for the entire block**.
@@ -58,7 +60,9 @@ mechanically — not something we inferred.
   words, `**bold**` words _after_ a `->`, and the bare base-as-word get `keyword: 0`.
 - **Homonym numbering** (`ParserBase.ts` `setBase()`): not a within-block marker. When the
   _same_ base reappears in a later block, `_homonym` increments (same headword, next sense);
-  a different base resets it to 0. Roman numerals (`I`, `II`) in the source are just text.
+  a different base resets it to 0. It keeps climbing for a third, fourth, … repeat
+  (`abu` I–V → 0–4), so `reset()` must not re-zero it. Roman numerals (`I`, `II`) in the
+  source are just text.
 
 Worked example, the `babak` block (one base, three keywords):
 
@@ -69,12 +73,14 @@ Worked example, the `babak` block (one base, three keywords):
 **pembabakan**, indeling in bedrijven ...  -> base "babak", keyword 1
 ```
 
-And two blocks of `bab` give `homonym` 0 then 1:
+And consecutive blocks of `bab` accumulate `homonym` 0, 1, 2, …:
 
 ```
 **bab** I, 1 hoofdstuk, ...    -> base "bab", homonym 0
                                (blank line: reset)
 **bab** II A, poort, deur.     -> base "bab", homonym 1
+                               (blank line: reset)
+**bab** III, ...               -> base "bab", homonym 2
 ```
 
 ### 1.3 The parenthesis double-pass

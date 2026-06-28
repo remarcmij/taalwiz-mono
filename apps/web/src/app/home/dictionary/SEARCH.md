@@ -521,7 +521,21 @@ for (const w of words) {
 - `keywordOnly=true`: returns only lemmas where `keyword === 1` (used by the word-click-modal)
 - `keywordOnly=false` (default): returns all lemmas regardless of keyword
 
-The dictionary page search passes `keywordOnly=false`, so all lemmas are returned including compound-word entries.
+The dictionary page search passes `keywordOnly=false`, so the store returns _all_ lemmas
+that mention the word, including its appearances as a usage inside other headwords
+(`ékor` inside `ékor angin`).
+
+**Display-time collapse.** Fetching everything but *showing* only the headword senses by
+default is a view concern, kept out of the store so the full set stays available for the
+toggle. The dictionary page has a global **expand/collapse usages** control (header button,
+chevron + `meer`/`minder`; `DictionaryPage.showUsages`, default collapsed). Collapsed, it
+shows only lemmas where the searched word is the headword — the shared
+`isHeadwordLemma(lemma)` predicate (`lemma/lemma.model.ts`, `keyword === 1`), which
+`LemmaComponent.displayLemmas` filters by. The same predicate also drives
+`DictionaryPage.visibleBases()`: a base whose lemmas are _all_ non-headword (the word occurs
+there only as a usage) is dropped entirely while collapsed, so it never renders as an empty
+card. Expanding shows every lemma and every base — matching the condensed word-click dialog's
+keyword-only view, just with an opt-in to the full detail.
 
 ### Case-Insensitive Keys
 
