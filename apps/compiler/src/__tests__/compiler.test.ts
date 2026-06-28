@@ -2,6 +2,20 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { Compiler } from '../compiler/Compiler.js';
+import { parserRegistry } from '../compiler/parser-registry.js';
+
+// Headword validation is OFF by default (a normal compile stays quiet); the
+// order-report scripts flip it on in-process. The two warning tests below do the
+// same so they exercise the validation path. Toggle and restore around each so
+// the shared registry state never leaks to other tests.
+function withStevensValidation(fn: () => Promise<void>): Promise<void> {
+  const entry = parserRegistry.find((e) => e.prefix === 'stevens')!;
+  const prev = entry.validateHeadwords;
+  entry.validateHeadwords = true;
+  return fn().finally(() => {
+    entry.validateHeadwords = prev;
+  });
+}
 
 describe('Compiler', () => {
   let tmpDir: string;
@@ -322,43 +336,45 @@ describe('Compiler', () => {
     expect(lemmas[2].base).toBe('adat');
   });
 
-  it('warns (non-fatally) when a Stevens headword is out of alphabetical order', async () => {
-    const input = ['**abad** century.', '', '**zebra** zebra.', '', '**baba** dad.'].join('\n');
-    const inFile = path.join(tmpDir, 'stevens.x.md');
-    const outFile = path.join(tmpDir, 'stevens.x.json');
-    fs.writeFileSync(inFile, input, 'utf8');
+  it('warns (non-fatally) when a Stevens headword is out of alphabetical order', () =>
+    withStevensValidation(async () => {
+      const input = ['**abad** century.', '', '**zebra** zebra.', '', '**baba** dad.'].join('\n');
+      const inFile = path.join(tmpDir, 'stevens.x.md');
+      const outFile = path.join(tmpDir, 'stevens.x.json');
+      fs.writeFileSync(inFile, input, 'utf8');
 
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    await new Compiler(inFile, outFile).run();
-    const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
-    warnSpy.mockRestore();
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await new Compiler(inFile, outFile).run();
+      const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
+      warnSpy.mockRestore();
 
-    // Build still succeeds, and the warning names the misplaced headword + file.
-    expect(fs.existsSync(outFile)).toBe(true);
-    expect(warned).toMatch(/out of alphabetical order/);
-    expect(warned).toMatch(/"baba"/);
-    expect(warned).toMatch(/stevens\.x\.md/);
-    // Only the one descent (baba after zebra) is flagged.
-    expect(warned.match(/out of alphabetical order/g)).toHaveLength(1);
-  });
+      // Build still succeeds, and the warning names the misplaced headword + file.
+      expect(fs.existsSync(outFile)).toBe(true);
+      expect(warned).toMatch(/out of alphabetical order/);
+      expect(warned).toMatch(/"baba"/);
+      expect(warned).toMatch(/stevens\.x\.md/);
+      // Only the one descent (baba after zebra) is flagged.
+      expect(warned.match(/out of alphabetical order/g)).toHaveLength(1);
+    }));
 
-  it('warns when a Stevens headword does not start with the chapter letter', async () => {
-    // `**2 to**` (a mangled `__2__ to` sense line) parses to base "to" in the `a`
-    // file — a conversion artifact the leading-letter rule catches.
-    const input = ['**abad** century.', '', '**to** think carefully about it.'].join('\n');
-    const inFile = path.join(tmpDir, 'stevens.a.md');
-    const outFile = path.join(tmpDir, 'stevens.a.json');
-    fs.writeFileSync(inFile, input, 'utf8');
+  it('warns when a Stevens headword does not start with the chapter letter', () =>
+    withStevensValidation(async () => {
+      // `**2 to**` (a mangled `__2__ to` sense line) parses to base "to" in the `a`
+      // file — a conversion artifact the leading-letter rule catches.
+      const input = ['**abad** century.', '', '**to** think carefully about it.'].join('\n');
+      const inFile = path.join(tmpDir, 'stevens.a.md');
+      const outFile = path.join(tmpDir, 'stevens.a.json');
+      fs.writeFileSync(inFile, input, 'utf8');
 
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    await new Compiler(inFile, outFile).run();
-    const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
-    warnSpy.mockRestore();
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      await new Compiler(inFile, outFile).run();
+      const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
+      warnSpy.mockRestore();
 
-    expect(fs.existsSync(outFile)).toBe(true);
-    expect(warned).toMatch(/does not start with the chapter letter "a"/);
-    expect(warned).toMatch(/"to"/);
-  });
+      expect(fs.existsSync(outFile)).toBe(true);
+      expect(warned).toMatch(/does not start with the chapter letter "a"/);
+      expect(warned).toMatch(/"to"/);
+    }));
 
   it('does not warn on alphabetical order when Stevens headwords ascend', async () => {
     const input = ['**abad** century.', '', '**baba** dad.', '', '**zebra** zebra.'].join('\n');
