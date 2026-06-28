@@ -12,7 +12,7 @@
     "build": "tsc",
     "order-report": "node scripts/order-report.mjs",
     "teeuw-order-report": "node scripts/teeuw-order-report.mjs",
-    "trace": "node tools/lookup-trace.mts",
+    "trace": "tsx tools/lookup-trace.mts",
     "check-types": "tsc --noEmit",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
   },
