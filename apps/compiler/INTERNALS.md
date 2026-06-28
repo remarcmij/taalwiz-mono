@@ -3,26 +3,45 @@
 ## Dictionaries
 
 - **Teeuw** — Indonesian (`id`) → Dutch (`nl`), based on the work of A. Teeuw
+- **Stevens** — Indonesian (`id`) → English (`en`), based on Stevens & Schmidgall-Tellings
+
+A parser is chosen per source file by its filename prefix in
+`src/compiler/parser-registry.ts` (`teeuw` → `TeeuwParser`, `stevens` →
+`StevensParser`).
+
+## Source location
+
+`index.ts` compiles from the git-tracked canonical source in the sibling
+`taalwiz-content` repo (`../taalwiz-content/dict/{teeuw,stevens}`) when it is
+checked out alongside this one, falling back to this package's local `dict/`
+otherwise. Set the `DICT_DIR` env var (a dict root containing `teeuw/` and/or
+`stevens/`) to override. Output JSON is always written to this package's `json/`.
 
 ## Source layout
 
 ```
 src/
-  index.ts              ← Entry: glob discovery + parallel compilation
+  index.ts              ← Entry: source discovery (DICT_DIR / content repo), glob, parallel compilation
   compiler/
-    Compiler.ts         ← Orchestrator: reads .md, writes .json
+    Compiler.ts         ← Orchestrator: reads .md, writes .json; optional headword validation
     ParserBase.ts       ← Abstract base with shared parsing logic
     TeeuwParser.ts      ← Indonesian-to-Dutch parser
+    StevensParser.ts    ← Indonesian-to-English parser
+    parser-registry.ts  ← Maps filename prefix → parser (+ validateHeadwords flag)
     Tokenizer.ts        ← Hand-written lexer
     helpers.ts          ← Parenthesis stripping utility
-    filter_data.ts      ← Dutch abbreviations & stop word filters
+    filter_data.ts      ← Dutch/English abbreviations & stop word filters
+scripts/
+  order-report.mjs        ← QA: slices Stevens headword order/letter warnings
+  teeuw-order-report.mjs  ← QA: slices Teeuw headword order/letter warnings
 ```
 
 ## How It Works
 
-1. `index.ts` finds all `dict/**/*.md` files via `glob`, then groups them by
-   output chapter so a core file (`teeuw.a.md`) and its optional supplement
-   (`teeuw.a+.md`) compile together into a single `teeuw.a.json`
+1. `index.ts` finds all `{teeuw,stevens}/**/*.md` files under the source dir via
+   `glob`, then groups them by output chapter so a core file (`teeuw.a.md`) and
+   its optional supplement (`teeuw.a+.md`) compile together into a single
+   `teeuw.a.json`
 2. `Compiler` reads each source file line-by-line, groups entries by blank lines,
    and streams them all into one output (reusing the parser across files so
    homonym numbering carries across the core -> supplement boundary)
@@ -42,6 +61,7 @@ Custom markup syntax:
 | `^` | Revert marker: resets `~` (and bare sense numbers) back to the `base` until the next bold word; emits no lemma. Used where a headword's compound list resumes after a bold compound. May be its own line or a sublemma prefix (`^ *~ x*`). The compiler emits a non-fatal warning when a `~` binds to a compound after its derivation with no `^` (a likely-missing marker) |
 | `+` | Space (in compound words) |
 | `->` | Cross-reference separator (bold words after it are `keyword: 0`) |
+| `//` | Comment line: ignored entirely, and does **not** break the surrounding block (not treated as a blank-line separator) |
 | Blank line | Entry delimiter (resets the `base`) |
 | `1`, `2`, etc. | Sub-sense of the current headword |
 
@@ -81,13 +101,33 @@ for the full design (Part 2).
 ```
 
 Lookups are resolved on the client by the `[lang, wordLower]` IndexedDB index
-(case-insensitive prefix search) and ordered for display by `homonym`; the
-keyword/reference distinction is carried by the `keyword` flag. The compiler
-therefore emits no positional sort key.
+(case- and accent-insensitive prefix search — the client folds keys via
+`foldKey()`) and ordered for display by `homonym`; the keyword/reference
+distinction is carried by the `keyword` flag. The compiler therefore emits no
+positional sort key.
 
 Lemmas from a supplement file additionally carry `"isSupplement": true` at the
 lemma level (omitted for core lemmas, so their JSON is byte-identical to a
 single-file compile).
+
+## Headword validation
+
+`Compiler` can validate that headwords are alphabetically ordered and that each
+starts with its chapter's leading letter. For a dictionary generated from a
+correctly-ordered PDF, a violation marks a transcription/conversion artifact, so
+these are QA warnings rather than fatal errors.
+
+Validation is **opt-in per parser** via the `validateHeadwords` flag in
+`parser-registry.ts`, and is **off** for both dictionaries during a normal
+compile (`build`/`start`) so the output stays quiet. The two QA scripts
+(`scripts/order-report.mjs`, `scripts/teeuw-order-report.mjs`) flip the flag on,
+recompile, and slice the resulting warnings by letter and repair shape. The
+order key ignores parenthesized fragments and keeps internal periods/slashes in
+headword tokens so multi-word and abbreviated headwords sort the way the print
+does.
+
+`//` comment lines and out-of-order entries do not abort a compile; comments are
+skipped and order violations only surface as warnings under the QA scripts.
 
 ## Testing
 
@@ -96,8 +136,9 @@ Uses **Vitest** (`vitest run`), run via `pnpm --filter compiler run test`.
 Test files (in `src/__tests__/`):
 - `helpers.test.ts` — `removeParenthesizedFragments()`
 - `tokenizer.test.ts` — Tokenizer token sequences
-- `parser.test.ts` — `TeeuwParser` extraction logic
-- `compiler.test.ts` — `Compiler` integration (multi-group compilation, homonym assignment, malformed-file handling, core+supplement merge with `isSupplement`)
+- `parser.test.ts` — `TeeuwParser` extraction logic (incl. homonym numbering past II)
+- `stevens-parser.test.ts` — `StevensParser` extraction logic
+- `compiler.test.ts` — `Compiler` integration (multi-group compilation, homonym assignment, malformed-file handling, core+supplement merge with `isSupplement`, headword-order/leading-letter validation, `//` comment skipping)
 
 ## Known Issues
 

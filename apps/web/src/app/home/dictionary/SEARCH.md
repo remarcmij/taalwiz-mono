@@ -537,19 +537,19 @@ there only as a usage) is dropped entirely while collapsed, so it never renders 
 card. Expanding shows every lemma and every base — matching the condensed word-click dialog's
 keyword-only view, just with an opt-in to the full detail.
 
-### Case-Insensitive Keys
+### Case- and Accent-Insensitive Keys
 
-Lookups are case-insensitive. Each stored record carries a `wordLower` field (the lowercased `word`, added in `transformDict()`), and both query methods match against the `by-lang-wordlower` compound index `[lang, wordLower]`. The original `word` is preserved for display.
+Lookups are case- **and accent-insensitive**. Each stored record carries a `wordLower` field — the `word` run through `foldKey()` (`dict-db.ts`), which NFD-decomposes, drops combining diacritics (`\p{Mn}`), and lowercases. It is added in `transformDict()`, and both query methods match against the `by-lang-wordlower` compound index `[lang, wordLower]` after folding the query with the same `foldKey()`. The original `word` is preserved (with its casing and accents) for display.
 
-This matters for proper nouns: the dictionary stores headwords with their natural casing (e.g. `Belanda`, the keyword-flagged entry for "the Netherlands"). Without case folding, a lowercase query like `belanda` could never exact-match the capitalized key, so the search would fail even though the word exists. (IndexedDB compares string keys by UTF-16 code unit, and `'B'` sorts before `'b'`.)
+This matters for proper nouns: the dictionary stores headwords with their natural casing (e.g. `Belanda`, the keyword-flagged entry for "the Netherlands"). Without case folding, a lowercase query like `belanda` could never exact-match the capitalized key, so the search would fail even though the word exists. (IndexedDB compares string keys by UTF-16 code unit, and `'B'` sorts before `'b'`.) Accent folding matters for Stevens, whose headwords carry an acute accent as a pronunciation aid (`boléh`): typing `boleh` folds to the same key and finds it.
 
 The IDB schema (version 4) defines a single index, `by-lang-wordlower`. Both lookup methods use it, so there are no unused indexes to maintain — keeping per-record write cost low during the bulk import of the full dictionary (~270k word records).
 
 ### Exact Match
 
-The IDB query uses `IDBKeyRange.only([lang, word.toLowerCase()])` on the `by-lang-wordlower` compound index — exact match on `lang` plus the lowercased word. There is no prefix or regex matching at this layer. This is why variation generation is necessary on the client side before querying IDB.
+The IDB query uses `IDBKeyRange.only([lang, foldKey(word)])` on the `by-lang-wordlower` compound index — exact match on `lang` plus the folded (case- and accent-stripped) word. There is no prefix or regex matching at this layer. This is why variation generation is necessary on the client side before querying IDB.
 
-Prefix queries (autocomplete suggestions) lowercase the prefix and use `IDBKeyRange.bound([lang, start], [lang, start + '￿'])` on the same index via `DictStoreService.findWordsStartingWith()`. Results are deduplicated by `wordLower`, so `Belanda` and `belanda` collapse to one suggestion.
+Prefix queries (autocomplete suggestions) fold the prefix with `foldKey()` and use `IDBKeyRange.bound([lang, start], [lang, start + '￿'])` on the same index via `DictStoreService.findWordsStartingWith()`. Results are deduplicated by `wordLower`, so `Belanda` and `belanda` collapse to one suggestion.
 
 ---
 
