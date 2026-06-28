@@ -106,6 +106,20 @@ describe('TeeuwParser', () => {
       expect(parser.homonym).toBe(1);
     });
 
+    it('homonym keeps incrementing past 1 for a third and fourth occurrence', () => {
+      const parser = new TeeuwParser();
+      parser.parseLine('**abu** I, as');
+      parser.reset();
+      parser.parseLine('**abu** II, kleur');
+      expect(parser.homonym).toBe(1);
+      parser.reset();
+      parser.parseLine('**abu** III, verliezen');
+      expect(parser.homonym).toBe(2);
+      parser.reset();
+      parser.parseLine('**abu** IV, sv vis');
+      expect(parser.homonym).toBe(3);
+    });
+
     it('homonym stays 0 when a different base follows after reset', () => {
       const parser = new TeeuwParser();
       parser.parseLine('**abad** I, eeuw');

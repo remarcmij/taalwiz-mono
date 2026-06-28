@@ -28,7 +28,10 @@ export default class StevensParser extends ParserBase {
     this._prevBase = this._base;
     this._base = null;
     this._tildeWord = null;
-    this._homonym = 0;
+    // Do NOT zero `_homonym` here. `setBase()` fully governs it on the next
+    // block's headword: 0 for a fresh base, +1 for a repeat. Zeroing it first
+    // capped a repeated headword at homonym 1, so a word with three or more
+    // homonyms (ékor I/II/III/IV) collapsed III+ onto II's number.
   }
 
   parseLine(line: string): ParserResult {
