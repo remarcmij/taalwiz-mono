@@ -1,7 +1,7 @@
 # Stevens Parser
 
 How the Stevens Indonesian->English dictionary markdown source
-(`dict/stevens/*.md`) is compiled into chapter JSON (`json/stevens.*.json`). The
+(`dict/stevens/*.md`) is compiled into chapter JSON (`json/stevens/stevens.*.json`). The
 parser (`src/compiler/StevensParser.ts`) is a sibling of the Teeuw parser: it
 inherits the same block / `base` / `keyword` / `homonym` model and the
 parenthesis double-pass from `ParserBase`, so read [TEEUW_PARSER.md](./TEEUW_PARSER.md)

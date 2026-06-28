@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Compiler } from './compiler/Compiler.js';
+import { parserRegistry } from './compiler/parser-registry.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -46,7 +47,14 @@ async function main() {
   const promises = [...groups].map(([outStem, inFiles]) => {
     // Core (no `+`) before supplement, so homonyms continue from the core.
     inFiles.sort((a, b) => Number(/\+\.md$/i.test(a)) - Number(/\+\.md$/i.test(b)));
-    const outFile = path.join(destPath, `${outStem}.json`);
+    // Each dictionary's chapters go in their own subfolder (json/teeuw/,
+    // json/stevens/) so a dictionary's files can be uploaded as one tidy set.
+    // The subfolder is the matching parser-registry prefix (outStem is
+    // `<dict>.<letter>`); fall back to the root if no prefix matches.
+    const dict = parserRegistry.find(({ prefix }) => outStem.startsWith(prefix));
+    const outDir = dict ? path.join(destPath, dict.prefix) : destPath;
+    fs.mkdirSync(outDir, { recursive: true });
+    const outFile = path.join(outDir, `${outStem}.json`);
     return new Compiler(inFiles, outFile).run();
   });
 

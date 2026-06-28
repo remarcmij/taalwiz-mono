@@ -41,8 +41,10 @@ const jsonDir = path.join(__dirname, '..', 'json');
 // Build the set of Indonesian keyword headwords (lowercased), i.e. the words a
 // lookup treats as a "hit". Mirrors #searchLocal's `keyword === 1` test.
 const keywordId = new Set<string>();
-for (const file of fs.readdirSync(jsonDir)) {
-  if (!file.endsWith('.json')) continue;
+// Chapters live in per-dictionary subfolders (json/teeuw/, json/stevens/), so
+// read recursively to pick them up regardless of nesting depth.
+for (const file of fs.readdirSync(jsonDir, { recursive: true })) {
+  if (typeof file !== 'string' || !file.endsWith('.json')) continue;
   const raw = JSON.parse(fs.readFileSync(path.join(jsonDir, file), 'utf8'));
   const lemmas = Array.isArray(raw) ? raw : raw.lemmas;
   for (const lemma of lemmas) {

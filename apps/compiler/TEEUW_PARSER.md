@@ -1,7 +1,7 @@
 # Teeuw Parser
 
 How the Teeuw dictionary markdown source (`dict/teeuw/*.md`) is compiled into the chapter
-JSON (`json/teeuw.*.json`) the app loads. Three things live here:
+JSON (`json/teeuw/teeuw.*.json`) the app loads. Three things live here:
 
 - **Part 1** — how the parser derives each word's role from the markup: headword (`base`) vs
   `keyword`, and the `homonym` number.
