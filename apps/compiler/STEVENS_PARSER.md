@@ -71,6 +71,30 @@ The parser rewrites it to Teeuw's `(*word*)` form (parens **outside**), which
 renders identically and is dropped cleanly as one unit. Empty emphasis spans and
 word-less ones (`*5*`, `*?*`, `*...*`) are likewise tolerated as no-ops.
 
+### 7. `_opp_` / `_cp_` reference markers
+
+Stevens introduces a cross-reference three ways: the `→` arrow (shared with
+Teeuw) and the italic markers `_opp_` (opposite) and `_cp_` (compare), e.g.
+`**abad**, … eternity; _opp_ **AJAL**.`. All three mean "the bold word that
+follows points at another keyword", so that word must be indexed as a
+**reference** (`referenceWords`, `keyword: 0`), not as a source keyword of the
+current entry.
+
+The arrow does this by setting an `arrowSeen` latch that routes the next
+`**…**` into `referenceWords`. The italic markers are otherwise invisible (an
+`_…_` span is skipped during extraction), so `extractWords` reads the span text
+and latches the same flag when it is exactly `opp` or `cp` — any other italic
+marker (`_naut_`, `_A_`, …) is skipped as before. Without this, the referenced
+word was wrongly registered as an additional headword of the current lemma,
+polluting the lemma index (e.g. `abad` falsely claiming to be a headword for
+`ajal`). A homonym self-reference like `**ASU** II … _cp_ **ASU** I` is
+unaffected: there the referenced word *is* the headword, so it stays a keyword.
+
+Note the markers attach the *closing* parenthesis of a parenthetical outside the
+bold span: `(… ; _cp_ **BARU**)`. A `)` typed inside the span (`**BARU)**`)
+collapses the bold delimiter in the parenthesis pass and aborts the chapter with
+`unterminated "**" fragment` (see Source quality).
+
 ## Source quality
 
 Stevens source is still being cleaned, so some blocks are genuinely malformed

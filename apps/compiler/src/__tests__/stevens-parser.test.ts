@@ -94,6 +94,29 @@ describe('StevensParser', () => {
     expect(result.targetWords).toStrictEqual(new Set(['dynasty']));
   });
 
+  it('routes a bold word after `_opp_` / `_cp_` to references, not keywords', () => {
+    // `_opp_` (opposite) and `_cp_` (compare) introduce a cross-reference just
+    // like `→`, so the following bold word is a reference, not a source keyword.
+    const oppParser = new StevensParser();
+    const opp = oppParser.parseLine('**abad**, eternity; _opp_ **AJAL**.');
+    expect(opp.sourceKeywords).toStrictEqual(new Set(['abad']));
+    expect(opp.referenceWords).toStrictEqual(new Set(['AJAL']));
+
+    const cpParser = new StevensParser();
+    const cp = cpParser.parseLine('**Aga** an honorific title; _cp_ **BAPAK**.');
+    expect(cp.sourceKeywords).toStrictEqual(new Set(['Aga']));
+    expect(cp.referenceWords).toStrictEqual(new Set(['BAPAK']));
+  });
+
+  it('still skips a non-reference italic span (e.g. `_naut_`)', () => {
+    // A normal italic marker must NOT latch the reference flag; a later bold
+    // headword stays a source keyword.
+    const parser = new StevensParser();
+    const result = parser.parseLine('**abah** __II__ (_naut_) bottom of a ship.');
+    expect(result.sourceKeywords).toStrictEqual(new Set(['abah']));
+    expect(result.referenceWords.size).toBe(0);
+  });
+
   it('tags glosses as English (targetLang "en")', () => {
     const parser = new StevensParser();
     expect(parser.sourceLang).toBe('id');

@@ -128,11 +128,16 @@ export default class StevensParser extends ParserBase {
           break;
         }
         case Token.Underscore: {
-          this.skipUntilSentinelToken(
-            tokenizer,
-            Token.Underscore,
-            'unterminated "_" fragment'
-          );
+          // An italic span. Two markers introduce a cross-reference exactly like
+          // the `→` arrow: `_opp_` (opposite) and `_cp_` (compare). The `**WORD**`
+          // that follows them is a reference to another keyword, NOT a source
+          // keyword of this entry, so latch `arrowSeen` to route it into
+          // `referenceWords`. Any other italic span (`_naut_`, `_A_`, …) is just
+          // skipped.
+          const span = this.readUnderscoreSpan(tokenizer);
+          if (span === 'opp' || span === 'cp') {
+            arrowSeen = true;
+          }
           break;
         }
         case Token.Comma:
@@ -276,6 +281,24 @@ export default class StevensParser extends ParserBase {
         wordSet.add(filtered[0]);
       }
     }
+  }
+
+  // Consume an italic `_..._` span and return its text (the words joined by a
+  // single space), so the caller can recognise the `_opp_` / `_cp_` reference
+  // markers. Throws on an unterminated span, like skipUntilSentinelToken.
+  readUnderscoreSpan(tokenizer: Tokenizer): string {
+    const words: string[] = [];
+    let token = tokenizer.next();
+    while (token !== Token.Underscore) {
+      if (token === Token.Done) {
+        throw new Error('unterminated "_" fragment');
+      }
+      if (token === Token.Word) {
+        words.push(tokenizer.value);
+      }
+      token = tokenizer.next();
+    }
+    return words.join(' ');
   }
 
   skipUntilSentinelToken(
