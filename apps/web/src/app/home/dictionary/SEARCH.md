@@ -525,17 +525,42 @@ The dictionary page search passes `keywordOnly=false`, so the store returns _all
 that mention the word, including its appearances as a usage inside other headwords
 (`ékor` inside `ékor angin`).
 
-**Display-time collapse.** Fetching everything but *showing* only the headword senses by
-default is a view concern, kept out of the store so the full set stays available for the
-toggle. The dictionary page has a global **expand/collapse usages** control (header button,
-chevron + `meer`/`minder`; `DictionaryPage.showUsages`, default collapsed). Collapsed, it
-shows only lemmas where the searched word is the headword — the shared
-`isHeadwordLemma(lemma)` predicate (`lemma/lemma.model.ts`, `keyword === 1`), which
-`LemmaComponent.displayLemmas` filters by. The same predicate also drives
-`DictionaryPage.visibleBases()`: a base whose lemmas are _all_ non-headword (the word occurs
-there only as a usage) is dropped entirely while collapsed, so it never renders as an empty
-card. Expanding shows every lemma and every base — matching the condensed word-click dialog's
-keyword-only view, just with an opt-in to the full detail.
+**Display-time detail tiers.** Fetching everything but *showing* a chosen level of detail is
+a view concern, kept out of the store so the full set stays available. The dictionary page
+has a global three-tier control (a header button that cycles the tier; `DictionaryPage.detailLevel`,
+default `headword`):
+
+- `headword` — only the entry's own senses (matches the condensed word-click dialog)
+- `derived` — adds derived sub-headwords (`berékor`, `mengékor` under `ékor`)
+- `all` — adds the italic example usages
+
+One input is a per-line **`lineKind`** (`'headword' | 'derived' | 'usage'`) computed at
+**import time**, not from the rendered text. `dict-db.ts` `classifyLine()` reads the parser's
+structured keyword roles in `words[]` — a line with no source-language `keyword === 1` word is
+a `usage`; one whose source keyword is the entry's `base` is a `headword`; any other source
+keyword makes it `derived`. The common `headword` is omitted from the stored record (read back
+as the default), like `isSupplement`.
+
+But `lineKind` is relative to the line's **own** base, which is not enough on its own: the
+"kumanga" line is kumanga's *headword* line that merely *contains* `barang kumanga` as a usage,
+so for a `barang` search it is a cross-reference, not a headword. So `lemmaVisibleAt(lemma, level)`
+(`lemma/lemma.model.ts`) ranks each line **relative to the searched word**, combining `lineKind`
+with two signals the record already carries — `keyword` (is the searched word the keyword on
+this line?) and `word === baseWord` (does the line belong to the word's own entry?):
+
+- `keyword === 1` → tier 0 (`headword`): the searched word is itself the keyword (its own
+  sense, or a derived form searched directly like `memukul`).
+- else `lineKind === 'derived'` **and** `word === baseWord` → tier 1 (`derived`): a derivative
+  of the word's own entry.
+- else → tier 2 (`all`): a usage, or the word inside another headword (`barang` in `barang
+  kumanga`, where `baseWord` is `kumanga`).
+
+`LemmaComponent.displayLemmas` filters lines by `lemmaVisibleAt`, and `DictionaryPage.visibleBases()`
+drops a base with no line visible at the current tier — so a cross-reference card (`kumanga`,
+`palen`) appears only at `all`, and never renders empty below it.
+
+> Because `lineKind` is computed at import, it only populates after a dictionary re-sync;
+> records imported by an older build have no `lineKind` and fall back to `headword`.
 
 ### Case- and Accent-Insensitive Keys
 

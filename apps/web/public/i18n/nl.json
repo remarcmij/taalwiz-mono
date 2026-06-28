@@ -78,10 +78,10 @@
     "history": "Geschiedenis",
     "history-empty": "Geen recente zoekopdrachten",
     "clear-history": "Geschiedenis wissen",
-    "usages-more": "meer",
-    "usages-less": "minder",
-    "show-usages": "Voorbeelden tonen",
-    "hide-usages": "Voorbeelden verbergen"
+    "detail-hint": "Detailniveau (tik om te wisselen)",
+    "detail-headword": "minder",
+    "detail-derived": "meer",
+    "detail-all": "alles"
   },
   "bookmarks": {
     "empty": "Nog geen items in uw woordenschat. {{action}} op het bladwijzerpictogram bij een woordenboekresultaat.",

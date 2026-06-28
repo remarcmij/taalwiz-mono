@@ -7,15 +7,16 @@
     @if (hasResults()) {
       <ion-buttons slot="end">
         <ion-button
-          (click)="toggleUsages()"
-          [title]="(showUsages() ? 'dictionary.hide-usages' : 'dictionary.show-usages') | translate"
+          (click)="cycleDetail()"
+          [title]="'dictionary.detail-hint' | translate"
           [attr.aria-label]="
-            (showUsages() ? 'dictionary.hide-usages' : 'dictionary.show-usages') | translate
+            ('dictionary.detail-hint' | translate) + ': ' + ('dictionary.detail-' + detailLevel() | translate)
           ">
-          <ion-icon
-            slot="start"
-            [name]="showUsages() ? 'chevron-collapse-outline' : 'chevron-expand-outline'"></ion-icon>
-          {{ (showUsages() ? 'dictionary.usages-less' : 'dictionary.usages-more') | translate }}
+          <span class="detail-meter" aria-hidden="true">
+            @for (seg of [0, 1, 2]; track seg) {
+              <span class="seg" [class.filled]="seg <= detailRank()"></span>
+            }
+          </span>
         </ion-button>
       </ion-buttons>
     }
@@ -89,7 +90,7 @@
           <ion-card-content>
             <app-lemma
               [lemmas]="results.lemmas[base.key]"
-              [showUsages]="showUsages()"
+              [level]="detailLevel()"
               (clicked)="onWordClicked($event)"></app-lemma>
           </ion-card-content>
           <ion-button

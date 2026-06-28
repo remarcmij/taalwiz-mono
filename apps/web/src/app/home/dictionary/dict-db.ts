@@ -6,7 +6,7 @@
 // worker (`dict-import.worker.ts`) both import from here.
 
 import { IDBPDatabase, openDB } from 'idb';
-import { ILemma } from './lemma/lemma.model';
+import { ILemma, LineKind } from './lemma/lemma.model';
 
 export const DICT_DB_NAME = 'taalwiz-dict';
 export const DICT_DB_VERSION = 4;
@@ -63,9 +63,23 @@ export interface CompiledDict {
   lemmas: CompiledLemma[];
 }
 
+// Classify a compiled line from its keyword ROLES (not its rendered text), so
+// the dictionary view can show progressive detail tiers. `data.targetLang` is
+// the headword (source) language; target-language gloss words also carry
+// `keyword: 1`, so we restrict to source-language keywords:
+//   - no source keyword          → 'usage'    (an italic example phrase only)
+//   - the block's base is one     → 'headword' (a sense of the entry itself)
+//   - some other source word is   → 'derived'  (e.g. `berabang` under `abang`)
+export function classifyLine(lemma: CompiledLemma, srcLang: string): LineKind {
+  const srcKeywords = lemma.words.filter((w) => w.lang === srcLang && w.keyword === 1);
+  if (srcKeywords.length === 0) return 'usage';
+  return srcKeywords.some((w) => w.word === lemma.base) ? 'headword' : 'derived';
+}
+
 export function transformDict(data: CompiledDict): DictRecord[] {
   const records: DictRecord[] = [];
   for (const lemma of data.lemmas) {
+    const lineKind = classifyLine(lemma, data.targetLang);
     for (const wordDef of lemma.words) {
       records.push({
         word: wordDef.word,
@@ -77,6 +91,9 @@ export function transformDict(data: CompiledDict): DictRecord[] {
         text: lemma.text,
         homonym: lemma.homonym,
         ...(lemma.isSupplement ? { isSupplement: true } : {}),
+        // Omit the common 'headword' (read back as the default) to save space,
+        // mirroring the isSupplement pattern above.
+        ...(lineKind !== 'headword' ? { lineKind } : {}),
       });
     }
   }

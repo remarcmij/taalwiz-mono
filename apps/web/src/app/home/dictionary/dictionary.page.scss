@@ -66,3 +66,25 @@ ion-breadcrumb {
     --color: var(--supplement-text-color);
   }
 }
+
+// Three-segment "detail level" meter inside the header cycle button: a row of
+// equal bars that fill left-to-right (less → more → all) to show how much of
+// an entry is displayed. Plain CSS so it themes off the Ionic primary colour
+// and stays crisp at any density.
+.detail-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  .seg {
+    width: 14px;
+    height: 7px;
+    border: 1.5px solid var(--ion-color-primary);
+    border-radius: 2px;
+    box-sizing: border-box;
+
+    &.filled {
+      background: var(--ion-color-primary);
+    }
+  }
+}

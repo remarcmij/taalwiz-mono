@@ -78,10 +78,10 @@
     "history": "History",
     "history-empty": "No recent searches",
     "clear-history": "Clear history",
-    "usages-more": "more",
-    "usages-less": "less",
-    "show-usages": "Show examples",
-    "hide-usages": "Hide examples"
+    "detail-hint": "Detail level (tap to cycle)",
+    "detail-headword": "less",
+    "detail-derived": "more",
+    "detail-all": "all"
   },
   "bookmarks": {
     "empty": "No items in your vocabulary yet. {{action}} the bookmark icon while viewing a dictionary entry.",

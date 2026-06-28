@@ -21,7 +21,6 @@ import {
   IonCardTitle,
   IonContent,
   IonHeader,
-  IonIcon,
   IonItem,
   IonList,
   IonMenuButton,
@@ -32,8 +31,6 @@ import {
   ModalController,
   Platform,
 } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { chevronCollapseOutline, chevronExpandOutline } from 'ionicons/icons';
 
 import {
   Observable,
@@ -55,7 +52,7 @@ import { langConfig } from '../../app.constants';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
 import { DictionaryService, LookupResult } from './dictionary.service';
-import { isHeadwordLemma } from './lemma/lemma.model';
+import { lemmaVisibleAt, type DetailLevel } from './lemma/lemma.model';
 import { HistoryModalComponent } from './history-modal/history-modal.component';
 import { LemmaComponent } from './lemma/lemma.component';
 import { SearchHistoryService } from './search-history.service';
@@ -89,7 +86,6 @@ const MAX_RECENT_SEARCHES = 3;
     IonCardTitle,
     IonCardContent,
     IonButton,
-    IonIcon,
     TranslatePipe,
   ],
   templateUrl: './dictionary.page.html',
@@ -122,18 +118,18 @@ export class DictionaryPage implements OnDestroy {
   word = signal('');
   showSearches = signal(false);
   currentTarget = signal<WordLang | null>(null);
-  // Global expand/collapse for example usages. Default collapsed: entries show
-  // only headword definitions (keyword=1), matching the condensed word-click
-  // dialog; the toggle reveals the italic example phrases and derived-form
-  // cross-references. Resets to collapsed on each visit (per-session state).
-  showUsages = signal(false);
+  // Progressive detail tier for the results, cycled by the header button:
+  // `headword` (senses only, matching the condensed word-click dialog) →
+  // `derived` (+ derived sub-headwords) → `all` (+ italic example usages) →
+  // back to `headword`. Resets to the most condensed tier on each visit.
+  detailLevel = signal<DetailLevel>('headword');
   // Whether the current lookup produced at least one entry, so the toggle is
-  // only offered when there is something to expand.
+  // only offered when there is something to show.
   hasResults = signal(false);
 
-  constructor() {
-    addIcons({ chevronExpandOutline, chevronCollapseOutline });
-  }
+  // 0-based depth of the current tier, driving the segmented meter (how many of
+  // the three segments are filled): less → 1, more → 2, all → 3.
+  detailRank = computed(() => ({ headword: 0, derived: 1, all: 2 })[this.detailLevel()]);
 
   recentSearches = computed(() =>
     this.#historyService
@@ -284,16 +280,22 @@ export class DictionaryPage implements OnDestroy {
     this.#wordClickModalService.onClicked(event);
   }
 
-  toggleUsages() {
-    this.showUsages.update((v) => !v);
+  // Advance the detail tier: headword → derived → all → headword.
+  cycleDetail() {
+    this.detailLevel.update((l) =>
+      l === 'headword' ? 'derived' : l === 'derived' ? 'all' : 'headword',
+    );
   }
 
-  // Bases to render for the current view. Expanded: every base. Collapsed: only
-  // bases that have a headword definition of the searched word — a base where it
-  // appears solely as a usage (e.g. "ekor" inside "ékor angin") would otherwise
-  // render as an empty card, since all its lemmas are filtered out.
+  // Bases to render at the current tier. `all`: every base. Otherwise only bases
+  // with at least one lemma visible at this tier — a base where the searched
+  // word appears solely as a usage (e.g. "ekor" inside "ékor angin") would
+  // otherwise render as an empty card below the `all` tier.
   visibleBases(results: LookupResult): WordLang[] {
-    if (this.showUsages()) return results.bases;
-    return results.bases.filter((base) => results.lemmas[base.key].some(isHeadwordLemma));
+    const level = this.detailLevel();
+    if (level === 'all') return results.bases;
+    return results.bases.filter((base) =>
+      results.lemmas[base.key].some((l) => lemmaVisibleAt(l, level)),
+    );
   }
 }
