@@ -1,4 +1,4 @@
-@for (lemma of lemmas(); let idx = $index; track idx) {
+@for (lemma of displayLemmas(); let idx = $index; track idx) {
   <div
     class="noselect markdown-body text-content"
     [class.is-supplement]="lemma.isSupplement"

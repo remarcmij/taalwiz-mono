@@ -77,7 +77,11 @@
     "sync-done": "Woordenboek gereed voor offline gebruik.",
     "history": "Geschiedenis",
     "history-empty": "Geen recente zoekopdrachten",
-    "clear-history": "Geschiedenis wissen"
+    "clear-history": "Geschiedenis wissen",
+    "usages-more": "meer",
+    "usages-less": "minder",
+    "show-usages": "Voorbeelden tonen",
+    "hide-usages": "Voorbeelden verbergen"
   },
   "bookmarks": {
     "empty": "Nog geen items in uw woordenschat. {{action}} op het bladwijzerpictogram bij een woordenboekresultaat.",

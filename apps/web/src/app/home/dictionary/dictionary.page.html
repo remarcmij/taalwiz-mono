@@ -4,6 +4,21 @@
       <ion-menu-button menu="m1"></ion-menu-button>
     </ion-buttons>
     <ion-title>{{ 'common.dictionary' | translate }}</ion-title>
+    @if (hasResults()) {
+      <ion-buttons slot="end">
+        <ion-button
+          (click)="toggleUsages()"
+          [title]="(showUsages() ? 'dictionary.hide-usages' : 'dictionary.show-usages') | translate"
+          [attr.aria-label]="
+            (showUsages() ? 'dictionary.hide-usages' : 'dictionary.show-usages') | translate
+          ">
+          <ion-icon
+            slot="start"
+            [name]="showUsages() ? 'chevron-collapse-outline' : 'chevron-expand-outline'"></ion-icon>
+          {{ (showUsages() ? 'dictionary.usages-less' : 'dictionary.usages-more') | translate }}
+        </ion-button>
+      </ion-buttons>
+    }
   </ion-toolbar>
   <ion-toolbar>
     <ion-searchbar
@@ -63,7 +78,7 @@
     <ion-list lines="none">
       @if (results$ | async; as results) {
       <!---->
-      @for (base of results.bases; track base.key; let isFirst = $first) {
+      @for (base of visibleBases(results); track base.key; let isFirst = $first) {
       <ion-item class="ion-no-padding">
         <ion-card class="lemma-card">
           @if (isFirst) {
@@ -74,6 +89,7 @@
           <ion-card-content>
             <app-lemma
               [lemmas]="results.lemmas[base.key]"
+              [showUsages]="showUsages()"
               (clicked)="onWordClicked($event)"></app-lemma>
           </ion-card-content>
           <ion-button

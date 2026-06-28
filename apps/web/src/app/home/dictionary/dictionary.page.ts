@@ -21,6 +21,7 @@ import {
   IonCardTitle,
   IonContent,
   IonHeader,
+  IonIcon,
   IonItem,
   IonList,
   IonMenuButton,
@@ -31,6 +32,8 @@ import {
   ModalController,
   Platform,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { chevronCollapseOutline, chevronExpandOutline } from 'ionicons/icons';
 
 import {
   Observable,
@@ -51,7 +54,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { langConfig } from '../../app.constants';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
-import { DictionaryService } from './dictionary.service';
+import { DictionaryService, LookupResult } from './dictionary.service';
+import { isHeadwordLemma } from './lemma/lemma.model';
 import { HistoryModalComponent } from './history-modal/history-modal.component';
 import { LemmaComponent } from './lemma/lemma.component';
 import { SearchHistoryService } from './search-history.service';
@@ -85,6 +89,7 @@ const MAX_RECENT_SEARCHES = 3;
     IonCardTitle,
     IonCardContent,
     IonButton,
+    IonIcon,
     TranslatePipe,
   ],
   templateUrl: './dictionary.page.html',
@@ -117,6 +122,18 @@ export class DictionaryPage implements OnDestroy {
   word = signal('');
   showSearches = signal(false);
   currentTarget = signal<WordLang | null>(null);
+  // Global expand/collapse for example usages. Default collapsed: entries show
+  // only headword definitions (keyword=1), matching the condensed word-click
+  // dialog; the toggle reveals the italic example phrases and derived-form
+  // cross-references. Resets to collapsed on each visit (per-session state).
+  showUsages = signal(false);
+  // Whether the current lookup produced at least one entry, so the toggle is
+  // only offered when there is something to expand.
+  hasResults = signal(false);
+
+  constructor() {
+    addIcons({ chevronExpandOutline, chevronCollapseOutline });
+  }
 
   recentSearches = computed(() =>
     this.#historyService
@@ -141,6 +158,7 @@ export class DictionaryPage implements OnDestroy {
       const suppressHistoryAdd = this.#suppressHistoryAdd;
       this.#suppressHistoryAdd = false;
       this.currentTarget.set(results.targetBase);
+      this.hasResults.set(results.bases.length > 0);
       if (results.bases.length > 0) {
         if (!suppressHistoryAdd) {
           this.addRecentSearch(results.targetBase!);
@@ -264,5 +282,18 @@ export class DictionaryPage implements OnDestroy {
 
   onWordClicked(event: MouseEvent) {
     this.#wordClickModalService.onClicked(event);
+  }
+
+  toggleUsages() {
+    this.showUsages.update((v) => !v);
+  }
+
+  // Bases to render for the current view. Expanded: every base. Collapsed: only
+  // bases that have a headword definition of the searched word — a base where it
+  // appears solely as a usage (e.g. "ekor" inside "ékor angin") would otherwise
+  // render as an empty card, since all its lemmas are filtered out.
+  visibleBases(results: LookupResult): WordLang[] {
+    if (this.showUsages()) return results.bases;
+    return results.bases.filter((base) => results.lemmas[base.key].some(isHeadwordLemma));
   }
 }

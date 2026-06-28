@@ -7,7 +7,7 @@ import { getTraceLevel } from './indonesian-variation-generator';
 import { type ILemma } from './lemma/lemma.model';
 import { WordLang } from './word-lang.model';
 
-class LookupResult {
+export class LookupResult {
   targetBase: WordLang | null = null;
   bases: WordLang[] = [];
   lemmas: Record<string, ILemma[]> = {};
