@@ -66,7 +66,9 @@ export class Compiler {
     this.outFile = outFile;
   }
 
-  async run(): Promise<void> {
+  // Resolves to true on success, false if the file failed to compile, so the
+  // caller can report an overall pass/fail summary at the end of the run.
+  async run(): Promise<boolean> {
     let fsOut: WriteStream | null = null;
     // Tracks the file currently being read so error messages stay specific when
     // a chapter is compiled from more than one source file (core + supplement).
@@ -105,6 +107,7 @@ export class Compiler {
       fsOut = null;
 
       console.log(this.inFiles.map((f) => path.basename(f)).join(' + '));
+      return true;
     } catch (err: any) {
       if (err instanceof Error) {
         console.error(`Error processing file '${currentBaseName}': ${err.message}`);
@@ -121,6 +124,7 @@ export class Compiler {
         }
         fsOut = null;
       }
+      return false;
     } finally {
       if (fsOut) {
         fsOut.end();

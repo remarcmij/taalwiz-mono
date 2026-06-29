@@ -58,11 +58,24 @@ async function main() {
     return new Compiler(inFiles, outFile).run();
   });
 
-  await Promise.all(promises);
+  const results = await Promise.all(promises);
 
   const [s, ns] = process.hrtime(startTime);
   const ms = s * 1000 + ns / 1000000;
   console.log(`Total elapsed time: ${ms.toFixed(0)}ms`);
+
+  // Per-file errors are logged inline as they happen, but scroll out of view in
+  // a small terminal. Print a loud final summary so a failed chapter can't be
+  // missed, and exit non-zero so callers/CI can detect it.
+  const failed = results.filter((ok) => !ok).length;
+  if (failed > 0) {
+    console.error(
+      `\n*** COMPILATION FAILED: ${failed} of ${results.length} file(s) had errors (see above) ***`,
+    );
+    process.exitCode = 1;
+  } else {
+    console.log(`All ${results.length} file(s) compiled successfully.`);
+  }
 }
 
 main();
