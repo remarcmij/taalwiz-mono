@@ -67,23 +67,40 @@ ion-breadcrumb {
   }
 }
 
-// Three-segment "detail level" meter inside the header cycle button: a row of
-// equal bars that fill left-to-right (less → more → all) to show how much of
-// an entry is displayed. Plain CSS so it themes off the Ionic primary colour
-// and stays crisp at any density.
-.detail-meter {
+// "Detail level" glyph inside the header cycle button: a small page outline
+// whose lines of text accumulate top-down (one → two → three) to show how much
+// of an entry is displayed. Framed as a document (rather than bare stacked
+// lines) so it stays clearly distinct from the hamburger menu icon. Plain CSS
+// so it themes off the Ionic primary colour and stays crisp at any density.
+.detail-doc {
   display: inline-flex;
-  align-items: center;
-  gap: 3px;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2.5px;
+  width: 17px;
+  height: 21px;
+  padding: 3.5px 3px;
+  border: 1.5px solid var(--ion-color-primary);
+  border-radius: 2px;
+  box-sizing: border-box;
 
-  .seg {
-    width: 14px;
-    height: 7px;
-    border: 1.5px solid var(--ion-color-primary);
-    border-radius: 2px;
-    box-sizing: border-box;
+  .line {
+    height: 2px;
+    border-radius: 1px;
+    background: transparent;
 
-    &.filled {
+    // Ragged widths so the stack reads as lines of text, not a barcode.
+    &:nth-child(1) {
+      width: 100%;
+    }
+    &:nth-child(2) {
+      width: 70%;
+    }
+    &:nth-child(3) {
+      width: 90%;
+    }
+
+    &.shown {
       background: var(--ion-color-primary);
     }
   }

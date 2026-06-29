@@ -12,9 +12,9 @@
           [attr.aria-label]="
             ('dictionary.detail-hint' | translate) + ': ' + ('dictionary.detail-' + detailLevel() | translate)
           ">
-          <span class="detail-meter" aria-hidden="true">
+          <span class="detail-doc" aria-hidden="true">
             @for (seg of [0, 1, 2]; track seg) {
-              <span class="seg" [class.filled]="seg <= detailRank()"></span>
+              <span class="line" [class.shown]="seg <= detailRank()"></span>
             }
           </span>
         </ion-button>
