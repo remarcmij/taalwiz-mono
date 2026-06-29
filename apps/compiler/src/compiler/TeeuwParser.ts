@@ -123,6 +123,10 @@ export default class TeeuwParser extends ParserBase {
         }
 
         case Token.Arrow:
+        case Token.Equals:
+          // Both `→` and `=` introduce a cross-reference: a following
+          // `**word**` is a reference to another keyword, not a source
+          // keyword of this entry.
           arrowSeen = true;
           break;
 

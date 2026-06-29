@@ -6,6 +6,7 @@ export const enum Token {
   DblStar,
   DblUnder,
   Done,
+  Equals,
   LeftBracket,
   Numeric,
   Other,
@@ -39,6 +40,7 @@ const TOKEN_PATTERNS = [
   { regex: /^\[/, token: Token.LeftBracket },
   { regex: /^]/, token: Token.RightBracket },
   { regex: /^→/, token: Token.Arrow },
+  { regex: /^=/, token: Token.Equals },
   { regex: /^./, token: Token.Other },
 ];
 
