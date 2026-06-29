@@ -1,8 +1,9 @@
-@for (lemma of displayLemmas(); let idx = $index; track idx) {
+@for (item of displayLemmas(); let idx = $index; track idx) {
   <div
     class="noselect markdown-body text-content"
-    [class.is-supplement]="lemma.isSupplement"
-    [innerHTML]="convertMarkdown(lemma.text)"
+    [class.is-supplement]="item.lemma.isSupplement"
+    [class.homonym-start]="item.newHomonym"
+    [innerHTML]="convertMarkdown(item.lemma.text)"
     (click)="clicked.emit($event)"
   ></div>
 }
