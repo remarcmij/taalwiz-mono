@@ -175,7 +175,53 @@ export const COMMON_WORDS_EN = new Set([
   "one's",
 ]);
 
-// Hard-ignored connectors that are never a valid standalone English gloss and
-// would otherwise be indexed via Rule 1 when left alone in a fragment (e.g. the
-// `and` bridging two headwords in `**X** and **Y**`). Dropped unconditionally.
-export const IGNORED_WORDS_EN = new Set(['and', 'or']);
+// Hard-ignored English function words that are never a valid standalone gloss
+// and would otherwise be indexed via the single-word rule in selectTargetWord
+// (e.g. the `and` bridging two headwords in `**X** and **Y**`, or a lone `he`
+// fragment). Dropped unconditionally, before the fragment's word count is taken,
+// so they also clean up multi-word disambiguation.
+//
+// Deliberately EXCLUDES prepositions (in, on, at, by, to, of, for, with) and
+// content-bearing verbs (have, can, will, must, may): those legitimately gloss
+// Indonesian words (di -> in/at/on, ke -> to, harus -> must) and stay indexable.
+export const IGNORED_WORDS_EN = new Set([
+  // articles & coordinating connectors
+  'and',
+  'or',
+  'nor',
+  'the',
+  'an',
+  // copula / `be` forms
+  'be',
+  'is',
+  'am',
+  'are',
+  'was',
+  'were',
+  'been',
+  'being',
+  // auxiliary `do`
+  'do',
+  'does',
+  'did',
+  // pronouns (subject / object / possessive)
+  'he',
+  'she',
+  'we',
+  'they',
+  'it',
+  'me',
+  'him',
+  'her',
+  'us',
+  'them',
+  'my',
+  'his',
+  'its',
+  'our',
+  'their',
+  // non-prepositional particles / subordinators
+  'as',
+  'if',
+  'so',
+]);

@@ -7,6 +7,14 @@ import {
 import ParserBase, { ParserResult } from './ParserBase.js';
 import Tokenizer, { Token } from './Tokenizer.js';
 
+// A lone single-letter token (sense enumerators `a`/`b`, stray OCR letters) or a
+// token with no letter at all (`'`, `+`) is never a meaningful English gloss, so
+// it should not enter the reverse index. Alphabet-letter headwords (`p`, `P`) are
+// indexed separately as `id` keywords and so are unaffected by this gate.
+function isIndexableGloss(word: string): boolean {
+  return word.length > 1 && /\p{L}/u.test(word);
+}
+
 // Parser for the Stevens Indonesian->English dictionary. It shares Teeuw's
 // block/base/keyword/homonym model and parenthesis double-pass (inherited from
 // ParserBase), with the format-specific differences spelled out in
@@ -277,13 +285,18 @@ export default class StevensParser extends ParserBase {
 
     let filtered = words.filter((word) => !EDITORIAL_MARKERS_EN.has(word));
 
+    let candidate: string | undefined;
     if (filtered.length == 1) {
-      wordSet.add(filtered[0]);
+      candidate = filtered[0];
     } else {
       filtered = filtered.filter((word) => !COMMON_WORDS_EN.has(word));
       if (filtered.length === 1) {
-        wordSet.add(filtered[0]);
+        candidate = filtered[0];
       }
+    }
+
+    if (candidate !== undefined && isIndexableGloss(candidate)) {
+      wordSet.add(candidate);
     }
   }
 
