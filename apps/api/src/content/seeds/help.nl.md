@@ -28,7 +28,9 @@ Tik op het pictogram __tonen/oefenen__ in de titelbalk om jezelf te testen: in d
 
 Met het Woordenboek kun je Indonesische woorden opzoeken. Typ je zoekterm in de zoekbalk; er verschijnen suggesties terwijl je typt. Druk op __Enter__ of wacht even voor het volledige resultaat.
 
-Elke vermelding toont de lemma (basisvorm) van het woord, samen met de Nederlandse vertaling en eventuele verwante vormen. Je kunt op een verwante vorm tikken om naar het bijbehorende item te navigeren. De app slaat je recente zoekopdrachten op, zodat je snel kunt terugkeren naar eerder opgezochte woorden.
+Elke vermelding toont de basisvorm van het woord, samen met de Nederlandse vertaling en eventuele verwante vormen. Je kunt op een verwante vorm tikken om naar het bijbehorende item te navigeren. De app slaat je recente zoekopdrachten op, zodat je snel kunt terugkeren naar eerder opgezochte woorden.
+
+Een knop rechtsboven (een klein paginapictogram) regelt hoeveel detail elke vermelding toont, oplopend van alleen de betekenis van het woord zelf, via verwante woorden, tot de volledige vermelding met voorbeeldzinnen.
 
 __Offline gebruik:__ Het woordenboek werkt zonder internetverbinding zodra het naar je apparaat is gedownload. Terwijl het wordt bijgewerkt, verschijnt rechtsboven op elk scherm een kleine __Woordenboek bijwerken__-chip met een live percentage; bij de allereerste opbouw toont de Woordenboek-pagina daarnaast een volledige voortgangsbanner. Als het woordenboek nog niet is gedownload, of als er een update beschikbaar is, begint de app automatisch te synchroniseren zodra je online bent.
 

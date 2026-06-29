@@ -28,7 +28,9 @@ Tap the __show/quiz__ icon in the panel title to test yourself: in quiz mode the
 
 The Dictionary lets you look up Indonesian words. Type your search term in the search bar; suggestions appear as you type. Press __Enter__ or wait briefly for the full result.
 
-Each entry shows the word's lemma (base form) along with its Dutch translation and any related forms. You can tap a related form to navigate to its own entry. The app stores your recent searches so you can quickly return to words you looked up earlier.
+Each entry shows the word's base form along with its Dutch translation and any related forms. You can tap a related form to navigate to its own entry. The app stores your recent searches so you can quickly return to words you looked up earlier.
+
+A button in the top-right corner (a small page icon) sets how much detail each entry shows, stepping from just the word's own meaning, to related words, to the full entry with example phrases.
 
 __Offline use:__ The dictionary works without an internet connection once it has been downloaded to your device. While it is updating, a small __Updating dictionary__ chip with a live percentage appears in the top-right corner of any screen; on the first build, the Dictionary page also shows a full progress banner. If the dictionary is not yet downloaded, or if an update is available, the app will begin syncing automatically when you are online.
 
