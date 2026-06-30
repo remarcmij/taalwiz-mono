@@ -18,9 +18,14 @@ export class WordClickModalService {
   #modalCtrl = inject(ModalController);
 
   onClicked(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    // Only emphasised target-language words are wrapped in a <span> (and coloured
+    // teal); native (Dutch) text is a plain text node, so a tap on or near it
+    // surfaces a non-span target. Ignore those so the modal opens only on a word.
+    if (target.tagName !== 'SPAN') return;
+
     event.preventDefault();
     event.stopPropagation();
-    const target = event.target as HTMLInputElement;
 
     const wordLang = this.getWordClickParams(target);
     if (!wordLang) return;
