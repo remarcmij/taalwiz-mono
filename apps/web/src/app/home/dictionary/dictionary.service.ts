@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, from, Observable } from 'rxjs';
 
 import { langConfig } from '../../app.constants';
+import { foldKey } from './dict-db';
 import { DictStoreService } from './dict-store.service';
 import { getTraceLevel } from './indonesian-variation-generator';
 import { type ILemma } from './lemma/lemma.model';
@@ -126,7 +127,7 @@ export class DictionaryService {
       for (const w of variations) {
         const lemmas = await this.#dictStore.findByWordAndLang(w, lang, keywordOnly);
         if (lemmas.length > 0) {
-          result = { word: w, lang, lemmas, haveMore: false };
+          result = { word: w, lang, lemmas: leadWithOwnEntry(lemmas, w), haveMore: false };
           break;
         }
       }
@@ -176,6 +177,19 @@ function makeLookupResult(response: LookupResponse) {
   }
 
   return newResult;
+}
+
+// Order the flat lemma list so the entry that IS the looked-up word (its base
+// equals the matched form) leads, the word-click-modal analogue of
+// reorderLookupResult. The modal groups lemmas by base in array order, so a
+// homonym like "muka" that also appears inside compounds ("hadap muka", base
+// "hadap") would otherwise render behind them. Stable: every other entry keeps
+// its relative order. Comparison is folded so accents/casing don't defeat it.
+function leadWithOwnEntry(lemmas: ILemma[], word: string): ILemma[] {
+  const key = foldKey(word);
+  const own = lemmas.filter((l) => foldKey(l.baseWord) === key);
+  if (own.length === 0 || own.length === lemmas.length) return lemmas;
+  return [...own, ...lemmas.filter((l) => foldKey(l.baseWord) !== key)];
 }
 
 function reorderLookupResult(result: LookupResult) {
