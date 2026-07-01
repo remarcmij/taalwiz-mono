@@ -180,8 +180,14 @@ function makeLookupResult(response: LookupResponse) {
 
 function reorderLookupResult(result: LookupResult) {
   const headBase =
-    result.bases.find((base) => result.lemmas[base.key].some((l) => l.keyword === 1)) ??
-    result.bases.find((base) => base.key === result.targetBase!.key);
+    // Prefer the entry that IS the searched headword (its base equals the search
+    // term), so looking up "muka" leads with the "muka" entry rather than an
+    // entry that merely uses "muka" in a compound (e.g. "hadap muka" under base
+    // "hadap", which also tags "muka" as a keyword).
+    result.bases.find((base) => base.key === result.targetBase!.key) ??
+    // Otherwise a derived form was searched directly (e.g. "memukul" → base
+    // "pukul"); lead with the entry where the searched word is the keyword.
+    result.bases.find((base) => result.lemmas[base.key].some((l) => l.keyword === 1));
   if (headBase) {
     const otherBases = result.bases.filter((base) => base.key !== headBase.key);
     result.bases = [headBase, ...otherBases];
