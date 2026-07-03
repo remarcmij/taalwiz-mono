@@ -108,7 +108,7 @@ export class Compiler {
 
       console.log(this.inFiles.map((f) => path.basename(f)).join(' + '));
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(`Error processing file '${currentBaseName}': ${err.message}`);
       } else {
@@ -213,8 +213,9 @@ export class Compiler {
         }
         const lemma = this.buildLemma(result);
         lemmas.push(lemma);
-      } catch (err: any) {
-        throw new Error(`[${lineIndex + 1}] ${err.message}`);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        throw new Error(`[${lineIndex + 1}] ${message}`);
       }
     }
 

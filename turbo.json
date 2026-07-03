@@ -8,6 +8,7 @@
     "CUSTODIAN_EMAIL",
     "DEMO_EMAIL",
     "DEMO_PASSWORD",
+    "DICT_DIR",
     "HOST_URL",
     "JWT_REFRESH_SECRET",
     "JWT_SECRET",

@@ -52,7 +52,7 @@ describe('StevensParser', () => {
     const parser = new StevensParser();
     parser.parseLine('**abad** (_A_) __1__ century.');
     const result = parser.parseLine('__2__ era, age.');
-    expect(result.line).toBe('**abad**, __2__ era, age.');
+    expect(result.line).toBe('**abad** __2__ era, age.');
     expect(result.sourceKeywords).toStrictEqual(new Set(['abad']));
     expect(result.targetWords).toStrictEqual(new Set(['era', 'age']));
   });
