@@ -25,8 +25,9 @@ function isIndexableGloss(word: string): boolean {
 //   - `~` is the nearest-previous-keyword placeholder (Teeuw's `tildeWord`);
 //   - sense numbers are `__N__`, and an `__N__`-led line continues the nearest
 //     keyword (the `__` analog of Teeuw's bare-digit lines);
-//   - a derived keyword may be wrapped as `_**word**_`, which is unwrapped so the
-//     bold keyword is indexed rather than skipped as an italic span.
+//   - a derived keyword may be wrapped bold-italic as `_**word**_` (kept intact
+//     so it renders bold-italic like the print original); the nested bold word
+//     is indexed exactly like a plain `**word**` keyword.
 export default class StevensParser extends ParserBase {
   constructor() {
     super('id', 'en');
@@ -43,10 +44,11 @@ export default class StevensParser extends ParserBase {
   }
 
   parseLine(line: string): ParserResult {
-    // Unwrap a derived keyword an editor wrapped in italics (`_**bercacah**_`):
-    // strip the outer underscores so the bold span is tokenized and indexed,
-    // instead of being swallowed whole by the `_..._` skip.
-    line = line.replace(/_(\*\*[^*]+\*\*)_/g, '$1');
+    // A derived keyword an editor wrapped in bold-italic (`_**bercacah**_`,
+    // rendering like the printed dictionary's bold-italic sub-entries) is left
+    // intact here; `extractWords` recognises the nested `**...**` and indexes
+    // it like a plain bold keyword instead of skipping it as a plain italic
+    // span.
 
     // Normalize a whole-span-optional reference from Stevens' `*(word)*` (parens
     // INSIDE the emphasis) to Teeuw's `(*word*)` (parens OUTSIDE). Both render the
@@ -136,13 +138,31 @@ export default class StevensParser extends ParserBase {
           break;
         }
         case Token.Underscore: {
+          const peeked = tokenizer.next();
+          if (peeked === Token.DblStar) {
+            // A bold-in-italic derived keyword, `_**word**_`: kept intact in
+            // the rendered line (so it prints bold-italic like the source),
+            // but indexed exactly like a plain `**word**` keyword here.
+            if (arrowSeen) {
+              this.parseDblStarFragment(tokenizer, result.referenceWords);
+            } else {
+              this.tildeWord = null;
+              this.parseDblStarFragment(tokenizer, result.sourceKeywords);
+            }
+            const closing = tokenizer.next();
+            if (closing !== Token.Underscore) {
+              throw new Error('unterminated "_**...**_" fragment');
+            }
+            break;
+          }
+
           // An italic span. Two markers introduce a cross-reference exactly like
           // the `→` arrow: `_opp_` (opposite) and `_cp_` (compare). The `**WORD**`
           // that follows them is a reference to another keyword, NOT a source
           // keyword of this entry, so latch `arrowSeen` to route it into
           // `referenceWords`. Any other italic span (`_naut_`, `_A_`, …) is just
           // skipped.
-          const span = this.readUnderscoreSpan(tokenizer);
+          const span = this.readUnderscoreSpan(tokenizer, peeked);
           if (span === 'opp' || span === 'cp') {
             arrowSeen = true;
           }
@@ -303,9 +323,11 @@ export default class StevensParser extends ParserBase {
   // Consume an italic `_..._` span and return its text (the words joined by a
   // single space), so the caller can recognise the `_opp_` / `_cp_` reference
   // markers. Throws on an unterminated span, like skipUntilSentinelToken.
-  readUnderscoreSpan(tokenizer: Tokenizer): string {
+  // `firstToken` lets the caller pass in a token it already peeked (to check
+  // for a nested `**`) instead of consuming it twice.
+  readUnderscoreSpan(tokenizer: Tokenizer, firstToken: Token): string {
     const words: string[] = [];
-    let token = tokenizer.next();
+    let token = firstToken;
     while (token !== Token.Underscore) {
       if (token === Token.Done) {
         throw new Error('unterminated "_" fragment');

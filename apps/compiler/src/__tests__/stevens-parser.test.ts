@@ -57,14 +57,14 @@ describe('StevensParser', () => {
     expect(result.targetWords).toStrictEqual(new Set(['era', 'age']));
   });
 
-  it('unwraps a `_**word**_` derived keyword so it is indexed', () => {
+  it('keeps a `_**word**_` derived keyword bold-italic but still indexes it', () => {
     const parser = new StevensParser();
     parser.parseLine('**abadi** (_A_) eternal.');
     const result = parser.parseLine(
       '_**ketidak-abadian**_ temporariness, ephemerality.'
     );
     expect(result.line).toBe(
-      '**ketidak-abadian** temporariness, ephemerality.'
+      '_**ketidak-abadian**_ temporariness, ephemerality.'
     );
     expect(result.sourceKeywords).toStrictEqual(
       new Set(['ketidak-abadian'])
