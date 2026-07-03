@@ -47,7 +47,12 @@ intercepts), so the addition is inert for Teeuw.
 Sense numbers are `__N__` (e.g. `__1__`, `__2__`, Roman `__II__`), which the
 `__`-skip already drops from indexing. A line that *opens* with `__N__` is a new
 sense of the nearest keyword; the parser re-asserts that keyword (`**tildeWord**,
-…`) exactly as Teeuw does for a line opening with a bare digit.
+…`) exactly as Teeuw does for a line opening with a bare digit. If that keyword
+was last set from a bold-italic `_**word**_` span (see §5) rather than plain
+`**word**`, the re-assertion is wrapped bold-italic too, so a multi-sense
+derivative (`mengemukakan __1__ …`, `__2__ …`, `__3__ …`) renders consistently
+with its own first sense instead of flattening to plain bold. This tracking
+resets on a `^` revert to the base, which is always plain bold.
 
 ### 4. Multiple headwords: `**X** and **Y**`
 

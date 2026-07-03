@@ -24,11 +24,18 @@ function isIndexableGloss(word: string): boolean {
 //   - `^` is the headword placeholder (resolves to the block's base);
 //   - `~` is the nearest-previous-keyword placeholder (Teeuw's `tildeWord`);
 //   - sense numbers are `__N__`, and an `__N__`-led line continues the nearest
-//     keyword (the `__` analog of Teeuw's bare-digit lines);
+//     keyword (the `__` analog of Teeuw's bare-digit lines), re-asserting it in
+//     whichever style (plain bold or bold-italic) it was last set in;
 //   - a derived keyword may be wrapped bold-italic as `_**word**_` (kept intact
 //     so it renders bold-italic like the print original); the nested bold word
 //     is indexed exactly like a plain `**word**` keyword.
 export default class StevensParser extends ParserBase {
+  // Whether the active `tildeWord` was last set from a `_**word**_`
+  // bold-italic derived keyword rather than a plain `**word**` one, so a
+  // `__N__` sense-continuation line (below) can re-assert it in the same
+  // style instead of always flattening it to plain bold.
+  private _tildeWordIsBoldItalic = false;
+
   constructor() {
     super('id', 'en');
   }
@@ -37,10 +44,19 @@ export default class StevensParser extends ParserBase {
     this._prevBase = this._base;
     this._base = null;
     this._tildeWord = null;
+    this._tildeWordIsBoldItalic = false;
     // Do NOT zero `_homonym` here. `setBase()` fully governs it on the next
     // block's headword: 0 for a fresh base, +1 for a repeat. Zeroing it first
     // capped a repeated headword at homonym 1, so a word with three or more
     // homonyms (ékor I/II/III/IV) collapsed III+ onto II's number.
+  }
+
+  // The base (grondwoord) is always plain bold in print, never bold-italic
+  // (that style is reserved for derivatives), so a `^` revert always lands
+  // back on plain-bold formatting.
+  revertTildeToBase(): void {
+    super.revertTildeToBase();
+    this._tildeWordIsBoldItalic = false;
   }
 
   parseLine(line: string): ParserResult {
@@ -64,7 +80,10 @@ export default class StevensParser extends ParserBase {
     // line that opens with a bare sense digit.
     if (/^__\d/.test(line)) {
       if (this.tildeWord) {
-        line = `**${this.tildeWord}** ${line}`;
+        const keyword = this._tildeWordIsBoldItalic
+          ? `_**${this.tildeWord}**_`
+          : `**${this.tildeWord}**`;
+        line = `${keyword} ${line}`;
       } else {
         throw new Error('Tilde word not set');
       }
@@ -99,6 +118,7 @@ export default class StevensParser extends ParserBase {
             this.parseDblStarFragment(tokenizer, result.referenceWords);
           } else {
             this.tildeWord = null;
+            this._tildeWordIsBoldItalic = false;
             this.parseDblStarFragment(tokenizer, result.sourceKeywords);
           }
           break;
@@ -147,6 +167,7 @@ export default class StevensParser extends ParserBase {
               this.parseDblStarFragment(tokenizer, result.referenceWords);
             } else {
               this.tildeWord = null;
+              this._tildeWordIsBoldItalic = true;
               this.parseDblStarFragment(tokenizer, result.sourceKeywords);
             }
             const closing = tokenizer.next();

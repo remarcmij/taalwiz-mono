@@ -74,6 +74,24 @@ describe('StevensParser', () => {
     );
   });
 
+  it('re-asserts an `__N__`-led line in the same bold-italic style as its keyword', () => {
+    const parser = new StevensParser();
+    parser.parseLine('**muka** (_Skr_) __1__ front (side).');
+    parser.parseLine('_**mengemukakan**_ __1__ to suggest, offer, propose.');
+    const result = parser.parseLine('__2__ to utter, express.');
+    expect(result.line).toBe('_**mengemukakan**_ __2__ to utter, express.');
+    expect(result.sourceKeywords).toStrictEqual(new Set(['mengemukakan']));
+  });
+
+  it('reverts to plain-bold `__N__` re-assertion after a `^` marker', () => {
+    const parser = new StevensParser();
+    parser.parseLine('**muka** (_Skr_) __1__ front (side).');
+    parser.parseLine('_**mengemukakan**_ __1__ to suggest, offer, propose.');
+    parser.revertTildeToBase();
+    const result = parser.parseLine('__2__ face, countenance.');
+    expect(result.line).toBe('**muka** __2__ face, countenance.');
+  });
+
   it('treats both `**X** and **Y**` headwords as keywords under one base', () => {
     const parser = new StevensParser();
     const result = parser.parseLine(
