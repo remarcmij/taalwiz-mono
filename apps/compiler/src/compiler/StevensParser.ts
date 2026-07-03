@@ -62,7 +62,7 @@ export default class StevensParser extends ParserBase {
     // line that opens with a bare sense digit.
     if (/^__\d/.test(line)) {
       if (this.tildeWord) {
-        line = `**${this.tildeWord}**, ${line}`;
+        line = `**${this.tildeWord}** ${line}`;
       } else {
         throw new Error('Tilde word not set');
       }
