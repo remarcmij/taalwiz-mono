@@ -171,6 +171,9 @@ importers:
       glob:
         specifier: ^11.0.3
         version: 11.0.3
+      sql.js:
+        specifier: ^1.12.0
+        version: 1.14.1
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -8528,6 +8531,9 @@ packages:
 
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
+
+  sql.js@1.14.1:
+    resolution: {integrity: sha512-gcj8zBWU5cFsi9WUP+4bFNXAyF1iRpA3LLyS/DP5xlrNzGmPIizUeBggKa8DbDwdqaKwUcTEnChtd2grWo/x/A==}
 
   ssri@12.0.0:
     resolution: {integrity: sha512-S7iGNosepx9RadX82oimUkvr0Ct7IjJbEbs4mJcTxst8um95J3sDYU1RBEOvdu6oL1Wek2ODI5i4MAw+dZ6cAQ==}
@@ -19731,6 +19737,8 @@ snapshots:
 
   sprintf-js@1.0.3:
     optional: true
+
+  sql.js@1.14.1: {}
 
   ssri@12.0.0:
     dependencies:

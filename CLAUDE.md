@@ -43,8 +43,9 @@ pnpm --filter web run lint     # Angular lint
 ### Dict Compiler (`apps/compiler`)
 
 ```bash
-pnpm --filter compiler run build    # tsc build
-pnpm --filter compiler run test     # Vitest
+pnpm --filter compiler run build        # tsc build
+pnpm --filter compiler run test         # Vitest
+pnpm --filter compiler run build:dbs    # Build SQLite databases (teeuw.db, stevens.db)
 ```
 
 ### Docs Site (`apps/docs`)
@@ -61,7 +62,7 @@ pnpm --filter docs run preview   # Preview the production build (port 4173)
 
 - **`apps/api`** — NestJS 11 backend (Express platform, MongoDB/Mongoose, JWT auth, Nodemailer with Handlebars templates, class-validator)
 - **`apps/web`** — Angular 20 + Ionic 8 + Capacitor 7 hybrid app (ngx-translate for i18n); **primary web app**
-- **`apps/compiler`** — Standalone TypeScript utility for compiling dictionaries. A parser is chosen per source file by filename prefix (`src/compiler/parser-registry.ts`): **Teeuw** (Indonesian->Dutch; `dict/teeuw/*.md`, see `apps/compiler/TEEUW_PARSER.md`) and **Stevens** (Indonesian->English; `dict/stevens/*.md`, see `apps/compiler/STEVENS_PARSER.md`). Teeuw supports per-letter `+` supplement files (e.g. `teeuw.a+.md`) for post-1996 additions, compiled into the same chapter JSON and flagged `isSupplement`. Markup authoring conventions for editing the Teeuw source, incl. the `~`/`^` tilde rule, are in `apps/compiler/TEEUW_SOURCE_FORMAT.md`
+- **`apps/compiler`** — Standalone TypeScript utility for compiling dictionaries. A parser is chosen per source file by filename prefix (`src/compiler/parser-registry.ts`): **Teeuw** (Indonesian->Dutch; `dict/teeuw/*.md`, see `apps/compiler/TEEUW_PARSER.md`) and **Stevens** (Indonesian->English; `dict/stevens/*.md`, see `apps/compiler/STEVENS_PARSER.md`). Teeuw supports per-letter `+` supplement files (e.g. `teeuw.a+.md`) for post-1996 additions, compiled into the same chapter JSON and flagged `isSupplement`. Markup authoring conventions for editing the Teeuw source, incl. the `~`/`^` tilde rule, are in `apps/compiler/TEEUW_SOURCE_FORMAT.md`. The compiler also generates SQLite databases (`teeuw.db`, `stevens.db`) for efficient local querying; see `apps/compiler/SQLITE_DATABASES.md`
 - **`apps/docs`** — VitePress static documentation site (served at `/guide`)
 - **`packages/shared`** — Shared constants (auth codes, fixed target/headword language `TARGET_LANG`) consumed by `api` and `web`. The native (gloss) language is **per-deployment** (`nl` for Teeuw, `en` for Stevens): set via the `NATIVE_LANG` env var (read from `apps/api/.env`), baked into the web bundle at build time by `apps/web/scripts/generate-deployment.mjs` → `src/environments/deployment.ts`
 - **`packages/eslint-config`** — Shared ESLint configs with presets: `base`, `nest`, `angular`
