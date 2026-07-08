@@ -151,4 +151,5 @@ vitest.config.js
 vitest.config.js.map
 
 # Generated SQLite databases (regenerate via `pnpm --filter compiler run build:dbs`)
+/db/
 *.db

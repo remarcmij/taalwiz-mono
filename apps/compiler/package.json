@@ -10,8 +10,7 @@
     "clean": "rimraf dist",
     "watch": "tsc --watch",
     "build": "tsc",
-    "build:dbs": "tsx src/db-builder.ts",
-    "db:cli": "tsx src/db-cli.ts",
+    "build:dbs": "tsx src/db/build-databases.ts",
     "order-report": "node scripts/order-report.mjs",
     "teeuw-order-report": "node scripts/teeuw-order-report.mjs",
     "trace": "tsx tools/lookup-trace.mts",
@@ -21,8 +20,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "glob": "^11.0.3",
-    "sql.js": "^1.12.0"
+    "glob": "^11.0.3"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
