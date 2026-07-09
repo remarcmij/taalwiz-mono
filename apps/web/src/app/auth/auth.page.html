@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
     <ion-title>
       {{ 'common.app-name' | translate }} {{ 'auth.login' | translate }}
@@ -6,7 +6,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content>
   <div class="content-container">
     <form #f="ngForm" (ngSubmit)="onSubmit(f)">
       <ion-grid>

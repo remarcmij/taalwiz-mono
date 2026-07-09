@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-menu-button menu="m1"></ion-menu-button>
@@ -131,7 +131,7 @@
   }
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content>
   <div class="content-container">
     @if (vocabularyService.lists().length === 0) {
       <div class="empty-state">

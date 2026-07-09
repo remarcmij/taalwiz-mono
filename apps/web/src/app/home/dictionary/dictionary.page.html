@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-menu-button menu="m1"></ion-menu-button>
@@ -50,7 +50,6 @@
 
 <ion-content
   #content
-  [fullscreen]="true"
   (click)="onClear()"
   [ngClass]="{dimmed: showSearches()}">
   <div class="content-container">
