@@ -210,6 +210,16 @@ span.hashtag {
   margin-inline: auto;
 }
 
+// Reserve space for the vertical scrollbar on every scroll container so that,
+// when a page grows past one screen, the scrollbar's appearance does not steal
+// width from the viewport and shift the centred `.content-container` sideways.
+// Targets ion-content's inner scroll element. A no-op for overlay scrollbars
+// (which take no layout space), so it only reserves a gutter where a classic
+// always-on scrollbar would otherwise cause the jump.
+ion-content::part(scroll) {
+  scrollbar-gutter: stable;
+}
+
 ion-back-button {
   padding: 5px 10px 5px 5px;
 }
