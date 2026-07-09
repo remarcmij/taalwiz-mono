@@ -281,21 +281,21 @@ export class DictionaryPage implements OnDestroy {
     this.#wordClickModalService.onClicked(event);
   }
 
-  // Expand the results to the `all` tier. One-way: the only way back to
-  // `keywords` is a new search (which resets it in `results$`).
-  showMore() {
-    this.detailLevel.set('all');
+  // Toggle the detail tier: `keywords` (senses + derived sub-headwords) ⇄ `all`
+  // (+ usages and cross-references). A new search resets it to `keywords` in
+  // `results$`, so the toggle is non-persistent across lookups.
+  toggleDetail() {
+    this.detailLevel.update((l) => (l === 'keywords' ? 'all' : 'keywords'));
   }
 
-  // Desktop shortcut for the header "more" button: F2 expands to the `all` tier.
-  // Guarded to match when the button is enabled (results present, still at the
-  // `keywords` tier); works even while the searchbar has focus, since F2 emits no
-  // character into it.
+  // Desktop shortcut for the header more/less button: F2 toggles the tier. Only
+  // acts when there are results (matching the button's presence); works even
+  // while the searchbar has focus, since F2 emits no character into it.
   @HostListener('document:keydown.f2', ['$event'])
-  onMoreShortcut(event: Event) {
-    if (!this.hasResults() || this.detailLevel() !== 'keywords') return;
+  onToggleShortcut(event: Event) {
+    if (!this.hasResults()) return;
     event.preventDefault();
-    this.showMore();
+    this.toggleDetail();
   }
 
   // Bases to render at the current tier. `all`: every base. Otherwise only bases

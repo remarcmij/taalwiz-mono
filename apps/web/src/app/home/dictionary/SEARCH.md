@@ -528,13 +528,12 @@ that mention the word, including its appearances as a usage inside other headwor
 **Display-time detail tiers.** Fetching everything but *showing* a chosen level of detail is
 a view concern, kept out of the store so the full set stays available. The dictionary page
 has a global two-tier control (`DictionaryPage.detailLevel`, default `keywords`) driven by a
-header **"more" button** (desktop shortcut: **F2**, via a `@HostListener('document:keydown.f2')`
-on `DictionaryPage` that fires under the same guard as the button — results present and still
-at `keywords` — and works even while the searchbar has focus, since F2 emits no character into
-it). The button expands `keywords` → `all` **one-way** (it is not a toggle); the only way back
-is a new search, which resets the tier to `keywords` (`results$` in `dictionary.page.ts`), so
-every lookup starts collapsed. The button is shown whenever there are results and is
-**disabled** once the tier is `all` (nothing more to expand):
+header **more/less button** (desktop shortcut: **F2**, via a `@HostListener('document:keydown.f2')`
+on `DictionaryPage` that acts whenever there are results and works even while the searchbar has
+focus, since F2 emits no character into it). The button **toggles** `keywords` ⇄ `all`, its label
+tracking the tier (`more` at `keywords`, `less` at `all`). The toggle is **non-persistent**: a
+new search resets the tier to `keywords` (`results$` in `dictionary.page.ts`), so every lookup
+starts collapsed. The button is shown whenever there are results:
 
 - `keywords` — the entry's own senses **and** its derived sub-headwords (`berékor`, `mengékor`
   under `ékor`); the default view

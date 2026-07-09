@@ -8,11 +8,10 @@
       <ion-buttons slot="end">
         <ion-button
           class="more-button"
-          (click)="showMore()"
-          [disabled]="detailLevel() !== 'keywords'"
-          [title]="'dictionary.detail-more-hint' | translate"
-          [attr.aria-label]="'dictionary.detail-more-hint' | translate">
-          {{ 'dictionary.detail-more' | translate }}
+          (click)="toggleDetail()"
+          [title]="(detailLevel() === 'keywords' ? 'dictionary.detail-more-hint' : 'dictionary.detail-less-hint') | translate"
+          [attr.aria-label]="(detailLevel() === 'keywords' ? 'dictionary.detail-more-hint' : 'dictionary.detail-less-hint') | translate">
+          {{ (detailLevel() === 'keywords' ? 'dictionary.detail-more' : 'dictionary.detail-less') | translate }}
         </ion-button>
       </ion-buttons>
     }

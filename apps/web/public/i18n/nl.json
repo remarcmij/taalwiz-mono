@@ -79,7 +79,9 @@
     "history-empty": "Geen recente zoekopdrachten",
     "clear-history": "Geschiedenis wissen",
     "detail-more": "meer",
-    "detail-more-hint": "Alles tonen (F2)"
+    "detail-more-hint": "Alles tonen (F2)",
+    "detail-less": "minder",
+    "detail-less-hint": "Minder tonen (F2)"
   },
   "bookmarks": {
     "empty": "Nog geen items in uw woordenschat. {{action}} op het bladwijzerpictogram bij een woordenboekresultaat.",
