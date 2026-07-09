@@ -7,16 +7,12 @@
     @if (hasResults()) {
       <ion-buttons slot="end">
         <ion-button
-          (click)="cycleDetail()"
-          [title]="'dictionary.detail-hint' | translate"
-          [attr.aria-label]="
-            ('dictionary.detail-hint' | translate) + ': ' + ('dictionary.detail-' + detailLevel() | translate)
-          ">
-          <span class="detail-doc" aria-hidden="true">
-            @for (seg of [0, 1, 2]; track seg) {
-              <span class="line" [class.shown]="seg <= detailRank()"></span>
-            }
-          </span>
+          class="more-button"
+          (click)="showMore()"
+          [disabled]="detailLevel() !== 'keywords'"
+          [title]="'dictionary.detail-more-hint' | translate"
+          [attr.aria-label]="'dictionary.detail-more-hint' | translate">
+          {{ 'dictionary.detail-more' | translate }}
         </ion-button>
       </ion-buttons>
     }

@@ -78,10 +78,8 @@
     "history": "History",
     "history-empty": "No recent searches",
     "clear-history": "Clear history",
-    "detail-hint": "Detail level (tap to cycle)",
-    "detail-headword": "less",
-    "detail-derived": "more",
-    "detail-all": "all"
+    "detail-more": "more",
+    "detail-more-hint": "Show all (F2)"
   },
   "bookmarks": {
     "empty": "No items in your vocabulary yet. {{action}} the bookmark icon while viewing a dictionary entry.",

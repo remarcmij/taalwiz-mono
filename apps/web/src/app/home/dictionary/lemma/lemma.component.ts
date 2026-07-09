@@ -13,10 +13,10 @@ export class LemmaComponent {
   #markdownService = inject(MarkdownService);
 
   lemmas = input.required<ILemma[]>();
-  /** Detail tier to render. `headword` (default) shows only the entry's own
-   * senses — matching the condensed word-click dialog; `derived` adds derived
-   * sub-headwords; `all` adds italic example usages. */
-  level = input<DetailLevel>('headword');
+  /** Detail tier to render. `keywords` (default) shows the entry's own senses
+   * and its derived sub-headwords; `all` additionally shows the italic example
+   * usages and cross-references. */
+  level = input<DetailLevel>('keywords');
   clicked = output<MouseEvent>();
 
   /** Lemmas visible at the current detail level, each flagged when it opens a

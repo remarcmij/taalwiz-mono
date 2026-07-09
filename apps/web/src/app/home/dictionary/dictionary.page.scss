@@ -37,6 +37,14 @@
   margin: 8px;
 }
 
+// The header "more" is a text button, whose glyphs hug the box edge, while the
+// hamburger on the start side is an icon inset within a square tap target. Nudge
+// the text button inward so its right edge visually matches the hamburger's left
+// inset from the window edge.
+.more-button {
+  margin-inline-end: 8px;
+}
+
 ion-item {
   --inner-padding-end: 0;
 }
@@ -64,44 +72,5 @@ ion-breadcrumb {
   // underline (reserved for the entry text).
   &.new-word {
     --color: var(--supplement-text-color);
-  }
-}
-
-// "Detail level" glyph inside the header cycle button: a small page outline
-// whose lines of text accumulate top-down (one → two → three) to show how much
-// of an entry is displayed. Framed as a document (rather than bare stacked
-// lines) so it stays clearly distinct from the hamburger menu icon. Plain CSS
-// so it themes off the Ionic primary colour and stays crisp at any density.
-.detail-doc {
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 2.5px;
-  width: 17px;
-  height: 21px;
-  padding: 3.5px 3px;
-  border: 1.5px solid var(--ion-color-primary);
-  border-radius: 2px;
-  box-sizing: border-box;
-
-  .line {
-    height: 2px;
-    border-radius: 1px;
-    background: transparent;
-
-    // Ragged widths so the stack reads as lines of text, not a barcode.
-    &:nth-child(1) {
-      width: 100%;
-    }
-    &:nth-child(2) {
-      width: 70%;
-    }
-    &:nth-child(3) {
-      width: 90%;
-    }
-
-    &.shown {
-      background: var(--ion-color-primary);
-    }
   }
 }

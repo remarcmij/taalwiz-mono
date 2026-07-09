@@ -78,10 +78,8 @@
     "history": "Geschiedenis",
     "history-empty": "Geen recente zoekopdrachten",
     "clear-history": "Geschiedenis wissen",
-    "detail-hint": "Detailniveau (tik om te wisselen)",
-    "detail-headword": "minder",
-    "detail-derived": "meer",
-    "detail-all": "alles"
+    "detail-more": "meer",
+    "detail-more-hint": "Alles tonen (F2)"
   },
   "bookmarks": {
     "empty": "Nog geen items in uw woordenschat. {{action}} op het bladwijzerpictogram bij een woordenboekresultaat.",

@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  HostListener,
   OnDestroy,
   ViewChild,
   computed,
@@ -118,18 +119,15 @@ export class DictionaryPage implements OnDestroy {
   word = signal('');
   showSearches = signal(false);
   currentTarget = signal<WordLang | null>(null);
-  // Progressive detail tier for the results, cycled by the header button:
-  // `headword` (senses only, matching the condensed word-click dialog) →
-  // `derived` (+ derived sub-headwords) → `all` (+ italic example usages) →
-  // back to `headword`. Resets to the most condensed tier on each visit.
-  detailLevel = signal<DetailLevel>('headword');
-  // Whether the current lookup produced at least one entry, so the toggle is
-  // only offered when there is something to show.
+  // Detail tier for the results: `keywords` (the entry's own senses + derived
+  // sub-headwords) or `all` (+ italic example usages and cross-references). The
+  // header "more" button expands `keywords` → `all` one-way; it is not a toggle
+  // and does not persist — every new lookup resets it back to `keywords` (see
+  // `results$`).
+  detailLevel = signal<DetailLevel>('keywords');
+  // Whether the current lookup produced at least one entry, so the "more" button
+  // is only offered when there is something to expand.
   hasResults = signal(false);
-
-  // 0-based depth of the current tier, driving the segmented meter (how many of
-  // the three segments are filled): less → 1, more → 2, all → 3.
-  detailRank = computed(() => ({ headword: 0, derived: 1, all: 2 })[this.detailLevel()]);
 
   recentSearches = computed(() =>
     this.#historyService
@@ -155,6 +153,9 @@ export class DictionaryPage implements OnDestroy {
       this.#suppressHistoryAdd = false;
       this.currentTarget.set(results.targetBase);
       this.hasResults.set(results.bases.length > 0);
+      // Each new lookup starts collapsed at the keywords tier; the "more" button
+      // is not persistent across searches.
+      this.detailLevel.set('keywords');
       if (results.bases.length > 0) {
         if (!suppressHistoryAdd) {
           this.addRecentSearch(results.targetBase!);
@@ -280,11 +281,21 @@ export class DictionaryPage implements OnDestroy {
     this.#wordClickModalService.onClicked(event);
   }
 
-  // Advance the detail tier: headword → derived → all → headword.
-  cycleDetail() {
-    this.detailLevel.update((l) =>
-      l === 'headword' ? 'derived' : l === 'derived' ? 'all' : 'headword',
-    );
+  // Expand the results to the `all` tier. One-way: the only way back to
+  // `keywords` is a new search (which resets it in `results$`).
+  showMore() {
+    this.detailLevel.set('all');
+  }
+
+  // Desktop shortcut for the header "more" button: F2 expands to the `all` tier.
+  // Guarded to match when the button is enabled (results present, still at the
+  // `keywords` tier); works even while the searchbar has focus, since F2 emits no
+  // character into it.
+  @HostListener('document:keydown.f2', ['$event'])
+  onMoreShortcut(event: Event) {
+    if (!this.hasResults() || this.detailLevel() !== 'keywords') return;
+    event.preventDefault();
+    this.showMore();
   }
 
   // Bases to render at the current tier. `all`: every base. Otherwise only bases

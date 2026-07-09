@@ -7,9 +7,10 @@
  */
 export type LineKind = 'headword' | 'derived' | 'usage';
 
-/** Progressive detail tiers for the dictionary view, each a superset of the
- * previous: `headword` (senses only) ⊂ `derived` (+ sub-headwords) ⊂ `all`. */
-export type DetailLevel = 'headword' | 'derived' | 'all';
+/** Detail tiers for the dictionary view: `keywords` (the default) shows the
+ * entry's own senses plus its derived sub-headwords; `all` additionally shows
+ * the italic example usages and cross-reference cards. */
+export type DetailLevel = 'keywords' | 'all';
 
 export interface ILemma {
   _id?: string;
@@ -28,7 +29,7 @@ export interface ILemma {
   lineKind?: LineKind;
 }
 
-const LEVEL_RANK: Record<DetailLevel, number> = { headword: 0, derived: 1, all: 2 };
+const LEVEL_RANK: Record<DetailLevel, number> = { keywords: 1, all: 2 };
 
 /**
  * Detail rank of a lemma RELATIVE TO THE SEARCHED WORD: 0 = its own headword
@@ -56,9 +57,9 @@ function detailRankOf(lemma: ILemma): number {
 
 /**
  * Whether a lemma is shown at the given detail level: true when its rank
- * relative to the searched word is within the level's depth. At `headword` only
- * the word's own senses show (matching the condensed word-click dialog); each
- * higher tier admits the next rank.
+ * relative to the searched word is within the level's depth. At `keywords` the
+ * word's own senses (rank 0) and its derivatives (rank 1) show; `all`
+ * additionally admits usages and cross-references (rank 2).
  */
 export function lemmaVisibleAt(lemma: ILemma, level: DetailLevel): boolean {
   return detailRankOf(lemma) <= LEVEL_RANK[level];

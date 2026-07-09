@@ -527,12 +527,18 @@ that mention the word, including its appearances as a usage inside other headwor
 
 **Display-time detail tiers.** Fetching everything but *showing* a chosen level of detail is
 a view concern, kept out of the store so the full set stays available. The dictionary page
-has a global three-tier control (a header button that cycles the tier; `DictionaryPage.detailLevel`,
-default `headword`):
+has a global two-tier control (`DictionaryPage.detailLevel`, default `keywords`) driven by a
+header **"more" button** (desktop shortcut: **F2**, via a `@HostListener('document:keydown.f2')`
+on `DictionaryPage` that fires under the same guard as the button — results present and still
+at `keywords` — and works even while the searchbar has focus, since F2 emits no character into
+it). The button expands `keywords` → `all` **one-way** (it is not a toggle); the only way back
+is a new search, which resets the tier to `keywords` (`results$` in `dictionary.page.ts`), so
+every lookup starts collapsed. The button is shown whenever there are results and is
+**disabled** once the tier is `all` (nothing more to expand):
 
-- `headword` — only the entry's own senses (matches the condensed word-click dialog)
-- `derived` — adds derived sub-headwords (`berékor`, `mengékor` under `ékor`)
-- `all` — adds the italic example usages
+- `keywords` — the entry's own senses **and** its derived sub-headwords (`berékor`, `mengékor`
+  under `ékor`); the default view
+- `all` — adds the italic example usages and cross-reference cards
 
 One input is a per-line **`lineKind`** (`'headword' | 'derived' | 'usage'`) computed at
 **import time**, not from the rendered text. `dict-db.ts` `classifyLine()` reads the parser's
@@ -546,14 +552,16 @@ But `lineKind` is relative to the line's **own** base, which is not enough on it
 so for a `barang` search it is a cross-reference, not a headword. So `lemmaVisibleAt(lemma, level)`
 (`lemma/lemma.model.ts`) ranks each line **relative to the searched word**, combining `lineKind`
 with two signals the record already carries — `keyword` (is the searched word the keyword on
-this line?) and `word === baseWord` (does the line belong to the word's own entry?):
+this line?) and `word === baseWord` (does the line belong to the word's own entry?). It ranks
+each line 0/1/2; `LEVEL_RANK` maps the `keywords` tier to depth 1 (so ranks 0 **and** 1 both
+show there) and `all` to depth 2:
 
-- `keyword === 1` → tier 0 (`headword`): the searched word is itself the keyword (its own
-  sense, or a derived form searched directly like `memukul`).
-- else `lineKind === 'derived'` **and** `word === baseWord` → tier 1 (`derived`): a derivative
-  of the word's own entry.
-- else → tier 2 (`all`): a usage, or the word inside another headword (`barang` in `barang
-  kumanga`, where `baseWord` is `kumanga`).
+- `keyword === 1` → rank 0: the searched word is itself the keyword (its own sense, or a
+  derived form searched directly like `memukul`). Shown at `keywords`.
+- else `lineKind === 'derived'` **and** `word === baseWord` → rank 1: a derivative of the
+  word's own entry. Also shown at `keywords`.
+- else → rank 2: a usage, or the word inside another headword (`barang` in `barang kumanga`,
+  where `baseWord` is `kumanga`). Shown only at `all`.
 
 `LemmaComponent.displayLemmas` filters lines by `lemmaVisibleAt`, and `DictionaryPage.visibleBases()`
 drops a base with no line visible at the current tier — so a cross-reference card (`kumanga`,
