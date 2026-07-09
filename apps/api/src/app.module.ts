@@ -4,7 +4,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'node:path';
-import { AdminSettingsModule } from './admin-settings/admin-settings.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ContentModule } from './content/content.module.js';
 import { HashtagModule } from './hashtag/hashtag.module.js';
@@ -21,7 +20,6 @@ import { VocabularyModule } from './vocabulary/vocabulary.module.js';
       isGlobal: true,
       validate: validateEnv,
     }),
-    AdminSettingsModule,
     AuthModule,
     VocabularyModule,
     SrsModule,

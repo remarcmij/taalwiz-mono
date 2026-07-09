@@ -63,15 +63,6 @@ All endpoints are under the global prefix `/api/v1/`. By default they require a 
 | `GET` | `/api/v1/srs/lemma-index?listId=&term=&lang=` | Get `{ lemmaIndex }` — which dictionary line a back-less card uses (0 = first) |
 | `POST` | `/api/v1/srs/lemma-index` | Set `{ term, lang, listId, lemmaIndex }` (200). Personal study state, so **not** blocked when the list is locked, unlike vocabulary content edits |
 
-### System Settings (`/api/v1/admin/settings`) — admin only
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/v1/admin/settings` | Return all settings sorted by `sortIndex` |
-| `PATCH` | `/api/v1/admin/settings` | Update settings `{ settings: ISystemSettings[] }`; returns updated list |
-
-Settings are seeded on first startup from `src/admin-settings/seeds/settings.seed.ts` (three initial entries: `custodian_name`, `customer_service_email`, `email_opt_out`).
-
 ### Content (`/api/v1/content`)
 
 Read endpoints are scoped to the calling user's authorized content groups. See [Content File Uploads](#content-file-uploads) below for the upload file formats.

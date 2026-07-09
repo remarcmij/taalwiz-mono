@@ -5,7 +5,6 @@ import { catchError, map, Observable, of } from 'rxjs';
 import { User } from '../auth/user.model';
 import { ApiErrorAlertService } from '../shared/api-error-alert.service';
 import { IHashtagUsage } from './hashtag-usage/hashtag-usage.model';
-import { ISystemSettings } from './system-settings/system-settings.model';
 
 @Injectable({
   providedIn: 'root',
@@ -118,18 +117,5 @@ export class AdminService {
         return of(false);
       }),
     );
-  }
-
-  getSettings(): Observable<ISystemSettings[]> {
-    return this.#http.get<ISystemSettings[]>('/api/v1/admin/settings').pipe(
-      catchError((error) => {
-        this.#apiErrorAlertService.showError(error);
-        return of([]);
-      }),
-    );
-  }
-
-  updateSettings(settings: ISystemSettings[]) {
-    return this.#http.patch('/api/v1/admin/settings', { settings });
   }
 }

@@ -143,9 +143,8 @@ src/app/
 │   │   ├── new-user/         # Invite-new-user page
 │   │   ├── groups-modal/     # Group assignment sheet modal
 │   │   └── set-password-modal/  # Admin set-password sheet
-│   ├── content/
-│   │   └── upload/           # Drag/drop .md/.json + image upload
-│   └── system-settings/
+│   └── content/
+│       └── upload/           # Drag/drop .md/.json + image upload
 │
 ├── user/                     # Standalone user pages
 │   └── contact/
@@ -218,7 +217,7 @@ flowchart TD
     admin_r --> new_user["/admin/new-user"]
     admin_r --> admin_content["/admin/content"]
     admin_r --> upload["/admin/upload"]
-    admin_r --> settings["/admin/system-settings"]
+    admin_r --> hashtag_usage["/admin/hashtag-usage"]
 ```
 
 **Standalone pages** (all require `authGuard`)
@@ -287,7 +286,7 @@ Offline-first. On first load the dict manifest is fetched from `/assets/dict-man
 
 ### 4.4 Admin
 
-Protected by `adminGuard`. Covers user management (invite, list, delete, group assignment, suspend/reactivate, admin-set password), publication sort-order, hashtag reprocessing, file upload (`.md` / `.json` content plus `.jpg` / `.jpeg` / `.png` / `.gif` / `.webp` publication images — enforced client **and** server), and system settings (key/value store backed by the `SystemSettings` MongoDB collection, seeded on first API startup). The System Settings page uses an explicit Save/Cancel pattern: buttons appear in the toolbar only when `isDirty()` is true, driven by a `computed` signal that re-evaluates via `onSettingChange()` after each `[(ngModel)]` edit.
+Protected by `adminGuard`. Covers user management (invite, list, delete, group assignment, suspend/reactivate, admin-set password), publication sort-order, hashtag reprocessing, and file upload (`.md` / `.json` content plus `.jpg` / `.jpeg` / `.png` / `.gif` / `.webp` publication images — enforced client **and** server).
 
 **Account actions:** The Users page exposes per-user actions beyond group management. **Suspend** toggles `User.isSuspended` via `PATCH /api/v1/users/:id/suspended`; a suspended user is blocked at the API. **Set password** opens `SetPasswordModalComponent` — a sheet with a password field (`IonInputPasswordToggle` eye toggle, min length from the shared `MIN_PASSWORD_LENGTH` constant) — and saves via `PATCH /api/v1/users/:id/password`.
 
@@ -706,17 +705,4 @@ classDiagram
     UserPreferences --> VocabularyList : currentList
     SrsItem --> VocabularyList : belongs to
     SrsItem --> VocabularyEntry : mirrors
-```
-
-**Admin**
-
-```mermaid
-classDiagram
-    class ISystemSettings {
-        +string _id
-        +string name
-        +string label
-        +string valueType
-        +number sortIndex
-    }
 ```

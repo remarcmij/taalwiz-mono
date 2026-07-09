@@ -23,11 +23,6 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () => import('./content/upload/upload.page').then((p) => p.UploadPage),
   },
   {
-    path: 'system-settings',
-    loadComponent: () =>
-      import('./system-settings/system-settings.page').then((p) => p.SystemSettingsPage),
-  },
-  {
     path: 'hashtag-usage',
     loadComponent: () =>
       import('./hashtag-usage/hashtag-usage.page').then((p) => p.HashtagUsagePage),
