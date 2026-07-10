@@ -17,8 +17,14 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
   <div class="content-container">
+    @let vm = vm$ | async;
+    @if (!vm || vm.loading) {
+    <div class="loading-spinner">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+    } @else {
     <ion-list class="ion-padding-vertical">
-      @for (topic of topics$ | async; track topic._id) {
+      @for (topic of vm.topics; track topic._id) {
       <ion-item
         detail
         button
@@ -49,5 +55,6 @@
       </ion-item>
       }
     </ion-list>
+    }
   </div>
 </ion-content>

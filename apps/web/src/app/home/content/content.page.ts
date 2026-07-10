@@ -15,6 +15,7 @@ import {
   IonMenuButton,
   IonRefresher,
   IonRefresherContent,
+  IonSpinner,
   IonThumbnail,
   IonTitle,
   IonToolbar,
@@ -23,9 +24,10 @@ import { addIcons } from 'ionicons';
 import { helpCircleOutline, refreshOutline } from 'ionicons/icons';
 
 import { TranslatePipe } from '@ngx-translate/core';
-import { Subject, filter, switchMap } from 'rxjs';
+import { Subject, filter, map, startWith, switchMap } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { ContentService } from './content.service';
+import { type ITopic } from './topic.model';
 
 @Component({
   selector: 'app-content',
@@ -45,6 +47,7 @@ import { ContentService } from './content.service';
     IonMenuButton,
     IonRefresher,
     IonRefresherContent,
+    IonSpinner,
     IonThumbnail,
     IonTitle,
     IonToolbar,
@@ -58,7 +61,19 @@ export class ContentPage {
   #authService = inject(AuthService);
 
   #refresh$ = new Subject<void>();
-  topics$ = this.#refresh$.pipe(switchMap(() => this.#contentService.fetchPublications()));
+  /**
+   * View state for the library list. Emits `loading` immediately on each fetch
+   * so the template shows a spinner instead of flashing the empty placeholder
+   * before the publications arrive.
+   */
+  vm$ = this.#refresh$.pipe(
+    switchMap(() =>
+      this.#contentService.fetchPublications().pipe(
+        map((topics) => ({ loading: false, topics })),
+        startWith({ loading: true, topics: [] as ITopic[] }),
+      ),
+    ),
+  );
 
   /** UI language for the help deep-link shown when the library is empty. */
   helpLang = computed(() => this.#authService.user()?.lang ?? 'nl');
