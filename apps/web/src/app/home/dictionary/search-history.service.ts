@@ -14,19 +14,25 @@ const MAX_HISTORY = 50;
 export class SearchHistoryService {
   readonly history = signal<HistoryEntry[]>([]);
 
-  constructor() {
-    void this.#loadFromPreferences();
-  }
+  // Resolves once the persisted history has been loaded into `history`. Every
+  // mutation waits on this: an `add()` fired during startup (before the async
+  // load populated the signal) would otherwise compute from an empty list and
+  // persist just the one new entry, wiping all previously stored searches. That
+  // race caused history to intermittently reset to empty on cold start.
+  #ready = this.#loadFromPreferences();
 
   add(word: string, lang: string): void {
-    const entry: HistoryEntry = { word, lang, searchedAt: new Date().toISOString() };
-    const filtered = this.history().filter((e) => !(e.word === word && e.lang === lang));
-    const updated = [entry, ...filtered].slice(0, MAX_HISTORY);
-    this.history.set(updated);
-    this.#save(updated);
+    void this.#ready.then(() => {
+      const entry: HistoryEntry = { word, lang, searchedAt: new Date().toISOString() };
+      const filtered = this.history().filter((e) => !(e.word === word && e.lang === lang));
+      const updated = [entry, ...filtered].slice(0, MAX_HISTORY);
+      this.history.set(updated);
+      this.#save(updated);
+    });
   }
 
   async clear(): Promise<void> {
+    await this.#ready;
     this.history.set([]);
     await Preferences.remove({ key: PREFS_KEY });
   }
