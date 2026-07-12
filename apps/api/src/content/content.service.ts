@@ -25,11 +25,17 @@ const HELP_SEED_FILES = ['help.en.md', 'help.nl.md'];
 
 @Injectable()
 export class ContentService implements OnApplicationBootstrap {
+  // Notifies the admin SSE stream (see the controller) when an upload starts,
+  // so the UI can reflect in-flight imports.
   public readonly uploadEventEmitter = new EventEmitter();
   private readonly articleLoader = new ArticleLoader();
   private readonly dictLoader = new DictLoader();
+  // Serializes all uploads into a single chain so concurrent imports can't
+  // interleave their DB writes. See uploadContent for how it stays resolved.
   private uploadChain: Promise<void> = Promise.resolve();
   private readonly logger = new Logger(ContentService.name);
+  // Rendered-HTML cache keyed by filename; avoids re-running the markdown
+  // pipeline on every article fetch. Cleared wholesale on any upload.
   readonly #htmlCache = new LRUCache<string, string>({ max: 500 });
 
   async onApplicationBootstrap(): Promise<void> {
@@ -55,6 +61,11 @@ export class ContentService implements OnApplicationBootstrap {
     }
   }
 
+  // Lists the publications (manifests) a user may see. The `main` topic holds
+  // the canonical ordered list of all group names; `authorizedGroups` returns
+  // null for admins (see all) or a group allowlist for everyone else. We map
+  // over the ordered group list rather than the manifest query result so the
+  // returned publications preserve the intended display order.
   async findPublications(user: JwtPayload) {
     const mainManifest = await Topic.findOne({ type: 'main' }).lean();
     if (!mainManifest?.groups?.length) {
@@ -75,6 +86,10 @@ export class ContentService implements OnApplicationBootstrap {
       .filter((m): m is NonNullable<typeof m> => m != null);
   }
 
+  // Returns the manifest plus its articles for one publication, with the
+  // articles in the order the manifest declares. Falls back to the raw
+  // (unordered) article list if the group has no manifest. The leading
+  // manifest topic lets the client render the publication's own metadata.
   async findPublicationTopics(groupName: string, user: JwtPayload) {
     const groups = authorizedGroups(user);
     if (groups && !groups.includes(groupName)) {
@@ -95,6 +110,9 @@ export class ContentService implements OnApplicationBootstrap {
     return [manifestTopic, ...ordered];
   }
 
+  // Fetches a single article and its rendered HTML. `indexText` (the hashtag
+  // search index) is excluded as it's irrelevant to rendering; `mdText` is
+  // stripped from the response after rendering so only `htmlText` ships.
   async findArticle(filename: string, user: JwtPayload) {
     const normalizedFilename = filename.endsWith('.md') ? filename : `${filename}.md`;
     const article = await Article.findOne({ filename: normalizedFilename }).select('-indexText').lean();
@@ -113,6 +131,8 @@ export class ContentService implements OnApplicationBootstrap {
     return { ...rest, htmlText };
   }
 
+  // Memoized markdown-to-HTML render. Keyed by filename since an article's
+  // markdown only changes via an upload, which clears the whole cache.
   async #getHtml(filename: string, mdText: string): Promise<string> {
     const cached = this.#htmlCache.get(filename);
     if (cached !== undefined) return cached;
@@ -121,6 +141,8 @@ export class ContentService implements OnApplicationBootstrap {
     return html;
   }
 
+  // Lightweight filename+sha listing used by the client to detect which cached
+  // topics are stale. Returns only the fields needed for that diff (no _id).
   async findContentManifest(user: JwtPayload) {
     const query: FilterQuery<TopicDoc> = { type: { $in: ['article', 'manifest', 'main'] } };
     const groups = authorizedGroups(user);
@@ -139,6 +161,10 @@ export class ContentService implements OnApplicationBootstrap {
     return await Topic.distinct('groupName', { type: 'manifest' }).exec();
   }
 
+  // Admin upload entry point. Dispatches by extension: images go to disk,
+  // `.json` to the dictionary loader, `.md` to the article loader. The import
+  // is queued onto uploadChain so it runs after any in-flight upload, and the
+  // HTML cache is cleared up front since an import may change any article.
   async uploadContent(file: Express.Multer.File): Promise<{ filename: string }> {
     if (!file) {
       throw new BadRequestException('No file provided');
@@ -180,6 +206,9 @@ export class ContentService implements OnApplicationBootstrap {
     return work;
   }
 
+  // Writes a publication image straight to the public images dir. The filename
+  // comes from the client, so reject any path separators or `..` to prevent a
+  // path-traversal write outside IMAGES_DIR.
   #uploadImage(file: Express.Multer.File): Promise<{ filename: string }> {
     const { originalname } = file;
     if (originalname.includes('/') || originalname.includes('\\') || originalname.includes('..')) {
@@ -205,10 +234,15 @@ export class ContentService implements OnApplicationBootstrap {
     return work;
   }
 
+  // Admin maintenance action: rebuild the hashtag search index across all
+  // articles (e.g. after changing the hashtag extraction rules).
   async reprocessHashtags(): Promise<void> {
     return this.articleLoader.reprocessAllHashtags();
   }
 
+  // Deletes a topic and its associated records via the loader that owns it
+  // (dict vs article), so any side data the loader tracks is cleaned up too.
+  // Returns a Mongo-style deletedCount so a missing topic is a no-op, not an error.
   async deleteTopic(filename: string) {
     const topic = await Topic.findOne({ filename }).exec();
     if (!topic) {

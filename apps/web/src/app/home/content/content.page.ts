@@ -60,6 +60,8 @@ export class ContentPage {
   #contentService = inject(ContentService);
   #authService = inject(AuthService);
 
+  // Fires whenever the library should reload: on login, on page enter, and on
+  // pull-to-refresh. switchMap below cancels any in-flight fetch on re-trigger.
   #refresh$ = new Subject<void>();
   /**
    * View state for the library list. Emits `loading` immediately on each fetch
@@ -80,16 +82,22 @@ export class ContentPage {
 
   constructor() {
     addIcons({ helpCircleOutline, refreshOutline });
+    // Reload the library once a user is present (login / auto-login), so the
+    // list reflects the newly authenticated user's authorized publications.
     this.#authService.user$.pipe(
       takeUntilDestroyed(),
       filter(Boolean),
     ).subscribe(() => this.#refresh$.next());
   }
 
+  // Refresh on every navigation into this tab (not just first construction),
+  // so content uploaded/removed elsewhere shows up when the user returns.
   ionViewWillEnter() {
     this.#refresh$.next();
   }
 
+  // Pull-to-refresh handler. Triggers a reload, then completes the refresher
+  // to dismiss its spinner (the arg is optional so it's also callable directly).
   handleRefresh(event?: { target: { complete: () => void } }) {
     this.#refresh$.next();
     event?.target.complete();

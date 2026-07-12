@@ -32,6 +32,8 @@ import { BackButtonComponent } from '../../../shared/back-button/back-button.com
 import { ContentService } from '../content.service';
 import { type ITopic } from '../topic.model';
 
+// State of the "download all articles for offline use" action:
+// idle (not started), caching (prefetch in progress), done (all cached).
 type CacheStatus = 'idle' | 'caching' | 'done';
 
 @Component({
@@ -60,20 +62,27 @@ export class PublicationPage {
   #contentService = inject(ContentService);
   #destroyRef = inject(DestroyRef);
 
+  // Topics come pre-resolved by the route resolver (no in-component fetch),
+  // exposed as a signal so the template reacts to them.
   #topics$ = this.#route.data.pipe(map(({ topics }) => topics));
 
   #topics: Signal<ITopic[]> = toSignal(this.#topics$, {
     initialValue: [] as ITopic[],
   });
 
+  // The rows to render: articles plus the manifest (which carries the
+  // publication's own intro/metadata). Other topic types are filtered out.
   topics = computed(() =>
     this.#topics().filter((topic) => topic.type === 'article' || topic.type === 'manifest'),
   );
 
+  // Header title taken from the manifest topic, with a fallback for the brief
+  // window before topics resolve.
   publicationTitle = computed(
     () => this.#topics().find((topic) => topic.type === 'manifest')?.title || 'Publication',
   );
 
+  // Drives the offline-download button and its progress bar.
   cacheStatus = signal<CacheStatus>('idle');
   cachedCount = signal(0);
 
@@ -81,6 +90,10 @@ export class PublicationPage {
     addIcons({ cloudDownloadOutline, checkmarkCircleOutline });
   }
 
+  // Downloads every article in this publication into the SW cache for offline
+  // reading. Prefetches run sequentially (concat, not merge) to avoid a burst
+  // of parallel requests; cachedCount ticks up per completed article to feed
+  // the progress bar. Guards against re-entry while a run is already in flight.
   cacheAll() {
     const articleTopics = this.topics();
     if (articleTopics.length === 0 || this.cacheStatus() === 'caching') return;
