@@ -4,8 +4,11 @@ import { HomePage } from './home.page';
 
 export const homeUrl = '/home/tabs/content';
 
+// For below syntax, see: https://stackoverflow.com/questions/45251664/derive-union-type-from-tuple-array-values
+
 /** Bottom-tab segments under /home/tabs. */
 export const HOME_TABS = ['content', 'dictionary', 'hashtags', 'bookmarks'] as const;
+/** Union of the array's element literals: 'content' | 'dictionary' | 'hashtags' | 'bookmarks'. */
 export type HomeTab = (typeof HOME_TABS)[number];
 
 /** Preferences key holding the last active tab, restored on a cold start. */
@@ -73,7 +76,9 @@ export const HOME_ROUTES: Routes = [
           {
             path: 'content',
             loadComponent: () =>
-              import('./vocabulary/deck-content-page/deck-content.page').then((p) => p.DeckContentPage),
+              import('./vocabulary/deck-content-page/deck-content.page').then(
+                (p) => p.DeckContentPage,
+              ),
           },
         ],
       },
