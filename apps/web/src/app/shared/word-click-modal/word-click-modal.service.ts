@@ -142,7 +142,10 @@ export class WordClickModalService {
         },
         cssClass: 'word-click-modal',
         initialBreakpoint: 0.25,
-        breakpoints: [0, 0.25, 0.5],
+        // Include a full-height (1) stop so a long entry can be pulled to the top
+        // and scrolled inside its ion-content, matching the history sheet. It
+        // still opens compact (0.25) for a quick word peek.
+        breakpoints: [0, 0.25, 0.5, 1],
         handleBehavior: 'cycle',
       })
       .then((modal) => {
