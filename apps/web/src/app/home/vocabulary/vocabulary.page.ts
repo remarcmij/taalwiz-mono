@@ -54,6 +54,20 @@ import { VocabularyEntryModalComponent } from './vocabulary-entry-modal/vocabula
 import { VocabularyEntry, VocabularyList, VocabularyService } from './vocabulary.service';
 import { PointerService } from '../../shared/pointer.service';
 
+/**
+ * Per-row view-model for the vocabulary list. The list can hold 1000+ entries, so
+ * the markdown render, SRS due-label, and tap-affordance are precomputed once per
+ * `rows` recomputation rather than called as template methods that would re-run for
+ * every visible row on each change-detection pass.
+ */
+interface VocabularyRow {
+  entry: VocabularyEntry;
+  key: string;
+  backHtml: string | null;
+  dueLabel: string;
+  hasTapAction: boolean;
+}
+
 @Component({
   selector: 'app-bookmarks',
   imports: [
@@ -100,12 +114,24 @@ export class VocabularyPage {
   @ViewChild(IonContent) private content?: IonContent;
   readonly #host = inject(ElementRef);
 
-  /** Render a card back's `**bold**`/`*italic*` markup for the list preview as
-   * plain emphasis. Uses `tinyMarkdown` (not `convertMarkdown`) so preview words
-   * are NOT wrapped in tappable spans — this row is a summary, not a lookup. */
-  protected backPreviewHtml(text: string): string {
-    return this.#markdownService.tinyMarkdown(text);
-  }
+  /**
+   * The list projected into render-ready rows. Recomputes only when the bookmarks
+   * or the current list's lock state change (both signals), so the per-row markdown
+   * and due-label work runs once per data change instead of once per row per
+   * change-detection pass. Card-back markup uses `tinyMarkdown` (not
+   * `convertMarkdown`) so preview words are NOT wrapped in tappable spans — this row
+   * is a summary, not a lookup.
+   */
+  protected rows = computed<VocabularyRow[]>(() => {
+    const locked = this.vocabularyService.currentListLocked();
+    return this.vocabularyService.bookmarks().map((entry) => ({
+      entry,
+      key: `${entry.term}:${entry.lang}`,
+      backHtml: entry.back ? this.#markdownService.tinyMarkdown(entry.back) : null,
+      dueLabel: this.#dueLabel(entry),
+      hasTapAction: this.#hasTapAction(entry, locked),
+    }));
+  });
 
   protected dueForCurrentList = computed(() => {
     const listId = this.vocabularyService.currentListId();
@@ -288,9 +314,10 @@ export class VocabularyPage {
   // Whether tapping the row does anything: opens the editor (own card with a
   // back) or looks the term up in the dictionary (single word). A locked list
   // is uniformly read-only, so every row drops the `button` affordance rather
-  // than showing the chevron on only the single-word rows.
-  hasTapAction(entry: VocabularyEntry): boolean {
-    if (this.vocabularyService.currentListLocked()) {
+  // than showing the chevron on only the single-word rows. `locked` is passed in
+  // (not read here) so the `rows` computed reads the lock signal just once.
+  #hasTapAction(entry: VocabularyEntry, locked: boolean): boolean {
+    if (locked) {
       return false;
     }
     if (entry.back) {
@@ -311,7 +338,7 @@ export class VocabularyPage {
    * terse countdown to the next review (`4d`, `2w`, `3mo`). Intervals are whole
    * days, so future labels never need sub-day units.
    */
-  protected dueLabel(entry: VocabularyEntry): string {
+  #dueLabel(entry: VocabularyEntry): string {
     if (entry.isNew) return this.#translate.instant('vocabulary.due-new');
     if (!entry.dueDate) return '';
     const diffMs = new Date(entry.dueDate).getTime() - Date.now();

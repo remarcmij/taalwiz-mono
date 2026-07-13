@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, effect, inject, signal } from '@angular/core';
 import { EMPTY, Observable, catchError, firstValueFrom, map, of } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
+import { ApiErrorAlertService } from '../../shared/api-error-alert.service';
 
 export interface SrsItem {
   term: string;
@@ -35,6 +36,7 @@ export type SrsRating = 'again' | 'good' | 'easy';
 export class StudyService {
   #http = inject(HttpClient);
   #authService = inject(AuthService);
+  #apiErrorAlert = inject(ApiErrorAlertService);
 
   readonly stats = signal<SrsStatsEntry[]>([]);
 
@@ -58,7 +60,14 @@ export class StudyService {
   getDueCards(listId: string, all = false): Observable<SrsItem[]> {
     const params: Record<string, string> = { listId };
     if (all) params['all'] = 'true';
-    return this.#http.get<SrsItem[]>('/api/v1/srs/due', { params }).pipe(catchError(() => EMPTY));
+    return this.#http.get<SrsItem[]>('/api/v1/srs/due', { params }).pipe(
+      catchError((error) => {
+        // Without this the study modal would open empty, indistinguishable from
+        // "nothing due" — tell the user the cards failed to load instead.
+        void this.#apiErrorAlert.showNetworkError(error);
+        return EMPTY;
+      }),
+    );
   }
 
   submitReview(
@@ -69,7 +78,14 @@ export class StudyService {
   ): Observable<{ dueDate: string }> {
     return this.#http
       .post<{ dueDate: string }>('/api/v1/srs/review', { term, lang, listId, rating })
-      .pipe(catchError(() => EMPTY));
+      .pipe(
+        catchError((error) => {
+          // A silently dropped review loses the user's rating with no sign it
+          // failed. Surface it so they know their progress was not saved.
+          void this.#apiErrorAlert.showNetworkError(error);
+          return EMPTY;
+        }),
+      );
   }
 
   /** The pinned dictionary line for a back-less card (0 = first line). */
@@ -85,6 +101,11 @@ export class StudyService {
   setLemmaIndex(term: string, lang: string, listId: string, lemmaIndex: number): Observable<void> {
     return this.#http
       .post<void>('/api/v1/srs/lemma-index', { term, lang, listId, lemmaIndex })
-      .pipe(catchError(() => EMPTY));
+      .pipe(
+        catchError((error) => {
+          void this.#apiErrorAlert.showNetworkError(error);
+          return EMPTY;
+        }),
+      );
   }
 }

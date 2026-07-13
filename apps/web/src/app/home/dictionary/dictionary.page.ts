@@ -139,7 +139,11 @@ export class DictionaryPage implements OnDestroy {
 
   hasMoreHistory = computed(() => this.#historyService.history().length > MAX_RECENT_SEARCHES);
 
-  #destroy$ = new Subject<void>();
+  // Fires on every ionViewWillLeave to tear down the per-visit keyup subscription
+  // set up in ionViewWillEnter. Ionic caches this tab's page, so ngOnDestroy rarely
+  // runs; without a per-visit teardown each re-entry would stack another live keyup
+  // listener on the same input (duplicate lookups + a growing leak).
+  #leave$ = new Subject<void>();
 
   // Set when a lookup originates from a breadcrumb click so the result handler
   // skips re-adding the word to history. Clicking a breadcrumb is back-navigation
@@ -228,7 +232,7 @@ export class DictionaryPage implements OnDestroy {
           this.showSearches.set(suggestions.length > 0);
         }),
         catchError(() => of<WordLang[]>([])),
-        takeUntil(this.#destroy$),
+        takeUntil(this.#leave$),
       )
       .subscribe((suggestions) => {
         this.suggestions.set(suggestions);
@@ -253,10 +257,16 @@ export class DictionaryPage implements OnDestroy {
     searchInputElement.focus();
   }
 
+  // Tear down the keyup subscription created in ionViewWillEnter, so leaving and
+  // re-entering the tab does not stack duplicate listeners on the same input.
+  ionViewWillLeave() {
+    this.#leave$.next();
+  }
+
   ngOnDestroy() {
     this.onClear();
-    this.#destroy$.next();
-    this.#destroy$.complete();
+    this.#leave$.next();
+    this.#leave$.complete();
   }
 
   getSuggestions(name: string): Observable<WordLang[]> {

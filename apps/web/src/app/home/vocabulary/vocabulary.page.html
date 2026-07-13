@@ -144,23 +144,24 @@
       <p class="empty-state">{{ 'bookmarks.empty' | translate: { action: pointer.actionKey() | translate } }}</p>
     } @else {
       <ion-list lines="full">
-        @for (entry of vocabularyService.bookmarks(); track entry.term + ':' + entry.lang) {
+        @for (row of rows(); track row.key) {
+          @let entry = row.entry;
           <ion-item-sliding
             [disabled]="vocabularyService.currentListLocked()"
-            [attr.data-card-key]="entry.term + ':' + entry.lang">
+            [attr.data-card-key]="row.key">
             <ion-item-options side="start">
               <ion-item-option (click)="editCard(entry)">
                 {{ 'vocabulary.edit-entry' | translate }}
               </ion-item-option>
             </ion-item-options>
-            <ion-item [button]="hasTapAction(entry)" (click)="lookup(entry)">
+            <ion-item [button]="row.hasTapAction" (click)="lookup(entry)">
               <ion-label>
                 <h2>{{ entry.term }}</h2>
-                @if (entry.back; as back) {
-                  <p class="back-preview" [innerHTML]="backPreviewHtml(back)"></p>
+                @if (row.backHtml; as backHtml) {
+                  <p class="back-preview" [innerHTML]="backHtml"></p>
                 }
               </ion-label>
-              <ion-note slot="end">{{ dueLabel(entry) }}</ion-note>
+              <ion-note slot="end">{{ row.dueLabel }}</ion-note>
               <ion-buttons slot="end">
                 <!-- Edit is always reachable, even on a locked list: for a back-less card it
                      opens the dictionary-line picker (lock-immune study state); other cases
