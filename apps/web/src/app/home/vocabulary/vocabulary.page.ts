@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   ActionSheetController,
@@ -111,7 +111,7 @@ export class VocabularyPage {
 
   protected isDesktop = this.#platform.is('desktop');
 
-  @ViewChild(IonContent) private content?: IonContent;
+  private content = viewChild(IonContent);
   readonly #host = inject(ElementRef);
 
   /**
@@ -373,7 +373,7 @@ export class VocabularyPage {
       const row = this.#host.nativeElement.querySelector(
         `ion-item-sliding[data-card-key="${CSS.escape(key)}"]`,
       ) as HTMLElement | null;
-      const content = this.content;
+      const content = this.content();
       if (!row || !content) return;
       const scrollEl = await content.getScrollElement();
       // The content is fullscreen (scrolls behind the header), so align the row's

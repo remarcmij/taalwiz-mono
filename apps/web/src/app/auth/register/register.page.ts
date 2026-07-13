@@ -4,7 +4,7 @@ import {
   inject,
   OnInit,
   signal,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -62,7 +62,7 @@ export class RegisterPage implements OnInit {
   #alertCtrl = inject(AlertController);
   #authService = inject(AuthService);
 
-  @ViewChild('nameInput') nameInput!: IonInput;
+  nameInput = viewChild<IonInput>('nameInput');
   #token = '';
   #lang = '';
 
@@ -72,17 +72,19 @@ export class RegisterPage implements OnInit {
   password = signal('');
 
   ngOnInit() {
-    this.#route.queryParamMap.subscribe((params) => {
-      this.#token = params.get('token') || '';
-      this.#lang = params.get('lang') || '';
-      this.email.set(params.get('email') || '');
-    });
+    // The token/lang/email come from the one-time invite link and do not change
+    // while this page is open, so read them once from the route snapshot rather
+    // than holding an (unmanaged) queryParamMap subscription.
+    const params = this.#route.snapshot.queryParamMap;
+    this.#token = params.get('token') || '';
+    this.#lang = params.get('lang') || '';
+    this.email.set(params.get('email') || '');
     this.#translate.use(this.#lang);
   }
 
   ionViewDidEnter() {
     if (this.#token && this.email()) {
-      this.nameInput.setFocus();
+      this.nameInput()?.setFocus();
     }
   }
 

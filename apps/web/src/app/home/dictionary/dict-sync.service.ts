@@ -24,27 +24,34 @@ interface DictManifest {
 
 @Injectable({ providedIn: 'root' })
 export class DictSyncService {
-  readonly status$ = new BehaviorSubject<SyncStatus>('idle');
-  readonly progress$ = new BehaviorSubject<SyncProgress | null>(null);
+  // Private subjects so only this service can push state; consumers get read-only
+  // observables (below). Exposing the raw BehaviorSubjects would let any consumer
+  // call .next() and corrupt sync state.
+  #status$ = new BehaviorSubject<SyncStatus>('idle');
+  #progress$ = new BehaviorSubject<SyncProgress | null>(null);
   // True when a complete dictionary has been committed to IndexedDB (i.e.
   // `meta.version` is non-null). Drives the search-ready gate without polling
   // the store mid-import — calls to count()/getStoredVersion() during the
   // worker's readwrite tx would block on the IDB lock.
-  readonly hasCompleteDict$ = new BehaviorSubject<boolean>(false);
+  #hasCompleteDict$ = new BehaviorSubject<boolean>(false);
+
+  readonly status$ = this.#status$.asObservable();
+  readonly progress$ = this.#progress$.asObservable();
+  readonly hasCompleteDict$ = this.#hasCompleteDict$.asObservable();
 
   #dictStore = inject(DictStoreService);
 
   async init(): Promise<void> {
     await this.#dictStore.open();
     const initialVersion = await this.#dictStore.getStoredVersion();
-    this.hasCompleteDict$.next(initialVersion != null);
+    this.#hasCompleteDict$.next(initialVersion != null);
     await this.syncIfNeeded();
   }
 
   async syncIfNeeded(): Promise<void> {
-    if (this.status$.value === 'downloading' || this.status$.value === 'importing') return;
+    if (this.#status$.value === 'downloading' || this.#status$.value === 'importing') return;
     if (!navigator.onLine) {
-      this.status$.next('offline');
+      this.#status$.next('offline');
       return;
     }
 
@@ -54,41 +61,41 @@ export class DictSyncService {
       if (!response.ok) {
         if (response.status === 404) {
           // 404 = no dict uploaded yet.
-          this.status$.next('done');
+          this.#status$.next('done');
         } else if (response.status === 504 || !navigator.onLine) {
           // When a service worker controls the page, an offline fetch of the
           // (deliberately un-cached) manifest does not throw — ngsw resolves it
           // with a synthetic 504. So treat a 504, or a falsy navigator.onLine,
           // as offline rather than a server-side error. (The catch below only
           // fires when there is no SW to intercept the failed request.)
-          this.status$.next('offline');
+          this.#status$.next('offline');
         } else {
           // A reachable server returning a genuine error.
-          this.status$.next('error');
+          this.#status$.next('error');
         }
         return;
       }
       manifest = (await response.json()) as DictManifest;
     } catch {
-      this.status$.next('offline');
+      this.#status$.next('offline');
       return;
     }
 
     const storedVersion = await this.#dictStore.getStoredVersion();
     if (storedVersion === manifest.version) {
-      this.status$.next('done');
+      this.#status$.next('done');
       return;
     }
 
     // The cheap manifest/version check stays on the main thread; the heavy
     // fetch + transform + ~270k-record IDB write runs in a dedicated worker.
-    this.status$.next('downloading');
-    this.progress$.next({ phase: 'downloading', loaded: 0, total: manifest.files.length });
+    this.#status$.next('downloading');
+    this.#progress$.next({ phase: 'downloading', loaded: 0, total: manifest.files.length });
     const startedAt = performance.now();
     try {
       await this.#runImportInWorker({ files: manifest.files, version: manifest.version });
-      this.hasCompleteDict$.next(true);
-      this.status$.next('done');
+      this.#hasCompleteDict$.next(true);
+      this.#status$.next('done');
       // Wall-clock import time + post-import IDB footprint, so we can track
       // both as the schema and import path evolve.
       const elapsed = ((performance.now() - startedAt) / 1000).toFixed(2);
@@ -99,9 +106,9 @@ export class DictSyncService {
         `[dict] import complete in ${elapsed}s — IDB usage ${mb(usage)} (quota ${mb(quota)})`,
       );
     } catch {
-      this.status$.next('error');
+      this.#status$.next('error');
     } finally {
-      this.progress$.next(null);
+      this.#progress$.next(null);
     }
   }
 
@@ -118,10 +125,10 @@ export class DictSyncService {
             // Re-emit phase + progress to the UI. The phase flip from
             // 'downloading' to 'importing' is what tells the banner to swap
             // its message ("Downloading…" → "Importing…").
-            if (msg.phase !== this.status$.value) {
-              this.status$.next(msg.phase);
+            if (msg.phase !== this.#status$.value) {
+              this.#status$.next(msg.phase);
             }
-            this.progress$.next({
+            this.#progress$.next({
               phase: msg.phase,
               loaded: msg.loaded,
               total: msg.total,

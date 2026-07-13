@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -14,7 +14,6 @@ import {
   IonLabel,
   IonList,
   IonMenuButton,
-  IonModal,
   IonRefresher,
   IonRefresherContent,
   IonTitle,
@@ -56,8 +55,6 @@ import { HashtagsService } from './hashtags.service';
 export class HashtagsPage {
   #modalCtrl = inject(ModalController);
   #hashtagsService = inject(HashtagsService);
-
-  @ViewChild(IonModal) modal!: IonModal;
 
   hashtagGroups$ = this.#hashtagsService.getHashtagIndex();
 

@@ -5,10 +5,10 @@ import {
   ElementRef,
   HostListener,
   OnDestroy,
-  ViewChild,
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -111,8 +111,8 @@ export class DictionaryPage implements OnDestroy {
     () => this.syncStatus() === 'downloading' || this.syncStatus() === 'importing',
   );
 
-  @ViewChild('searchbarInput', { read: ElementRef }) searchbar!: ElementRef;
-  @ViewChild('content', { read: ElementRef }) content!: ElementRef<IonContent>;
+  searchbar = viewChild.required('searchbarInput', { read: ElementRef });
+  content = viewChild('content', { read: ElementRef });
 
   suggestions = signal<WordLang[]>([]);
   word = signal('');
@@ -167,7 +167,7 @@ export class DictionaryPage implements OnDestroy {
       } else {
         this.word.set(results.targetBase!.word);
       }
-      this.content?.nativeElement.scrollToTop();
+      this.content()?.nativeElement.scrollToTop();
     }),
   );
 
@@ -210,7 +210,7 @@ export class DictionaryPage implements OnDestroy {
 
     // Ref: https://github.com/ionic-team/ionic-framework/issues/7223
     const searchInputElement: HTMLInputElement =
-      this.searchbar.nativeElement.querySelector('.searchbar-input');
+      this.searchbar().nativeElement.querySelector('.searchbar-input');
 
     let keyupKey = '';
     fromEvent<KeyboardEvent>(searchInputElement, 'keyup')
@@ -257,7 +257,7 @@ export class DictionaryPage implements OnDestroy {
 
   ionViewDidEnter() {
     const searchInputElement: HTMLInputElement =
-      this.searchbar.nativeElement.querySelector('.searchbar-input');
+      this.searchbar().nativeElement.querySelector('.searchbar-input');
     searchInputElement.focus();
   }
 

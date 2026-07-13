@@ -1,12 +1,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ViewChild,
   computed,
   effect,
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import {
   IonButton,
@@ -63,8 +63,8 @@ export class VocabularyEntryModalComponent {
   // disabled; bulk import picks its own target and stays available.
   currentLocked = input<boolean>(false);
 
-  @ViewChild(IonInput) private termInput?: IonInput;
-  @ViewChild(IonTextarea) private csvTextarea?: IonTextarea;
+  private termInput = viewChild(IonInput);
+  private csvTextarea = viewChild(IonTextarea);
 
   #modalCtrl = inject(ModalController);
   #toastCtrl = inject(ToastController);
@@ -123,7 +123,7 @@ export class VocabularyEntryModalComponent {
 
   ionViewDidEnter(): void {
     if (this.isDesktop) {
-      void this.termInput?.setFocus();
+      void this.termInput()?.setFocus();
     }
   }
 
@@ -134,9 +134,9 @@ export class VocabularyEntryModalComponent {
     if (this.isDesktop) {
       setTimeout(() => {
         if (this.activeTab() === 'import') {
-          void this.csvTextarea?.setFocus();
+          void this.csvTextarea()?.setFocus();
         } else {
-          void this.termInput?.setFocus();
+          void this.termInput()?.setFocus();
         }
       }, 100);
     }
