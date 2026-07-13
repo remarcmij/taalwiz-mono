@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import {
   IonBadge,
   IonButton,
@@ -47,6 +47,16 @@ export class HistoryModalComponent {
 
   history = this.#historyService.history;
 
+  /** History entries with their relative-time label precomputed, once per history
+   * change, rather than via a template method re-run for every row on each
+   * change-detection pass. */
+  rows = computed(() =>
+    this.history().map((entry) => ({
+      entry,
+      relativeTime: this.#relativeTime(entry.searchedAt),
+    })),
+  );
+
   select(entry: HistoryEntry): void {
     void this.#modalCtrl.dismiss(new WordLang(entry.word, entry.lang), 'select');
   }
@@ -55,7 +65,7 @@ export class HistoryModalComponent {
     await this.#historyService.clear();
   }
 
-  relativeTime(isoString: string): string {
+  #relativeTime(isoString: string): string {
     const diffMs = Date.now() - new Date(isoString).getTime();
     const diffMin = Math.floor(diffMs / 60_000);
     if (diffMin < 1) return '< 1m';

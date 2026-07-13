@@ -25,14 +25,14 @@
     </div>
   } @else {
     <ion-list lines="full">
-      @for (lemma of lemmas(); track $index) {
-        <ion-item button [detail]="false" (click)="select($index)">
+      @for (line of lines(); track line.index) {
+        <ion-item button [detail]="false" (click)="select(line.index)">
           <ion-icon
             slot="start"
             name="checkmark-outline"
             color="primary"
-            [class.invisible]="$index !== currentIndex()"></ion-icon>
-          <ion-label class="line-text" [innerHTML]="lineHtml(lemma.text)"></ion-label>
+            [class.invisible]="line.index !== currentIndex()"></ion-icon>
+          <ion-label class="line-text" [innerHTML]="line.html"></ion-label>
         </ion-item>
       }
     </ion-list>

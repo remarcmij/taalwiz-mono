@@ -71,9 +71,9 @@
     </ion-breadcrumbs>
     }
     <ion-list lines="none">
-      @if (results$ | async; as results) {
+      @if (results(); as results) {
       <!---->
-      @for (base of visibleBases(results); track base.key; let isFirst = $first) {
+      @for (base of visibleBases(); track base.key; let isFirst = $first) {
       <ion-item class="ion-no-padding">
         <ion-card class="lemma-card">
           @if (isFirst) {

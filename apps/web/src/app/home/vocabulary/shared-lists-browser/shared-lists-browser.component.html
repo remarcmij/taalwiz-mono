@@ -56,12 +56,12 @@
       <div class="center"><ion-spinner></ion-spinner></div>
     } @else {
       <ion-list lines="full">
-        @for (item of items(); track item.term + ':' + item.lang) {
+        @for (row of previewRows(); track row.item.term + ':' + row.item.lang) {
           <ion-item>
             <ion-label>
-              <h2>{{ item.term }}</h2>
-              @if (item.back; as back) {
-                <p class="back-preview" [innerHTML]="backPreviewHtml(back)"></p>
+              <h2>{{ row.item.term }}</h2>
+              @if (row.backHtml; as backHtml) {
+                <p class="back-preview" [innerHTML]="backHtml"></p>
               }
             </ion-label>
           </ion-item>

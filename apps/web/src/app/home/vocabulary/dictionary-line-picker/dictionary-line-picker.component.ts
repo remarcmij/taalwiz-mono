@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
 import {
   IonButton,
   IonButtons,
@@ -60,15 +68,20 @@ export class DictionaryLinePickerComponent implements OnInit {
   #study = inject(StudyService);
   #markdown = inject(MarkdownService);
 
-  /** Render the line's `**bold**`/`*italic*` markup as plain emphasis (no tappable
-   * spans), matching the vocabulary list's back preview. */
-  protected lineHtml(text: string): string {
-    return this.#markdown.tinyMarkdown(text);
-  }
-
   protected readonly loading = signal(true);
   protected readonly lemmas = signal<ILemma[]>([]);
   protected readonly currentIndex = signal(0);
+
+  /** The dictionary lines as render-ready rows. The `**bold**`/`*italic*` markup is
+   * rendered here (once, when `lemmas` is set) as plain emphasis — `tinyMarkdown`,
+   * so no tappable spans — rather than in a template method re-run per row on each
+   * change-detection pass. */
+  protected readonly lines = computed(() =>
+    this.lemmas().map((lemma, index) => ({
+      index,
+      html: this.#markdown.tinyMarkdown(lemma.text),
+    })),
+  );
 
   constructor() {
     addIcons({ checkmarkOutline, closeOutline });

@@ -1,4 +1,4 @@
-import { AsyncPipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -52,7 +52,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { langConfig } from '../../app.constants';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
-import { DictionaryService, LookupResult } from './dictionary.service';
+import { DictionaryService } from './dictionary.service';
 import { lemmaVisibleAt, type DetailLevel } from './lemma/lemma.model';
 import { HistoryModalComponent } from './history-modal/history-modal.component';
 import { LemmaComponent } from './lemma/lemma.component';
@@ -65,7 +65,6 @@ const MAX_RECENT_SEARCHES = 3;
 @Component({
   selector: 'app-dictionary',
   imports: [
-    AsyncPipe,
     NgClass,
     FormsModule,
     SearchbarDropdownComponent,
@@ -171,6 +170,11 @@ export class DictionaryPage implements OnDestroy {
       this.content?.nativeElement.scrollToTop();
     }),
   );
+
+  // Signal view of the lookup result, so `visibleBases` can be a computed rather
+  // than a method re-run on every change-detection pass. `results$` keeps its tap
+  // side-effects (history, scroll, tier reset); toSignal subscribes to it once.
+  protected results = toSignal(this.results$);
 
   addRecentSearch(wordLang: WordLang): void {
     this.#historyService.add(wordLang.word, wordLang.lang);
@@ -311,12 +315,16 @@ export class DictionaryPage implements OnDestroy {
   // Bases to render at the current tier. `all`: every base. Otherwise only bases
   // with at least one lemma visible at this tier — a base where the searched
   // word appears solely as a usage (e.g. "ekor" inside "ékor angin") would
-  // otherwise render as an empty card below the `all` tier.
-  visibleBases(results: LookupResult): WordLang[] {
+  // otherwise render as an empty card below the `all` tier. A computed off the
+  // result and tier signals, so it recomputes only when a lookup lands or the
+  // tier is toggled, not on every change-detection pass.
+  visibleBases = computed<WordLang[]>(() => {
+    const results = this.results();
+    if (!results) return [];
     const level = this.detailLevel();
     if (level === 'all') return results.bases;
     return results.bases.filter((base) =>
       results.lemmas[base.key].some((l) => lemmaVisibleAt(l, level)),
     );
-  }
+  });
 }
