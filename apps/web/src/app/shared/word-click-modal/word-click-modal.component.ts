@@ -127,10 +127,14 @@ export class WordClickModalComponent implements OnInit {
         }
         // Remove the keyword the parser re-asserts before each extra sense so
         // the dialog shows just the sense number, as Teeuw does. Teeuw uses a
-        // bare digit (`**keréta**, 2`); Stevens wraps it in `__n__` bold
-        // (`**keréta**, __2__`) — keep whichever form so the number still
-        // renders consistently with the first sense.
-        const regexp = new RegExp(`\\*\\*${lemma.word}\\*\\*, *(__\\d+__|\\d+)`);
+        // bare digit and re-asserts with a comma (`**keréta**, 2`); Stevens
+        // wraps the number in `__n__` bold and re-asserts with only a space
+        // (`**akhir** __2__`). Tolerate either separator so both dictionaries
+        // strip the repeat, and keep whichever number form so it still renders
+        // consistently with the first sense. `lemma.word` is escaped because a
+        // compound or parenthesised headword would otherwise be a live regex.
+        const word = lemma.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regexp = new RegExp(`\\*\\*${word}\\*\\*,? *(__\\d+__|\\d+)`);
         return text.replace(regexp, '$1');
       });
       const homonymText = this.#markdownService.tinyMarkdown(texts.join(' ').replace(/;$/, '.'));
