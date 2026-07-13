@@ -1,73 +1,53 @@
 import { Injectable, inject } from '@angular/core';
-import {
-  Observable,
-  Observer,
-  Subscription,
-  concatMap,
-  delay,
-  filter,
-  from,
-  map,
-  throwError,
-} from 'rxjs';
+import { Observable, Observer, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { LoggerService } from '../shared/logger.service';
 
 interface SpeakOptions {
-  pause: number;
   volume: number;
   rate: number;
 }
 
 const MAX_RETRIES = 10;
-const INTER_SENTENCE_PAUSE_MS = 250;
-const DEFAULT_OPTIONS = { pause: 0, volume: 1, rate: 0.8 };
+const DEFAULT_OPTIONS: SpeakOptions = { volume: 1, rate: 0.8 };
 
 @Injectable({
   providedIn: 'root',
 })
 export class SpeechSynthesizerService {
-  voicesAvailable!: SpeechSynthesisVoice[];
-  private _hasSpoken = false;
-  isCancelling = false;
-  speechSubscription?: Subscription;
+  voicesAvailable: SpeechSynthesisVoice[] = [];
   utterance!: SpeechSynthesisUtterance;
-  private _speechEnabled = false;
+  #speechEnabled = false;
 
-  private logger!: LoggerService;
+  readonly #logger = inject(LoggerService);
 
   constructor() {
-    this.logger = inject(LoggerService);
-    this.onInit();
+    this.initVoices();
   }
 
   get speechEnabled(): boolean {
-    return this._speechEnabled;
+    return this.#speechEnabled;
   }
 
   set speechEnabled(value: boolean) {
-    this._speechEnabled = value;
+    this.#speechEnabled = value;
     if (!value) {
       this.cancel();
     }
   }
 
-  onInit() {
+  initVoices() {
     if (!this.isSynthesisSupported()) {
       return;
     }
 
     this.loadVoices().then((voices) => {
       this.voicesAvailable = voices.sort((a, b) => a.lang.localeCompare(b.lang));
-      if (!environment.production && this.logger.isMinLevel('silly')) {
+      if (!environment.production && this.#logger.isMinLevel('silly')) {
         console.table(this.voicesAvailable);
       }
-      this.logger.debug('SpeechSynthesizerService', `${voices.length} voices loaded`);
+      this.#logger.debug('SpeechSynthesizerService', `${voices.length} voices loaded`);
     });
-  }
-
-  get hasSpoken(): boolean {
-    return this._hasSpoken;
   }
 
   loadVoices(): Promise<SpeechSynthesisVoice[]> {
@@ -90,7 +70,7 @@ export class SpeechSynthesizerService {
           voices = window.speechSynthesis.getVoices();
           retries += 1;
           if (voices.length !== 0 || retries > MAX_RETRIES) {
-            this.logger.debug('SpeechSynthesizerService.loadVoices', 'retries ' + retries);
+            this.#logger.debug('SpeechSynthesizerService.loadVoices', 'retries ' + retries);
             clearInterval(intervalID);
             resolve(voices);
             return;
@@ -110,64 +90,23 @@ export class SpeechSynthesizerService {
     return this.isSynthesisSupported() && !!this.selectVoice(lang);
   }
 
-  getVoices() {
-    return this.voicesAvailable;
-  }
-
   cancel() {
-    this.isCancelling = true;
-    window.speechSynthesis.cancel();
-    if (this.speechSubscription) {
-      this.speechSubscription.unsubscribe();
-      this.speechSubscription = undefined;
-    }
     if (this.isSynthesisSupported()) {
       window.speechSynthesis.cancel();
     }
   }
 
-  speakMulti(text: string, lang: string, options?: SpeakOptions) {
-    if (!this.isSynthesisSupported()) {
-      throw new Error('speech synthesis not supported');
-    }
-
-    options = options ?? DEFAULT_OPTIONS;
-    this.cancel();
-    this.isCancelling = false;
-
-    text = text.trim();
-    if (!/[.?!]$/.test(text)) {
-      text += '.';
-    }
-    text += ' ';
-
-    const matches = text.match(/.+?[.!?]+\s+/g) || [text];
-
-    if (matches.length > 1) {
-      options.pause = options.pause || INTER_SENTENCE_PAUSE_MS;
-    }
-
-    return from(matches).pipe(
-      map((phrase) => phrase.trim()),
-      filter((phrase) => phrase.length !== 0),
-      concatMap((phrase) =>
-        this.speakObservable(phrase, lang, options).pipe(delay(options!.pause)),
-      ),
-    );
-  }
-
-  speakSingle(text: string, lang: string, options?: SpeakOptions): Observable<void> {
+  speakSingle(text: string, lang: string, options?: Partial<SpeakOptions>): Observable<void> {
     if (!this.isSynthesisSupported()) {
       return throwError(() => new Error('speech synthesis not supported'));
     }
     this.cancel();
-    this.isCancelling = false;
     return this.speakObservable(text, lang, options);
   }
 
-  speakObservable(text: string, lang: string, options?: SpeakOptions) {
+  speakObservable(text: string, lang: string, options?: Partial<SpeakOptions>) {
     return new Observable((observer: Observer<void>) => {
-      options = options ?? DEFAULT_OPTIONS;
+      const opts = { ...DEFAULT_OPTIONS, ...options };
       try {
         const voice = this.selectVoice(lang);
 
@@ -181,25 +120,41 @@ export class SpeechSynthesizerService {
         this.utterance.text = text;
         this.utterance.voice = voice;
         this.utterance.lang = voice.lang;
-        this.utterance.rate = options.rate || 1;
-        this.utterance.volume = typeof options.volume === 'number' ? options.volume : 1;
+        this.utterance.rate = opts.rate;
+        this.utterance.volume = opts.volume;
 
-        const onEndHandler = () => {
-          this._hasSpoken = true;
+        // The Web Speech API is quirky: Safari can fire 'error' spuriously (and
+        // omits 'end' after a cancel), so both events resolve the stream. Log
+        // genuinely unexpected errors; ignore the benign ones our cancel() causes.
+        const onDone = (event: Event) => {
+          if (
+            event instanceof SpeechSynthesisErrorEvent &&
+            event.error !== 'canceled' &&
+            event.error !== 'interrupted'
+          ) {
+            this.#logger.debug(
+              'SpeechSynthesizerService.speakObservable',
+              `utterance error: ${event.error}`,
+            );
+          }
           observer.next();
           observer.complete();
         };
 
-        this.utterance.addEventListener('end', onEndHandler);
-
-        // Safari fires onerror instead onend while there is no error apparent
-        this.utterance.addEventListener('error', onEndHandler);
+        this.utterance.addEventListener('end', onDone);
+        this.utterance.addEventListener('error', onDone);
 
         window.speechSynthesis.speak(this.utterance);
+
+        return () => {
+          this.utterance.removeEventListener('end', onDone);
+          this.utterance.removeEventListener('error', onDone);
+        };
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        this.logger.error('SpeechSynthesizerService.speakObservable', message);
+        this.#logger.error('SpeechSynthesizerService.speakObservable', message);
         observer.error(err);
+        return undefined;
       }
     });
   }
