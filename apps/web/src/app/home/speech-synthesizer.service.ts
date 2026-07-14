@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, Observer, throwError } from 'rxjs';
+import { Observable, Observer } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { LoggerService } from '../shared/logger.service';
 
@@ -96,18 +96,13 @@ export class SpeechSynthesizerService {
     }
   }
 
-  speakSingle(text: string, lang: string, options?: Partial<SpeakOptions>): Observable<void> {
-    if (!this.isSynthesisSupported()) {
-      return throwError(() => new Error('speech synthesis not supported'));
-    }
-    this.cancel();
-    return this.speakObservable(text, lang, options);
-  }
-
   speakObservable(text: string, lang: string, options?: Partial<SpeakOptions>) {
     return new Observable((observer: Observer<void>) => {
       const opts = { ...DEFAULT_OPTIONS, ...options };
       try {
+        // Stop any in-flight utterance before starting this one.
+        this.cancel();
+
         const voice = this.selectVoice(lang);
 
         if (!voice) {
@@ -151,9 +146,11 @@ export class SpeechSynthesizerService {
           this.utterance.removeEventListener('error', onDone);
         };
       } catch (err) {
+        // A missing voice (or unsupported synthesis) is diagnostic only — log it and
+        // complete silently. Callers fire-and-forget; there is nothing to recover.
         const message = err instanceof Error ? err.message : String(err);
         this.#logger.error('SpeechSynthesizerService.speakObservable', message);
-        observer.error(err);
+        observer.complete();
         return undefined;
       }
     });

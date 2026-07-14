@@ -179,7 +179,7 @@ export class WordClickModalComponent implements OnInit {
   // being read aloud in the target-language voice. Falls back to the bare clicked word.
   speakSentence() {
     const text = this.speech() || this.clickedWord();
-    this.#speechService.speakSingle(text, this.lang()).subscribe({ error: () => {} });
+    this.#speechService.speakObservable(text, this.lang()).subscribe();
   }
 
   toggleQuizMode() {
