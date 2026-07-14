@@ -201,7 +201,6 @@ flowchart TD
     publication --> article["/home/tabs/content/:group/:filename"]
 
     tabs --> dict_tab["/home/tabs/dictionary"]
-    dict_tab --> lemma["/home/tabs/dictionary/:lang/:word"]
 
     tabs --> hashtags_tab["/home/tabs/hashtags"]
     tabs --> vocabulary_tab["/home/tabs/bookmarks"]
@@ -262,7 +261,7 @@ graph LR
     Article --> WordModal["Word-click modal\n(definition lookup)"]
 
     Dictionary --> Searchbar["Searchbar\n(autocomplete)"]
-    Searchbar --> Lemma["Lemma page\n(definitions)"]
+    Searchbar --> Lemma["Lemma results\n(definitions, in-page)"]
 
     Hashtags --> HashtagList["Hashtag list\n(cross-publication index)"]
     HashtagList --> HashtagModal["Hashtag modal\n(occurrences → article + scroll)"]

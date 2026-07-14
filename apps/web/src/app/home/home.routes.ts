@@ -48,11 +48,6 @@ export const HOME_ROUTES: Routes = [
               import('./dictionary/dictionary.page').then((p) => p.DictionaryPage),
             pathMatch: 'full',
           },
-          {
-            path: ':lang/:word',
-            loadComponent: () =>
-              import('./dictionary/dictionary.page').then((p) => p.DictionaryPage),
-          },
         ],
       },
       {
