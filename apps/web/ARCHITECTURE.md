@@ -550,7 +550,28 @@ stateDiagram-v2
 - **Server-side HTML sanitization:** `convertMarkdown()` in `apps/api/src/util/markup.ts` passes all Markdown-derived HTML through `sanitize-html` before storing or serving it. The allowlist covers only the tags and attributes the pipeline legitimately produces; `<script>`, event handlers, and `javascript:` URLs are stripped at the source.
 - **`bypassSecurityTrustHtml`:** `ArticleBodyComponent` still calls `bypassSecurityTrustHtml()` on article HTML. This is acceptable because the HTML has already been sanitized server-side before it reaches the client.
 
-> **Known open issue:** Refresh token is stored in Capacitor Preferences, which maps to `localStorage` on web — medium-severity risk. Mitigation (HttpOnly cookie) requires API changes and is not yet implemented.
+### Refresh-token storage: a deliberate decision
+
+The refresh token is persisted via Capacitor Preferences, which on the web target maps to `localStorage` — i.e. it is readable by any JavaScript running in the origin. This is a known, accepted trade-off rather than an oversight, and the reasoning is recorded here so it can be re-evaluated on its merits.
+
+**Why the exposure is narrow.** Reading the token requires script execution in the app's origin, and there is no evident path to that:
+
+- All Markdown-derived HTML passes through `sanitize-html` server-side (`apps/api/src/util/markup.ts`) before it is stored or served, so `bypassSecurityTrustHtml()` in `ArticleBodyComponent` only ever sees sanitized input.
+- There is no user-generated HTML. Content is admin-uploaded. The closest thing to untrusted input is vocabulary cards (including shared lists, which are peer-visible), and those render as text, not markup — that is the surface to re-check if it ever changes.
+- The cohort is invite-only, and the token is scoped and expiring.
+
+**Why suspension still works.** Session revocation does not depend on token storage: `AuthService.refreshToken()` (API) re-checks `user.isSuspended` on every refresh, so suspending a user ends their session within the access token's 1-hour lifetime. The gap is narrower than "the token is in localStorage" suggests — see the known gap below.
+
+**Mitigation, if it is ever needed.** Move the refresh token into an `HttpOnly; Secure; SameSite=Strict` cookie scoped to `Path=/api/v1/auth`. Because the API serves the Angular bundle and `/api/v1/*` from the same origin, the cookie is first-party — no `SameSite=None`, no `withCredentials`. Sketch:
+
+- API: `signIn()` (and `/users/register`) stop returning `refreshToken` / `refreshExp` in the body and `Set-Cookie` instead; `/auth/refresh` reads `req.cookies` rather than the body; a new `POST /auth/logout` clears the cookie (only the server can). Have `/auth/refresh` return the profile too — it already loads the user document, and it would close the cross-device staleness noted in [§11](#11-i18n).
+- Web: `#storeAuthData()` drops the two token fields; the client-side `refreshExp` pre-check in `get refreshToken()` disappears (a cookie's expiry is unreadable, and unnecessary — the browser stops sending it and the endpoint 401s).
+
+> **Trap:** the app is offline-first (IndexedDB dictionary, 14-day SW article cache), and today a cold start with no network authenticates purely from Preferences. An HttpOnly cookie is unreadable, so "am I logged in?" becomes a server round-trip, and offline (status 0) is indistinguishable from logged out — the login screen would appear on a plane. The fix is to keep persisting the **profile** (id, email, name, lang, roles — not a credential; forging it grants nothing, since every API call still needs a server-issued Bearer token), restore the session from it optimistically on boot, and refresh in the background. The existing `catchError` in `auth.service.ts` already makes the needed distinction: 401/403 logs out, transient failures keep the session.
+
+**Why it is not implemented.** The exposure is conditional on an XSS vector the architecture does not currently provide, and any institutional deployment would likely place the app behind an identity provider (SURFconext, for a Dutch university), replacing login, invite tokens, password reset, and this refresh mechanism wholesale. Hardening the path most likely to be discarded is poor sequencing.
+
+**Known gap (independent of storage).** `AuthService.refreshToken()` verifies the refresh token's signature but never compares it against `user.refreshToken` on the document, so a password reset does not invalidate outstanding refresh tokens. Comparing against the stored value is a small server-side change and buys real revocation, which the cookie does not.
 
 ---
 
