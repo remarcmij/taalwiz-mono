@@ -176,6 +176,29 @@ describe('Compiler', () => {
     expect(lemmas[1].isSupplement).toBe(true);
   });
 
+  it('indexes a `+` compound as the unit AND by its constituents', async () => {
+    // The unit keeps the compound a lemma of its own (and an autocomplete row);
+    // the parts keep it reachable from a word tap, which can only ever send one
+    // word because article markup wraps each word in its own span.
+    const input = ['**honoris+causa** [kau-], honoris causa'].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.h.md');
+    const outFile = path.join(tmpDir, 'teeuw.h.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    await new Compiler(inFile, outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+    const id = lemmas[0].words
+      .filter((w: { lang: string }) => w.lang === 'id')
+      .map((w: { word: string }) => w.word);
+    expect(id).toContain('honoris causa');
+    expect(id).toContain('honoris');
+    expect(id).toContain('causa');
+    // The base stays the whole compound: it is the dictionary card's title.
+    expect(lemmas[0].base).toBe('honoris causa');
+  });
+
   it('resolves `^` to the headword, past an intervening bold compound', async () => {
     // Printed Teeuw resumes the headword's compound list by starting a line
     // without a bold word; flattening loses that, so `^` says it explicitly.

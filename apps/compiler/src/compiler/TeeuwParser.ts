@@ -153,6 +153,15 @@ export default class TeeuwParser extends ParserBase {
             this.tildeWord = word;
           }
           wordSet.add(word);
+          // A `+` compound is indexed as the unit it is ("rumah sakit"), which
+          // is what makes it a lemma and an autocomplete row. Index its parts
+          // too, or the compound is unreachable from a word tap: article markup
+          // wraps each word in its own span, so a tap can never send the phrase.
+          if (word.includes(' ')) {
+            for (const part of word.split(' ')) {
+              if (part) wordSet.add(part);
+            }
+          }
           wordSeen = true;
           token = tokenizer.next();
           break;
