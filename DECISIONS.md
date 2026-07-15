@@ -20,7 +20,15 @@ So neither the app nor the source is "just replaceable". Favour changes that kee
 
 The dictionary markdown is **not in this repo** (`content/` is gitignored; it lives in a separate private repository). Any correction found via tooling here must be propagated to that source, or it is lost at the next compile.
 
-The format itself is specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — read §6 before touching anything tilde-related. Two decisions worth knowing are recorded there: `~` resolves to the nearest preceding bold word (a bold compound **does** capture it — "kurang terima kasih"), and `^` resolves to the headword, re-encoding a position that printed Teeuw marks by layout and flattening destroys. Both markers mean the same in the Stevens source; the two dictionaries share one convention deliberately.
+The format itself is specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — read §6 before touching anything tilde-related. Three decisions worth knowing are recorded there. `~` resolves to the nearest preceding bold word, and a bold compound **does** capture it ("kurang terima kasih") — that is print's own convention, not a quirk. `^` resolves to the headword, re-encoding a position that printed Teeuw marks by layout and that flattening destroys; both markers mean the same in the Stevens source, and the two dictionaries share one convention deliberately. And a bold run spanning two words is one unit, because print says so by running the bold across both — there is no joiner character.
+
+### Don't invent syntax before checking what the corpus does with it
+
+There used to be a joiner: `+` made `akal+budi` one indexed unit. It was retired in 2026-07 and the reasoning is worth keeping, because it is the trap any new control character walks into.
+
+It was **redundant** — the bold already spanned both words, so the page had said "one unit" all along; the marker only compensated for a parser that split on whitespace. It was **not free** — joining meant stripping `+` from every line, which silently blanked the 63 entries where the dictionaries use a plus for real: Teeuw's arithmetic (`5 + 5`, `5 + 2 = 7`) and letter combinations (`lettercombinatie (_l_ + _a_)`), and Stevens' etymologies (`[asyik + indehoi]`) and its entire "followed by" notation (`(+ verb)`, `(+ number)`). And it was **inconsistent with the compiler's own output**: a bare sense-number line writes the current tilde word back as `**akal budi**, ` with a *space*, which the parser could not then read as one word — so any compound with three or more senses on separate lines lost sense 3 onward to its first word.
+
+None of that was visible from the marker's definition. It surfaced only by compiling and reading the result. **Before taking a character, grep the corpus for it.**
 
 ### Teeuw is the judge
 
@@ -41,11 +49,13 @@ Special-casing individual words inside `#fetchWordLemmas` or `segmentIndonesian`
 
 ### Accepted boundary: tilde drift under a single-word derivation
 
-A `~` under a bold **compound** used to be a systematic hazard; that class is closed (see §1's pointer to the format guide — the marker that fixed it has since been replaced by an inline `^`, and ~330 wrong expansions were corrected against print along the way).
+A `~` under a bold **compound** used to be a systematic hazard; that class is closed (~330 wrong expansions corrected against print, and the marker that fixed them has since been replaced by an inline `^`).
 
 What was **not** exhaustively swept is the same shape under a **single-word bold derivation**: roughly 11k `~` lines where a derivation legitimately governs its own sub-references and is almost always right, but where a headword's list resuming after a derivation would need an explicit `^`. Spot fixes have been applied where found (`persuratkabaran`, `kesertamertaan`, `kewalikotaan`, `berubah`). The bucket as a whole is a **recorded, accepted boundary, not unfinished work.** Do not re-open it as a cleanup task.
 
-If you do go near it: the compiler is the only reliable oracle. Simulating the tilde rules from the source text is deceptively hard — the parenthesis double-pass, and a bare sense-number line re-tokenising its own tilde word, both change what `~` resolves to in ways a regex over the markdown will not predict. Instrument the compiler and measure; four separate estimates made that way were wrong before the measured ones were right.
+If you do go near it: **the compiler is the only reliable oracle.** Simulating the tilde rules over the markdown does not work, and fails in ways that look like success. `~` resolution is emergent from three mechanisms interacting — the tokenizer, the parenthesis double-pass (which runs `extractWords` twice, and whose *second* pass sets the final tilde word), and a bare sense-number line re-tokenising its own prepended tilde word. Reasoning about any one in isolation gives a confident wrong answer. In the July 2026 session, seven consecutive estimates made that way were wrong — including a "missing marker" that did not exist, a "bug" the app had been rendering correctly all along, and a site count that was off by 6×. Every one was caught by either the printed page or a compiled diff. Instrument the compiler, compile, and read the output.
+
+The corollary, which is what makes any of this safe: **a re-notation must leave the compiled JSON byte-identical.** Diff before and after. That oracle caught a transform that silently moved `anak`'s senses 2 and 3 onto `anak tiri` — invisible in the source, obvious in the diff.
 
 ---
 
