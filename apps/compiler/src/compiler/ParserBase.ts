@@ -94,10 +94,6 @@ abstract class ParserBase implements Parser {
       line = line.replace(/~/g, this._tildeWord);
     }
 
-    if (line.indexOf('+') !== -1) {
-      line = line.replace(/\+/g, ' ');
-    }
-
     parserResult.line = line;
 
     return parserResult;

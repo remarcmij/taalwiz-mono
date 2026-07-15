@@ -21,8 +21,14 @@ export const enum Token {
 // abbreviation headwords stay whole (`a.d.`, `Bc.Ac.P.`, `b/b`, `s/d`) instead of
 // splitting at the first period — the run must still END in a letter, so a
 // trailing sentence period is consumed by `[.!?]?`, not absorbed into the word.
+//
+// `+` is NOT a word character. It used to join a multi-word unit into one token
+// (`akal+budi`), but a bold run spanning two words already says that, and
+// swallowing `+` corrupted the places the dictionaries use it literally —
+// Teeuw's arithmetic (`5 + 5`) and letter combinations (`_l_ + _a_`), Stevens'
+// etymologies (`[asyik + indehoi]`). It now lexes as Token.Other and survives.
 const RE_WORD = RegExp(
-  String.raw`^((?:-?[+'\p{L}][-+'\d\p{L}./]*['\p{L}·]-?)|(?:-?[+'\p{L}]+-?))[.!?]?`,
+  String.raw`^((?:-?['\p{L}][-'\d\p{L}./]*['\p{L}·]-?)|(?:-?['\p{L}]+-?))[.!?]?`,
   'u'
 );
 

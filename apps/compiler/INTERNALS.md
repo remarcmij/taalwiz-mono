@@ -59,7 +59,8 @@ Custom markup syntax:
 | `*word*` | Reference or example form (`keyword: 0`), not searchable |
 | `~` | The nearest preceding bold word (often the `base`, but a bold compound captures it: under `**terima+kasih**`, `kurang ~` is "kurang terima kasih") |
 | `^` | The headword (the block's `base`). Resolved per occurrence, no scope. Used where the headword's compound list resumes past a bold compound — print marks that by starting a line with no bold word, which flattening loses. Same marker and meaning in the Stevens source, where it stands for print's en-dash |
-| `+` | Space (in compound words). Makes the unit one bold word for `~`; the compound is indexed both whole (`rumah sakit`) and by its parts (`rumah`, `sakit`) |
+| Space inside `**...**` | A bold run spanning two words is one multi-word unit: one bold word for `~`, indexed both whole (`rumah sakit`) and by its parts (`rumah`, `sakit`). A comma inside the run separates variants instead (`**ahlil, ahlul**` is two words) |
+| `+` | Nothing — a literal plus. It formerly joined a unit (`rumah+sakit`) and was stripped from every line, blanking Teeuw's `5 + 5` and Stevens' `[asyik + indehoi]` / `(+ verb)`. Retired |
 | `->` | Cross-reference separator (bold words after it are `keyword: 0`) |
 | `//` | Comment line: ignored entirely, and does **not** break the surrounding block (not treated as a blank-line separator) |
 | Blank line | Entry delimiter (resets the `base`) |

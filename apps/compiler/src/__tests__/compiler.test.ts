@@ -176,11 +176,29 @@ describe('Compiler', () => {
     expect(lemmas[1].isSupplement).toBe(true);
   });
 
-  it('indexes a `+` compound as the unit AND by its constituents', async () => {
+  it('keeps a literal `+` in the text', async () => {
+    // `+` used to join a multi-word unit into one token and was stripped from
+    // every line, which blanked the places the dictionaries use it literally:
+    // Teeuw's arithmetic and letter combinations, Stevens' etymologies and its
+    // "(+ verb)" grammar notation. A bold run spanning two words now says
+    // "one unit" on its own, so `+` is just a character.
+    const input = ['**lima**, vijf', '*~ tambah lima*, 5 + 5'].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.l.md');
+    const outFile = path.join(tmpDir, 'teeuw.l.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    await new Compiler(inFile, outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+    expect(lemmas[1].text).toBe('*lima tambah lima*, 5 + 5');
+  });
+
+  it('indexes a multi-word bold run as the unit AND by its constituents', async () => {
     // The unit keeps the compound a lemma of its own (and an autocomplete row);
     // the parts keep it reachable from a word tap, which can only ever send one
     // word because article markup wraps each word in its own span.
-    const input = ['**honoris+causa** [kau-], honoris causa'].join('\n');
+    const input = ['**honoris causa** [kau-], honoris causa'].join('\n');
 
     const inFile = path.join(tmpDir, 'teeuw.h.md');
     const outFile = path.join(tmpDir, 'teeuw.h.json');
@@ -204,7 +222,7 @@ describe('Compiler', () => {
     // without a bold word; flattening loses that, so `^` says it explicitly.
     const input = [
       '**anak**, 1 kind',
-      '**anak+tiri**, stiefkind',
+      '**anak tiri**, stiefkind',
       '*^ tunggal*, enig kind',
     ].join('\n');
 
@@ -225,7 +243,7 @@ describe('Compiler', () => {
     // is the compound, so `kurang ~` is "kurang terima kasih".
     const input = [
       '**terima**, aanvaarding',
-      '**terima+kasih**, dank(betuiging)',
+      '**terima kasih**, dank(betuiging)',
       '*kurang ~*, ondankbaar',
     ].join('\n');
 
@@ -242,7 +260,7 @@ describe('Compiler', () => {
   it('does not latch: `^` binds only its own occurrence, `~` still follows the bold word', async () => {
     const input = [
       '**anak**, 1 kind',
-      '**anak+tiri**, stiefkind',
+      '**anak tiri**, stiefkind',
       '*^ tunggal*, enig kind',
       '*~ angkat*, aangenomen stiefkind',
     ].join('\n');
@@ -266,7 +284,7 @@ describe('Compiler', () => {
     // explicitly; the bare digit binds to the compound, not the base.
     const input = [
       '**anak**, 1 kind',
-      '**anak+tiri**, stiefkind',
+      '**anak tiri**, stiefkind',
       '2 jong dier',
       '**anak**, 3 scheut',
     ].join('\n');

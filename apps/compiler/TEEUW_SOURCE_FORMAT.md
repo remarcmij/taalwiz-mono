@@ -171,7 +171,8 @@ the chain (print → markdown → app).[^4]
 | `*word*` | an italic word (compound or usage) | reference form, not independently searchable |
 | `~` | the swung dash | the nearest preceding bold word (see §6) |
 | `^` | (no print equivalent: print resumes the headword by starting a non-bold line) | the headword (see §6); same marker and meaning as in the Stevens source, where it stands for print's en-dash |
-| `+` | a space inside a multi-word unit you want indexed as one | rendered as a space (`anak+tiri` -> "anak tiri"); makes the unit one bold word for `~`, and it is indexed both whole and by its parts |
+| a space inside `**...**` | a bold run spanning two words: a multi-word unit | one unit (`**anak tiri**` -> "anak tiri"): one bold word for `~`, indexed both whole and by its parts. A **comma** inside the run separates variants instead (`**ahlil, ahlul**` is two words) |
+| `+` | — | **nothing: a literal plus.** It used to join a unit (`anak+tiri`) and was stripped from every line, which blanked Teeuw's arithmetic (`5 + 5`) and letter combinations (`_l_ + _a_`). Retired: the bold run already marks the unit |
 | `-` | a literal hyphen / reduplication | kept as-is (`anak-anak`) |
 | `->` | a cross-reference arrow | bold words after it are references, not keywords |
 | `_word_` | (editorial) an exotic name in a gloss | skipped: not indexed as a Dutch word (e.g. a Latin plant name) |
@@ -184,6 +185,14 @@ the chain (print → markdown → app).[^4]
 `^` was free in the corpus and is now the headword placeholder — do not introduce
 other control characters; a new one would require a corresponding change to the
 compiler.
+
+`+` is a cautionary tale about exactly that. It was invented to join a multi-word
+unit into one token (`anak+tiri`), which meant stripping it from every line — and
+that silently blanked the places the dictionary uses a plus for real: `5 + 5`,
+`5 + 2 = 7`, `lettercombinatie (_l_ + _a_)`. It was also redundant from the
+start, since print already marks the unit by running the bold across both words.
+Retired in favour of the plain space. **Before taking a character, check what the
+corpus already does with it.**
 
 ---
 
@@ -232,13 +241,15 @@ nearest bold word is a compound:
 *~ negeri*, ...;                    <- "pengadilan negeri" (a derivation)
 
 **terima**, aanvaarding;
-**terima+kasih**, dank(betuiging);
+**terima kasih**, dank(betuiging);
 *kurang ~*, ondankbaar;             <- "kurang terima kasih" (the compound)
 ```
 
 That last case is the one to internalise: inside the `terima kasih` sublemma the
-swung dash **is** the compound, exactly as print writes it. `+` is what makes
-`terima kasih` a single bold word for this purpose (§4).
+swung dash **is** the compound, exactly as print writes it. A bold run spanning
+two words is one word to the compiler — which is just what the page says, since
+print runs the bold across both. A comma inside the run means the opposite:
+`**ahlil, ahlul**` is a variant list, two words, and `~` takes the first.
 
 ### `^` — the headword
 
@@ -249,7 +260,7 @@ re-encodes that position:
 
 ```
 **anak**, kind;
-**anak+tiri**, stiefkind; *menganaktirikan*, ...;
+**anak tiri**, stiefkind; *menganaktirikan*, ...;
 *^ tunggal*, enig kind;     <- "anak tunggal": the anak list resumes
 *^ yatim*, wees;            <- "anak yatim"
 ```
@@ -262,7 +273,7 @@ Both markers can appear in the same block, and the choice is per line:
 
 ```
 **rumah**, huis;
-**rumah+sakit**, ziekenhuis;
+**rumah sakit**, ziekenhuis;
 *~ bersalin*, kraamkliniek;      <- "rumah sakit bersalin" (a hospital)
 *~ jiwa*, ...;                   <- "rumah sakit jiwa"
 *merumahsakitkan*, ...;          <- the compound's derivation
@@ -285,12 +296,12 @@ name the headword yourself:
 
 ```
 **anak**, 1 kind;
-**anak+tiri**, stiefkind;
+**anak tiri**, stiefkind;
 **anak**, 2 jong (dier);    <- explicit: a bare "2" here would attach to "anak tiri"
 ```
 
 (A `2 ...` that really is the compound's own second sense needs nothing:
-`**susah+payah**, 1 ...; 2 ...;` is already right.)
+`**susah payah**, 1 ...; 2 ...;` is already right.)
 
 ### The judgment you cannot automate
 

@@ -387,8 +387,8 @@ weighed adding them and rejected it:
 - **Both storage options are lossy.** Indexing each word (`gouden` + `eeuw`) floods results
   via the common modifier; indexing only the grammatical head (`eeuw`) relocates the noise
   into a generic head that mismatches the specific phrase. A single space-joined phrase key
-  (`"gouden eeuw"`, which the index already supports via the Indonesian `+`->space
-  convention) avoids both but is, per the first bullet, rarely searched.
+  (`"gouden eeuw"`, which the index already supports — a multi-word Indonesian
+  unit is indexed whole) avoids both but is, per the first bullet, rarely searched.
 
 Small recall gain, real noise cost, and it would muddy the clean Rule 1 / Rule 2 story. So the
 single-content-word rule is a deliberate **precision-over-recall** choice, not a limitation to

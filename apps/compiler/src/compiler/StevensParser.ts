@@ -217,7 +217,7 @@ export default class StevensParser extends ParserBase {
     for (;;) {
       switch (token) {
         case Token.Word: {
-          const word = tokenizer.value.replace(/\+/g, ' ');
+          const word = tokenizer.value;
           if (!this._base) {
             this.setBase(word);
           }

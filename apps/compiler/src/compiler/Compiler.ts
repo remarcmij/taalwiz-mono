@@ -213,14 +213,13 @@ export class Compiler {
   //   1. it precedes the previous headword alphabetically (misordered);
   //   2. it does not start with the chapter's letter (an intruder/mangled entry).
   // Equal-to-previous (a homonym / re-filed same word) is fine for rule 1.
-  // The raw first `**...**` span of a block (skipping an optional `^` revert
-  // prefix), or null when the block opens with no bold headword (e.g. a
-  // `__N__`-led continuation). The base has already had its parenthesis
-  // characters stripped, so this is the only place to recover them.
+  // The raw first `**...**` span of a block, or null when the block opens with
+  // no bold headword (e.g. a `__N__`-led continuation). The base has already had
+  // its parenthesis characters stripped, so this is the only place to recover
+  // them.
   private headwordSpan(lineItems: LineItem[]): string | null {
-    const first = lineItems[0]?.line.replace(/^\^\s*/, '') ?? '';
-    const m = first.match(/^\*\*([^*]+)\*\*/);
-    return m ? m[1].replace(/\+/g, ' ') : null;
+    const m = (lineItems[0]?.line ?? '').match(/^\*\*([^*]+)\*\*/);
+    return m ? m[1] : null;
   }
 
   private validateHeadword(lineItems: LineItem[]): void {

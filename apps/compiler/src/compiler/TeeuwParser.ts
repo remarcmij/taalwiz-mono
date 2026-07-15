@@ -141,33 +141,46 @@ export default class TeeuwParser extends ParserBase {
   parseDblStarFragment(tokenizer: Tokenizer, wordSet: Set<string>) {
     let token = tokenizer.next();
     let wordSeen = false;
+    // Consecutive Word tokens were separated by whitespace only (the tokenizer
+    // skips whitespace but emits a token for every punctuation mark), so they
+    // are one multi-word unit: print marks it by running the bold across both
+    // words. Any other token ends the run — notably a comma, which is how the
+    // source lists variants (`**ahlil, ahlul**` is two words, not one).
+    let parts: string[] = [];
+
+    const flush = () => {
+      if (parts.length === 0) return;
+      const word = parts.join(' ');
+      parts = [];
+      if (!this._base) {
+        this.setBase(word);
+      }
+      if (!this.tildeWord) {
+        this.tildeWord = word;
+      }
+      wordSet.add(word);
+      // A multi-word unit is indexed as the unit it is ("rumah sakit"), which is
+      // what makes it a lemma and an autocomplete row. Index its parts too, or
+      // it is unreachable from a word tap: article markup wraps each word in its
+      // own span, so a tap can never send the phrase.
+      if (word.includes(' ')) {
+        for (const part of word.split(' ')) {
+          if (part) wordSet.add(part);
+        }
+      }
+    };
 
     for (;;) {
       switch (token) {
         case Token.Word: {
-          const word = tokenizer.value.replace(/\+/g, ' ');
-          if (!this._base) {
-            this.setBase(word);
-          }
-          if (!this.tildeWord) {
-            this.tildeWord = word;
-          }
-          wordSet.add(word);
-          // A `+` compound is indexed as the unit it is ("rumah sakit"), which
-          // is what makes it a lemma and an autocomplete row. Index its parts
-          // too, or the compound is unreachable from a word tap: article markup
-          // wraps each word in its own span, so a tap can never send the phrase.
-          if (word.includes(' ')) {
-            for (const part of word.split(' ')) {
-              if (part) wordSet.add(part);
-            }
-          }
+          parts.push(tokenizer.value);
           wordSeen = true;
           token = tokenizer.next();
           break;
         }
 
         case Token.DblStar:
+          flush();
           if (!wordSeen) {
             throw new Error('expected word');
           }
@@ -180,7 +193,7 @@ export default class TeeuwParser extends ParserBase {
           throw new Error('"~" not allowed in "**" fragment');
 
         default:
-          // Ignore other tokens
+          flush();
           token = tokenizer.next();
       }
     }
