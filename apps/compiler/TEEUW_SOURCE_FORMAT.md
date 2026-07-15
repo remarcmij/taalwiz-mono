@@ -69,8 +69,9 @@ Two consequences worth internalising:
 - **The transcription is based on appearance, not linguistics.** When transcribing from paper to markdown you never have to decide
   "is this a derivation?" You just reproduce what the page shows (bold / italic /
   indentation / swung dash) and the parser does the rest. The one place this
-  breaks down is the tilde, which is why [section 6](#6-the--tilde-and-the--revert-marker)
-  is the longest.
+  breaks down is the tilde — the page disambiguates it by *layout*, and the
+  markdown block has no layout — which is why
+  [section 6](#6-the--tilde-and-the--headword-placeholder) is the longest.
 - For the benefit of both editor and printer, Teeuw used the swung dash as a placeholder for the most recent headword or derivation. In the markdown files, this is replaced by a tilde `~` character, conveniently available on all computer keyboards. From this point on we will refer to the "swung dash" as "tilde". Note that the Taalwiz app never displays the tilde. It is internally replaced with the corresponding headword or derivation.[^2] Screen space is cheap; paper, ink and typesetting are not.
 
 The existing Teeuw digitisation is to be considered **best-effort**. The transcription was done carefully and the
@@ -144,9 +145,8 @@ break** — the exact point where the page returns to a flush-left headword:
 The markdown encodes two things that are easy to conflate. **Block membership**
 fixes the headword: every line in a block shares the block's `base`, and the blank
 line is the drop to the next left-margin headword. The **line breaks** are
-structural too: each line becomes its own **lemma** — a record in the compiled JSON
-(the `^` revert marker is the one exception, emitting nothing). That is why Figure 4
-shows one row per source line. So putting each form on its own line is not merely
+structural too: each line becomes its own **lemma** — a record in the compiled JSON.
+That is why Figure 4 shows one row per source line. So putting each form on its own line is not merely
 for editing readability; it is how the entry is split into those per-line records.
 
 What the source does *not* reproduce is the page's line-**wrapping**: where a
@@ -169,21 +169,21 @@ the chain (print → markdown → app).[^4]
 |--------|--------------------------|-------------------------|
 | `**word**` | a bold word (headword or derivation) | searchable Indonesian keyword; first in a block = `base`, later = `keyword` |
 | `*word*` | an italic word (compound or usage) | reference form, not independently searchable |
-| `~` | the swung dash | shorthand for the current governing bold word (see §6) |
-| `^` | (no print equivalent) | revert `~` back to the headword (see §6) |
-| `+` | a space inside a multi-word unit you want indexed as one | rendered as a space (`anak+tiri` -> "anak tiri") |
+| `~` | the swung dash | the nearest preceding bold word (see §6) |
+| `^` | (no print equivalent: print resumes the headword by starting a non-bold line) | the headword (see §6); same marker and meaning as in the Stevens source, where it stands for print's en-dash |
+| `+` | a space inside a multi-word unit you want indexed as one | rendered as a space (`anak+tiri` -> "anak tiri"); makes the unit one bold word for `~`, and it is indexed both whole and by its parts |
 | `-` | a literal hyphen / reduplication | kept as-is (`anak-anak`) |
 | `->` | a cross-reference arrow | bold words after it are references, not keywords |
 | `_word_` | (editorial) an exotic name in a gloss | skipped: not indexed as a Dutch word (e.g. a Latin plant name) |
 | `( )` | an optional word-part, or a descriptive aside | both forms are indexed (long form and short form); see [TEEUW_PARSER.md §1.3](./TEEUW_PARSER.md#13-the-parenthesis-double-pass) |
-| `1`, `2` | a sense number | copied literally; continues the current headword's senses |
+| `1`, `2` | a sense number | copied literally; a line opening with a bare digit is attributed to the current `~` word (see §6) |
 | blank line | return to the left margin | ends the block, resets the headword |
 
 **Table 3.** The full markup vocabulary: each symbol, the print feature it encodes, and what it means to the compiler.
 
-Unused/free characters in the corpus include `^` (now the revert marker) — do
-not introduce other control characters; a new one would require a corresponding
-change to the compiler.
+`^` was free in the corpus and is now the headword placeholder — do not introduce
+other control characters; a new one would require a corresponding change to the
+compiler.
 
 ---
 
@@ -199,90 +199,116 @@ introduction, "Opbouw artikelen en volgorde afleidingen"):
 
 A compound that has its **own** derivation is promoted to **bold on its own line**,
 its derivation set immediately after it, and then the headword's alphabetical
-compound list **resumes**. This promotion is exactly what creates the tilde
-subtlety below. (It is also the one common case of a later bold word that is *not*
-a derivation — relatively rare, e.g. *terima kasih*.)
+compound list **resumes** — in print, on a fresh line with no bold word on it.
+That resume point is invisible once the entry is flattened into one block, which
+is what `^` exists to mark (§6). (This promotion is also the one common case of a
+later bold word that is *not* a derivation — relatively rare, e.g. *terima kasih*.)
 
 ---
 
-## 6. The `~` tilde and the `^` revert marker
+## 6. The `~` tilde and the `^` headword placeholder
 
-`~` expands to the **nearest preceding bold word** — the lemma the entry is
-currently elaborating. Almost always that is what you want:
+Two placeholders, one rule each. **The same two mean the same two things in the
+Stevens source** — one convention across both dictionaries.
 
-- in the headword's compound list, `~` is the headword (`*~ pertengahan*` under
-  `abad` is "abad pertengahan");
-- under a derivation, `~` is that derivation (`*~ negeri*` under `pengadilan` is
-  "pengadilan negeri").
+| | resolves to |
+|---|---|
+| `~` | the **nearest preceding bold word** |
+| `^` | the **headword** (the block's `base`) |
 
-**The one trap.** When a bold compound with its own derivation sits inside the
-headword's compound list, it becomes the "nearest bold word", so the lines after
-it would wrongly attach to the compound instead of the headword:
+Both are resolved per occurrence. Neither has any scope: `^` on one line says
+nothing about the next.
+
+### `~` — the nearest preceding bold word
+
+This is the printed dictionary's own convention, and it holds even when the
+nearest bold word is a compound:
 
 ```
-**anak**, kind;
-**anak+tiri**, stiefkind; *menganaktirikan*, ...;   <- `~` now points at "anak tiri"
-*~ tunggal*, enig kind;                              <- WANTS "anak tunggal", gets "anak tiri tunggal"
+**abad**, eeuw;
+*~ pertengahan*, middeleeuwen;      <- "abad pertengahan"  (the headword)
+
+**pengadilan**, rechtbank;
+*~ negeri*, ...;                    <- "pengadilan negeri" (a derivation)
+
+**terima**, aanvaarding;
+**terima+kasih**, dank(betuiging);
+*kurang ~*, ondankbaar;             <- "kurang terima kasih" (the compound)
 ```
 
-`^` fixes this. A `^` **reverts `~` (and bare sense numbers) back to the
-headword**, from that point until the next bold word re-anchors it. Place it
-where the headword's list **resumes** — that is, **right after the compound's own
-derivation**:
+That last case is the one to internalise: inside the `terima kasih` sublemma the
+swung dash **is** the compound, exactly as print writes it. `+` is what makes
+`terima kasih` a single bold word for this purpose (§4).
+
+### `^` — the headword
+
+Printed Teeuw has no symbol for this. It resumes the headword's compound list by
+**starting a line with no bold word on it** — a signal carried by the page
+layout, which is lost when the entry is flattened into one markdown block. `^`
+re-encodes that position:
 
 ```
 **anak**, kind;
 **anak+tiri**, stiefkind; *menganaktirikan*, ...;
-^
-*~ tunggal*, enig kind;     <- "anak tunggal" again
-*~ yatim*, wees;            <- still "anak"
-2 jong (dier);              <- sense 2 of "anak", not of "anak tiri"
+*^ tunggal*, enig kind;     <- "anak tunggal": the anak list resumes
+*^ yatim*, wees;            <- "anak yatim"
 ```
 
-The same shape, with genuine sub-compounds kept before the `^`:
+Without the `^`, `~` there would be "anak tiri" — correct by the rule, wrong for
+the page. So reach for `^` wherever print starts a fresh non-bold line and a bold
+compound or derivation stands between you and the headword.
+
+Both markers can appear in the same block, and the choice is per line:
 
 ```
+**rumah**, huis;
 **rumah+sakit**, ziekenhuis;
-*~ bersalin*, kraamkliniek;   <- "rumah sakit bersalin" (kept: a hospital)
-*~ jiwa*, ...;                <- "rumah sakit jiwa"
-*merumahsakitkan*, ...;       <- the compound's derivation
-^
-*~ setan*, ...;               <- "rumah setan" (the rumah list resumes)
-*~ sewa*, huurhuis;
+*~ bersalin*, kraamkliniek;      <- "rumah sakit bersalin" (a hospital)
+*~ jiwa*, ...;                   <- "rumah sakit jiwa"
+*merumahsakitkan*, ...;          <- the compound's derivation
+*^ setan*, ...;                  <- "rumah setan" (the rumah list resumes)
+*^ sewa*, huurhuis;              <- "rumah sewa"
 ```
 
-### How to write `^`
+`^` errors at compile time if it appears before any headword.
 
-- On **its own line**, or as a **prefix** on the resuming sublemma; an optional
-  space after the prefix is allowed for readability:
+> **Note (Stevens).** Printed Stevens *does* mark the headword explicitly — with
+> an en-dash. It is written `^` here because `-` is ambiguous in markdown against
+> a literal hyphen. So in Stevens `^` mirrors a symbol on the page; in Teeuw it
+> mirrors a position on the page. Same meaning to the compiler either way.
 
-  ```
-  ^                       (its own line)
-  ^*~ setan*, ...         (prefix, no space)
-  ^ *~ setan*, ...        (prefix, with space — same effect)
-  ```
-- It is a **latch**: one `^` covers every following line until the next bold word,
-  so you mark only the resume point, not each line.
-- It emits no lemma of its own and never appears in the app.
-- It errors at compile time if it appears before any headword.
+### Bare sense numbers
 
-### When you do *not* need a `^`
+A line opening with a bare sense digit is attributed to the **current `~` word**,
+not to `^`. If the sense belongs to the headword but a bold compound intervenes,
+name the headword yourself:
 
-- A bold compound whose derivation is on its **own line** (`**akal+budi**, ...;
-  *berakal budi*, ...;`): the derivation already closes it, so just put the `^`
-  after that line. If the derivation is on the **same line** as the compound and
-  no sub-compounds intervene, put the `^` (or the resuming lines) right after it.
-- A `2 ...` sense that is the **compound's own** second sense
-  (`**susah+payah**, 1 ...; 2 ...;`): leave it; it belongs to the compound.
-- A line where a following **bold** form already re-anchors `~` (a new derivation):
-  no `^` needed.
+```
+**anak**, 1 kind;
+**anak+tiri**, stiefkind;
+**anak**, 2 jong (dier);    <- explicit: a bare "2" here would attach to "anak tiri"
+```
 
-Deciding sub-compound-vs-headword is the one judgment that can need an inspection of the printed
-page (is `~ jiwa` a "rumah sakit jiwa" or a "rumah jiwa"?). The Dutch gloss
-usually settles it ("psychiatrische kliniek" is a hospital), so this is reading
-your own translation, not deep Indonesian. When in doubt, you can always avoid
-`~` entirely and write the word out in full (`*rumah setan*`); it compiles to the
-same result.
+(A `2 ...` that really is the compound's own second sense needs nothing:
+`**susah+payah**, 1 ...; 2 ...;` is already right.)
+
+### The judgment you cannot automate
+
+Choosing `~` vs `^` is deciding whether print meant the compound or the headword
+— is `~ jiwa` a "rumah sakit jiwa" or a "rumah jiwa"? The Dutch gloss usually
+settles it ("psychiatrische kliniek" is a hospital), so this is reading your own
+translation rather than deep Indonesian. When in doubt, write the word out in
+full (`*rumah setan*`); it compiles to the same result and the reader cannot tell.
+
+Across the whole corpus only ~15 lines legitimately need `~` to mean a compound
+(`rumah sakit bersalin`, `kereta api barang`, `doktor honoris causa`, ...), so if
+a `~` sits under a bold compound and you are unsure, `^` is the better guess.
+
+> **Print is not infallible here.** Under `titik berat`, print writes
+> `meletakkan ~ berat` — using `~` for "titik" inside the `titik berat` sublemma,
+> where its own convention makes `~` the compound (which would double "berat").
+> Read the intended word, not the notation: the entry means "meletakkan titik
+> berat", and the source writes `*meletakkan ~*`.
 
 ---
 
@@ -309,18 +335,24 @@ Practical checklist for a new entry:
 
 ## 8. Validation
 
-A clean compile guarantees the markup is well-formed, not that every `~` resolves
-as you intended. Two safety nets:
+A clean compile guarantees the markup is well-formed, not that every `~` and `^`
+resolves as you intended — both always resolve to *something*, and the compiler
+has no way to know which one the page meant.
 
-- **The compiler warns** (non-fatally, with a line number) when a `~` binds to a
-  multi-word compound **after that compound's own derivation has appeared** — the
-  signature of a missing `^`. Watch the compile output; a warning almost always
-  means "add a `^` where the headword's list resumes". It does not abort the build.
-- For anything subtle, check the affected entry in the JSON (`json/teeuw.X.json`)
-  or the app: a resumed line should read "`headword word`", not "`compound word`".
+So the check is by eye, and it is cheap: compile, then read the affected entry in
+the JSON (`json/teeuw/teeuw.X.json`) or in the app. Every `~` and `^` is expanded
+in the stored text, so a wrong choice reads as a wrong word — "rumah sakit setan"
+rather than "rumah setan". Scanning a compiled entry against the printed page is
+the only real validation.
 
-The `^` rule plus this warning cover the systematic cases; a new one can only
-arise from a new bold compound you introduce, and the warning will flag it.
+An earlier version of this format had `^` as a *latch* (one marker redefining `~`
+for the following lines) plus a compile-time warning that guessed at missing
+markers. Both are gone: with `^` resolved per occurrence there is no marker to
+forget, and nothing left for the warning to detect.
+
+When editing an entry with a bold compound in it, the one habit worth keeping is
+to diff the compiled JSON before and after. A pure re-notation must leave it
+byte-identical; anything else is a change you should be able to name.
 
 [^1]: There was more to it: OCR scanning errors had to be located and corrected too.
 
@@ -331,7 +363,7 @@ terms are interchangeable — a `keyword` under a `base`.
 
 [^4]: Two things are worth noticing in Figure 4. Each swung dash has been
 **expanded to its governing word** (`*~ pertengahan*` → "abad pertengahan",
-`*~ emas*` → "abad emas"; see [section 6](#6-the--tilde-and-the--revert-marker)),
+`*~ emas*` → "abad emas"; see [section 6](#6-the--tilde-and-the--headword-placeholder)),
 and the bold derivations (`berabad-abad`, `abadi`, `mengabadikan`, …) are listed
 under the headword. The second card, `keemasan`, is something the **printed page
 cannot do**: it surfaces as a backlink because its own entry cross-links to `abad`

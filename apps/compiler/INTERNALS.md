@@ -57,18 +57,18 @@ Custom markup syntax:
 |--------|---------|
 | `**word**` | Source keyword (`keyword: 1`). The *first* bold word of a blank-line block is the headword (`base`); later bold words are keywords under that base |
 | `*word*` | Reference or example form (`keyword: 0`), not searchable |
-| `~` | Shorthand for the current governing bold word (usually the `base`) |
-| `^` | Revert marker: resets `~` (and bare sense numbers) back to the `base` until the next bold word; emits no lemma. Used where a headword's compound list resumes after a bold compound. May be its own line or a sublemma prefix (`^ *~ x*`). The compiler emits a non-fatal warning when a `~` binds to a compound after its derivation with no `^` (a likely-missing marker) |
-| `+` | Space (in compound words) |
+| `~` | The nearest preceding bold word (often the `base`, but a bold compound captures it: under `**terima+kasih**`, `kurang ~` is "kurang terima kasih") |
+| `^` | The headword (the block's `base`). Resolved per occurrence, no scope. Used where the headword's compound list resumes past a bold compound — print marks that by starting a line with no bold word, which flattening loses. Same marker and meaning in the Stevens source, where it stands for print's en-dash |
+| `+` | Space (in compound words). Makes the unit one bold word for `~`; the compound is indexed both whole (`rumah sakit`) and by its parts (`rumah`, `sakit`) |
 | `->` | Cross-reference separator (bold words after it are `keyword: 0`) |
 | `//` | Comment line: ignored entirely, and does **not** break the surrounding block (not treated as a blank-line separator) |
 | Blank line | Entry delimiter (resets the `base`) |
-| `1`, `2`, etc. | Sub-sense of the current headword |
+| `1`, `2`, etc. | Sub-sense. A line opening with a bare digit is attributed to the current `~` word, so a headword sense that follows a bold compound must name the headword explicitly |
 
 See [TEEUW_PARSER.md, Part 1](./TEEUW_PARSER.md) for the exact base/keyword/homonym
 derivation and worked examples, and [TEEUW_SOURCE_FORMAT.md](./TEEUW_SOURCE_FORMAT.md)
 for the print -> markup authoring conventions (how to write/extend the source,
-including the `^` tilde-revert rule).
+including the `~`/`^` rule).
 
 ### Supplement files
 
