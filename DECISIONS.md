@@ -21,13 +21,17 @@ Markup conventions are specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](app
 
 **No attempt is made to improve the dictionary's content, and no attempt is made to compensate for it in code.** Where its own structure produces an odd-looking result, that is an **accepted consequence, not a bug**: its editorial choices are real content, such as cross-filing a word under both its own headword and its root, or filing a modern sense under an older base.
 
-The worked example: `kalian` decomposes to `kali + -an` and surfaces the "multiplication" sense, because Teeuw files it under `kali`. That was addressed — but note **where**. A `teeuw.k+.md` supplement entry plus a hard-coded SRS card back, which suppresses the lookup entirely. Hence the rule:
-
-> **Override levers are the per-letter supplement files (`teeuw.X+.md`, flagged `isSupplement`) and SRS card backs — never a patch to core lookup or the segmenter for a one-off entry.**
-
-Special-casing individual words inside `#fetchWordLemmas` or `segmentIndonesian` is how a dictionary engine rots. The supplement mechanism exists precisely so that content problems get content fixes. See `apps/compiler/TEEUW_PARSER.md` (Part 2).
+> **Never patch core lookup or the segmenter for a one-off entry.** Special-casing individual words inside `#fetchWordLemmas` or `segmentIndonesian` is how a dictionary engine rots. A content problem gets a content fix.
 
 The same authority runs the other way through the search: the variation generator deliberately **over-generates** candidate forms and lets the dictionary reject the spurious ones. That is only sound because the dictionary is the authority — an over-strip that isn't a real headword simply never validates. See [SEARCH.md](apps/web/src/app/home/dictionary/SEARCH.md).
+
+### Extending the dictionary — but it is still not Teeuw
+
+A genuine gap (a modern word or sense the printed edition doesn't file) is filled by a **per-letter supplement**, `teeuw.X+.md`, compiled into the same chapter JSON and flagged `isSupplement`. `kalian` is the example: Teeuw files it under `kali`, so it decomposes to `kali + -an` and surfaces the "multiplication" sense; `teeuw.k+.md` gives the modern pronoun its own entry.
+
+**The core files are Teeuw's 1996 edition and are never edited.** An addition is *ours*, not his — even when it is obviously correct, as `kalian` is. It is kept in a separate file, flagged, and rendered distinctly, so the two are never confused. The app treats supplement entries as usable content while marking their provenance.
+
+Merging an addition into a core file would look tidier and would quietly falsify the one claim worth protecting: that the core is a faithful digitisation, with no additions, deletions or alterations. Don't. See `apps/compiler/TEEUW_PARSER.md` (Part 2).
 
 ### QA-ing the dictionary source — a separate job
 
