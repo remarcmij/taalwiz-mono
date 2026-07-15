@@ -17,30 +17,25 @@ The dictionary source is **not in this repo** (`content/` is gitignored; it live
 
 Markup conventions are specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — read §6 before touching anything tilde-related.
 
-### The dictionary is canonical
+### Using the dictionary — it is canonical
 
-**No attempt is made to improve the dictionary's content.** Where its own structure produces a rendering quirk, that is an **accepted consequence, not a bug**. Its editorial choices are real content: cross-filing a word under both its own headword and its root, filing a modern sense under an older base. Verification is against the printed edition, not against intuition.
+**No attempt is made to improve the dictionary's content, and no attempt is made to compensate for it in code.** Where its own structure produces an odd-looking result, that is an **accepted consequence, not a bug**: its editorial choices are real content, such as cross-filing a word under both its own headword and its root, or filing a modern sense under an older base.
 
-The same principle runs the other way through the search: the variation generator deliberately **over-generates** candidate forms and lets the dictionary reject the spurious ones. That is only sound because the dictionary is the authority — an over-strip that isn't a real headword simply never validates. See [SEARCH.md](apps/web/src/app/home/dictionary/SEARCH.md).
-
-Two confirmed quirks, both **no action**:
-
-- `berhenti` shows its gloss twice — it is filed under both `base="berhenti"` and `base="henti"`.
-- `kalian` decomposes to `kali + -an` and surfaces the "multiplication" sense, because Teeuw files it under `kali`.
-
-The `kalian` case was addressed, but note **where**: a `teeuw.k+.md` supplement entry plus a hard-coded SRS card back. That is the rule:
+The worked example: `kalian` decomposes to `kali + -an` and surfaces the "multiplication" sense, because Teeuw files it under `kali`. That was addressed — but note **where**. A `teeuw.k+.md` supplement entry plus a hard-coded SRS card back, which suppresses the lookup entirely. Hence the rule:
 
 > **Override levers are the per-letter supplement files (`teeuw.X+.md`, flagged `isSupplement`) and SRS card backs — never a patch to core lookup or the segmenter for a one-off entry.**
 
 Special-casing individual words inside `#fetchWordLemmas` or `segmentIndonesian` is how a dictionary engine rots. The supplement mechanism exists precisely so that content problems get content fixes. See `apps/compiler/TEEUW_PARSER.md` (Part 2).
 
-The judge is the *page*, not its notation. Print can be internally inconsistent: under `titik berat` Teeuw writes `meletakkan ~ berat`, using the swung dash for the headword inside a sublemma where its own convention makes it the compound. Read the word the entry means, not the symbol it used.
+The same authority runs the other way through the search: the variation generator deliberately **over-generates** candidate forms and lets the dictionary reject the spurious ones. That is only sound because the dictionary is the authority — an over-strip that isn't a real headword simply never validates. See [SEARCH.md](apps/web/src/app/home/dictionary/SEARCH.md).
 
-### Accepted boundary: tilde drift under a single-word derivation
+### QA-ing the dictionary source — a separate job
 
-A `~` under a bold **compound** used to be a systematic hazard; that class is closed (~330 wrong expansions corrected against print).
+Everything above is about *using* the dictionary. Correcting it is different work, with a different audience (an editor of the source, in the private content repo) and different rules. Two decisions belong here:
 
-The same shape under a **single-word bold derivation** was **not** exhaustively swept: roughly 11k `~` lines where a derivation legitimately governs its own sub-references and is almost always right, but where a headword's list resuming after a derivation would need an explicit `^`. Spot fixes have been applied where found (`persuratkabaran`, `kesertamertaan`, `kewalikotaan`, `berubah`). The bucket as a whole is a **recorded, accepted boundary, not unfinished work.** Do not re-open it as a cleanup task.
+**The judge is the page, not its notation.** Print can be internally inconsistent: under `titik berat` Teeuw writes `meletakkan ~ berat`, using the swung dash for the headword inside a sublemma where its own convention makes it the compound. Read the word the entry means, not the symbol it used.
+
+**Accepted boundary: tilde drift under a single-word derivation.** A `~` under a bold **compound** used to be a systematic hazard; that class is closed (~330 wrong expansions corrected against print). The same shape under a **single-word bold derivation** was **not** exhaustively swept: roughly 11k `~` lines where a derivation legitimately governs its own sub-references and is almost always right, but where a headword's list resuming after a derivation would need an explicit `^`. Spot fixes have been applied where found (`persuratkabaran`, `kesertamertaan`, `kewalikotaan`, `berubah`). The bucket as a whole is a **recorded, accepted boundary, not unfinished work.** Do not re-open it as a cleanup task.
 
 If you do go near it, do not reason about the tilde rules from the markdown — they are emergent from the tokenizer, the parenthesis double-pass and the sense-line prepend interacting, and reading the code gives confident wrong answers. Compile and read the output; a re-notation must leave the JSON byte-identical. See `TEEUW_SOURCE_FORMAT.md` §8.
 
