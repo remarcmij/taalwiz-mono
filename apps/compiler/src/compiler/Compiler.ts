@@ -194,23 +194,7 @@ export class Compiler {
 
     for (const { lineIndex, line } of lineItems) {
       try {
-        if (line === '^') {
-          // Tilde-revert marker on its own line: reset `~` to the base,
-          // emit no lemma.
-          this.parser!.revertTildeToBase();
-          continue;
-        }
-        let text = line;
-        if (text.startsWith('^')) {
-          // Tilde-revert marker as a sublemma prefix: revert, then parse the
-          // rest of the line normally (the `^` is not stored in the lemma).
-          this.parser!.revertTildeToBase();
-          text = text.slice(1).trimStart();
-        }
-        const result = this.parser!.parseLine(text);
-        if (result.warning) {
-          console.warn(`${this.currentFile}[${lineIndex + 1}] warning: ${result.warning}`);
-        }
+        const result = this.parser!.parseLine(line);
         const lemma = this.buildLemma(result);
         lemmas.push(lemma);
       } catch (err: unknown) {

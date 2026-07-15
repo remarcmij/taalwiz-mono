@@ -6,11 +6,6 @@ import {
 import ParserBase, { ParserResult } from './ParserBase.js';
 import Tokenizer, { Token } from './Tokenizer.js';
 
-// Normalize a word/compound to a comparable stem: lowercase, drop spaces,
-// joiners, punctuation. Used to detect a compound's derivation by containment.
-const normStem = (s: string): string =>
-  s.toLowerCase().replace(/[()]/g, '').replace(/[+\-\s'·]/g, '');
-
 export default class TeeuwParser extends ParserBase {
   constructor() {
     super('id', 'nl');
@@ -24,27 +19,6 @@ export default class TeeuwParser extends ParserBase {
     // block's headword: 0 for a fresh base, +1 for a repeat. Zeroing it first
     // capped a repeated headword at homonym 1, so a word with three or more
     // homonyms (abu I/II/III/IV/V) collapsed III+ onto II's number.
-    this._tildeTracked = null;
-    this._tildeDerivSeen = false;
-  }
-
-  // A derivation of `compound` is an affixed bold/italic word whose normalized
-  // stem contains the compound (e.g. `merumahsakitkan` contains `rumahsakit`).
-  // `slice(1)` tolerates meN-/peN- first-consonant mutation. `~`-led spans are
-  // sub-compounds, not derivations, so they are skipped.
-  protected lineHasDerivation(line: string, compound: string): boolean {
-    const stem = normStem(compound);
-    const short = stem.slice(1);
-    const spans: string[] = [];
-    for (const m of line.matchAll(/\*\*([^*]+)\*\*/g)) spans.push(m[1]);
-    const sansBold = line.replace(/\*\*[^*]+\*\*/g, '');
-    for (const m of sansBold.matchAll(/\*([^*]+)\*/g)) spans.push(m[1]);
-    return spans.some((w) => {
-      const t = w.trim();
-      if (t.startsWith('~')) return false;
-      const n = normStem(t);
-      return n !== stem && (n.includes(stem) || (short.length >= 4 && n.includes(short)));
-    });
   }
 
   parseLine(line: string): ParserResult {
@@ -56,7 +30,22 @@ export default class TeeuwParser extends ParserBase {
       }
     }
 
-    return super.parseLine(line);
+    const result = super.parseLine(line);
+
+    // `^` stands for the headword; resolve it to the base for the rendered line
+    // (its indexing is handled during extraction and by ParserBase adding the
+    // base to every line's reference words). Same rule as Stevens: printed
+    // Teeuw has no headword marker of its own — it reverts by starting a line
+    // without a bold word — so `^` re-encodes that position for the flattened
+    // source.
+    if (result.line.indexOf('^') !== -1) {
+      if (!this._base) {
+        throw new Error('"^" headword placeholder before any headword');
+      }
+      result.line = result.line.replace(/\^/g, this._base);
+    }
+
+    return result;
   }
 
   extractWords(line: string, result: ParserResult): void {
@@ -80,6 +69,12 @@ export default class TeeuwParser extends ParserBase {
 
         case Token.Star: {
           this.parseStarFragment(tokenizer, result.referenceWords);
+          break;
+        }
+
+        case Token.Caret: {
+          // A bare `^` outside a span: the base is already added to the line's
+          // reference words by ParserBase, so nothing extra to index here.
           break;
         }
 
@@ -191,6 +186,18 @@ export default class TeeuwParser extends ParserBase {
         case Token.Word: {
           if (!IGNORED_WORDS_ID.has(tokenizer.value)) {
             wordSet.add(tokenizer.value);
+          }
+          wordSeen = true;
+          token = tokenizer.next();
+          break;
+        }
+
+        case Token.Caret: {
+          // Headword placeholder inside an italic span: resolve to the base.
+          if (this._base) {
+            wordSet.add(this._base);
+          } else {
+            throw new Error('"^" headword placeholder before any headword');
           }
           wordSeen = true;
           token = tokenizer.next();

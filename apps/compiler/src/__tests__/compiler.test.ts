@@ -176,66 +176,13 @@ describe('Compiler', () => {
     expect(lemmas[1].isSupplement).toBe(true);
   });
 
-  it('reverts the tilde to the base after a `^` marker (both `~` and sense lines)', async () => {
-    // Without `^`, the bold compound **anak+tiri** captures the tilde, so
-    // `~ tunggal` would wrongly become "anak tiri tunggal" and the bare "2"
-    // sense would attach to "anak tiri". The `^` marker resets to the base.
+  it('resolves `^` to the headword, past an intervening bold compound', async () => {
+    // Printed Teeuw resumes the headword's compound list by starting a line
+    // without a bold word; flattening loses that, so `^` says it explicitly.
     const input = [
       '**anak**, 1 kind',
       '**anak+tiri**, stiefkind',
-      '^',
-      '*~ tunggal*, enig kind',
-      '2 jong dier',
-    ].join('\n');
-
-    const inFile = path.join(tmpDir, 'teeuw.a.md');
-    const outFile = path.join(tmpDir, 'teeuw.a.json');
-    fs.writeFileSync(inFile, input, 'utf8');
-
-    await new Compiler(inFile, outFile).run();
-
-    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
-
-    // The `^` line itself emits no lemma.
-    expect(lemmas).toHaveLength(4);
-    const [, , tunggal, sense2] = lemmas;
-
-    // `~` resolved to the base "anak", not the compound "anak tiri".
-    expect(tunggal.text).toBe('*anak tunggal*, enig kind');
-    // Bare sense number re-anchored to the base, not the compound.
-    expect(sense2.text).toBe('**anak**, 2 jong dier');
-    expect(sense2.base).toBe('anak');
-  });
-
-  it('accepts the `^` marker as a sublemma prefix (not stored in the text)', async () => {
-    const input = [
-      '**anak**, 1 kind',
-      '**anak+tiri**, stiefkind',
-      '^*~ tunggal*, enig kind',
-      '*~ yatim*, wees',
-    ].join('\n');
-
-    const inFile = path.join(tmpDir, 'teeuw.a.md');
-    const outFile = path.join(tmpDir, 'teeuw.a.json');
-    fs.writeFileSync(inFile, input, 'utf8');
-
-    await new Compiler(inFile, outFile).run();
-
-    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
-
-    expect(lemmas).toHaveLength(4);
-    const [, , tunggal, yatim] = lemmas;
-    // Prefix reverts to base, and the `^` is stripped from the stored text.
-    expect(tunggal.text).toBe('*anak tunggal*, enig kind');
-    // The revert latches: the following line stays on the base too.
-    expect(yatim.text).toBe('*anak yatim*, wees');
-  });
-
-  it('accepts a space after a `^` sublemma prefix (`^ *~ x*`) for readability', async () => {
-    const input = [
-      '**anak**, 1 kind',
-      '**anak+tiri**, stiefkind',
-      '^ *~ tunggal*, enig kind',
+      '*^ tunggal*, enig kind',
     ].join('\n');
 
     const inFile = path.join(tmpDir, 'teeuw.a.md');
@@ -247,53 +194,69 @@ describe('Compiler', () => {
     const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
     expect(lemmas).toHaveLength(3);
     expect(lemmas[2].text).toBe('*anak tunggal*, enig kind');
+    expect(lemmas[2].base).toBe('anak');
   });
 
-  it('warns (non-fatally) when a `~` binds to a compound after its derivation, with no `^`', async () => {
-    // **rumah+sakit** sets the tilde; *merumahsakitkan* is its derivation, so the
-    // following `~ sewa` should have been reverted to the base with a `^`.
+  it('resolves `~` to the nearest bold word, including a compound', async () => {
+    // Teeuw's own convention: inside the `terima kasih` sublemma the swung dash
+    // is the compound, so `kurang ~` is "kurang terima kasih".
     const input = [
-      '**rumah**, huis',
-      '**rumah+sakit**, ziekenhuis; *merumahsakitkan*, opnemen',
-      '*~ sewa*, huurhuis',
+      '**terima**, aanvaarding',
+      '**terima+kasih**, dank(betuiging)',
+      '*kurang ~*, ondankbaar',
     ].join('\n');
 
-    const inFile = path.join(tmpDir, 'teeuw.r.md');
-    const outFile = path.join(tmpDir, 'teeuw.r.json');
+    const inFile = path.join(tmpDir, 'teeuw.t.md');
+    const outFile = path.join(tmpDir, 'teeuw.t.json');
     fs.writeFileSync(inFile, input, 'utf8');
 
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await new Compiler(inFile, outFile).run();
-    const warned = warnSpy.mock.calls.map((c) => String(c[0])).join('\n');
-    warnSpy.mockRestore();
 
-    // Build still succeeds (non-fatal) and the warning names the fix.
-    expect(fs.existsSync(outFile)).toBe(true);
-    expect(warned).toMatch(/"\^"/);
-    expect(warned).toMatch(/rumah sakit/);
-  });
-
-  it('does not warn when the `^` revert is present', async () => {
-    const input = [
-      '**rumah**, huis',
-      '**rumah+sakit**, ziekenhuis; *merumahsakitkan*, opnemen',
-      '^',
-      '*~ sewa*, huurhuis',
-    ].join('\n');
-
-    const inFile = path.join(tmpDir, 'teeuw.r.md');
-    const outFile = path.join(tmpDir, 'teeuw.r.json');
-    fs.writeFileSync(inFile, input, 'utf8');
-
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    await new Compiler(inFile, outFile).run();
-    const callCount = warnSpy.mock.calls.length;
-    warnSpy.mockRestore();
-
-    expect(callCount).toBe(0);
-    // And `~ sewa` resolved to the base.
     const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
-    expect(lemmas.at(-1).text).toBe('*rumah sewa*, huurhuis');
+    expect(lemmas[2].text).toBe('*kurang terima kasih*, ondankbaar');
+  });
+
+  it('does not latch: `^` binds only its own occurrence, `~` still follows the bold word', async () => {
+    const input = [
+      '**anak**, 1 kind',
+      '**anak+tiri**, stiefkind',
+      '*^ tunggal*, enig kind',
+      '*~ angkat*, aangenomen stiefkind',
+    ].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.a.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    await new Compiler(inFile, outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+    expect(lemmas).toHaveLength(4);
+    // `^` resolved to the headword ...
+    expect(lemmas[2].text).toBe('*anak tunggal*, enig kind');
+    // ... and left `~` on the compound, rather than latching it to the base.
+    expect(lemmas[3].text).toBe('*anak tiri angkat*, aangenomen stiefkind');
+  });
+
+  it('attributes a bare sense number to the nearest bold word', async () => {
+    // A headword sense that follows a bold compound must name the headword
+    // explicitly; the bare digit binds to the compound, not the base.
+    const input = [
+      '**anak**, 1 kind',
+      '**anak+tiri**, stiefkind',
+      '2 jong dier',
+      '**anak**, 3 scheut',
+    ].join('\n');
+
+    const inFile = path.join(tmpDir, 'teeuw.a.md');
+    const outFile = path.join(tmpDir, 'teeuw.a.json');
+    fs.writeFileSync(inFile, input, 'utf8');
+
+    await new Compiler(inFile, outFile).run();
+
+    const { lemmas } = JSON.parse(fs.readFileSync(outFile, 'utf8'));
+    expect(lemmas[2].text).toBe('**anak tiri**, 2 jong dier');
+    expect(lemmas[3].text).toBe('**anak**, 3 scheut');
   });
 
   it('errors on a `^` marker before any headword', async () => {

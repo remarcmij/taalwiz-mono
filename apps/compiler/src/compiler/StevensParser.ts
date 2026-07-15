@@ -51,14 +51,6 @@ export default class StevensParser extends ParserBase {
     // homonyms (ékor I/II/III/IV) collapsed III+ onto II's number.
   }
 
-  // The base (grondwoord) is always plain bold in print, never bold-italic
-  // (that style is reserved for derivatives), so a `^` revert always lands
-  // back on plain-bold formatting.
-  revertTildeToBase(): void {
-    super.revertTildeToBase();
-    this._tildeWordIsBoldItalic = false;
-  }
-
   parseLine(line: string): ParserResult {
     // A derived keyword an editor wrapped in bold-italic (`_**bercacah**_`,
     // rendering like the printed dictionary's bold-italic sub-entries) is left
