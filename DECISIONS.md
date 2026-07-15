@@ -9,26 +9,21 @@ Why Taalwiz is the way it is — and, more often, why it is **not** some other w
 Nothing here is permanent. Change any of it — but change it knowingly, and update this file when you do.
 
 ---
+## 1. The dictionary
 
-## 1. The dictionary and its encoding
+The dictionary is central to the app, but it need not be Teeuw — Stevens (Indonesian to English) runs on the same pipeline, and the app is dictionary-agnostic by design. Nothing below is a Teeuw fact; Teeuw is just where the examples come from.
 
-The part with lasting value is the **encoding system**, not the transcription alone: a markdown format that tracks the printed page closely enough that transcribing is a matter of appearance rather than linguistics, the compiler that turns it into a searchable index, and the conventions the app is built on — `**`/`*` marking target-language words (which is what makes a word tappable), and the variation generator that resolves inflected forms back to a Teeuw-attested root.
+The dictionary source is **not in this repo** (`content/` is gitignored; it lives in a separate private repository). A correction made via tooling here must be propagated to that source, or it is lost at the next compile.
 
-That is the expensive part to rediscover. The digitisation itself took weeks, around 2016; redoing it today would still mean getting the pages through a scanner — mechanical work, and destructive if done properly: cut the binding, use a sheet feeder — but the markup conversion could now be largely AI-assisted, as the Stevens dictionary was. The format and the machinery around it could not be recovered that way: they encode judgments about what the page means. Working out why the printed swung dash re-anchors to a compound, and what that implies for the markup, took a full day of measurement against the corpus — and that is one symbol.
+Markup conventions are specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — read §6 before touching anything tilde-related.
 
-So neither the app nor the source is "just replaceable". Favour changes that keep the source faithful, self-describing and extensible, and that keep the format's rules explainable on one page.
+### The dictionary is canonical
 
-The dictionary markdown is **not in this repo** (`content/` is gitignored; it lives in a separate private repository). Any correction found via tooling here must be propagated to that source, or it is lost at the next compile.
+**No attempt is made to improve the dictionary's content.** Where its own structure produces a rendering quirk, that is an **accepted consequence, not a bug**. Its editorial choices are real content: cross-filing a word under both its own headword and its root, filing a modern sense under an older base. Verification is against the printed edition, not against intuition.
 
-The format itself is specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — read §6 before touching anything tilde-related. Three decisions worth knowing are recorded there. `~` resolves to the nearest preceding bold word, and a bold compound **does** capture it ("kurang terima kasih") — that is print's own convention, not a quirk. `^` resolves to the headword, re-encoding a position that printed Teeuw marks by layout and that flattening destroys; both markers mean the same in the Stevens source, and the two dictionaries share one convention deliberately. And a bold run spanning two words is one unit, because print says so by running the bold across both — there is no joiner character.
+The same principle runs the other way through the search: the variation generator deliberately **over-generates** candidate forms and lets the dictionary reject the spurious ones. That is only sound because the dictionary is the authority — an over-strip that isn't a real headword simply never validates. See [SEARCH.md](apps/web/src/app/home/dictionary/SEARCH.md).
 
-That last one may look fragile — a multi-word unit inferred from whitespace, with a comma meaning the opposite. **Don't add an explicit marker for it.** One existed: `+` (`akal+budi`), retired 2026-07. It was redundant, since print already says "one unit" by running the bold across both words, and it was not free: joining meant stripping `+` from every line, which silently blanked the 63 entries where the dictionaries use a plus for real — Teeuw's `5 + 5` and `(_l_ + _a_)`, Stevens' `[asyik + indehoi]` and its whole `(+ verb)` notation.
-
-### Teeuw is the judge
-
-When Teeuw's own data structure produces a rendering quirk, that is an **accepted consequence, not a bug**. Its editorial choices are real content: cross-filing a word under both its own headword and its root, filing a modern sense under an older base. The app reflects them faithfully rather than second-guessing them in code. Verification is against the printed edition, not against intuition.
-
-Two confirmed cases, both **no action**:
+Two confirmed quirks, both **no action**:
 
 - `berhenti` shows its gloss twice — it is filed under both `base="berhenti"` and `base="henti"`.
 - `kalian` decomposes to `kali + -an` and surfaces the "multiplication" sense, because Teeuw files it under `kali`.
@@ -39,17 +34,15 @@ The `kalian` case was addressed, but note **where**: a `teeuw.k+.md` supplement 
 
 Special-casing individual words inside `#fetchWordLemmas` or `segmentIndonesian` is how a dictionary engine rots. The supplement mechanism exists precisely so that content problems get content fixes. See `apps/compiler/TEEUW_PARSER.md` (Part 2).
 
-"The judge" means the *page*, not the notation. Print is internally inconsistent in at least one place: under `titik berat` it writes `meletakkan ~ berat`, using `~` for the headword inside a sublemma where its own convention makes `~` the compound. Read the word the entry means, not the symbol it used.
+The judge is the *page*, not its notation. Print can be internally inconsistent: under `titik berat` Teeuw writes `meletakkan ~ berat`, using the swung dash for the headword inside a sublemma where its own convention makes it the compound. Read the word the entry means, not the symbol it used.
 
 ### Accepted boundary: tilde drift under a single-word derivation
 
-A `~` under a bold **compound** used to be a systematic hazard; that class is closed (~330 wrong expansions corrected against print, and the marker that fixed them has since been replaced by an inline `^`).
+A `~` under a bold **compound** used to be a systematic hazard; that class is closed (~330 wrong expansions corrected against print).
 
-What was **not** exhaustively swept is the same shape under a **single-word bold derivation**: roughly 11k `~` lines where a derivation legitimately governs its own sub-references and is almost always right, but where a headword's list resuming after a derivation would need an explicit `^`. Spot fixes have been applied where found (`persuratkabaran`, `kesertamertaan`, `kewalikotaan`, `berubah`). The bucket as a whole is a **recorded, accepted boundary, not unfinished work.** Do not re-open it as a cleanup task.
+The same shape under a **single-word bold derivation** was **not** exhaustively swept: roughly 11k `~` lines where a derivation legitimately governs its own sub-references and is almost always right, but where a headword's list resuming after a derivation would need an explicit `^`. Spot fixes have been applied where found (`persuratkabaran`, `kesertamertaan`, `kewalikotaan`, `berubah`). The bucket as a whole is a **recorded, accepted boundary, not unfinished work.** Do not re-open it as a cleanup task.
 
-If you do go near it: **the compiler is the only reliable oracle.** Simulating the tilde rules over the markdown does not work, and fails in ways that look like success. `~` resolution is emergent from three mechanisms interacting — the tokenizer, the parenthesis double-pass (which runs `extractWords` twice, and whose *second* pass sets the final tilde word), and a bare sense-number line re-tokenising its own prepended tilde word. Reasoning about any one in isolation gives a confident wrong answer. In the July 2026 session, seven consecutive estimates made that way were wrong — including a "missing marker" that did not exist, a "bug" the app had been rendering correctly all along, and a site count that was off by 6×. Every one was caught by either the printed page or a compiled diff. Instrument the compiler, compile, and read the output.
-
-The corollary, which is what makes any of this safe: **a re-notation must leave the compiled JSON byte-identical.** Diff before and after. That oracle caught a transform that silently moved `anak`'s senses 2 and 3 onto `anak tiri` — invisible in the source, obvious in the diff.
+If you do go near it, do not reason about the tilde rules from the markdown — they are emergent from the tokenizer, the parenthesis double-pass and the sense-line prepend interacting, and reading the code gives confident wrong answers. Compile and read the output; a re-notation must leave the JSON byte-identical. See `TEEUW_SOURCE_FORMAT.md` §8.
 
 ---
 
