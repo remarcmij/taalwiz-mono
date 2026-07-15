@@ -2,19 +2,25 @@
 
 Why Taalwiz is the way it is — and, more often, why it is **not** some other way.
 
-`ARCHITECTURE.md` (per app) says *what* the code does and *how*. This file records the *why not*: choices that were considered, tried, or repeatedly proposed and deliberately rejected. They are not visible in the code, because the code is the thing that didn't happen.
+`ARCHITECTURE.md` (per app) says *what* the code does and *how*. This file records the *why not*: choices that were considered, tried, or repeatedly proposed and deliberately rejected. These are not visible in the code, because either not implemented or tried, rejected and removed.
 
-**If you are a new contributor — human or coding agent — read this before "fixing" anything below.** Several entries look like bugs or gaps and are neither. Each one cost real time to reach; some were reversed once already. Re-opening them without new information is the most likely way to waste a week.
+**If you are a new contributor — human or coding agent — read this before "fixing" anything below.** Several entries may look like bugs or gaps and are neither. Each one cost real time to reach; some were reversed once already. Re-opening them without new information is most likely a waste of time: "been there, done that".
 
 Nothing here is permanent. Change any of it — but change it knowingly, and update this file when you do.
 
 ---
 
-## 1. The dictionary source is the primary artifact
+## 1. The dictionary and its encoding
 
-The app is replaceable; the hand-digitised Teeuw source is the part with lasting value. It was OCR'd and then hand-corrected and marked up entry by entry over a long period, and it is not regenerable from anything in this repo. Weigh changes accordingly — favour keeping the source faithful, self-describing and extensible.
+The part with lasting value is the **encoding system**, not the transcription alone: a markdown format that tracks the printed page closely enough that transcribing is a matter of appearance rather than linguistics, the compiler that turns it into a searchable index, and the conventions the app is built on — `**`/`*` marking target-language words (which is what makes a word tappable), and the variation generator that resolves inflected forms back to a Teeuw-attested root.
 
-The dictionary markdown is **not in this repo** (`content/` is gitignored; it lives in a separate private repository). Any correction found via tooling here must be propagated to that canonical source, or it is lost at the next compile.
+That is the expensive part to rediscover. The hand-digitisation took years, but redoing it today would still mean scanning the pages by hand while the markup conversion could be largely AI-assisted, as the Stevens dictionary was. The format and the machinery around it could not be recovered the same way: they encode judgments about what the page means. Working out why the printed swung dash re-anchors to a compound, and what that implies for the markup, took a full day of measurement against the corpus — and that is one symbol.
+
+So neither the app nor the source is "just replaceable". Favour changes that keep the source faithful, self-describing and extensible, and that keep the format's rules explainable on one page.
+
+The dictionary markdown is **not in this repo** (`content/` is gitignored; it lives in a separate private repository). Any correction found via tooling here must be propagated to that source, or it is lost at the next compile.
+
+The format itself is specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — read §6 before touching anything tilde-related. Two decisions worth knowing are recorded there: `~` resolves to the nearest preceding bold word (a bold compound **does** capture it — "kurang terima kasih"), and `^` resolves to the headword, re-encoding a position that printed Teeuw marks by layout and flattening destroys. Both markers mean the same in the Stevens source; the two dictionaries share one convention deliberately.
 
 ### Teeuw is the judge
 
@@ -31,11 +37,15 @@ The `kalian` case was addressed, but note **where**: a `teeuw.k+.md` supplement 
 
 Special-casing individual words inside `#fetchWordLemmas` or `segmentIndonesian` is how a dictionary engine rots. The supplement mechanism exists precisely so that content problems get content fixes. See `apps/compiler/TEEUW_PARSER.md` (Part 2).
 
-### Accepted boundary: single-word tilde drift
+"The judge" means the *page*, not the notation. Print is internally inconsistent in at least one place: under `titik berat` it writes `meletakkan ~ berat`, using `~` for the headword inside a sublemma where its own convention makes `~` the compound. Read the word the entry means, not the symbol it used.
 
-The swung-dash `~` shorthand binds to the nearest preceding bold word, which caused ~330 wrong expansions where a bold compound mid-entry captured following headword lines. Fixed via the `^` revert marker (51 placed), plus a non-fatal compiler warning as a forward guard. See `apps/compiler/TEEUW_SOURCE_FORMAT.md`.
+### Accepted boundary: tilde drift under a single-word derivation
 
-The audit split the drift into two buckets. The multiword-compound bucket is fixed. The **single-word bucket (~11k lines) was deliberately left as best-effort** and not exhaustively swept: it is mostly correct, since a derivation legitimately governs its own sub-references. This is a **recorded, accepted boundary, not unfinished work.** Do not re-open it as a cleanup task.
+A `~` under a bold **compound** used to be a systematic hazard; that class is closed (see §1's pointer to the format guide — the marker that fixed it has since been replaced by an inline `^`, and ~330 wrong expansions were corrected against print along the way).
+
+What was **not** exhaustively swept is the same shape under a **single-word bold derivation**: roughly 11k `~` lines where a derivation legitimately governs its own sub-references and is almost always right, but where a headword's list resuming after a derivation would need an explicit `^`. Spot fixes have been applied where found (`persuratkabaran`, `kesertamertaan`, `kewalikotaan`, `berubah`). The bucket as a whole is a **recorded, accepted boundary, not unfinished work.** Do not re-open it as a cleanup task.
+
+If you do go near it: the compiler is the only reliable oracle. Simulating the tilde rules from the source text is deceptively hard — the parenthesis double-pass, and a bare sense-number line re-tokenising its own tilde word, both change what `~` resolves to in ways a regex over the markdown will not predict. Instrument the compiler and measure; four separate estimates made that way were wrong before the measured ones were right.
 
 ---
 
