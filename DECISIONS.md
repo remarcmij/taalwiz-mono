@@ -22,13 +22,7 @@ The dictionary markdown is **not in this repo** (`content/` is gitignored; it li
 
 The format itself is specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — read §6 before touching anything tilde-related. Three decisions worth knowing are recorded there. `~` resolves to the nearest preceding bold word, and a bold compound **does** capture it ("kurang terima kasih") — that is print's own convention, not a quirk. `^` resolves to the headword, re-encoding a position that printed Teeuw marks by layout and that flattening destroys; both markers mean the same in the Stevens source, and the two dictionaries share one convention deliberately. And a bold run spanning two words is one unit, because print says so by running the bold across both — there is no joiner character.
 
-### Don't invent syntax before checking what the corpus does with it
-
-There used to be a joiner: `+` made `akal+budi` one indexed unit. It was retired in 2026-07 and the reasoning is worth keeping, because it is the trap any new control character walks into.
-
-It was **redundant** — the bold already spanned both words, so the page had said "one unit" all along; the marker only compensated for a parser that split on whitespace. It was **not free** — joining meant stripping `+` from every line, which silently blanked the 63 entries where the dictionaries use a plus for real: Teeuw's arithmetic (`5 + 5`, `5 + 2 = 7`) and letter combinations (`lettercombinatie (_l_ + _a_)`), and Stevens' etymologies (`[asyik + indehoi]`) and its entire "followed by" notation (`(+ verb)`, `(+ number)`). And it was **inconsistent with the compiler's own output**: a bare sense-number line writes the current tilde word back as `**akal budi**, ` with a *space*, which the parser could not then read as one word — so any compound with three or more senses on separate lines lost sense 3 onward to its first word.
-
-None of that was visible from the marker's definition. It surfaced only by compiling and reading the result. **Before taking a character, grep the corpus for it.**
+That last one may look fragile — a multi-word unit inferred from whitespace, with a comma meaning the opposite. **Don't add an explicit marker for it.** One existed: `+` (`akal+budi`), retired 2026-07. It was redundant, since print already says "one unit" by running the bold across both words, and it was not free: joining meant stripping `+` from every line, which silently blanked the 63 entries where the dictionaries use a plus for real — Teeuw's `5 + 5` and `(_l_ + _a_)`, Stevens' `[asyik + indehoi]` and its whole `(+ verb)` notation.
 
 ### Teeuw is the judge
 
