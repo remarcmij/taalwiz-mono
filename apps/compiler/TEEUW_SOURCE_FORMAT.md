@@ -331,16 +331,47 @@ automatically flagged `isSupplement` and rendered distinctly. Homonym numbering
 carries across the core/supplement boundary. Full design in
 [TEEUW_PARSER.md Part 2](./TEEUW_PARSER.md#part-2--supplement--files).
 
-Practical checklist for a new entry:
+### Who writes these
 
-1. Start a block with a blank line before it; the headword is the first `**bold**`.
-2. Use `*~ x*` for compounds of the headword; spell Dutch glosses plainly.
-3. If you add a bold compound with its own derivation and more headword-compounds
-   follow it, drop a `^` after the derivation.
-4. Mark exotic gloss names (e.g. Latin names of plants) with `_..._` so they are not indexed as Dutch.
-5. Recompile (`pnpm --filter compiler run build && pnpm --filter compiler run start`).
+**The core files are Teeuw's text; only the copyright holder may alter them.** The
+supplements exist so that nobody has to: a `+` entry sits beside the core rather
+than inside it, so the core remains a faithful digitisation with no additions,
+deletions or alterations — the one claim worth protecting. What an authorised
+editor does with a `+` entry later (merge it, ignore it, work on the core
+directly) is their call, not the mechanism's.
+
+> **Writing entries is a lexicographer's job — not a developer's, and not a
+> coding agent's.** The `+` files exist and are seeded with a few real examples
+> (`alay`, `daring`, `drone`) to prove the ability works. Beyond that they are
+> hands-off: change the software behind the ability, not the content.
+
+That rule is the result of ignoring it. The `+` files were first populated with
+AI-generated entries that nobody checked against the dictionary they were
+extending, and **two thirds duplicated Teeuw**: `digital` → "digitaal" and
+`digitalisasi` → "digitalisering" verbatim; `akun` where Teeuw already glosses
+"rekening, conto; account"; `mengaplikasikan` glossed *worse* than the core's;
+`kalian`, which Teeuw files at `kali` IV as "jullie (allen)". The app rendered
+each as two near-identical cards, one amber. Two more (`mengakun`,
+`mendigitalkan`) were plausible-looking forms coined by analogy rather than words
+anyone uses. All removed.
+
+### If you do add one
+
+1. **Check the word is absent from the core first.** Nothing in the compiler does
+   this — a `+` file may re-declare an existing headword and both are emitted.
+   Grep the compiled JSON, not just the markdown.
+2. **Absence of a word is not absence of a sense.** Teeuw has `situs` (an
+   archaeological dig), `unggah` (etiquette), `aplikasi` (appliqué), `gawai`
+   (work), `tautan` (a connection). Their internet meanings are genuinely new —
+   but adding one declares a *homonym* of an existing headword, not a new word,
+   and this format has no clean way to say so.
+3. Start a block with a blank line before it; the headword is the first `**bold**`.
+4. Use `*~ x*` for compounds of the headword; spell Dutch glosses plainly.
+5. Mark exotic gloss names (e.g. Latin names of plants) with `_..._` so they are not indexed as Dutch.
+6. Recompile (`pnpm --filter compiler run build && pnpm --filter compiler run start`).
    The compiler is strict: a malformed block aborts with the line number, so a
-   clean compile is your first proofreading pass.
+   clean compile is your first proofreading pass. It will **not** tell you the
+   entry was redundant.
 
 ---
 

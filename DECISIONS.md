@@ -11,29 +11,13 @@ Nothing here is permanent. Change any of it — but change it knowingly, and upd
 ---
 ## 1. The dictionary
 
-The dictionary is central to the app, but it need not be Teeuw — Stevens (Indonesian to English) runs on the same pipeline, and the app is dictionary-agnostic by design. Nothing below is a Teeuw fact; Teeuw is just where the examples come from.
-
-The dictionary source is **not in this repo** (`content/` is gitignored; it lives in a separate private repository). A correction made via tooling here must be propagated to that source, or it is lost at the next compile.
-
-Markup conventions are specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — read §6 before touching anything tilde-related.
-
-### Using the dictionary — it is canonical
-
-**No attempt is made to improve the dictionary's content, and no attempt is made to compensate for it in code.** Where its own structure produces an odd-looking result, that is an **accepted consequence, not a bug**: its editorial choices are real content, such as cross-filing a word under both its own headword and its root, or filing a modern sense under an older base.
+**The dictionary is the authority, and the code never second-guesses it.** Where its own structure produces an odd-looking result — a word cross-filed under both its headword and its root, a modern sense under an older base — that is an accepted consequence, not a bug.
 
 > **Never patch core lookup or the segmenter for a one-off entry.** Special-casing individual words inside `#fetchWordLemmas` or `segmentIndonesian` is how a dictionary engine rots. A content problem gets a content fix.
 
-The same authority runs the other way through the search: the variation generator deliberately **over-generates** candidate forms and lets the dictionary reject the spurious ones. That is only sound because the dictionary is the authority — an over-strip that isn't a real headword simply never validates. See [SEARCH.md](apps/web/src/app/home/dictionary/SEARCH.md).
+The same authority runs the other way through the search: the variation generator deliberately **over-generates** candidate forms and lets the dictionary reject the spurious ones. That is only sound because the dictionary is the authority — an over-strip that isn't a real headword simply never validates, so the generator is allowed to be greedy. Don't make it precise. See [SEARCH.md](apps/web/src/app/home/dictionary/SEARCH.md).
 
-### Extending the dictionary — the `+` files are not ours to write
-
-**The core files are Teeuw's text. Only the copyright holder may alter them.** The per-letter supplements exist so that we never have to: `teeuw.X+.md` compiles into the same chapter JSON, is flagged `isSupplement`, and renders distinctly. An entry there is ours rather than Teeuw's, non-canonical, and marked as such. Merging one into a core file would look tidier and would quietly falsify the only claim worth protecting — that the core is a faithful digitisation, with no additions, deletions or alterations. Don't. See `apps/compiler/TEEUW_PARSER.md` (Part 2).
-
-> **Do not add content to a `+` file.** Writing dictionary entries is a lexicographer's job. We built the mechanism and seeded it with a handful of examples (`alay`, `daring`, `drone`) to prove it works; beyond that it is hands-off. Change the software behind the ability, not the content.
-
-That rule is the result of ignoring it. The `+` files were first populated with generated entries that nobody checked against the dictionary they were extending, and two thirds duplicated Teeuw: `digital` → "digitaal" and `digitalisasi` → "digitalisering" verbatim, `akun` where Teeuw already glosses "rekening, conto; account", `kalian` which Teeuw files at `kali` IV as "jullie (allen)". The app showed them as two near-identical cards, one amber. All removed. Nothing in the compiler catches it — a `+` file may re-declare an existing word and both are emitted.
-
-It also needs judgment we don't have. Absence of a *word* is not absence of a *sense*: Teeuw has `situs` (an archaeological dig), `unggah` (etiquette), `aplikasi` (appliqué). Their internet meanings are genuinely new — but adding one is declaring a homonym of an existing headword, not adding a word, and that is a lexicographic call.
+**Dictionary content is out of bounds.** It is not in this repo (`content/` is gitignored; the source lives in a separate private repository), and it is not ours to edit — neither the core files, which are Teeuw's text, nor the `teeuw.X+.md` supplements, which are a lexicographer's job. A content correction made from here is lost at the next compile anyway. See [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — §6 for the tilde rules before you touch anything tilde-related, §7 for why the supplements are hands-off.
 
 ---
 

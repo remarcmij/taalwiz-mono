@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Taalwiz is a TypeScript monorepo managed by **Turborepo** and **pnpm**. It contains a NestJS backend API, an Angular/Ionic hybrid web/mobile app, and a dictionary compiler utility.
 
-> **Read [DECISIONS.md](DECISIONS.md) before proposing or "fixing" anything.** It records the deliberate rejections and accepted boundaries that are invisible in the code — several things that look like bugs or gaps are neither (Teeuw's structural quirks, the single-word tilde-drift bucket, `NoPreloading`, the dropped tile-quiz, the absence of push notifications). This file says *what* and *how*; the per-app `ARCHITECTURE.md` files go deeper; DECISIONS.md says *why not*.
+> **Read [DECISIONS.md](DECISIONS.md) before proposing or "fixing" anything.** It records the deliberate rejections that are invisible in the code — several things that look like bugs or gaps are neither (the dictionary's structural quirks, `NoPreloading`, the dropped tile-quiz, the absence of push notifications). This file says *what* and *how*; the per-app `ARCHITECTURE.md` files go deeper; DECISIONS.md says *why not*. **Dictionary content is out of bounds** — the source is in a separate private repo and is not ours to edit; see `apps/compiler/TEEUW_SOURCE_FORMAT.md` §7.
 
 ## Commands
 
