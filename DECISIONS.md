@@ -21,10 +21,9 @@ The dictionary is a precise digital rendition of an external authoritative sourc
 
 The same authority runs the other way through the search: the variation generator deliberately **over-generates** candidate forms and lets the dictionary reject the spurious ones. That is only sound because the dictionary is the authority — an over-strip that isn't a real headword simply never validates, so the generator is allowed to be greedy. Don't make it precise. See [SEARCH.md](apps/web/src/app/home/dictionary/SEARCH.md).
 
-**Dictionary content is out of bounds.** It is not in this repo (`content/` is gitignored; the source lives in a separate private repository), and it is not ours to edit — neither the core files, which are Teeuw's text, nor the `teeuw.X+.md` supplements, which are a lexicographer's job. A content correction made from here would be lost at the next compile anyway.
+**Dictionary content is out of bounds by default.** It is not in this repo (`content/` is gitignored; the source lives in a separate private repository), and it is not ours to edit — the core files are Teeuw's text, the `teeuw.X+.md` supplements are a lexicographer's job, and a content fix made from here is lost at the next compile anyway. If a change genuinely requires editing content, that is an explicit instruction from the developer, not something to undertake on your own.
 
-<!--From now on we don't touch dictionary content, so need to have rules how to do it. If for some reason we do want to touch it, the developer will give overriding instructions.-->
- See [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — §6 for the tilde rules before you touch anything tilde-related, §7 for why the supplements are hands-off.
+What *is* ours is the software behind it. If you change the compiler's tilde handling, read [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) §6 and §8 for the semantics first; §7 explains why the supplements are hands-off.
 
 ---
 
@@ -42,8 +41,7 @@ The same authority runs the other way through the search: the variation generato
 
 ## 3. Morphology aid (the decomposition line)
 
-<!--This is a must-read. Otherwise the content of this section does not make sense.-->
-Full write-up: `apps/web/MORPHOLOGY_AID.md`.
+**Read `apps/web/MORPHOLOGY_AID.md` first — the entries below assume it.**
 
 **It is an affix-labeller, not a morphological analyser.** This distinction is the whole safety argument and it is easy to erode by accident. Teeuw already groups derived forms under an editorial root (the `base` field), so the segmenter operates on a *(surface form, Teeuw-confirmed root)* pair: **the root is authoritative, not guessed**, and the machine only names the affixes bridging surface to root. A change that makes the segmenter guess roots independently breaks the claim that a linguist can trust it. Don't.
 
