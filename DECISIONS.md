@@ -2,22 +2,29 @@
 
 Why Taalwiz is the way it is — and, more often, why it is **not** some other way.
 
-`ARCHITECTURE.md` (per app) says *what* the code does and *how*. This file records the *why not*: choices that were considered, tried, or repeatedly proposed and deliberately rejected. These are not visible in the code, because either not implemented or tried, rejected and removed.
+**Who this is for.** First a coding agent; second the developer it works with. It is *not* onboarding — a new human should start with the per-app `ARCHITECTURE.md` and the guides, which say how the app works. This file says why parts of it are not built the obvious way: decisions that look like bugs or gaps until you know the history. An agent reconstructs that history from the codebase in a single session; a newcomer cannot, and will find this file terse to the point of opaque. That is by design — it began as notes an agent kept to carry context between sessions, and it stays in that register: conclusions, not narrative.
 
-**If you are a new contributor — human or coding agent — read this before "fixing" anything below.** Several entries may look like bugs or gaps and are neither. Each one cost real time to reach; some were reversed once already. Re-opening them without new information is most likely a waste of time: "been there, done that".
+**How to use it.** Before changing something that looks wrong, check it is not a settled decision below — several were tried, rejected, and removed, or reversed once already. When a human questions a design choice, cite the entry so they get the "why not" without having lived it. That second use means each entry must be quotable to a human and still land, so keep it self-explaining, not cryptic.
+
+**Verify, don't trust.** No agent changes code here on its own — a human is always in the loop, approving. But an agent reads an entry as fact and proposes acting on it, and an approving human may not catch an error, so a wrong entry here is more dangerous than a wrong line of prose a human would pause over. Treat every entry as a claim to check against the code or the compiler. Where a claim cannot be checked, cut it rather than repeat it.
 
 Nothing here is permanent. Change any of it — but change it knowingly, and update this file when you do.
 
 ---
 ## 1. The dictionary
 
+The dictionary is a precise digital rendition of an external authoritative source. That source is considered canonical. The rendition is best-effort.
+
 **The dictionary is the authority, and the code never second-guesses it.** Where its own structure produces an odd-looking result — a word cross-filed under both its headword and its root, a modern sense under an older base — that is an accepted consequence, not a bug.
 
-> **Never patch core lookup or the segmenter for a one-off entry.** Special-casing individual words inside `#fetchWordLemmas` or `segmentIndonesian` is how a dictionary engine rots. A content problem gets a content fix.
+> **Never patch core lookup or the segmenter for a one-off entry.** Special-casing individual words inside `#fetchWordLemmas` or `segmentIndonesian` is how a dictionary engine rots. A content problem warrants a content fix.
 
 The same authority runs the other way through the search: the variation generator deliberately **over-generates** candidate forms and lets the dictionary reject the spurious ones. That is only sound because the dictionary is the authority — an over-strip that isn't a real headword simply never validates, so the generator is allowed to be greedy. Don't make it precise. See [SEARCH.md](apps/web/src/app/home/dictionary/SEARCH.md).
 
-**Dictionary content is out of bounds.** It is not in this repo (`content/` is gitignored; the source lives in a separate private repository), and it is not ours to edit — neither the core files, which are Teeuw's text, nor the `teeuw.X+.md` supplements, which are a lexicographer's job. A content correction made from here is lost at the next compile anyway. See [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — §6 for the tilde rules before you touch anything tilde-related, §7 for why the supplements are hands-off.
+**Dictionary content is out of bounds.** It is not in this repo (`content/` is gitignored; the source lives in a separate private repository), and it is not ours to edit — neither the core files, which are Teeuw's text, nor the `teeuw.X+.md` supplements, which are a lexicographer's job. A content correction made from here would be lost at the next compile anyway.
+
+<!--From now on we don't touch dictionary content, so need to have rules how to do it. If for some reason we do want to touch it, the developer will give overriding instructions.-->
+ See [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](apps/compiler/TEEUW_SOURCE_FORMAT.md) — §6 for the tilde rules before you touch anything tilde-related, §7 for why the supplements are hands-off.
 
 ---
 
@@ -35,6 +42,7 @@ The same authority runs the other way through the search: the variation generato
 
 ## 3. Morphology aid (the decomposition line)
 
+<!--This is a must-read. Otherwise the content of this section does not make sense.-->
 Full write-up: `apps/web/MORPHOLOGY_AID.md`.
 
 **It is an affix-labeller, not a morphological analyser.** This distinction is the whole safety argument and it is easy to erode by accident. Teeuw already groups derived forms under an editorial root (the `base` field), so the segmenter operates on a *(surface form, Teeuw-confirmed root)* pair: **the root is authoritative, not guessed**, and the machine only names the affixes bridging surface to root. A change that makes the segmenter guess roots independently breaks the claim that a linguist can trust it. Don't.
