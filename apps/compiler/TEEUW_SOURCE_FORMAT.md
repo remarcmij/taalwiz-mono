@@ -311,7 +311,7 @@ settles it ("psychiatrische kliniek" is a hospital), so this is reading your own
 translation rather than deep Indonesian. When in doubt, write the word out in
 full (`*rumah setan*`); it compiles to the same result and the reader cannot tell.
 
-Across the whole corpus only ~15 lines legitimately need `~` to mean a compound
+Across the whole corpus only **18** lines legitimately need `~` to mean a compound
 (`rumah sakit bersalin`, `kereta api barang`, `doktor honoris causa`, ...), so if
 a `~` sits under a bold compound and you are unsure, `^` is the better guess.
 
@@ -364,6 +364,30 @@ forget, and nothing left for the warning to detect.
 When editing an entry with a bold compound in it, the one habit worth keeping is
 to diff the compiled JSON before and after. A pure re-notation must leave it
 byte-identical; anything else is a change you should be able to name.
+
+### Do not predict what a `~` resolves to — compile it
+
+Tempting, and it does not work. Tilde resolution is **emergent** from three
+mechanisms interacting, and reasoning about any one in isolation gives a
+confident wrong answer:
+
+- the tokenizer (a bold run's words, a comma between variants);
+- the **parenthesis double-pass** — `parseLine` runs `extractWords` twice, once
+  with the brackets stripped and once with the bracketed *fragments removed*, and
+  it is the **second** pass that leaves the tilde word set. So a bold word inside
+  parentheses is seen and then discarded;
+- the **sense-line prepend** — a line opening with a bare digit gets
+  `**<tilde word>**, ` written in front of it, which is then re-tokenised, so the
+  line silently re-anchors the tilde to what it just wrote.
+
+Reading the source and predicting the result fails in ways that look like
+success. In one session, seven consecutive estimates made that way were wrong —
+including a "missing marker" that did not exist, a "bug" the app had been
+rendering correctly all along, and a site count off by 6×. Every one was caught
+by the printed page or a compiled diff.
+
+If you need to know what a `~` binds to, put a `console.log` next to the
+substitution in `ParserBase.parseLine`, compile, and read it.
 
 [^1]: There was more to it: OCR scanning errors had to be located and corrected too.
 

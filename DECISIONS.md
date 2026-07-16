@@ -25,23 +25,15 @@ Markup conventions are specified in [`apps/compiler/TEEUW_SOURCE_FORMAT.md`](app
 
 The same authority runs the other way through the search: the variation generator deliberately **over-generates** candidate forms and lets the dictionary reject the spurious ones. That is only sound because the dictionary is the authority — an over-strip that isn't a real headword simply never validates. See [SEARCH.md](apps/web/src/app/home/dictionary/SEARCH.md).
 
-### Extending the dictionary — but it is still not Teeuw
+### Extending the dictionary — the `+` files are not ours to write
 
-A genuine gap (a modern word or sense the printed edition doesn't file) is filled by a **per-letter supplement**, `teeuw.X+.md`, compiled into the same chapter JSON and flagged `isSupplement`. `kalian` is the example: Teeuw files it under `kali`, so it decomposes to `kali + -an` and surfaces the "multiplication" sense; `teeuw.k+.md` gives the modern pronoun its own entry.
+**The core files are Teeuw's text. Only the copyright holder may alter them.** The per-letter supplements exist so that we never have to: `teeuw.X+.md` compiles into the same chapter JSON, is flagged `isSupplement`, and renders distinctly. An entry there is ours rather than Teeuw's, non-canonical, and marked as such. Merging one into a core file would look tidier and would quietly falsify the only claim worth protecting — that the core is a faithful digitisation, with no additions, deletions or alterations. Don't. See `apps/compiler/TEEUW_PARSER.md` (Part 2).
 
-**The core files are Teeuw's 1996 edition and are never edited.** An addition is *ours*, not his — even when it is obviously correct, as `kalian` is. It is kept in a separate file, flagged, and rendered distinctly, so the two are never confused. The app treats supplement entries as usable content while marking their provenance.
+> **Do not add content to a `+` file.** Writing dictionary entries is a lexicographer's job. We built the mechanism and seeded it with a handful of examples (`alay`, `daring`, `drone`) to prove it works; beyond that it is hands-off. Change the software behind the ability, not the content.
 
-Merging an addition into a core file would look tidier and would quietly falsify the one claim worth protecting: that the core is a faithful digitisation, with no additions, deletions or alterations. Don't. See `apps/compiler/TEEUW_PARSER.md` (Part 2).
+That rule is the result of ignoring it. The `+` files were first populated with generated entries that nobody checked against the dictionary they were extending, and two thirds duplicated Teeuw: `digital` → "digitaal" and `digitalisasi` → "digitalisering" verbatim, `akun` where Teeuw already glosses "rekening, conto; account", `kalian` which Teeuw files at `kali` IV as "jullie (allen)". The app showed them as two near-identical cards, one amber. All removed. Nothing in the compiler catches it — a `+` file may re-declare an existing word and both are emitted.
 
-### QA-ing the dictionary source — a separate job
-
-Everything above is about *using* the dictionary. Correcting it is different work, with a different audience (an editor of the source, in the private content repo) and different rules. Two decisions belong here:
-
-**The judge is the page, not its notation.** Print can be internally inconsistent: under `titik berat` Teeuw writes `meletakkan ~ berat`, using the swung dash for the headword inside a sublemma where its own convention makes it the compound. Read the word the entry means, not the symbol it used.
-
-**Accepted boundary: tilde drift under a single-word derivation.** A `~` under a bold **compound** used to be a systematic hazard; that class is closed (~330 wrong expansions corrected against print). The same shape under a **single-word bold derivation** was **not** exhaustively swept: roughly 11k `~` lines where a derivation legitimately governs its own sub-references and is almost always right, but where a headword's list resuming after a derivation would need an explicit `^`. Spot fixes have been applied where found (`persuratkabaran`, `kesertamertaan`, `kewalikotaan`, `berubah`). The bucket as a whole is a **recorded, accepted boundary, not unfinished work.** Do not re-open it as a cleanup task.
-
-If you do go near it, do not reason about the tilde rules from the markdown — they are emergent from the tokenizer, the parenthesis double-pass and the sense-line prepend interacting, and reading the code gives confident wrong answers. Compile and read the output; a re-notation must leave the JSON byte-identical. See `TEEUW_SOURCE_FORMAT.md` §8.
+It also needs judgment we don't have. Absence of a *word* is not absence of a *sense*: Teeuw has `situs` (an archaeological dig), `unggah` (etiquette), `aplikasi` (appliqué). Their internet meanings are genuinely new — but adding one is declaring a homonym of an existing headword, not adding a word, and that is a lexicographic call.
 
 ---
 
