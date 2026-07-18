@@ -4,9 +4,15 @@ import { catchError, first, switchMap, throwError } from 'rxjs';
 
 import { AuthService } from './auth.service';
 
+// Only same-origin API calls carry a bearer token. Auth endpoints are the
+// public subset of the API (login, refresh, validate-regtoken) that must NOT
+// be authenticated — see the guard below.
 const isApiRequest = (req: HttpRequest<unknown>) => req.url.startsWith('/api/v1/');
 const isAuthEndpoint = (req: HttpRequest<unknown>) => req.url.startsWith('/api/v1/auth/');
 
+// Attaches the access token to outgoing API requests and transparently refreshes
+// it once on a 401. The AuthService.token getter owns all refresh/logout policy;
+// this interceptor is only the HTTP mechanism that wires it into the request flow.
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
@@ -22,9 +28,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
+  // Resolve a token first (may refresh proactively if the cached one expired),
+  // then send the request. first() completes the stream so it never leaks a
+  // long-lived subscription to the user/token observables.
   return authService.token.pipe(
     first(),
     switchMap((token) => {
+      // A null token (transient refresh failure, or logged out) sends the
+      // request unauthenticated; the server's 401 then drives the retry below.
       const authedReq = token
         ? req.clone({
             headers: req.headers.set('Authorization', `Bearer ${token}`),
@@ -33,9 +44,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
       return next(authedReq).pipe(
         catchError((error: HttpErrorResponse) => {
+          // Only 401 (token rejected) is recoverable here; anything else is the
+          // caller's problem and propagates untouched.
           if (error.status !== 401) {
             return throwError(() => error);
           }
+          // The server rejected this token even though the client thought it
+          // was fresh (early revocation, clock skew). Drop the cache and force
+          // a single refresh + retry.
           authService.invalidateToken();
           return authService.token.pipe(
             first(),
@@ -48,6 +64,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               if (!newToken) {
                 return throwError(() => error);
               }
+              // Retry once with the refreshed token. This retry is NOT wrapped
+              // in the same catchError, so a second 401 propagates instead of
+              // looping.
               const retryReq = req.clone({
                 headers: req.headers.set('Authorization', `Bearer ${newToken}`),
               });

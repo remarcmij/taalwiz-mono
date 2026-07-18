@@ -26,6 +26,9 @@ import { HOME_TABS, HomeTab, LAST_TAB_KEY, homeUrl, tabUrl } from '../home/home.
 import { LoggerService } from '../shared/logger.service';
 import { Role, User } from './user.model';
 
+// Shape of the JSON returned by login/register: the user profile plus the
+// long-lived refresh token and its absolute expiry (seconds since epoch, as a
+// string). The short-lived access token is fetched separately via /auth/refresh.
 export interface AuthResponseData {
   id: string;
   email: string;
@@ -37,13 +40,18 @@ export interface AuthResponseData {
   refreshExp: string;
 }
 
+// Response from /auth/refresh: a fresh short-lived access token and its expiry.
 type TokenResponseData = {
   token: string;
   exp: string;
 };
 
+// Seconds shaved off every expiry so a token is treated as expired slightly
+// early, covering clock skew and request latency to the backend.
 const LATENCY_MARGIN = 5;
 
+// In-memory holder for the current access token and its (margin-adjusted)
+// expiry. Never persisted — only the refresh token survives a reload.
 class TokenData {
   constructor(
     public token: string,
@@ -59,10 +67,17 @@ export class AuthService implements OnDestroy {
   #router = inject(Router);
   #logger = inject(LoggerService);
 
+  // Single source of truth for the logged-in user; null means logged out.
   #user$ = new BehaviorSubject<User | null>(null);
+  // Signal mirror of #user$ for templates/computed that prefer signals.
   #user = toSignal(this.#user$, { initialValue: null });
+  // Current access token, or null until the first refresh.
   #tokenData: TokenData | null = null;
+  // Shared refresh request while one is in flight, so concurrent callers
+  // (e.g. several HTTP interceptions at once) reuse a single /auth/refresh
+  // round-trip instead of each firing their own.
   #refreshInFlight$: Observable<string | null> | null = null;
+  // Emits on service teardown to tie off long-lived streams.
   #destroy$ = new Subject<void>();
 
   constructor() {
@@ -89,6 +104,10 @@ export class AuthService implements OnDestroy {
     return this.#user;
   }
 
+  // Emits a valid access token for outgoing requests (used by the auth
+  // interceptor). Returns the cached token if still fresh, otherwise transparently
+  // refreshes. defer() ensures the freshness check runs at subscribe time, not
+  // when the getter is called, so each subscription re-evaluates the cache.
   get token() {
     return defer(() => {
       if (this.#tokenData && this.#tokenData.exp > new Date().getTime() / 1000) {
@@ -113,6 +132,10 @@ export class AuthService implements OnDestroy {
     );
   }
 
+  // Exchanges the refresh token for a new access token. Guards against a
+  // stampede: if a refresh is already running, all callers share it (see
+  // #refreshInFlight$ + shareReplay below) rather than hitting /auth/refresh
+  // in parallel.
   #getRefreshedToken(): Observable<string | null> {
     if (!this.#refreshInFlight$) {
       this.#refreshInFlight$ = this.refreshToken.pipe(
@@ -142,8 +165,11 @@ export class AuthService implements OnDestroy {
             );
         }),
         finalize(() => {
+          // Clear the in-flight guard once the refresh settles (success, error,
+          // or unsubscribe) so the next expiry can start a fresh attempt.
           this.#refreshInFlight$ = null;
         }),
+        // Fan the single refresh out to all concurrent subscribers.
         shareReplay({ bufferSize: 1, refCount: true }),
       );
     }
@@ -165,9 +191,12 @@ export class AuthService implements OnDestroy {
         ),
       ),
       map(({ landingUrl, storedData }) => {
+        // No cached session on this device — treat as logged out.
         if (!storedData || !storedData.value) {
           return { user: null as User | null, landingUrl };
         }
+        // Rehydrate a User instance from the persisted JSON (a plain object,
+        // so it needs reconstructing to regain the class's methods/getters).
         const parsedData = JSON.parse(storedData.value) as User;
 
         const user = new User(
@@ -197,6 +226,8 @@ export class AuthService implements OnDestroy {
     );
   }
 
+  // Emits the current refresh token, or null if logged out or the refresh
+  // token itself has expired (forcing a full re-login rather than a refresh).
   get refreshToken() {
     return this.#user$.asObservable().pipe(
       map((user) => {
@@ -248,6 +279,8 @@ export class AuthService implements OnDestroy {
     });
   }
 
+  // Clears the in-memory user and token, drops the persisted session, and
+  // sends the user to the login screen.
   logout() {
     this.#user$.next(null);
     this.#tokenData = null;
@@ -255,10 +288,15 @@ export class AuthService implements OnDestroy {
     this.#router.navigateByUrl('/auth');
   }
 
+  // Discards the cached access token (but keeps the session) so the next
+  // request forces a refresh — used after a 401 from a token the server rejected.
   invalidateToken(): void {
     this.#tokenData = null;
   }
 
+  // Updates the logged-in user's UI language in place after the server PATCH
+  // succeeds, then re-persists authData so the change survives the next
+  // autoLogin. User is immutable, so a new instance is built rather than mutated.
   applyLangToCurrentUser(lang: string): void {
     const current = this.#user$.value;
     if (!current) return;
@@ -287,6 +325,9 @@ export class AuthService implements OnDestroy {
     );
   }
 
+  // Establishes a session from a login/register response: builds the User,
+  // pushes it to subscribers, and persists it for autoLogin. Bound and passed
+  // to tap() in login()/register().
   #setUserData(userData: AuthResponseData) {
     const refreshExp = +userData.refreshExp - LATENCY_MARGIN;
     const user = new User(
@@ -313,6 +354,9 @@ export class AuthService implements OnDestroy {
     );
   }
 
+  // Persists the session to Capacitor Preferences so autoLogin can restore it
+  // on the next app launch. Only the fields needed to rebuild a User are stored;
+  // the access token is deliberately left out (short-lived, re-fetched on demand).
   async #storeAuthData(
     id: string,
     email: string,
