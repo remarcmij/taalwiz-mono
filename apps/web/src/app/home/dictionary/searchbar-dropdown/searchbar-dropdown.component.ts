@@ -2,6 +2,7 @@ import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { IonItem, IonLabel, IonList } from '@ionic/angular/standalone';
 
+import { langConfig } from '../../../app.constants';
 import { WordLang } from '../word-lang.model';
 
 // TODO Find a way to animate the dropdown
@@ -17,4 +18,6 @@ export class SearchbarDropdownComponent {
   suggestions = input.required<WordLang[]>();
   showSearches = input.required<boolean>();
   itemClicked = output<WordLang>();
+
+  protected readonly targetLang = langConfig.targetLang;
 }
