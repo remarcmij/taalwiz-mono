@@ -214,43 +214,54 @@ export class DictionaryPage implements OnDestroy {
     const searchInputElement: HTMLInputElement =
       this.searchbar().nativeElement.querySelector('.searchbar-input');
 
-    let keyupKey = '';
     fromEvent<KeyboardEvent>(searchInputElement, 'keyup')
       .pipe(
-        tap((event) => (keyupKey = event.key)),
-        map((event) => (event.target as HTMLInputElement).value.trim()),
-        switchMap((term) => {
+        map((event) => ({
+          isEnterKey: event.key === 'Enter',
+          term: (event.target as HTMLInputElement).value.trim(),
+        })),
+        switchMap(({ isEnterKey, term }) => {
           const suggestions$ = term ? this.#getSuggestions(term) : of<WordLang[]>([]);
+          // Bundle `isEnterKey` with `suggestions`: `switchMap` guarantees
+          // only the latest keystroke's branch reaches downstream operators,
+          // but that guarantee is a property of the whole pipe, not of this
+          // value. Carrying `isEnterKey` here makes it visible locally, at
+          // the point where it's used.
 
-          // Fetch suggestions fresh for the typed term rather than reading the
-          // `suggestions` signal: typing a word and pressing Enter before the
-          // 250ms debounce fires leaves the signal empty, dropping the lookup
-          // into the target-language fallback below and missing native-language
-          // words whose only resolution is a literal suggestion (e.g. the Dutch
-          // "dozijn", which has no target-language variation match).
-          return keyupKey === 'Enter'
-            ? suggestions$
-            : timer(250).pipe(switchMap(() => suggestions$));
+          if (isEnterKey) {
+            // Fetch suggestions fresh for the typed term rather than reading
+            // the `suggestions` signal: pressing Enter before the 250ms
+            // debounce below has fired leaves the signal empty, dropping the
+            // lookup into the target-language fallback below and missing
+            // native-language words whose only resolution is a literal
+            // suggestion (e.g. the Dutch "dozijn", which has no
+            // target-language variation match).
+            return suggestions$.pipe(map((suggestions) => ({ isEnterKey, suggestions })));
+          }
+
+          // Ordinary typing: debounce so we don't fetch suggestions on every
+          // keystroke.
+          return timer(250).pipe(
+            switchMap(() => suggestions$),
+            map((suggestions) => ({ isEnterKey, suggestions })),
+          );
         }),
-        tap((suggestions) => {
-          this.showSearches.set(suggestions.length > 0);
-        }),
-        catchError(() => of<WordLang[]>([])),
         takeUntil(this.#leave$),
       )
-      .subscribe((suggestions) => {
+      .subscribe(({ isEnterKey, suggestions }) => {
         this.suggestions.set(suggestions);
-        if (keyupKey === 'Enter') {
-          if (suggestions.length > 0) {
-            this.onItemClicked(suggestions[0]);
-          } else if (this.word()) {
-            // No literal suggestion matched: run a full variation-backed lookup on
-            // the typed term so inflected forms (e.g. diambil -> ambil) resolve.
-            this.#lookup(new WordLang(this.word(), langConfig.targetLang));
-          }
-          if (this.#platform.is('mobile')) {
-            searchInputElement.blur();
-          }
+        this.showSearches.set(suggestions.length > 0);
+        if (!isEnterKey) return;
+
+        if (suggestions.length > 0) {
+          this.onItemClicked(suggestions[0]);
+        } else if (this.word()) {
+          // No literal suggestion matched: run a full variation-backed lookup on
+          // the typed term so inflected forms (e.g. diambil -> ambil) resolve.
+          this.#lookup(new WordLang(this.word(), langConfig.targetLang));
+        }
+        if (this.#platform.is('mobile')) {
+          searchInputElement.blur();
         }
       });
   }
@@ -273,8 +284,10 @@ export class DictionaryPage implements OnDestroy {
     this.#leave$.complete();
   }
 
+  // Never errors — callers get an empty result instead of having to guard
+  // against a failed fetch themselves.
   #getSuggestions(name: string): Observable<WordLang[]> {
-    return this.#dictionaryService.fetchSuggestions(name);
+    return this.#dictionaryService.fetchSuggestions(name).pipe(catchError(() => of<WordLang[]>([])));
   }
 
   protected onClear() {
