@@ -52,7 +52,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { langConfig } from '../../app.constants';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
-import { DictionaryService } from './dictionary.service';
+import { DictionaryService, LookupResult } from './dictionary.service';
 import { HistoryModalComponent } from './history-modal/history-modal.component';
 import { LemmaComponent } from './lemma/lemma.component';
 import { lemmaVisibleAt, type DetailLevel } from './lemma/lemma.model';
@@ -117,16 +117,12 @@ export class DictionaryPage implements OnDestroy {
   protected suggestions = signal<WordLang[]>([]);
   protected searchbarValue = signal('');
   protected showSearches = computed(() => this.suggestions().length > 0);
-  protected currentTarget = signal<WordLang | null>(null);
   // Detail tier for the results: `keywords` (the entry's own senses + derived
   // sub-headwords) or `all` (+ italic example usages and cross-references). The
   // header "more" button expands `keywords` → `all` one-way; it is not a toggle
   // and does not persist — every new lookup resets it back to `keywords` (see
   // `#results$`).
   protected detailLevel = signal<DetailLevel>('keywords');
-  // Whether the current lookup produced at least one entry, so the "more" button
-  // is only offered when there is something to expand.
-  protected hasResults = signal(false);
 
   protected recentSearches = computed(() =>
     this.#historyService
@@ -153,29 +149,44 @@ export class DictionaryPage implements OnDestroy {
   #results$ = this.#dictionaryService.lookupResult$.pipe(
     filter((results) => results !== null),
     tap((results) => {
-      const suppressHistoryAdd = this.#breadcrumbClicked;
-      this.#breadcrumbClicked = false;
-      this.currentTarget.set(results.targetBase);
-      this.hasResults.set(results.bases.length > 0);
+      this.#recordHistory(results);
       // Each new lookup starts collapsed at the keywords tier; the "more" button
       // is not persistent across searches.
       this.detailLevel.set('keywords');
       if (results.bases.length > 0) {
-        if (!suppressHistoryAdd) {
-          this.#addRecentSearch(results.targetBase!);
-        }
         this.searchbarValue.set('');
       } else {
+        // Redisplay the searched word rather than trusting whatever the
+        // searchbar currently shows: most lookups (breadcrumb, suggestion,
+        // base, or in-text word clicks) never touch the searchbar at all,
+        // and even a typed lookup is async, so the user may have kept
+        // typing before this "not found" result arrives.
         this.searchbarValue.set(results.targetBase!.word);
       }
       this.content()?.nativeElement.scrollToTop();
     }),
   );
 
+  #recordHistory(results: LookupResult): void {
+    const suppressHistoryAdd = this.#breadcrumbClicked;
+    this.#breadcrumbClicked = false;
+    if (results.bases.length > 0 && !suppressHistoryAdd) {
+      this.#addRecentSearch(results.targetBase!);
+    }
+  }
+
   // Signal view of the lookup result, so `visibleBases` can be a computed rather
   // than a method re-run on every change-detection pass. `#results$` keeps its tap
   // side-effects (history, scroll, tier reset); toSignal subscribes to it once.
   protected results = toSignal(this.#results$);
+
+  // The word highlighted (bold) in the breadcrumb trail.
+  protected currentTarget = computed(() => this.results()?.targetBase ?? null);
+
+  // Whether the current lookup produced at least one entry, so the "more" button
+  // is only offered when there is something to expand (and the F2 shortcut below
+  // has something to act on).
+  protected hasResults = computed(() => (this.results()?.bases.length ?? 0) > 0);
 
   #addRecentSearch(wordLang: WordLang): void {
     this.#historyService.add(wordLang.word, wordLang.lang);
