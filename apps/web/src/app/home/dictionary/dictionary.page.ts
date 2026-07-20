@@ -111,24 +111,24 @@ export class DictionaryPage implements OnDestroy {
     () => this.syncStatus() === 'downloading' || this.syncStatus() === 'importing',
   );
 
-  searchbar = viewChild.required('searchbarInput', { read: ElementRef });
-  content = viewChild('content', { read: ElementRef });
+  private searchbar = viewChild.required('searchbarInput', { read: ElementRef });
+  private content = viewChild('content', { read: ElementRef });
 
-  suggestions = signal<WordLang[]>([]);
-  word = signal('');
-  showSearches = signal(false);
-  currentTarget = signal<WordLang | null>(null);
+  protected suggestions = signal<WordLang[]>([]);
+  protected word = signal('');
+  protected showSearches = signal(false);
+  protected currentTarget = signal<WordLang | null>(null);
   // Detail tier for the results: `keywords` (the entry's own senses + derived
   // sub-headwords) or `all` (+ italic example usages and cross-references). The
   // header "more" button expands `keywords` → `all` one-way; it is not a toggle
   // and does not persist — every new lookup resets it back to `keywords` (see
-  // `results$`).
-  detailLevel = signal<DetailLevel>('keywords');
+  // `#results$`).
+  protected detailLevel = signal<DetailLevel>('keywords');
   // Whether the current lookup produced at least one entry, so the "more" button
   // is only offered when there is something to expand.
-  hasResults = signal(false);
+  protected hasResults = signal(false);
 
-  recentSearches = computed(() =>
+  protected recentSearches = computed(() =>
     this.#historyService
       .history()
       .slice(0, MAX_RECENT_SEARCHES)
@@ -136,7 +136,9 @@ export class DictionaryPage implements OnDestroy {
       .map((e) => new WordLang(e.word, e.lang)),
   );
 
-  hasMoreHistory = computed(() => this.#historyService.history().length > MAX_RECENT_SEARCHES);
+  protected hasMoreHistory = computed(
+    () => this.#historyService.history().length > MAX_RECENT_SEARCHES,
+  );
 
   // Fires on every ionViewWillLeave to tear down the per-visit keyup subscription
   // set up in ionViewWillEnter. Ionic caches this tab's page, so ngOnDestroy rarely
@@ -149,7 +151,7 @@ export class DictionaryPage implements OnDestroy {
   // within the trail; the word should stay in place rather than jump to the end.
   #suppressHistoryAdd = false;
 
-  results$ = this.#dictionaryService.lookupResult$.pipe(
+  #results$ = this.#dictionaryService.lookupResult$.pipe(
     filter(Boolean),
     tap((results) => {
       const suppressHistoryAdd = this.#suppressHistoryAdd;
@@ -161,7 +163,7 @@ export class DictionaryPage implements OnDestroy {
       this.detailLevel.set('keywords');
       if (results.bases.length > 0) {
         if (!suppressHistoryAdd) {
-          this.addRecentSearch(results.targetBase!);
+          this.#addRecentSearch(results.targetBase!);
         }
         this.word.set('');
       } else {
@@ -172,24 +174,24 @@ export class DictionaryPage implements OnDestroy {
   );
 
   // Signal view of the lookup result, so `visibleBases` can be a computed rather
-  // than a method re-run on every change-detection pass. `results$` keeps its tap
+  // than a method re-run on every change-detection pass. `#results$` keeps its tap
   // side-effects (history, scroll, tier reset); toSignal subscribes to it once.
-  protected results = toSignal(this.results$);
+  protected results = toSignal(this.#results$);
 
-  addRecentSearch(wordLang: WordLang): void {
+  #addRecentSearch(wordLang: WordLang): void {
     this.#historyService.add(wordLang.word, wordLang.lang);
   }
 
-  lookup(target: WordLang): void {
+  #lookup(target: WordLang): void {
     this.#dictionaryService.lookup(target);
   }
 
-  onBreadcrumbClicked(target: WordLang): void {
+  protected onBreadcrumbClicked(target: WordLang): void {
     this.#suppressHistoryAdd = true;
-    this.lookup(target);
+    this.#lookup(target);
   }
 
-  async openHistory(): Promise<void> {
+  protected async openHistory(): Promise<void> {
     const modal = await this.#modalCtrl.create({
       component: HistoryModalComponent,
       breakpoints: [0, 0.5, 1],
@@ -199,7 +201,7 @@ export class DictionaryPage implements OnDestroy {
     await modal.present();
     const { data, role } = await modal.onDidDismiss<WordLang>();
     if (role === 'select' && data) {
-      this.lookup(data);
+      this.#lookup(data);
     }
   }
 
@@ -216,22 +218,20 @@ export class DictionaryPage implements OnDestroy {
     fromEvent<KeyboardEvent>(searchInputElement, 'keyup')
       .pipe(
         tap((event) => (keyupKey = event.key)),
-        map((event) => (event.target as HTMLInputElement).value),
-        switchMap((term) =>
-          keyupKey === 'Enter'
-            ? // Fetch suggestions fresh for the typed term rather than reading the
-              // `suggestions` signal: typing a word and pressing Enter before the
-              // 250ms debounce fires leaves the signal empty, dropping the lookup
-              // into the target-language fallback below and missing native-language
-              // words whose only resolution is a literal suggestion (e.g. the Dutch
-              // "dozijn", which has no target-language variation match).
-              term
-              ? this.getSuggestions(term)
-              : of<WordLang[]>([])
-            : timer(250).pipe(
-                switchMap(() => (term ? this.getSuggestions(term) : of<WordLang[]>([]))),
-              ),
-        ),
+        map((event) => (event.target as HTMLInputElement).value.trim()),
+        switchMap((term) => {
+          const suggestions$ = term ? this.#getSuggestions(term) : of<WordLang[]>([]);
+
+          // Fetch suggestions fresh for the typed term rather than reading the
+          // `suggestions` signal: typing a word and pressing Enter before the
+          // 250ms debounce fires leaves the signal empty, dropping the lookup
+          // into the target-language fallback below and missing native-language
+          // words whose only resolution is a literal suggestion (e.g. the Dutch
+          // "dozijn", which has no target-language variation match).
+          return keyupKey === 'Enter'
+            ? suggestions$
+            : timer(250).pipe(switchMap(() => suggestions$));
+        }),
         tap((suggestions) => {
           this.showSearches.set(suggestions.length > 0);
         }),
@@ -246,7 +246,7 @@ export class DictionaryPage implements OnDestroy {
           } else if (this.word()) {
             // No literal suggestion matched: run a full variation-backed lookup on
             // the typed term so inflected forms (e.g. diambil -> ambil) resolve.
-            this.lookup(new WordLang(this.word(), langConfig.targetLang));
+            this.#lookup(new WordLang(this.word(), langConfig.targetLang));
           }
           if (this.#platform.is('mobile')) {
             searchInputElement.blur();
@@ -273,32 +273,32 @@ export class DictionaryPage implements OnDestroy {
     this.#leave$.complete();
   }
 
-  getSuggestions(name: string): Observable<WordLang[]> {
+  #getSuggestions(name: string): Observable<WordLang[]> {
     return this.#dictionaryService.fetchSuggestions(name);
   }
 
-  onClear() {
+  protected onClear() {
     this.suggestions.set([]);
     this.showSearches.set(false);
   }
 
-  onItemClicked(suggestion: WordLang) {
+  protected onItemClicked(suggestion: WordLang) {
     this.onClear();
     this.#dictionaryService.lookup(suggestion);
   }
 
-  onBaseClicked(suggestion: WordLang) {
+  protected onBaseClicked(suggestion: WordLang) {
     this.#dictionaryService.lookup(suggestion);
   }
 
-  onWordClicked(event: MouseEvent) {
+  protected onWordClicked(event: MouseEvent) {
     this.#wordClickModalService.onClicked(event);
   }
 
   // Toggle the detail tier: `keywords` (senses + derived sub-headwords) ⇄ `all`
   // (+ usages and cross-references). A new search resets it to `keywords` in
-  // `results$`, so the toggle is non-persistent across lookups.
-  toggleDetail() {
+  // `#results$`, so the toggle is non-persistent across lookups.
+  protected toggleDetail() {
     this.detailLevel.update((l) => (l === 'keywords' ? 'all' : 'keywords'));
   }
 
@@ -306,7 +306,7 @@ export class DictionaryPage implements OnDestroy {
   // acts when there are results (matching the button's presence); works even
   // while the searchbar has focus, since F2 emits no character into it.
   @HostListener('document:keydown.f2', ['$event'])
-  onToggleShortcut(event: Event) {
+  protected onToggleShortcut(event: Event) {
     if (!this.hasResults()) return;
     event.preventDefault();
     this.toggleDetail();
@@ -318,7 +318,7 @@ export class DictionaryPage implements OnDestroy {
   // otherwise render as an empty card below the `all` tier. A computed off the
   // result and tier signals, so it recomputes only when a lookup lands or the
   // tier is toggled, not on every change-detection pass.
-  visibleBases = computed<WordLang[]>(() => {
+  protected visibleBases = computed<WordLang[]>(() => {
     const results = this.results();
     if (!results) return [];
     const level = this.detailLevel();
