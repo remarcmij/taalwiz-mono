@@ -23,8 +23,8 @@
         ? ('dictionary.sync-wait' | translate)
         : ('common.search' | translate)"
       [disabled]="isSyncing() && !hasCompleteDict()"
-      [ngModel]="word()"
-      (ngModelChange)="word.set($event)"
+      [ngModel]="searchbarValue()"
+      (ngModelChange)="searchbarValue.set($event)"
       (ionClear)="onClear()"
       class="searchbar"></ion-searchbar>
   </ion-toolbar>

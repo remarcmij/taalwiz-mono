@@ -53,9 +53,9 @@ import { langConfig } from '../../app.constants';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
 import { DictionaryService } from './dictionary.service';
-import { lemmaVisibleAt, type DetailLevel } from './lemma/lemma.model';
 import { HistoryModalComponent } from './history-modal/history-modal.component';
 import { LemmaComponent } from './lemma/lemma.component';
+import { lemmaVisibleAt, type DetailLevel } from './lemma/lemma.model';
 import { SearchHistoryService } from './search-history.service';
 import { SearchbarDropdownComponent } from './searchbar-dropdown/searchbar-dropdown.component';
 import { WordLang } from './word-lang.model';
@@ -115,7 +115,7 @@ export class DictionaryPage implements OnDestroy {
   private content = viewChild('content', { read: ElementRef });
 
   protected suggestions = signal<WordLang[]>([]);
-  protected word = signal('');
+  protected searchbarValue = signal('');
   protected showSearches = signal(false);
   protected currentTarget = signal<WordLang | null>(null);
   // Detail tier for the results: `keywords` (the entry's own senses + derived
@@ -165,9 +165,9 @@ export class DictionaryPage implements OnDestroy {
         if (!suppressHistoryAdd) {
           this.#addRecentSearch(results.targetBase!);
         }
-        this.word.set('');
+        this.searchbarValue.set('');
       } else {
-        this.word.set(results.targetBase!.word);
+        this.searchbarValue.set(results.targetBase!.word);
       }
       this.content()?.nativeElement.scrollToTop();
     }),
@@ -217,18 +217,18 @@ export class DictionaryPage implements OnDestroy {
     fromEvent<KeyboardEvent>(searchInputElement, 'keyup')
       .pipe(
         map((event) => ({
-          isEnterKey: event.key === 'Enter',
+          isEnter: event.key === 'Enter',
           term: (event.target as HTMLInputElement).value.trim(),
         })),
-        switchMap(({ isEnterKey, term }) => {
+        switchMap(({ isEnter, term }) => {
           const suggestions$ = term ? this.#getSuggestions(term) : of<WordLang[]>([]);
-          // Bundle `isEnterKey` with `suggestions`: `switchMap` guarantees
-          // only the latest keystroke's branch reaches downstream operators,
-          // but that guarantee is a property of the whole pipe, not of this
-          // value. Carrying `isEnterKey` here makes it visible locally, at
-          // the point where it's used.
+          // Bundle `isEnter` with `suggestions`: `switchMap` guarantees only
+          // the latest keystroke's branch reaches downstream operators, but
+          // that guarantee is a property of the whole pipe, not of this
+          // value. Carrying `isEnter` here makes it visible locally, at the
+          // point where it's used.
 
-          if (isEnterKey) {
+          if (isEnter) {
             // Fetch suggestions fresh for the typed term rather than reading
             // the `suggestions` signal: pressing Enter before the 250ms
             // debounce below has fired leaves the signal empty, dropping the
@@ -236,30 +236,34 @@ export class DictionaryPage implements OnDestroy {
             // native-language words whose only resolution is a literal
             // suggestion (e.g. the Dutch "dozijn", which has no
             // target-language variation match).
-            return suggestions$.pipe(map((suggestions) => ({ isEnterKey, suggestions })));
+            return suggestions$.pipe(map((suggestions) => ({ isEnter, suggestions })));
           }
 
           // Ordinary typing: debounce so we don't fetch suggestions on every
           // keystroke.
           return timer(250).pipe(
             switchMap(() => suggestions$),
-            map((suggestions) => ({ isEnterKey, suggestions })),
+            map((suggestions) => ({ isEnter, suggestions })),
           );
         }),
         takeUntil(this.#leave$),
       )
-      .subscribe(({ isEnterKey, suggestions }) => {
+      .subscribe(({ isEnter, suggestions }) => {
         this.suggestions.set(suggestions);
         this.showSearches.set(suggestions.length > 0);
-        if (!isEnterKey) return;
+
+        // Only act on Enter key presses; typing alone just updates the dropdown.
+        if (!isEnter) return;
 
         if (suggestions.length > 0) {
           this.onItemClicked(suggestions[0]);
-        } else if (this.word()) {
+        } else if (this.searchbarValue()) {
           // No literal suggestion matched: run a full variation-backed lookup on
           // the typed term so inflected forms (e.g. diambil -> ambil) resolve.
-          this.#lookup(new WordLang(this.word(), langConfig.targetLang));
+          this.#lookup(new WordLang(this.searchbarValue(), langConfig.targetLang));
         }
+
+        // On mobile, blur the searchbar so the keyboard collapses after a lookup.
         if (this.#platform.is('mobile')) {
           searchInputElement.blur();
         }
@@ -287,7 +291,9 @@ export class DictionaryPage implements OnDestroy {
   // Never errors — callers get an empty result instead of having to guard
   // against a failed fetch themselves.
   #getSuggestions(name: string): Observable<WordLang[]> {
-    return this.#dictionaryService.fetchSuggestions(name).pipe(catchError(() => of<WordLang[]>([])));
+    return this.#dictionaryService
+      .fetchSuggestions(name)
+      .pipe(catchError(() => of<WordLang[]>([])));
   }
 
   protected onClear() {
