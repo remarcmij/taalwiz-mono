@@ -116,7 +116,7 @@ export class DictionaryPage implements OnDestroy {
 
   protected suggestions = signal<WordLang[]>([]);
   protected searchbarValue = signal('');
-  protected showSearches = signal(false);
+  protected showSearches = computed(() => this.suggestions().length > 0);
   protected currentTarget = signal<WordLang | null>(null);
   // Detail tier for the results: `keywords` (the entry's own senses + derived
   // sub-headwords) or `all` (+ italic example usages and cross-references). The
@@ -146,16 +146,15 @@ export class DictionaryPage implements OnDestroy {
   // listener on the same input (duplicate lookups + a growing leak).
   #leave$ = new Subject<void>();
 
-  // Set when a lookup originates from a breadcrumb click so the result handler
-  // skips re-adding the word to history. Clicking a breadcrumb is back-navigation
-  // within the trail; the word should stay in place rather than jump to the end.
-  #suppressHistoryAdd = false;
+  // Clicking a breadcrumb is back-navigation within the trail; the looked-up
+  // word should stay in place rather than jump to the end of history.
+  #breadcrumbClicked = false;
 
   #results$ = this.#dictionaryService.lookupResult$.pipe(
     filter(Boolean),
     tap((results) => {
-      const suppressHistoryAdd = this.#suppressHistoryAdd;
-      this.#suppressHistoryAdd = false;
+      const suppressHistoryAdd = this.#breadcrumbClicked;
+      this.#breadcrumbClicked = false;
       this.currentTarget.set(results.targetBase);
       this.hasResults.set(results.bases.length > 0);
       // Each new lookup starts collapsed at the keywords tier; the "more" button
@@ -187,7 +186,7 @@ export class DictionaryPage implements OnDestroy {
   }
 
   protected onBreadcrumbClicked(target: WordLang): void {
-    this.#suppressHistoryAdd = true;
+    this.#breadcrumbClicked = true;
     this.#lookup(target);
   }
 
@@ -250,7 +249,6 @@ export class DictionaryPage implements OnDestroy {
       )
       .subscribe(({ isEnter, suggestions }) => {
         this.suggestions.set(suggestions);
-        this.showSearches.set(suggestions.length > 0);
 
         // Only act on Enter key presses; typing alone just updates the dropdown.
         if (!isEnter) return;
@@ -298,7 +296,6 @@ export class DictionaryPage implements OnDestroy {
 
   protected onClear() {
     this.suggestions.set([]);
-    this.showSearches.set(false);
   }
 
   protected onItemClicked(suggestion: WordLang) {
