@@ -151,7 +151,7 @@ export class DictionaryPage implements OnDestroy {
   #breadcrumbClicked = false;
 
   #results$ = this.#dictionaryService.lookupResult$.pipe(
-    filter(Boolean),
+    filter((results) => results !== null),
     tap((results) => {
       const suppressHistoryAdd = this.#breadcrumbClicked;
       this.#breadcrumbClicked = false;
