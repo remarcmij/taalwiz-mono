@@ -265,7 +265,7 @@ export class DictionaryPage implements OnDestroy {
         if (!isEnter) return;
 
         if (suggestions.length > 0) {
-          this.onItemClicked(suggestions[0]);
+          this.onSuggestionClicked(suggestions[0]);
         } else if (this.searchbarValue()) {
           // No literal suggestion matched: run a full variation-backed lookup on
           // the typed term so inflected forms (e.g. diambil -> ambil) resolve.
@@ -309,13 +309,13 @@ export class DictionaryPage implements OnDestroy {
     this.suggestions.set([]);
   }
 
-  protected onItemClicked(suggestion: WordLang) {
+  protected onSuggestionClicked(suggestion: WordLang) {
     this.onClear();
     this.#dictionaryService.lookup(suggestion);
   }
 
-  protected onBaseClicked(suggestion: WordLang) {
-    this.#dictionaryService.lookup(suggestion);
+  protected onBaseClicked(base: WordLang) {
+    this.#dictionaryService.lookup(base);
   }
 
   protected onWordClicked(event: MouseEvent) {

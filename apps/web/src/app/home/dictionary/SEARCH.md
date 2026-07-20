@@ -49,7 +49,7 @@ After search results are returned:
 ### Suggestion Selection
 
 When the user clicks a suggestion or presses Enter with suggestions available:
-1. `onItemClicked(suggestion)` is called
+1. `onSuggestionClicked(suggestion)` is called
 2. `this.#dictionaryService.lookup(suggestion)` is called, routing to the service
 
 ---

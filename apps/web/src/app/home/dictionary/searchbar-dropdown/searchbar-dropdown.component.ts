@@ -17,7 +17,7 @@ import { WordLang } from '../word-lang.model';
 export class SearchbarDropdownComponent {
   suggestions = input.required<WordLang[]>();
   showSearches = input.required<boolean>();
-  itemClicked = output<WordLang>();
+  suggestionClicked = output<WordLang>();
 
   protected readonly targetLang = langConfig.targetLang;
 }
