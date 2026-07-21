@@ -27,30 +27,91 @@ After a successful search (on desktop only):
 
 ### Clear on Success, Preserve on Failure
 
-After search results are returned:
-- **Success** (results.bases.length > 0): The search field is cleared (`this.word.set('')`), ready for the next search
-- **Failure** (no results): The search field retains the input (`this.word.set(currentTerm)`), allowing the user to edit and retry
+After a lookup result arrives (the `#results$` tap in `dictionary.page.ts`):
+- **Success** (`results.bases.length > 0`): `searchbarValue.set('')` clears the field, ready for the next search
+- **Failure** (no results): `searchbarValue.set(results.targetBase!.word)` restores the *searched* word — not whatever the field happens to show right now. Most lookup paths (breadcrumb click, suggestion click, base click, in-text word click) never touch the searchbar at all, and even a typed Enter-lookup is async, so by the time a "not found" result lands the user may already be typing something else. Restoring from `results.targetBase` keeps the redisplayed word consistent with the result actually being shown, rather than trusting the live field value.
 
 ---
 
-## Autocomplete Suggestions
+## Autocomplete Suggestions & the Keyup Pipeline
 
-**Files**: `dictionary.page.ts`, `searchbar-dropdown.component.ts`
+**Files**: `dictionary.page.ts` (`ionViewWillEnter`), `dictionary.service.ts` (`#fetchSuggestionsAsync`), `searchbar-dropdown.component.ts`
 
-### Suggestion Fetching
+Suggestion fetching and Enter-key search are **the same pipeline**, not two separate features — one `keyup` listener, set up once per page-visit in `ionViewWillEnter` and torn down on `ionViewWillLeave` (`takeUntil(this.#leave$)`, so a cached-and-reopened Ionic tab doesn't stack a second live listener on the same input).
 
-1. **`ionViewWillEnter()` setup**: A `fromEvent` listener is attached to the searchbar's input element for keyup events
-2. **Debounce**: A 250ms debounce ensures suggestion lookups are not made on every keystroke
-3. **Switch to suggestions**: After debouncing, `getSuggestions(term)` is called via `switchMap`
-4. **Result**: `suggestions` signal is updated, and the dropdown is shown if matches are found
+> **Suggestions are a literal prefix match — no variation generator.** `#fetchSuggestionsAsync()` queries `findWordsStartingWith(term)` directly on the typed text. Both languages carry **equal weight**: target-language and native-language hits (up to 10 each) are merged, de-duplicated, and sorted alphabetically (case-insensitive), so Indonesian and Dutch suggestions **interleave** rather than listing all target matches first. The list is then capped at 10; the user narrows to one language simply by typing another letter or two. The variation generator is deliberately **not** applied to the suggestion list: generating variations of a partially-typed word surfaces alphabetical neighbours of stripped forms (e.g. typing `memperbai` strips `-i` to `memperba` and suggests unrelated `memperba*` words), which reads as a broken filter. Morphological resolution of inflected forms still happens on the **lookup path** (`#searchLocal`, via the variation generator) — reached by tapping a word, tapping a suggestion, or pressing Enter with no matching suggestion (see [Path 2](#path-2-manual-entry-without-autocomplete-no-match)).
 
-> **Suggestions are a literal prefix match — no variation generator.** `#fetchSuggestionsAsync()` queries `findWordsStartingWith(term)` directly on the typed text. Both languages carry **equal weight**: target-language and native-language hits (up to 10 each) are merged, de-duplicated, and sorted alphabetically (case-insensitive), so Indonesian and Dutch suggestions **interleave** rather than listing all target matches first. The list is then capped at 10; the user narrows to one language simply by typing another letter or two. The variation generator is deliberately **not** applied to the suggestion list: generating variations of a partially-typed word surfaces alphabetical neighbours of stripped forms (e.g. typing `memperbai` strips `-i` to `memperba` and suggests unrelated `memperba*` words), which reads as a broken filter. Morphological resolution of inflected forms still happens on the **lookup path** (`#searchLocal`, via the variation generator) — reached by tapping a word, tapping a suggestion, or pressing Enter with no matching suggestion (see Path 2).
+### Pipeline shape
 
-### Suggestion Selection
+```
+fromEvent(input, 'keyup')
+  |> map        term = trimmed input value; isEnter = event.key === 'Enter'
+  |> switchMap  branch on isEnter:
+                  Enter:   suggestions$(term) immediately — no debounce
+                  typing:  timer(250) -> suggestions$(term)
+  |> takeUntil(leave$)
+  |> subscribe  suggestions.set(...); if (isEnter) act on the result
+```
 
-When the user clicks a suggestion or presses Enter with suggestions available:
-1. `onSuggestionClicked(suggestion)` is called
-2. `this.#dictionaryService.lookup(suggestion)` is called, routing to the service
+Both branches resolve to the same shape, `{ isEnter, suggestions }`. `isEnter` is carried alongside the fetched suggestions specifically so the single `subscribe` at the bottom doesn't need to infer which branch a given emission came from — it's a local, visible fact at the one place that reads it.
+
+### Marble diagram: debounce vs. the Enter fast path
+
+The user types "a", "i", "r" in a quick burst (each keystroke under 250ms after the last), pauses, types "k", then hits Enter almost immediately:
+
+```
+time ─────────────────────────────────────────────────────────────────────▶
+
+keyup$        a───i───r───────────────────k─⏎
+              term:                          "airk" (Enter)
+                                      term: "airk"
+                              term: "air"
+                      term: "ai"
+              term: "a"
+
+outer switchMap — one inner branch per keystroke; each new keystroke
+unsubscribes ("✗") whatever inner branch is still running:
+
+ "a"    ┬(timer 250)✗  cancelled: "i" arrives at +180ms
+ "ai"   ┴┬(timer 250)✗  cancelled: "r" arrives at +170ms
+ "air"  ─┴───(timer 250)───suggestions$("air")───▶ {isEnter:false, suggestions:[air,...]}
+                                                      ↑ dropdown updates, ~250ms after "r"
+ "airk" ──────────────────────────────────────┬(timer 250)✗  cancelled: ⏎ arrives at +90ms
+ ⏎      ────────────────────────────────────────┴suggestions$("airk")───▶ {isEnter:true, suggestions:[...]}
+                                                      ↑ fires immediately, no debounce wait
+```
+
+Two things this makes visible that are easy to miss reading the code top-to-bottom:
+
+1. **`switchMap` at the outer level is what makes the debounce safe.** Every keystroke starts a new inner observable, and `switchMap` unsubscribes the previous one the instant a new keystroke arrives. So "a" and "ai" above never reach their `timer(250)` — only "air" (the keystroke after which the user paused) survives long enough to fire. There is only ever one suggestion fetch in flight, and it is always for the most recent term — this is the property the code comment at `dictionary.page.ts:235-239` calls out.
+2. **Enter does not queue behind the debounce.** It's an ordinary `keyup` event, so it goes through the same outer `switchMap` — which cancels whatever fetch was pending for "airk" — but its own branch skips `timer(250)` and calls `suggestions$` immediately. The debounce exists to avoid hammering IndexedDB on every keystroke while the user is still typing; it was never meant to gate Enter, which needs to feel instant and must reflect the term the user just committed to.
+
+### Why Enter re-fetches instead of reading the `suggestions` signal
+
+The `suggestions` signal backing the dropdown lags the debounce by up to 250ms. In the diagram above, at the moment Enter is pressed the signal still holds the *previous* debounced result — matches for "air", not "airk" — or, during the very first keystrokes of a session, nothing at all, since no debounce has fired yet. Both are wrong to act on:
+
+- **Stale**: reusing `suggestions` would search using "air"'s matches for a term the user has since changed to "airk".
+- **Empty**: reusing `suggestions` before the first debounce ever fires falls straight through to the [fallback lookup](#the-fallback-when-no-suggestion-matches) below — an empty array reads exactly like "no suggestion matched," even when one exists.
+
+The empty case is what motivated fetching fresh rather than reading the signal: a native-language (Dutch) word like *"dozijn"* has no target-language variation match, so it can **only** be found through the literal suggestion lookup. If Enter read the stale/empty signal instead, typing "dozijn" and pressing Enter quickly would silently fail to find a word that is, in fact, in the dictionary.
+
+### Suggestion selection & the "first match" pick
+
+```typescript
+if (suggestions.length > 0) {
+  this.onSuggestionClicked(suggestions[0]);
+} else if (this.searchbarValue()) {
+  this.#lookup(new WordLang(this.searchbarValue(), langConfig.targetLang));
+}
+```
+
+Clicking a suggestion in the dropdown and pressing Enter both end up calling `onSuggestionClicked`, but Enter picks `suggestions[0]` **blindly** — whatever sorts first in the freshly-fetched array, not whatever the user's eye landed on. "First" means first after `#fetchSuggestionsAsync`'s alphabetical merge of target- and native-language hits; it is not a relevance ranking. If both an Indonesian word and a Dutch word match the typed prefix, whichever sorts first alphabetically wins the Enter-key lookup, even if the other is what the user meant.
+
+In practice this only surprises someone who typed and hit Enter fast enough to never see the rendered dropdown — a common pattern for a "type and go" search box. A user who waits for the list to render and clicks their intended entry sidesteps the ambiguity entirely; it only exists on the blind, Enter-only path.
+
+### The fallback when no suggestion matches
+
+If the freshly-fetched suggestions come back empty, Enter falls back to a full variation-generator-backed lookup, `this.#lookup(new WordLang(term, langConfig.targetLang))` — **hardcoded to the target language (Indonesian)**. This is the path documented as [Path 2](#path-2-manual-entry-without-autocomplete-no-match) below. Because it assumes Indonesian, this fallback can never resolve a literal native-language word on its own — that's only reachable through the suggestion match above, which is exactly why Enter has to check for a suggestion first rather than searching the typed text directly.
 
 ---
 
@@ -75,7 +136,7 @@ The variation generator is pluggable via `langConfig.variationGenerator` (`Varia
 
 1. User types "dibakar" (or other word) → no literal-prefix suggestion matches (suggestions are not expanded into variations)
 2. User presses Enter (on mobile this is the soft-keyboard Go/Search/Return key, which fires the same `key === 'Enter'` event)
-3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `this.lookup(new WordLang(this.word(), langConfig.targetLang))` — this is the fallback that runs the full variation-generator-backed lookup on the typed term
+3. The keyup handler detects Enter, finds `suggestions.length === 0`, and calls `this.#lookup(new WordLang(this.searchbarValue(), langConfig.targetLang))` — this is the fallback that runs the full variation-generator-backed lookup on the typed term
 4. `#searchLocal()` calls `langConfig.variationGenerator.getWordVariations('dibakar')`:
    - `["dibakar", "membakar", "bakar", "mbakar"]`
    - "dibakar" = original (passive: "was burned")
@@ -412,9 +473,25 @@ For each base in `results.bases`, the template displays:
 
 Search history is owned by `SearchHistoryService`, which persists it to Capacitor `Preferences` (key `taalwiz.search-history`) so it survives reloads. The service keeps up to `MAX_HISTORY` (50) entries, each `{ word, lang, searchedAt }`, most-recent first.
 
-When a successful search completes in the `results$` observable tap, `this.addRecentSearch(results.targetBase!)` is called, which delegates to `historyService.add(word, lang)`. `results.targetBase` is the **typed word** (not the found base):
+Every `add()` call awaits an internal `#ready` promise (resolved once `#loadFromPreferences()` finishes) before touching `history`. This closes a startup race: an `add()` fired before the async preference load populated the signal would otherwise compute its "existing history" from an empty array and persist just the one new entry, silently wiping everything previously stored — a real bug this used to hit on cold start.
 
-- Example: User types "dibakar" → stored as "dibakar" (even though results are for "membakar")
+A new lookup result reaches history through `#recordHistory()`, called from the `#results$` tap (`dictionary.page.ts`):
+
+```typescript
+#recordHistory(results: LookupResult): void {
+  const suppressHistoryAdd = this.#breadcrumbClicked;
+  this.#breadcrumbClicked = false;
+  if (results.bases.length > 0 && !suppressHistoryAdd) {
+    this.#addRecentSearch(results.targetBase!);
+  }
+}
+```
+
+`results.targetBase` is the **typed word** (not the found base) — user types "dibakar" → stored as "dibakar", even though the results are for "membakar".
+
+#### Breadcrumb clicks don't re-add to history
+
+`onBreadcrumbClicked()` sets `#breadcrumbClicked = true` immediately before calling `#lookup()`; `#recordHistory()` reads and clears that flag on the very next result. This means clicking an *existing* breadcrumb entry is treated as back-navigation within the trail, not a fresh search: the word stays in its current position in the breadcrumb list instead of jumping back to the most-recent (rightmost) slot. Every other lookup path — typing + Enter, clicking a suggestion, clicking a base, tapping a word in-text, picking from the history modal — leaves the flag `false` and records normally.
 
 ### Most-Recent-First Ordering
 
@@ -422,22 +499,24 @@ When a successful search completes in the `results$` observable tap, `this.addRe
 
 ```typescript
 add(word: string, lang: string): void {
-  const entry = { word, lang, searchedAt: new Date().toISOString() };
-  const filtered = this.history().filter((e) => !(e.word === word && e.lang === lang));
-  const updated = [entry, ...filtered].slice(0, MAX_HISTORY);
-  this.history.set(updated);
-  this.#save(updated);
+  void this.#ready.then(() => {
+    const entry: HistoryEntry = { word, lang, searchedAt: new Date().toISOString() };
+    const filtered = this.history().filter((e) => !(e.word === word && e.lang === lang));
+    const updated = [entry, ...filtered].slice(0, MAX_HISTORY);
+    this.history.set(updated);
+    this.#save(updated);
+  });
 }
 ```
 
 **Behavior**:
-- Any existing entry for the same word+lang is removed and the word is re-inserted at the front, so re-searching a word **does** move it to the most-recent position.
+- Any existing entry for the same word+lang is removed and the word is re-inserted at the front, so re-searching a word **does** move it to the most-recent position (unless that search came from a breadcrumb click — see above).
 - New words are prepended.
 - The stored history is capped at 50 entries (oldest dropped).
 
 ### Breadcrumb Display
 
-The `recentSearches` signal is a `computed` derived from the stored history — it takes the first `MAX_RECENT_SEARCHES` (4) entries and `reverse()`s them, so the breadcrumb shows up to 4 words oldest-on-the-left, most-recent-on-the-right. A separate `hasMoreHistory` computed is `true` when more than 4 entries are stored.
+The `recentSearches` signal is a `computed` derived from the stored history — it takes the first `MAX_RECENT_SEARCHES` (3) entries and `reverse()`s them, so the breadcrumb shows up to 3 words oldest-on-the-left, most-recent-on-the-right. A separate `hasMoreHistory` computed is `true` when more than 3 entries are stored, driving the header button that opens the full `HistoryModalComponent`.
 
 ### Visibility
 
@@ -457,12 +536,13 @@ The breadcrumb word that matches the currently displayed results is shown in bol
 [ngClass]="{'active-breadcrumb': wordLang.key === currentTarget()?.key}"
 ```
 
-The `currentTarget` signal is set in the `results$` observable tap:
+`currentTarget` is a `computed`, not something set imperatively — it derives straight from the `results` signal:
+
 ```typescript
-this.currentTarget.set(results.targetBase);
+protected currentTarget = computed(() => this.results()?.targetBase ?? null);
 ```
 
-So if the user searched "dibakar" and the results are for "membakar" entries, "dibakar" in the breadcrumb is bold.
+`results` itself is `toSignal(this.#results$)`, so `currentTarget` recomputes automatically whenever a new lookup lands; there's no separate assignment to keep in sync. So if the user searched "dibakar" and the results are for "membakar" entries, "dibakar" in the breadcrumb is bold.
 
 ---
 
@@ -470,8 +550,8 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
 
 ### Scenario: User types "dibakar" and presses Enter (no autocomplete match)
 
-1. **Keystroke detection**: The `ionViewWillEnter()` keyup listener fires, debounces, finds no suggestions
-2. **Enter handling**: `searchDictionary(new WordLang('dibakar', 'id'))` is called
+1. **Keystroke detection**: The `ionViewWillEnter()` keyup listener sees no literal suggestion for "dibakar" (`suggestions.length === 0` on the freshly-fetched, Enter-branch array — see [the keyup pipeline](#autocomplete-suggestions--the-keyup-pipeline))
+2. **Enter handling**: `this.#lookup(new WordLang('dibakar', 'id'))` is called → `DictionaryService.lookup()` → `searchDictionary()`
 3. **Variation generation**: `langConfig.variationGenerator.getWordVariations('dibakar')` generates `["dibakar", "membakar", "bakar", "mbakar"]` (the trailing `mbakar` is harmless over-generation; see [Path 2](#path-2-manual-entry-without-autocomplete-no-match))
 4. **IDB lookup**: `#searchLocal()` iterates variations:
    - `findByWordAndLang('dibakar', 'id')` → `[]` (passive forms rarely indexed)
@@ -480,21 +560,23 @@ So if the user searched "dibakar" and the results are for "membakar" entries, "d
    - `makeLookupResult()` groups by baseWord: `bases[0] = {word: "bakar", lang: "id"}`
    - BUT all lemmas have actual `word: "membakar"` — the 10+ entries for "membakar" (main def + compounds)
    - `results.targetBase = {word: "dibakar", lang: "id"}` (the typed word)
-6. **Breadcrumb update**: `addRecentSearch({word: "dibakar", lang: "id"})` adds "dibakar" to recent searches
-7. **Bold styling**: `currentTarget = {word: "dibakar", lang: "id"}` — "dibakar" in breadcrumb is bold
-8. **Clear field**: `word.set('')` clears the search field
+   - This `LookupResult` is pushed through `#lookupResult$`, which `#results$` filters/taps and `results = toSignal(this.#results$)` turns into a signal — everything downstream (steps 6-9) is a `computed` or a tap reacting to that one signal update, not separate imperative steps
+6. **Breadcrumb update**: the `#results$` tap calls `#recordHistory(results)`, which (since this wasn't a breadcrumb click, so `#breadcrumbClicked` is `false`) calls `#addRecentSearch({word: "dibakar", lang: "id"})`, adding "dibakar" to recent searches
+7. **Bold styling**: `currentTarget`, a `computed(() => this.results()?.targetBase ?? null)`, now evaluates to `{word: "dibakar", lang: "id"}` — "dibakar" in the breadcrumb renders bold
+8. **Clear field**: the same tap calls `searchbarValue.set('')`, clearing the search field
 9. **Display**: Template shows all 10+ lemmas for "membakar" grouped under the "bakar" base
 10. **Subsequent search**: User types "air" and presses Enter
-    - No autocomplete match (assume "air" exists in autocomplete and user clicks it)
-    - `lookup({word: "air", lang: "id"})` → `searchDictionary()` → `#searchLocal()`
+    - This time the Enter branch's fresh suggestion fetch **does** find a literal match for "air"
+    - `onSuggestionClicked({word: "air", lang: "id"})` is called directly (not the no-suggestion fallback) → `lookup()` → `searchDictionary()` → `#searchLocal()`
     - Variation generator generates `["air"]`
     - IndexedDB returns all lemmas for "air"
     - Breadcrumb now shows: "dibakar" (dimmed) / "air" (bold)
 11. **Click breadcrumb**: User clicks "dibakar" in breadcrumb
-    - `lookup({word: "dibakar", lang: "id"})` is called
+    - `onBreadcrumbClicked()` sets `#breadcrumbClicked = true`, then calls `#lookup({word: "dibakar", lang: "id"})`
     - Routes through `searchDictionary()` → `#searchLocal()` again (same as step 2)
-    - Returns same "membakar" entries (full results)
-    - "dibakar" is now bold again
+    - Returns the same "membakar" entries (full results)
+    - `#recordHistory()` sees `#breadcrumbClicked === true`, clears it, and **skips** re-adding "dibakar" to history — it stays in its current breadcrumb position rather than jumping to the most-recent slot
+    - "dibakar" is bold again (same `currentTarget` computation as step 7)
 
 ---
 
@@ -619,6 +701,14 @@ The breadcrumb stores **the typed word** (e.g., "dibakar"), not the found base (
 - User sees what they typed in the breadcrumb ✓
 - Clicking the breadcrumb re-runs the variation generator and finds the correct base again ✓
 - No inconsistency where "membakar" gets bold-highlighted but the breadcrumb shows "dibakar"
+
+### 4. A Native-Language Word Only Resolves Through a Literal Suggestion
+
+The no-suggestion Enter fallback (`#lookup(new WordLang(term, langConfig.targetLang))`) always assumes the typed term is target-language (Indonesian) and runs it through the Indonesian variation generator. It has no native-language (Dutch) counterpart. So a word like *"dozijn"* (Dutch, no Indonesian variation match) can **only** be found if the suggestion fetch — which queries both languages — actually returns it before Enter falls through to that fallback. See [Why Enter re-fetches instead of reading the `suggestions` signal](#why-enter-re-fetches-instead-of-reading-the-suggestions-signal) for why this must be a fresh fetch rather than the (possibly stale or empty) dropdown signal.
+
+### 5. Enter Picks the Alphabetically-First Suggestion, Not the Best One
+
+When suggestions exist, Enter always calls `onSuggestionClicked(suggestions[0])` — the first entry in the target+native alphabetically-merged array, not a relevance-ranked "best match." A user who types a prefix matching both an Indonesian and a Dutch word and hits Enter before the dropdown renders gets whichever sorts first alphabetically, which may not be the word they meant. Waiting for the dropdown and clicking the intended suggestion avoids this; only the blind type-and-Enter pattern is affected. See [Suggestion selection & the "first match" pick](#suggestion-selection--the-first-match-pick).
 
 ---
 
