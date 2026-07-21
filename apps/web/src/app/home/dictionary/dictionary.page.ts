@@ -280,6 +280,12 @@ export class DictionaryPage implements OnDestroy {
   }
 
   ionViewDidEnter() {
+    // Desktop only: focusing here would pop the on-screen keyboard on mobile.
+    // Today that's prevented by WebViews only honouring focus()-triggered
+    // keyboards from a genuine user gesture, not by this check — but that's an
+    // incidental platform restriction, not a guarantee, so make the intent
+    // explicit rather than relying on it (mirrors the mobile blur guard below).
+    if (this.#platform.is('mobile')) return;
     const searchInputElement: HTMLInputElement =
       this.searchbar().nativeElement.querySelector('.searchbar-input');
     searchInputElement.focus();

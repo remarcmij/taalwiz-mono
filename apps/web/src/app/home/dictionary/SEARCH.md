@@ -15,8 +15,8 @@ The search feature allows users to find dictionary entries for Indonesian and Du
 ### Auto-focus on Entry
 
 When the user navigates to the dictionary page:
-1. **`ionViewDidEnter()` lifecycle hook**: Queries the searchbar input element and calls `.focus()` to auto-focus the field
-2. The user can immediately start typing without clicking the field
+1. **`ionViewDidEnter()` lifecycle hook**: On desktop, queries the searchbar input element and calls `.focus()` to auto-focus the field. On mobile (`this.#platform.is('mobile')`), it returns early instead — focusing there would risk popping the on-screen keyboard on every view-entry
+2. On desktop, the user can immediately start typing without clicking the field
 
 ### Focus Retention After Search
 
