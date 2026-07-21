@@ -18,12 +18,13 @@ When the user navigates to the dictionary page:
 1. **`ionViewDidEnter()` lifecycle hook**: On desktop, queries the searchbar input element and calls `.focus()` to auto-focus the field. On mobile (`this.#platform.is('mobile')`), it returns early instead — focusing there would risk popping the on-screen keyboard on every view-entry
 2. On desktop, the user can immediately start typing without clicking the field
 
-### Focus Retention After Search
+### Focus Retention After Enter
 
-After a successful search (on desktop only):
-1. Focus is maintained in the search field so the user can type the next search immediately
-2. **Mobile exception**: The blur is conditional on `this.#platform.is('mobile')` — on desktop, the searchbar stays focused; on mobile, the keyboard is dismissed after Enter
-3. This is implemented in the `ionViewWillEnter()` keyup handler in the keyup event subscription
+After every Enter press — regardless of whether it found a suggestion, ran the fallback lookup, or did nothing because the field was empty — the keyup handler's mobile check decides what happens to focus:
+- **Desktop**: nothing blurs the field, so it stays focused and the user can start typing the next search immediately
+- **Mobile** (`this.#platform.is('mobile')`): `searchInputElement.blur()` is called, collapsing the on-screen keyboard
+
+This is implemented at the end of the Enter branch in the `ionViewWillEnter()` keyup subscription (see [Autocomplete Suggestions & the Keyup Pipeline](#autocomplete-suggestions--the-keyup-pipeline)).
 
 ### Clear on Success, Preserve on Failure
 
@@ -161,7 +162,7 @@ The variation generator is pluggable via `langConfig.variationGenerator` (`Varia
 
 **File**: `indonesian-variation-generator.ts` (implements the `VariationGenerator` interface from `variation-generator.ts`)
 
-> **The morphology and design rationale now live in the linguist-facing guide: [How search works](../../../../../docs/docs/guide/how-search-works.md).** That page is the source of truth for the affix system (suffixes, prefixes, `meN-`/`peN-` nasalisation, circumfixes, reduplication), the "generate many candidates, let the dictionary be the judge" strategy, three worked examples, and why a stemmer is the wrong tool for lookup (but the right tool for a future content-search feature). This section keeps only the implementation details that matter when working on the code.
+> **The morphology and design rationale now live in the linguist-facing guide: [How search works](../../../../../docs/docs/how-search-works.md).** That page is the source of truth for the affix system (suffixes, prefixes, `meN-`/`peN-` nasalisation, circumfixes, reduplication), the "generate many candidates, let the dictionary be the judge" strategy, three worked examples, and why a stemmer is the wrong tool for lookup (but the right tool for a future content-search feature). This section keeps only the implementation details that matter when working on the code.
 
 ### Lookup behaviour
 
@@ -255,7 +256,7 @@ dibakar  #1
 
 This is the live counterpart of the [worked trace](#generation-order-worked-trace) above — it makes over-generated forms like `mbakar` (the bare `me-` strip) and the dedup behaviour visible.
 
-**Each new form is drawn at its true point of first creation.** The generator re-enters already-seen forms (a `di-`/`-kan/-i` synthesis rebuilds a longer form, which then strips back down), and a brand-new form can be _born_ inside one of those repeated branches. The trace records the full recursion and prunes at render time: a first-occurrence node shows all its children, but a repeated node is kept only when its subtree still introduces a new form — and then only the birth-bearing children are drawn. So the `#N` labels read straight down with no gaps. `berikan` shows this: `ikan` is first created by re-stripping a _repeated_ `berikan`, so it appears as `#13` under that branch (not later, at the top-level `ber-` strip, which is then a `(dup)`):
+**Each new form is drawn at its true point of first creation.** The generator re-enters already-seen forms (a `di-`/`-kan/-i` synthesis rebuilds a longer form, which then strips back down), and a brand-new form can be _born_ inside one of those repeated branches. The trace records the full recursion and prunes at render time: a first-occurrence node shows all its children, but a repeated node is kept only when its subtree still introduces a new form — and then only the birth-bearing children are drawn. So the `#N` labels read straight down with no gaps. `berikan` shows this: `ikan` is first created by re-stripping a _repeated_ `berikan`, so it appears as `#15` under that branch (not later, at the top-level `ber-` strip, which is then a `(dup)`). It also shows the `ber-`/`be-` allomorph strip (`indonesian-ber-rules.ts`) firing alongside the plain `ber-` strip wherever the remainder is r-initial (`beri`, `berik`, `berikan` all qualify), each producing its own sibling candidate (`ri`, `rik`, `rikan`):
 
 ```
 berikan  #1
@@ -265,29 +266,35 @@ berikan  #1
 │  │  │  ├─ nasal mem- ► ber  #5
 │  │  │  └─ nasal me- ► mber  #6
 │  │  ├─ nasal mem- ► beri  #7
+│  │  │  ├─ strip ber- (be-) ► ri  #8
 │  │  │  └─ strip -i ► ber  (dup)
-│  │  └─ nasal me- ► mberi  #8
+│  │  └─ nasal me- ► mberi  #9
 │  │     └─ strip -i ► mber  (dup)
-│  ├─ strip -an ► memberik  #9
-│  │  ├─ nasal mem- ► berik  #10
-│  │  │  └─ strip ber- ► ik  #11
-│  │  └─ nasal me- ► mberik  #12
+│  ├─ strip -an ► memberik  #10
+│  │  ├─ nasal mem- ► berik  #11
+│  │  │  ├─ strip ber- ► ik  #12
+│  │  │  └─ strip ber- (be-) ► rik  #13
+│  │  └─ nasal me- ► mberik  #14
 │  ├─ nasal mem- ► berikan  (dup)
-│  │  └─ strip ber- ► ikan  #13
-│  └─ nasal me- ► mberikan  #14
+│  │  ├─ strip ber- ► ikan  #15
+│  │  └─ strip ber- (be-) ► rikan  #16
+│  │     ├─ strip -kan ► ri  (dup)
+│  │     └─ strip -an ► rik  (dup)
+│  └─ nasal me- ► mberikan  #17
 │     ├─ strip -kan ► mberi  (dup)
 │     └─ strip -an ► mberik  (dup)
 ├─ strip ber- ► ikan  (dup)
+├─ strip ber- (be-) ► rikan  (dup)
 ├─ strip -kan ► beri  (dup)
 └─ strip -an ► berik  (dup)
-→ [berikan, memberikan, memberi, member, ber, mber, beri, mberi, memberik, berik, ik, mberik, ikan, mberikan]
+→ [berikan, memberikan, memberi, member, ber, mber, beri, ri, mberi, memberik, berik, ik, rik, mberik, ikan, rikan, mberikan]
 ```
 
 The flat `word -> [...]` line (with the matched variation flagged `=`) is logged by `DictionaryService.#logVariations()` at level `1`; the tree above it needs level `2`. The full-recursion bookkeeping and the prune are paid only at level `2` — at lower levels the production path builds no trace nodes — and never change the returned variations.
 
 #### mePrefixed Flag
 
-The `mePrefixed` parameter prevents generating duplicate `meN-` variants when stripping `di-`. When `di-` is stripped and converted to `meN-`, the flag marks that we've already generated the active voice form, avoiding redundant variations.
+The `mePrefixed` parameter guards **both** `synthesize` rules (`if (mePrefixed) break`), not just the `di-` one: the `di- -> meN-` rule and the `-kan/-i -> meN-` rule. Once either has rebuilt an active `meN-` form, the flag stops the other synthesis rule from firing again inside that branch — without it, a passive/reduced form that matches both rule shapes could double-synthesize. See [Generation Order (worked trace)](#generation-order-worked-trace) above for where both synthesis sites actually fire.
 
 #### Multiple Candidate Restoration
 
@@ -340,11 +347,11 @@ To see the full generate-and-test sequence against the **production** compiled T
 pnpm --filter compiler run trace dibakar kepunyaanku diinstal
 ```
 
-It reuses the production variation generator and the compiled dictionary, so its per-candidate hit/miss output is exactly what the app does at runtime. This is the tool that produces the worked examples in the [guide](../../../../../docs/docs/guide/how-search-works.md#worked-examples).
+It reuses the production variation generator and the compiled dictionary, so its per-candidate hit/miss output is exactly what the app does at runtime. This is the tool that produces the worked examples in the [guide](../../../../../docs/docs/how-search-works.md#worked-examples).
 
 ### Critical Affixes for Coverage
 
-The affixes that matter most for coverage are `di-` (passive forms are common but often not indexed, so the rebuilt active `meN-` form is the real win), `meN-` itself, `-an`, `ber-`, and `peN-`. Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, `-mu`, `-nya`) are stripped because they are grammatical markers that obscure the semantic word. See the [guide](../../../../../docs/docs/guide/how-search-works.md) for the full affix breakdown.
+The affixes that matter most for coverage are `di-` (passive forms are common but often not indexed, so the rebuilt active `meN-` form is the real win), `meN-` itself, `-an`, `ber-`, and `peN-`. Particle suffixes (`-kah`, `-lah`, `-tah`, `-pun`) and personal clitics (`-ku`, `-mu`, `-nya`) are stripped because they are grammatical markers that obscure the semantic word. See the [guide](../../../../../docs/docs/how-search-works.md) for the full affix breakdown.
 
 ### Scope: productive morphology only (why there is no infix rule)
 
@@ -415,7 +422,7 @@ The two other junk sources are always emitted **after** the valid root, so they 
 
 - **Add configurable stripping depth to trade recall for precision** — Currently the variation generator recursively strips all possible affixes. For some use cases, stopping after stripping just the most common affixes (e.g., person markers, `-nya`, tense markers) might improve precision by avoiding over-generated false positives, at the cost of lower recall for heavily affixed words.
 
-> **Why this module is not, and should not become, a stemmer** (Nazief–Adriani / Sastrawi) is covered in the [guide](../../../../../docs/docs/guide/how-search-works.md#why-not-a-stemmer): in short, a stemmer commits to a single root, whereas this module also generates the sideways forms (passive `dibakar` → active `membakar`) the dictionary actually indexes. The real home for a stemmer is a future free-text content search, not lookup.
+> **Why this module is not, and should not become, a stemmer** (Nazief–Adriani / Sastrawi) is covered in the [guide](../../../../../docs/docs/how-search-works.md#why-not-a-stemmer): in short, a stemmer commits to a single root, whereas this module also generates the sideways forms (passive `dibakar` → active `membakar`) the dictionary actually indexes. The real home for a stemmer is a future free-text content search, not lookup.
 
 ---
 
@@ -458,7 +465,7 @@ If the lookup returns 10 lemmas all with `baseWord: "membakar"` and `baseLang: "
 
 ### Display in Template
 
-For each base in `results.bases`, the template displays:
+The template iterates `visibleBases()` — not `results.bases` directly. `visibleBases()` (`dictionary.page.ts`) is a `computed` that filters `results.bases` down to bases with at least one lemma visible at the current detail tier (see [Keyword Flag](#keyword-flag) below), so a base whose only content is hidden below the current tier never renders an empty card. For each base in `visibleBases()`, the template displays:
 1. **Card header** (only for first base, `isFirst`): Shows the base word as the main heading
 2. **Card content**: Renders `app-lemma` component with all lemmas for that base
 3. **Button**: Shows the base word again (allows clicking to re-search that base)
@@ -716,6 +723,6 @@ When suggestions exist, Enter always calls `onSuggestionClicked(suggestions[0])`
 
 1. **Expand word exemptions**: Some words don't follow standard patterns and are currently hardcoded
 2. **Smarter consonant restoration**: Current rules generate some phonetically implausible candidates
-3. **Free-text article search (inverted index)**: A future content-search feature would call for a single-root stemmer such as Nazief–Adriani or Sastrawi (see the [guide](../../../../../docs/docs/guide/how-search-works.md#why-not-a-stemmer) for why a stemmer fits content search but not dictionary lookup)
+3. **Free-text article search (inverted index)**: A future content-search feature would call for a single-root stemmer such as Nazief–Adriani or Sastrawi (see the [guide](../../../../../docs/docs/how-search-works.md#why-not-a-stemmer) for why a stemmer fits content search but not dictionary lookup)
 4. **Configurable stripping depth**: Trade recall for precision by limiting affix stripping
 5. **Store detailed search metadata**: Track which variation was found, for more intelligent breadcrumb handling
