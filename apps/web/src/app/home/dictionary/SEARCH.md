@@ -56,45 +56,88 @@ fromEvent(input, 'keyup')
 
 Both branches resolve to the same shape, `{ isEnter, suggestions }`. `isEnter` is carried alongside the fetched suggestions specifically so the single `subscribe` at the bottom doesn't need to infer which branch a given emission came from — it's a local, visible fact at the one place that reads it.
 
-### Marble diagram: debounce vs. the Enter fast path
+### Marble diagram: debounce and switchMap while typing
 
-The user types "a", "i", "r" in a quick burst (each keystroke under 250ms after the last), pauses, types "k", then hits Enter almost immediately:
+The user types "a", "i", "r" — three real keystrokes of a real word, each under 250ms after the last — then pauses:
 
 ```
-time ─────────────────────────────────────────────────────────────────────▶
+time ─────────────────────────────────────────────────────────────▶
 
-keyup$        a───i───r───────────────────k─⏎
-              term:                          "airk" (Enter)
-                                      term: "airk"
-                              term: "air"
-                      term: "ai"
-              term: "a"
+keyup$        a───i───r────────────────────(pause > 250ms)
+              │   │   │
+              │   │   └─ term: "air"
+              │   └───── term: "ai"
+              └───────── term: "a"
 
 outer switchMap — one inner branch per keystroke; each new keystroke
 unsubscribes ("✗") whatever inner branch is still running:
 
- "a"    ┬(timer 250)✗  cancelled: "i" arrives at +180ms
- "ai"   ┴┬(timer 250)✗  cancelled: "r" arrives at +170ms
- "air"  ─┴───(timer 250)───suggestions$("air")───▶ {isEnter:false, suggestions:[air,...]}
-                                                      ↑ dropdown updates, ~250ms after "r"
- "airk" ──────────────────────────────────────┬(timer 250)✗  cancelled: ⏎ arrives at +90ms
- ⏎      ────────────────────────────────────────┴suggestions$("airk")───▶ {isEnter:true, suggestions:[...]}
-                                                      ↑ fires immediately, no debounce wait
+ "a"   ┬(timer 250)✗  cancelled: "i" arrives at +180ms
+ "ai"  ┴┬(timer 250)✗  cancelled: "r" arrives at +170ms
+ "air" ─┴───(timer 250)───suggestions$("air")───▶ {isEnter:false, suggestions:[air(id), air(nl), airbag(nl), airconditioning(nl), airloji(id), airport(id)]}
+                                                     ↑ dropdown renders ~250ms after "r" (continues in Scenario A below)
 ```
 
-Two things this makes visible that are easy to miss reading the code top-to-bottom:
+**`switchMap` at the outer level is what makes the debounce safe.** Every keystroke starts a new inner observable, and `switchMap` unsubscribes the previous one the instant a new keystroke arrives. So "a" and "ai" above never reach their `timer(250)` — only "air" (the keystroke after which the user paused) survives long enough to fire. There is only ever one suggestion fetch in flight, and it is always for the most recent term.
 
-1. **`switchMap` at the outer level is what makes the debounce safe.** Every keystroke starts a new inner observable, and `switchMap` unsubscribes the previous one the instant a new keystroke arrives. So "a" and "ai" above never reach their `timer(250)` — only "air" (the keystroke after which the user paused) survives long enough to fire. There is only ever one suggestion fetch in flight, and it is always for the most recent term — this is the property the code comment at `dictionary.page.ts:235-239` calls out.
-2. **Enter does not queue behind the debounce.** It's an ordinary `keyup` event, so it goes through the same outer `switchMap` — which cancels whatever fetch was pending for "airk" — but its own branch skips `timer(250)` and calls `suggestions$` immediately. The debounce exists to avoid hammering IndexedDB on every keystroke while the user is still typing; it was never meant to gate Enter, which needs to feel instant and must reflect the term the user just committed to.
+### Three scenarios: what happens when the user stops typing
+
+From here there are three different ways a lookup actually gets triggered, and they don't all go through the same part of the pipeline.
+
+#### Scenario A — clicking a suggestion (no Enter)
+
+Continuing the diagram above: once the dropdown renders, the user reads it and taps **"airloji"** — not the first entry. This is a plain Angular output binding in `dictionary.page.html`, `(suggestionClicked)="onSuggestionClicked($event)"` on `<app-searchbar-dropdown>`, and never touches `isEnter` at all:
+
+```
+dropdown: [air(id), air(nl), airbag(nl), airconditioning(nl), airloji(id), airport(id)]
+             user reads, taps "airloji"
+                └─▶ suggestionClicked ──▶ onSuggestionClicked() ──▶ lookup({word:"airloji", lang:"id"})
+```
+
+The keyup pipeline's only role in this scenario was the debounced fetch that built the dropdown; the click itself bypasses `switchMap`/`isEnter` entirely, and the user's own eyes — not the merge-and-sort order — decide which suggestion is used.
+
+#### Scenario B — pressing Enter, which accepts the first suggestion
+
+Same typed term, but this time Enter comes right after "r" — before the 250ms debounce above would even have rendered a dropdown:
+
+```
+keyup$        a───i───r─⏎
+                        │
+                        └─ Enter: term="air" — suggestions$("air") fetched immediately, no timer
+                              ▶ {isEnter:true, suggestions:[air(id), air(nl), airbag(nl), airconditioning(nl), airloji(id), airport(id)]}
+                                 suggestions[0] = air(id)
+                                    └─▶ onSuggestionClicked(air(id)) ──▶ lookup({word:"air", lang:"id"})
+```
+
+Enter is an ordinary `keyup` event, so it goes through the same outer `switchMap` — cancelling whatever debounce/fetch was still pending — but its own branch skips `timer(250)` and calls `suggestions$` immediately. The debounce exists to avoid hammering IndexedDB on every keystroke while the user is still typing; it was never meant to gate Enter, which needs to feel instant and must reflect the term just committed to.
+
+`suggestions[0]` here is the Indonesian `air`, not the Dutch one, and the reason is worth spelling out because it isn't alphabetical — the two entries are spelled identically, so `localeCompare` treats them as equal. The tie is actually broken by `Array.prototype.sort`'s **stability guarantee**: `#fetchSuggestionsAsync()` builds the merged array as `[...targetHits, ...nativeHits]` — target hits always precede native hits — and then calls `merged.sort(...)`, whose stability preserves that relative order for anything the comparator treats as equal, so the Indonesian entry wins every tie. If the user actually meant the Dutch `air`, blind Enter silently gives them the Indonesian one instead; only clicking the correct row (Scenario A) gets the intended one. See [Suggestion selection & the "first match" pick](#suggestion-selection--the-first-match-pick) for the general case.
+
+#### Scenario C — pressing Enter with no matching suggestion
+
+Typing a `di-` passive form like "dibakar" and pressing Enter immediately produces no suggestion at all — Teeuw indexes the active `membakar`, not the passive `dibakar`, as a headword — so Enter falls through to the variation-generator fallback:
+
+```
+keyup$        d──i──b──a──k──a──r─⏎
+                                  │
+                                  └─ Enter: term="dibakar" — suggestions$("dibakar") fetched immediately
+                                        ▶ {isEnter:true, suggestions:[]}
+                                           suggestions.length === 0 → fallback:
+                                              #lookup(new WordLang("dibakar", "id"))
+                                                 → variation generator: [dibakar, membakar, bakar, mbakar]
+                                                 → IDB hit on "membakar" → results displayed
+```
+
+See [The fallback when no suggestion matches](#the-fallback-when-no-suggestion-matches) for why this fallback assumes the target language and, unlike Scenarios A and B, can never resolve a literal native-language word.
 
 ### Why Enter re-fetches instead of reading the `suggestions` signal
 
-The `suggestions` signal backing the dropdown lags the debounce by up to 250ms. In the diagram above, at the moment Enter is pressed the signal still holds the *previous* debounced result — matches for "air", not "airk" — or, during the very first keystrokes of a session, nothing at all, since no debounce has fired yet. Both are wrong to act on:
+The `suggestions` signal backing the dropdown lags the debounce by up to 250ms. In Scenarios B and C above, Enter arrives before that 250ms ever elapses, so at the moment it's pressed the signal is either still empty (no debounce has fired yet for this term) or — mid-way through a longer typing session — still holding an earlier term's matches, not the term just typed. Both are wrong to act on:
 
-- **Stale**: reusing `suggestions` would search using "air"'s matches for a term the user has since changed to "airk".
+- **Stale**: reusing `suggestions` would search using an earlier term's matches for a term the user has since changed.
 - **Empty**: reusing `suggestions` before the first debounce ever fires falls straight through to the [fallback lookup](#the-fallback-when-no-suggestion-matches) below — an empty array reads exactly like "no suggestion matched," even when one exists.
 
-The empty case is what motivated fetching fresh rather than reading the signal: a native-language (Dutch) word like *"dozijn"* has no target-language variation match, so it can **only** be found through the literal suggestion lookup. If Enter read the stale/empty signal instead, typing "dozijn" and pressing Enter quickly would silently fail to find a word that is, in fact, in the dictionary.
+The empty case is what motivated fetching fresh rather than reading the signal: a native-language (Dutch) word like *"dozijn"* has no target-language variation match, so it can **only** be found through the literal suggestion lookup (Scenario A or B's path). If Enter read the stale/empty signal instead, typing "dozijn" and pressing Enter quickly — Scenario B's timing, but for a word whose suggestions were never fetched — would silently fail to find a word that is, in fact, in the dictionary.
 
 ### Suggestion selection & the "first match" pick
 
@@ -106,7 +149,10 @@ if (suggestions.length > 0) {
 }
 ```
 
-Clicking a suggestion in the dropdown and pressing Enter both end up calling `onSuggestionClicked`, but Enter picks `suggestions[0]` **blindly** — whatever sorts first in the freshly-fetched array, not whatever the user's eye landed on. "First" means first after `#fetchSuggestionsAsync`'s alphabetical merge of target- and native-language hits; it is not a relevance ranking. If both an Indonesian word and a Dutch word match the typed prefix, whichever sorts first alphabetically wins the Enter-key lookup, even if the other is what the user meant.
+Clicking a suggestion in the dropdown and pressing Enter both end up calling `onSuggestionClicked`, but Enter picks `suggestions[0]` **blindly** — whatever ends up first in the freshly-fetched array, not whatever the user's eye landed on. "First" means first after `#fetchSuggestionsAsync`'s alphabetical merge of target- and native-language hits; it is not a relevance ranking. Two failure shapes follow from that:
+
+- Two *differently*-spelled words (one Indonesian, one Dutch) matching the typed prefix: whichever sorts alphabetically first wins, even if the other is what the user meant.
+- Two *identically*-spelled words in different languages (a real homograph, like `air` — see [Scenario B](#scenario-b--pressing-enter-which-accepts-the-first-suggestion) above): alphabetical sort can't break the tie, so it falls to `Array.prototype.sort`'s stability guarantee, which favours the target language because target hits are concatenated before native hits before sorting. The Indonesian entry always wins a homograph tie, never the Dutch one.
 
 In practice this only surprises someone who typed and hit Enter fast enough to never see the rendered dropdown — a common pattern for a "type and go" search box. A user who waits for the list to render and clicks their intended entry sidesteps the ambiguity entirely; it only exists on the blind, Enter-only path.
 
