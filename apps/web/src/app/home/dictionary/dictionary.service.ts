@@ -8,18 +8,20 @@ import { getTraceLevel } from './indonesian-variation-generator';
 import { type ILemma } from './lemma/lemma.model';
 import { WordLang } from './word-lang.model';
 
+export interface LookupGroup {
+  base: WordLang;
+  lemmas: ILemma[];
+}
+
 export class LookupResult {
-  targetBase: WordLang | null = null;
-  bases: WordLang[] = [];
-  lemmas: Record<string, ILemma[]> = {};
-  haveMore = false;
+  target: WordLang | null = null;
+  groups: LookupGroup[] = [];
 }
 
 interface LookupResponse {
   word: string;
   lang: string;
   lemmas: ILemma[];
-  haveMore: boolean;
 }
 
 @Injectable({
@@ -89,7 +91,7 @@ export class DictionaryService {
 
   async #searchLocal(target: WordLang, searchWord?: string): Promise<LookupResult> {
     const result = new LookupResult();
-    result.targetBase = target;
+    result.target = target;
 
     const word = searchWord ?? target.word;
     const fromGenerator = target.lang !== langConfig.nativeLang;
@@ -103,8 +105,8 @@ export class DictionaryService {
       const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
       if (lemmas.some((l) => (l.keyword ?? 1) === 1)) {
         foundWord = w;
-        found = makeLookupResult({ word: w, lang: target.lang, lemmas, haveMore: false });
-        found.targetBase = target;
+        found = makeLookupResult({ word: w, lang: target.lang, lemmas });
+        found.target = target;
         break;
       }
     }
@@ -127,7 +129,7 @@ export class DictionaryService {
       for (const w of variations) {
         const lemmas = await this.#dictStore.findByWordAndLang(w, lang, keywordOnly);
         if (lemmas.length > 0) {
-          result = { word: w, lang, lemmas: leadWithOwnEntry(lemmas, w), haveMore: false };
+          result = { word: w, lang, lemmas: leadWithOwnEntry(lemmas, w) };
           break;
         }
       }
@@ -138,7 +140,7 @@ export class DictionaryService {
       this.#logVariations(word, variations, result?.word ?? null);
     }
 
-    return result ?? { word, lang, lemmas: [], haveMore: false };
+    return result ?? { word, lang, lemmas: [] };
   }
 
   // Dev trace (gated, off by default): the variation generator's output for a
@@ -156,24 +158,23 @@ export class DictionaryService {
 
 function makeLookupResult(response: LookupResponse) {
   const newResult = new LookupResult();
-  newResult.haveMore = response.haveMore;
+  const groupsByKey = new Map<string, LookupGroup>();
 
   for (const lemma of response.lemmas) {
     const base = new WordLang(lemma.baseWord, lemma.baseLang);
-    const { key } = base;
-
-    if (!newResult.lemmas[key]) {
-      newResult.lemmas[key] = [];
-      newResult.bases.push(base);
+    let group = groupsByKey.get(base.key);
+    if (!group) {
+      group = { base, lemmas: [] };
+      groupsByKey.set(base.key, group);
+      newResult.groups.push(group);
     }
-    newResult.lemmas[key].push(lemma);
+    group.lemmas.push(lemma);
   }
 
   // Mark a base as new only when every lemma under it is a supplement, so a
   // headword that also exists in core Teeuw (e.g. "aplikasi") stays unmarked.
-  for (const base of newResult.bases) {
-    const lemmas = newResult.lemmas[base.key];
-    base.isSupplement = lemmas.length > 0 && lemmas.every((l) => l.isSupplement);
+  for (const group of newResult.groups) {
+    group.base.isSupplement = group.lemmas.every((l) => l.isSupplement);
   }
 
   return newResult;
@@ -193,17 +194,17 @@ function leadWithOwnEntry(lemmas: ILemma[], word: string): ILemma[] {
 }
 
 function reorderLookupResult(result: LookupResult) {
-  const headBase =
+  const headGroup =
     // Prefer the entry that IS the searched headword (its base equals the search
     // term), so looking up "muka" leads with the "muka" entry rather than an
     // entry that merely uses "muka" in a compound (e.g. "hadap muka" under base
     // "hadap", which also tags "muka" as a keyword).
-    result.bases.find((base) => base.key === result.targetBase!.key) ??
+    result.groups.find((group) => group.base.key === result.target!.key) ??
     // Otherwise a derived form was searched directly (e.g. "memukul" → base
     // "pukul"); lead with the entry where the searched word is the keyword.
-    result.bases.find((base) => result.lemmas[base.key].some((l) => l.keyword === 1));
-  if (headBase) {
-    const otherBases = result.bases.filter((base) => base.key !== headBase.key);
-    result.bases = [headBase, ...otherBases];
+    result.groups.find((group) => group.lemmas.some((l) => l.keyword === 1));
+  if (headGroup) {
+    const otherGroups = result.groups.filter((group) => group.base.key !== headGroup.base.key);
+    result.groups = [headGroup, ...otherGroups];
   }
 }

@@ -29,8 +29,8 @@ This is implemented at the end of the Enter branch in the `ionViewWillEnter()` k
 ### 2.3 Clear on Success, Preserve on Failure
 
 After a lookup result arrives (the `#results$` tap in `dictionary.page.ts`):
-- **Success** (`results.bases.length > 0`): `searchbarValue.set('')` clears the field, ready for the next search
-- **Failure** (no results): `searchbarValue.set(results.targetBase!.word)` restores the *searched* word — not whatever the field happens to show right now. Most lookup paths (breadcrumb click, suggestion click, base click, in-text word click) never touch the searchbar at all, and even a typed Enter-lookup is async, so by the time a "not found" result lands the user may already be typing something else. Restoring from `results.targetBase` keeps the redisplayed word consistent with the result actually being shown, rather than trusting the live field value.
+- **Success** (`results.groups.length > 0`): `searchbarValue.set('')` clears the field, ready for the next search
+- **Failure** (no results): `searchbarValue.set(results.target!.word)` restores the *searched* word — not whatever the field happens to show right now. Most lookup paths (breadcrumb click, suggestion click, base click, in-text word click) never touch the searchbar at all, and even a typed Enter-lookup is async, so by the time a "not found" result lands the user may already be typing something else. Restoring from `results.target` keeps the redisplayed word consistent with the result actually being shown, rather than trusting the live field value.
 
 ---
 
@@ -481,13 +481,18 @@ The two other junk sources are always emitted **after** the valid root, so they 
 The service returns a `LookupResult`:
 
 ```typescript
+interface LookupGroup {
+  base: WordLang;   // The group's base word
+  lemmas: ILemma[]; // All lemmas under that base
+}
+
 class LookupResult {
-  targetBase: WordLang | null;        // The word originally typed/searched
-  bases: WordLang[] = [];              // Unique base words found (ordered by reorderLookupResult)
-  lemmas: Record<string, ILemma[]> = {}; // Grouped by base.key
-  haveMore = false;                   // Pagination flag
+  target: WordLang | null;    // The word originally typed/searched
+  groups: LookupGroup[] = []; // One entry per unique base, ordered by reorderLookupResult
 }
 ```
+
+`groups` replaced an earlier `bases: WordLang[]` + `lemmas: Record<string, ILemma[]>` pair. That split existed to merge lemmas arriving in chunks from paginated MongoDB queries; the IndexedDB lookup is a single synchronous read, so there's no incremental merging to support, and one array of `{ base, lemmas }` groups covers what two parallel, hand-synced structures did before.
 
 ### 6.2 Grouping by Base
 
@@ -495,25 +500,26 @@ All lemmas in the lookup response are grouped by their `baseWord`:
 
 ```typescript
 // In makeLookupResult:
+const groupsByKey = new Map<string, LookupGroup>();
 for (const lemma of response.lemmas) {
-  const base = new WordLang(lemma.baseWord, lemma.baseLang);
-  const { key } = base; // "membakar:id"
-
-  if (!newResult.lemmas[key]) {
-    newResult.lemmas[key] = [];
-    newResult.bases.push(base);
+  const base = new WordLang(lemma.baseWord, lemma.baseLang); // key e.g. "membakar:id"
+  let group = groupsByKey.get(base.key);
+  if (!group) {
+    group = { base, lemmas: [] };
+    groupsByKey.set(base.key, group);
+    newResult.groups.push(group);
   }
-  newResult.lemmas[key].push(lemma);
+  group.lemmas.push(lemma);
 }
 ```
 
-If the lookup returns 10 lemmas all with `baseWord: "membakar"` and `baseLang: "id"`, there will be one entry in `bases` (the `WordLang` "membakar") and one entry in `lemmas["membakar:id"]` with all 10 lemmas.
+If the lookup returns 10 lemmas all with `baseWord: "membakar"` and `baseLang: "id"`, there will be one group in `groups` — `{ base: WordLang("membakar", "id"), lemmas: [...all 10] }`.
 
 ### 6.3 Display in Template
 
-The template iterates `visibleBases()` — not `results.bases` directly. `visibleBases()` (`dictionary.page.ts`) is a `computed` that filters `results.bases` down to bases with at least one lemma visible at the current detail tier (see [9.2 Keyword Flag](#92-keyword-flag) below), so a base whose only content is hidden below the current tier never renders an empty card. For each base in `visibleBases()`, the template displays:
-1. **Card header** (only for first base, `isFirst`): Shows the base word as the main heading
-2. **Card content**: Renders `app-lemma` component with all lemmas for that base
+The template iterates `visibleGroups()` — not `results.groups` directly. `visibleGroups()` (`dictionary.page.ts`) is a `computed` that filters `results.groups` down to groups with at least one lemma visible at the current detail tier (see [9.2 Keyword Flag](#92-keyword-flag) below), so a group whose only content is hidden below the current tier never renders an empty card. For each group in `visibleGroups()`, the template displays:
+1. **Card header** (only for first group, `isFirst`): Shows the base word as the main heading
+2. **Card content**: Renders `app-lemma` component with `group.lemmas`
 3. **Button**: Shows the base word again (allows clicking to re-search that base)
 
 ---
@@ -534,13 +540,13 @@ A new lookup result reaches history through `#recordHistory()`, called from the 
 #recordHistory(results: LookupResult): void {
   const suppressHistoryAdd = this.#breadcrumbClicked;
   this.#breadcrumbClicked = false;
-  if (results.bases.length > 0 && !suppressHistoryAdd) {
-    this.#addRecentSearch(results.targetBase!);
+  if (results.groups.length > 0 && !suppressHistoryAdd) {
+    this.#addRecentSearch(results.target!);
   }
 }
 ```
 
-`results.targetBase` is the **typed word** (not the found base) — user types "dibakar" → stored as "dibakar", even though the results are for "membakar".
+`results.target` is the **typed word** (not the found base) — user types "dibakar" → stored as "dibakar", even though the results are for "membakar".
 
 #### 7.1.1 Breadcrumb clicks don't re-add to history
 
@@ -592,7 +598,7 @@ The breadcrumb word that matches the currently displayed results is shown in bol
 `currentTarget` is a `computed`, not something set imperatively — it derives straight from the `results` signal:
 
 ```typescript
-protected currentTarget = computed(() => this.results()?.targetBase ?? null);
+protected currentTarget = computed(() => this.results()?.target ?? null);
 ```
 
 `results` itself is `toSignal(this.#results$)`, so `currentTarget` recomputes automatically whenever a new lookup lands; there's no separate assignment to keep in sync. So if the user searched "dibakar" and the results are for "membakar" entries, "dibakar" in the breadcrumb is bold.
@@ -610,12 +616,12 @@ protected currentTarget = computed(() => this.results()?.targetBase ?? null);
    - `findByWordAndLang('dibakar', 'id')` → `[]` (passive forms rarely indexed)
    - `findByWordAndLang('membakar', 'id')` → **found** — returns lemmas with `word: "membakar"`, `baseWord: "bakar"`
 5. **Result processing**:
-   - `makeLookupResult()` groups by baseWord: `bases[0] = {word: "bakar", lang: "id"}`
+   - `makeLookupResult()` groups by baseWord: `groups[0].base = {word: "bakar", lang: "id"}`
    - BUT all lemmas have actual `word: "membakar"` — the 10+ entries for "membakar" (main def + compounds)
-   - `results.targetBase = {word: "dibakar", lang: "id"}` (the typed word)
+   - `results.target = {word: "dibakar", lang: "id"}` (the typed word)
    - This `LookupResult` is pushed through `#lookupResult$`, which `#results$` filters/taps and `results = toSignal(this.#results$)` turns into a signal — everything downstream (steps 6-9) is a `computed` or a tap reacting to that one signal update, not separate imperative steps
 6. **Breadcrumb update**: the `#results$` tap calls `#recordHistory(results)`, which (since this wasn't a breadcrumb click, so `#breadcrumbClicked` is `false`) calls `#addRecentSearch({word: "dibakar", lang: "id"})`, adding "dibakar" to recent searches
-7. **Bold styling**: `currentTarget`, a `computed(() => this.results()?.targetBase ?? null)`, now evaluates to `{word: "dibakar", lang: "id"}` — "dibakar" in the breadcrumb renders bold
+7. **Bold styling**: `currentTarget`, a `computed(() => this.results()?.target ?? null)`, now evaluates to `{word: "dibakar", lang: "id"}` — "dibakar" in the breadcrumb renders bold
 8. **Clear field**: the same tap calls `searchbarValue.set('')`, clearing the search field
 9. **Display**: Template shows all 10+ lemmas for "membakar" grouped under the "bakar" base
 10. **Subsequent search**: User types "air" and presses Enter
@@ -645,7 +651,7 @@ protected currentTarget = computed(() => this.results()?.targetBase ?? null);
 for (const w of words) {
   const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
   if (lemmas.some((l) => (l.keyword ?? 1) === 1)) {
-    return makeLookupResult({ word: w, lang: target.lang, lemmas, haveMore: false });
+    return makeLookupResult({ word: w, lang: target.lang, lemmas });
   }
 }
 ```

@@ -52,7 +52,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { langConfig } from '../../app.constants';
 import { WordClickModalService } from '../../shared/word-click-modal/word-click-modal.service';
 import { DictSyncService, SyncStatus } from './dict-sync.service';
-import { DictionaryService, LookupResult } from './dictionary.service';
+import { DictionaryService, LookupGroup, LookupResult } from './dictionary.service';
 import { HistoryModalComponent } from './history-modal/history-modal.component';
 import { LemmaComponent } from './lemma/lemma.component';
 import { lemmaVisibleAt, type DetailLevel } from './lemma/lemma.model';
@@ -153,7 +153,7 @@ export class DictionaryPage implements OnDestroy {
       // Each new lookup starts collapsed at the keywords tier; the "more" button
       // is not persistent across searches.
       this.detailLevel.set('keywords');
-      if (results.bases.length > 0) {
+      if (results.groups.length > 0) {
         this.searchbarValue.set('');
       } else {
         // Redisplay the searched word rather than trusting whatever the
@@ -161,7 +161,7 @@ export class DictionaryPage implements OnDestroy {
         // base, or in-text word clicks) never touch the searchbar at all,
         // and even a typed lookup is async, so the user may have kept
         // typing before this "not found" result arrives.
-        this.searchbarValue.set(results.targetBase!.word);
+        this.searchbarValue.set(results.target!.word);
       }
       this.content()?.nativeElement.scrollToTop();
     }),
@@ -170,8 +170,8 @@ export class DictionaryPage implements OnDestroy {
   #recordHistory(results: LookupResult): void {
     const suppressHistoryAdd = this.#breadcrumbClicked;
     this.#breadcrumbClicked = false;
-    if (results.bases.length > 0 && !suppressHistoryAdd) {
-      this.#addRecentSearch(results.targetBase!);
+    if (results.groups.length > 0 && !suppressHistoryAdd) {
+      this.#addRecentSearch(results.target!);
     }
   }
 
@@ -181,12 +181,12 @@ export class DictionaryPage implements OnDestroy {
   protected results = toSignal(this.#results$);
 
   // The word highlighted (bold) in the breadcrumb trail.
-  protected currentTarget = computed(() => this.results()?.targetBase ?? null);
+  protected currentTarget = computed(() => this.results()?.target ?? null);
 
   // Whether the current lookup produced at least one entry, so the "more" button
   // is only offered when there is something to expand (and the F2 shortcut below
   // has something to act on).
-  protected hasResults = computed(() => (this.results()?.bases.length ?? 0) > 0);
+  protected hasResults = computed(() => (this.results()?.groups.length ?? 0) > 0);
 
   #addRecentSearch(wordLang: WordLang): void {
     this.#historyService.add(wordLang.word, wordLang.lang);
@@ -280,12 +280,11 @@ export class DictionaryPage implements OnDestroy {
   }
 
   ionViewDidEnter() {
-    // Desktop only: focusing here would pop the on-screen keyboard on mobile.
-    // Today that's prevented by WebViews only honouring focus()-triggered
-    // keyboards from a genuine user gesture, not by this check — but that's an
-    // incidental platform restriction, not a guarantee, so make the intent
-    // explicit rather than relying on it (mirrors the mobile blur guard below).
+    // On desktop, focus the searchbar so the user can start typing immediately. On
+    // mobile, don't focus it: the on-screen keyboard would pop up and obscure the
+    // results. The user can tap the searchbar to focus it if they want to type.
     if (this.#platform.is('mobile')) return;
+
     const searchInputElement: HTMLInputElement =
       this.searchbar().nativeElement.querySelector('.searchbar-input');
     searchInputElement.focus();
@@ -345,19 +344,17 @@ export class DictionaryPage implements OnDestroy {
     this.toggleDetail();
   }
 
-  // Bases to render at the current tier. `all`: every base. Otherwise only bases
-  // with at least one lemma visible at this tier — a base where the searched
-  // word appears solely as a usage (e.g. "ekor" inside "ékor angin") would
-  // otherwise render as an empty card below the `all` tier. A computed off the
-  // result and tier signals, so it recomputes only when a lookup lands or the
-  // tier is toggled, not on every change-detection pass.
-  protected visibleBases = computed<WordLang[]>(() => {
+  // Groups to render at the current tier. `all`: every group. Otherwise only
+  // groups with at least one lemma visible at this tier — a group where the
+  // searched word appears solely as a usage (e.g. "ekor" inside "ékor angin")
+  // would otherwise render as an empty card below the `all` tier. A computed off
+  // the result and tier signals, so it recomputes only when a lookup lands or
+  // the tier is toggled, not on every change-detection pass.
+  protected visibleGroups = computed<LookupGroup[]>(() => {
     const results = this.results();
     if (!results) return [];
     const level = this.detailLevel();
-    if (level === 'all') return results.bases;
-    return results.bases.filter((base) =>
-      results.lemmas[base.key].some((l) => lemmaVisibleAt(l, level)),
-    );
+    if (level === 'all') return results.groups;
+    return results.groups.filter((group) => group.lemmas.some((l) => lemmaVisibleAt(l, level)));
   });
 }

@@ -73,26 +73,26 @@
     <ion-list lines="none">
       @if (results(); as results) {
       <!---->
-      @for (base of visibleBases(); track base.key; let isFirst = $first) {
+      @for (group of visibleGroups(); track group.base.key; let isFirst = $first) {
       <ion-item class="ion-no-padding">
         <ion-card class="lemma-card">
           @if (isFirst) {
           <ion-card-header>
-            <ion-card-title>{{ base.word }}</ion-card-title>
+            <ion-card-title>{{ group.base.word }}</ion-card-title>
           </ion-card-header>
           }
           <ion-card-content>
             <app-lemma
-              [lemmas]="results.lemmas[base.key]"
+              [lemmas]="group.lemmas"
               [level]="detailLevel()"
               (clicked)="onWordClicked($event)"></app-lemma>
           </ion-card-content>
           <ion-button
             fill="clear"
             class="lemma-button"
-            [class.new-word]="base.isSupplement"
-            (click)="onBaseClicked(base)">
-            {{ base.word }}
+            [class.new-word]="group.base.isSupplement"
+            (click)="onBaseClicked(group.base)">
+            {{ group.base.word }}
           </ion-button>
         </ion-card>
       </ion-item>

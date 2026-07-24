@@ -13,7 +13,6 @@ export type LineKind = 'headword' | 'derived' | 'usage';
 export type DetailLevel = 'keywords' | 'all';
 
 export interface ILemma {
-  _id?: string;
   word: string;
   lang: string;
   keyword?: number;
