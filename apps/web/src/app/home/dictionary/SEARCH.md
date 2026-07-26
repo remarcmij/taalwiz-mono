@@ -30,7 +30,7 @@ This is implemented at the end of the Enter branch in the `ionViewWillEnter()` k
 
 After a lookup result arrives (the `#results$` tap in `dictionary.page.ts`):
 - **Success** (`results.groups.length > 0`): `searchbarValue.set('')` clears the field, ready for the next search
-- **Failure** (no results): `searchbarValue.set(results.target!.word)` restores the *searched* word — not whatever the field happens to show right now. Most lookup paths (breadcrumb click, suggestion click, base click, in-text word click) never touch the searchbar at all, and even a typed Enter-lookup is async, so by the time a "not found" result lands the user may already be typing something else. Restoring from `results.target` keeps the redisplayed word consistent with the result actually being shown, rather than trusting the live field value.
+- **Failure** (no results): `searchbarValue.set(results.target.word)` restores the *searched* word — not whatever the field happens to show right now. Most lookup paths (breadcrumb click, suggestion click, base click, in-text word click) never touch the searchbar at all, and even a typed Enter-lookup is async, so by the time a "not found" result lands the user may already be typing something else. Restoring from `results.target` keeps the redisplayed word consistent with the result actually being shown, rather than trusting the live field value.
 
 ---
 
@@ -510,8 +510,11 @@ interface LookupGroup {
 }
 
 class LookupResult {
-  target: WordLang | null;    // The word originally typed/searched
   groups: LookupGroup[] = []; // One entry per unique base, ordered by reorderLookupResult
+
+  // The word originally typed/searched. Required and readonly, so no reader
+  // needs a null check: a result, found or not, is always about some word.
+  constructor(readonly target: WordLang) {}
 }
 ```
 
@@ -562,7 +565,7 @@ A new lookup result reaches history through `#recordHistory()`, called from the 
   const suppressHistoryAdd = this.#breadcrumbClicked;
   this.#breadcrumbClicked = false;
   if (results.groups.length > 0 && !suppressHistoryAdd) {
-    this.#addRecentSearch(results.target!);
+    this.#addRecentSearch(results.target);
   }
 }
 ```
@@ -669,13 +672,18 @@ protected currentTarget = computed(() => this.results()?.target ?? null);
 `DictionaryService.#searchLocal()` iterates the variation generator's variation array and calls `DictStoreService.findByWordAndLang(w, lang)` for each. It stops at the first variation that returns keyword-flagged lemmas (`keyword === 1`).
 
 ```typescript
+// `result` starts as the empty "not found" LookupResult(target).
 for (const w of words) {
   const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
   if (lemmas.some((l) => l.keyword === 1)) {
-    return makeLookupResult({ word: w, lang: target.lang, lemmas });
+    foundWord = w;
+    result = makeLookupResult({ word: w, lang: target.lang, lemmas }, target);
+    break;
   }
 }
 ```
+
+`foundWord` is the matched *variation*, which nothing on the result records — `groups[].base` is the lemma's base and `target` is the word searched — so it is kept for the dev trace (`#logVariations`, see [5.3.3 Trace logging (dev aid)](#533-trace-logging-dev-aid)).
 
 ### 9.2 Keyword Flag
 
@@ -751,7 +759,7 @@ Lookups are case- **and accent-insensitive**. Each stored record carries a `word
 
 This matters for proper nouns: the dictionary stores headwords with their natural casing (e.g. `Belanda`, the keyword-flagged entry for "the Netherlands"). Without case folding, a lowercase query like `belanda` could never exact-match the capitalized key, so the search would fail even though the word exists. (IndexedDB compares string keys by UTF-16 code unit, and `'B'` sorts before `'b'`.) Accent folding matters for Stevens, whose headwords carry an acute accent as a pronunciation aid (`boléh`): typing `boleh` folds to the same key and finds it.
 
-The IDB schema (version 4) defines a single index, `by-lang-wordlower`. Both lookup methods use it, so there are no unused indexes to maintain — keeping per-record write cost low during the bulk import of the full dictionary (~270k word records).
+The IDB schema (version 4) defines a single index, `by-lang-wordlower`. Both lookup methods use it, so there are no unused indexes to maintain — keeping per-record write cost low during the bulk import of the full dictionary (~260k word records for Teeuw, ~570k for Stevens).
 
 ### 9.4 Exact Match
 
