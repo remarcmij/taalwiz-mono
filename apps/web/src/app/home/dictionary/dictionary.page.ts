@@ -232,11 +232,6 @@ export class DictionaryPage implements OnDestroy {
         })),
         switchMap(({ isEnter, term }) => {
           const suggestions$ = term ? this.#getSuggestions(term) : of<WordLang[]>([]);
-          // Bundle `isEnter` with `suggestions`: `switchMap` guarantees only
-          // the latest keystroke's branch reaches downstream operators, but
-          // that guarantee is a property of the whole pipe, not of this
-          // value. Carrying `isEnter` here makes it visible locally, at the
-          // point where it's used.
 
           if (isEnter) {
             // Fetch suggestions fresh for the typed term rather than reading
