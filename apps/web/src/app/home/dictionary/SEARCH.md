@@ -215,7 +215,7 @@ The variation generator is pluggable via `langConfig.variationGenerator` (`Varia
    - "mbakar" = harmless over-generation: `membakar` with the **bare** `me-` stem sliced off (the "bare me-/pe- + nasal-initial root" candidate in `nasalCandidates()`, meant for genuinely nasal-initial roots like `menganga` → `nganga`). It matches nothing in IDB, so it costs one wasted lookup and no more (see [5.7 Failure modes and the best-effort contract](#57-failure-modes-and-the-best-effort-contract)).
 5. Iterates variations, querying IDB for each:
    - `findByWordAndLang('dibakar', 'id')` → `[]` (passive forms rarely indexed)
-   - `findByWordAndLang('membakar', 'id')` → lemmas found — **iteration stops**
+   - `findByWordAndLang('membakar', 'id')` → lemmas found — **iteration stops**: "bakar" and "mbakar" remain unqueried.
 6. **Result**: Returns all lemmas for "membakar" (the found base), including compounds, full definitions
 
 ### 4.3 Path 3: Recent Search / Breadcrumb Click
@@ -515,8 +515,6 @@ class LookupResult {
 }
 ```
 
-`groups` replaced an earlier `bases: WordLang[]` + `lemmas: Record<string, Lemma[]>` pair. That split existed to merge lemmas arriving in chunks from paginated MongoDB queries; the IndexedDB lookup is a single synchronous read, so there's no incremental merging to support, and one array of `{ base, lemmas }` groups covers what two parallel, hand-synced structures did before.
-
 ### 6.2 Grouping by Base
 
 All lemmas in the lookup response are grouped by their `baseWord`:
@@ -668,7 +666,7 @@ protected currentTarget = computed(() => this.results()?.target ?? null);
 
 ### 9.1 Variation Iteration
 
-`DictionaryService.#searchLocal()` iterates the variation generator's variation array and calls `DictStoreService.findByWordAndLang(w, lang)` for each. It stops at the first variation that returns keyword-flagged lemmas (`keyword === 1`). This mirrors the "stop at first match" design that was previously handled server-side.
+`DictionaryService.#searchLocal()` iterates the variation generator's variation array and calls `DictStoreService.findByWordAndLang(w, lang)` for each. It stops at the first variation that returns keyword-flagged lemmas (`keyword === 1`).
 
 ```typescript
 for (const w of words) {
@@ -693,19 +691,15 @@ that mention the word, including its appearances as a usage inside other headwor
 lives at the single write boundary instead: `CompiledWord.keyword` is optional (the downloaded
 JSON is untrusted at runtime — nothing validates an asset against the interface), and
 `transformDict` writes `wordDef.keyword ?? 1`. Defaulting to 1 means a malformed asset degrades
-to "shown" rather than "silently hidden from search". Historically the `?? 1` sat at each read
-site, guarding IndexedDB records written before `830d430` — when `transformDict` dropped the
-field entirely. Those are long gone: every dict sync `clear()`s the store and re-imports all
-records (`dict-import.worker.ts`).
+to "shown" rather than "silently hidden from search"; the SQLite builder
+(`compiler/src/db/build-databases.ts`) defaults the same direction for the same reason.
 
-The type is `0 | 1`, not `boolean`, on both sides. It began as the compiler's compact JSON wire
-format (one byte per record over ~261k Teeuw word records, ~566k for Stevens) and stays numeric
-because it is a **stored IndexedDB field**: booleans are not valid IDB keys, so a boolean could
-never join a compound index — ruling out a future `['lang', 'wordLower', 'keyword']` that would
-push the `keywordOnly` filter into the index instead of the post-fetch `.filter()`. SQLite has no
-boolean type either (`is_keyword INTEGER`). Converting to a real `isKeyword: boolean` would need
-a mapping layer at the store boundary, costing the current `DictRecord = Lemma & { wordLower }`
-identity; narrowing `number` to `0 | 1` buys the two-valued type without one.
+The type is `0 | 1`, not `boolean`, because it is a **stored IndexedDB field**: booleans are not
+valid IDB keys, so a boolean could never join a compound index — ruling out a future
+`['lang', 'wordLower', 'keyword']` that would push the `keywordOnly` filter into the index
+instead of the post-fetch `.filter()`. SQLite has no boolean type either (`is_keyword INTEGER`).
+A real `isKeyword: boolean` would need a mapping layer at the store boundary, costing the
+`DictRecord = Lemma & { wordLower }` identity; `0 | 1` is two-valued without one.
 
 **Display-time detail tiers.** Fetching everything but *showing* a chosen level of detail is
 a view concern, kept out of the store so the full set stays available. The dictionary page
