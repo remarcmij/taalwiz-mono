@@ -14,8 +14,12 @@ export interface LookupGroup {
 }
 
 export class LookupResult {
-  target: WordLang | null = null;
   groups: LookupGroup[] = [];
+
+  // The word originally searched, as opposed to the (possibly stripped) variation
+  // that matched. Required at construction and never reassigned: every result,
+  // found or not, is about some searched word, so readers need no null check.
+  constructor(readonly target: WordLang) {}
 }
 
 interface LookupResponse {
@@ -88,21 +92,20 @@ export class DictionaryService {
   }
 
   async #searchLocal(target: WordLang, searchWord?: string): Promise<LookupResult> {
-    const result = new LookupResult();
-    result.target = target;
+    // Starts as the empty "not found" result and is replaced by the first
+    // variation that hits.
+    let result = new LookupResult(target);
 
     const word = searchWord ?? target.word;
     const fromGenerator = target.lang !== langConfig.nativeLang;
     const words = fromGenerator ? langConfig.variationGenerator.getWordVariations(word) : [word];
 
     let foundWord: string | null = null;
-    let found: LookupResult | null = null;
     for (const w of words) {
       const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
       if (lemmas.some((l) => l.keyword === 1)) {
         foundWord = w;
-        found = makeLookupResult({ word: w, lang: target.lang, lemmas });
-        found.target = target;
+        result = makeLookupResult({ word: w, lang: target.lang, lemmas }, target);
         break;
       }
     }
@@ -111,7 +114,7 @@ export class DictionaryService {
       this.#logVariations(word, words, foundWord);
     }
 
-    return found ?? result;
+    return result;
   }
 
   async #fetchWordLemmasAsync(word: string, lang: string): Promise<LookupResponse> {
@@ -152,8 +155,8 @@ export class DictionaryService {
   }
 }
 
-function makeLookupResult(response: LookupResponse) {
-  const newResult = new LookupResult();
+function makeLookupResult(response: LookupResponse, target: WordLang) {
+  const newResult = new LookupResult(target);
   const groupsByKey = new Map<string, LookupGroup>();
 
   for (const lemma of response.lemmas) {
@@ -195,7 +198,7 @@ function reorderLookupResult(result: LookupResult) {
     // term), so looking up "muka" leads with the "muka" entry rather than an
     // entry that merely uses "muka" in a compound (e.g. "hadap muka" under base
     // "hadap", which also tags "muka" as a keyword).
-    result.groups.find((group) => group.base.key === result.target!.key) ??
+    result.groups.find((group) => group.base.key === result.target.key) ??
     // Otherwise a derived form was searched directly (e.g. "memukul" → base
     // "pukul"); lead with the entry where the searched word is the keyword.
     result.groups.find((group) => group.lemmas.some((l) => l.keyword === 1));

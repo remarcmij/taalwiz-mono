@@ -161,7 +161,7 @@ export class DictionaryPage implements OnDestroy {
         // base, or in-text word clicks) never touch the searchbar at all,
         // and even a typed lookup is async, so the user may have kept
         // typing before this "not found" result arrives.
-        this.searchbarValue.set(results.target!.word);
+        this.searchbarValue.set(results.target.word);
       }
       this.content()?.nativeElement.scrollToTop();
     }),
@@ -171,7 +171,7 @@ export class DictionaryPage implements OnDestroy {
     const suppressHistoryAdd = this.#breadcrumbClicked;
     this.#breadcrumbClicked = false;
     if (results.groups.length > 0 && !suppressHistoryAdd) {
-      this.#addRecentSearch(results.target!);
+      this.#addRecentSearch(results.target);
     }
   }
 
