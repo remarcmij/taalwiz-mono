@@ -254,6 +254,10 @@ Certain common words are not expanded into variations because they don't follow 
 - `nyanyi` (sing)
 - `ngaji` (study/recite Islamic texts)
 
+An exemption blocks **every** rule for that word, and its practical reach is narrower than it looks. All ten are themselves keywords in Teeuw, so a directly-typed one self-hits on candidate #1 and the loop stops before any stripped candidate would have been queried — exempt or not, the outcome is identical. Two of them (`aku`, `dia`) cannot strip at all under the current patterns, both clitic rules requiring a 2-character remainder.
+
+What the list does still change is **recursion into** an exempt word reached from a longer form, where it also suppresses forms that would have been useful: `nyanyian` yields `['nyanyian', 'nyanyi']` and stops, so the `-i -> meN-` synthesis never reaches `menyanyi`, itself a keyword. Harmless while `nyanyian` is indexed and self-hits. It does not close off other paths to the same fragment — `berilmu` still reaches `il` by stripping the `-mu` clitic first, without passing through the exempt `ilmu`.
+
 ### 5.3 Implementation Details
 
 #### 5.3.1 Recursive Variation Building
@@ -369,6 +373,10 @@ The `mePrefixed` parameter guards **both** `synthesize` rules (`if (mePrefixed) 
 
 When a consonant is dropped during affixation (e.g., `p` in `memotong` from `potong`), the variation generator generates both the stripped form (`otong`) and the restored form (`potong`). `#searchLocal()` queries IndexedDB for both, and if either matches, the lookup succeeds.
 
+The guard lives in the shared `nasalCandidates()` (`indonesian-nasal-rules.ts`) and is a `/^[gh]/` test on the stripped remainder, deciding whether to attempt `k`-restoration for a `meng-` prefix. It restores `k` for vowel-initial rests (`mengumpul` → `rest='umpul'` → `kumpul`, since `meng-` elides a root-initial `k`) and for consonant-initial rests (`mengritik` → `rest='ritik'` → `kritik`), blocking it only for `g`/`h`-initial rests — the genuinely non-eliding allomorphs (`menggali` → `gali`). The cost is a spurious form for a true vowel-initial root: `mengambil` → `kambil`, which matches no entry.
+
+That looseness is deliberate, and **tightening it would cost more than it saves**. Across the 15,182 indexed words matching a meN-/peN- allomorph, the 7,796 consonant-restored candidates break down as 2,529 that match a related entry (the rule doing its job), 4,944 that match nothing, and 323 that match an unrelated keyword. A single guard governs all three groups, so a stricter rule trades away roughly eight correct resolutions for every one wrong-hit-capable candidate it removes. The 4,944 no-match forms cost one IndexedDB lookup each, and only when reached at all (see [5.7.2 Which nonsense candidates actually get queried](#572-which-nonsense-candidates-actually-get-queried)) — not a reason to touch a rule that resolves thousands of real lookups.
+
 ### 5.4 Testing
 
 Automated tests are located in `indonesian-variation-generator.spec.ts` and cover word exemptions, suffix stripping, prefix stripping, meN- variants, peN- variants, circumfixes, reduplication, multi-affix words, deduplication, and the documented examples from this document.
@@ -445,7 +453,14 @@ Wrong hits are bounded by two facts, though not eliminated:
 - **The original typed form is always candidate #1.** Teeuw is root-organised and indexes many derivations as sublemma-keywords, so most inflected forms a learner actually types are themselves keywords and self-hit on #1 with the correct entry, before any stripped candidate is queried.
 - **The `di-` and `-kan`/`-i` → active `meN-` ordering** (the rebuilt active form is emitted before the bare root) puts the more-likely-wanted form first.
 
-The residual risk lives in **over-stripping with weak guards** (`-i` strips any final _i_ from a 2-character-plus stem; `-an`/`-kan` similar — see Limitation 1 below). If a typed form is _not_ itself indexed and an over-strip coincidentally lands on an unrelated keyword before the correct one, the result is a confidently-wrong entry. Tighter length/shape guards on strips would shrink this surface (see Future Improvements). The over-generation noise itself is harmless; only this coincidental-real-word case is not.
+The residual risk lives in **over-stripping** (`-i` strips any final _i_ from a 2-character-plus stem; `-an`/`-kan` similar — see Limitation 1 below). If a typed form is _not_ itself indexed and a strip coincidentally lands on an unrelated keyword before the correct one, the result is a confidently-wrong entry. The over-generation noise itself is harmless; only this coincidental-real-word case is not.
+
+**The surface has been measured, and tighter guards will not shrink it.** Of the 34,132 indexed target-language words that produce more than one candidate, 5,974 (17.5%) have an unrelated keyword — one sharing no base with the input — as their first candidate after the typed form. That is what the search would return for an unindexed input of the same shape; for these words themselves it is unreachable, since each self-hits on #1. Two results from that audit rule out the obvious levers:
+
+- **Length is not the discriminator.** The offending candidates spread across every length (564 at 2 characters, 1,756 at 3, 1,543 at 4, 1,056 at 5, tailing out to 14), so no floor cuts a meaningful share. See also [5.7.1](#571-minimum-candidate-length-the-2-char-floor): the floor cannot rise past 2 anyway.
+- **Per-rule tightening barely registers.** Only 315 of the 5,974 come from the `-i` strip directly, and requiring a 3-character remainder there would remove 17 of them.
+
+The offenders are not malformed fragments but ordinary words — `abrasi` → `abras`, `alusi` → `alus`, `anteri` → `anter`, `asali` → `asal` — and `ami` → `am` lands on one of the very two-letter roots the floor protects. Telling an unrelated keyword from the intended one needs semantics the generator does not have, so this is a property of the dictionary-as-validator design rather than a defect to be guarded away. It stays accepted, and bounded by the two facts above.
 
 #### 5.7.1 Minimum candidate length (the 2-char floor)
 
@@ -475,23 +490,13 @@ The two other junk sources are always emitted **after** the valid root, so they 
 
 2. **Ambiguous restoration**: When consonants are dropped during affixation (e.g., `potong` + `meN-` → `memotong`), we generate multiple candidates (`potong`, `otong`). Not all may be valid, but the IndexedDB lookup will find valid matches if they exist.
 
-3. **No single canonical root**: The variation generator generates a set of plausible forms rather than morphologically analyzing to a unique root. This is simpler to implement and works well for dictionary lookup without requiring advanced linguistic analysis.
+3. **No single canonical root**: The variation generator generates a set of plausible forms rather than morphologically analyzing to a unique root. This is simpler to implement and works well for dictionary lookup without requiring advanced linguistic analysis. It is also why this module is not, and should not become, a **stemmer** (Nazief–Adriani / Sastrawi): a stemmer commits to one root, whereas this module also emits the sideways forms the dictionary actually indexes (passive `dibakar` → active `membakar`). The real home for a stemmer is a future free-text content search, not lookup — see the [guide](../../../../../docs/docs/how-search-works.md#why-not-a-stemmer).
 
 4. **Indonesian-specific**: This variation generator is tailored for Indonesian morphology and won't work for other languages.
 
 5. **Dictionary-dependent**: The variation generator's effectiveness depends on what forms are indexed in the compiled dictionary (synced to IndexedDB). If the dictionary doesn't have certain base forms, variation generation to them won't help. Conversely, if it indexes many inflected forms, minimal variation generation may suffice.
 
 6. **Variation order matters**: Since `#searchLocal()` stops searching after the first match, the order in which variations are generated affects both accuracy and performance. More commonly-indexed forms should ideally appear earlier. For example, for `diambil`, generating `mengambil` before `ambil` is beneficial because active forms are more likely to be indexed than passive base forms.
-
-### 5.9 Future Improvements
-
-- **Expand word exemptions list based on user feedback** — Common words that don't follow standard morphological patterns (e.g., `aku`, `ilmu`, `bukan`) are currently hardcoded; this list can grow as users encounter words that produce incorrect or unnecessary variations.
-
-- **Add more sophisticated consonant restoration heuristics** — The current restoration rule (in the shared `nasalCandidates()`, `indonesian-nasal-rules.ts`) uses a guard `/^[gh]/` on the stripped remainder to decide whether to attempt `k`-restoration for `meng-` prefixes. It restores `k` for both vowel-initial rests (`mengumpul` → `rest='umpul'` → `kumpul`, since `meng-` elides a root-initial `k`) and consonant-initial rests (`mengritik` → `rest='ritik'` → `kritik`), and blocks it only for `g`/`h`-initial rests (the genuinely non-eliding allomorphs, `menggali` → `gali`). This over-generates a harmless spurious form for true vowel-initial roots (`mengambil` → `kambil`, which matches no entry). More sophisticated heuristics could improve precision by: (i) tighter consonant-dropping guards to exclude cases like `mengkritik` (malformed input), and (ii) tighter shape guards on the elision restoration. (A blanket minimum-length filter is _not_ a viable lever beyond the 2-char floor already in place — see [5.7.1 Minimum candidate length (the 2-char floor)](#571-minimum-candidate-length-the-2-char-floor). Raising it to ≥ 3 would drop genuine 2-letter roots that derive, e.g. `am`/`es`/`ia`, so it cannot be tightened without losing real lookups.)
-
-- **Add configurable stripping depth to trade recall for precision** — Currently the variation generator recursively strips all possible affixes. For some use cases, stopping after stripping just the most common affixes (e.g., person markers, `-nya`, tense markers) might improve precision by avoiding over-generated false positives, at the cost of lower recall for heavily affixed words.
-
-> **Why this module is not, and should not become, a stemmer** (Nazief–Adriani / Sastrawi) is covered in the [guide](../../../../../docs/docs/how-search-works.md#why-not-a-stemmer): in short, a stemmer commits to a single root, whereas this module also generates the sideways forms (passive `dibakar` → active `membakar`) the dictionary actually indexes. The real home for a stemmer is a future free-text content search, not lookup.
 
 ---
 
@@ -803,20 +808,23 @@ The breadcrumb stores **the typed word** (e.g., "dibakar"), not the found base (
 - Clicking the breadcrumb re-runs the variation generator and finds the correct base again ✓
 - No inconsistency where "membakar" gets bold-highlighted but the breadcrumb shows "dibakar"
 
-### 10.4 A Native-Language Word Only Resolves Through a Literal Suggestion
+### 10.4 A Native-Language Word Is Found Through Its Suggestion
 
-The no-suggestion Enter fallback (`#lookup(new WordLang(term, langConfig.targetLang))`) always assumes the typed term is target-language (Indonesian) and runs it through the Indonesian variation generator. It has no native-language (Dutch) counterpart. So a word like *"dozijn"* (Dutch, no Indonesian variation match) can **only** be found if the suggestion fetch — which queries both languages — actually returns it before Enter falls through to that fallback. See [3.4 Why Enter re-fetches instead of reading the `suggestions` signal](#34-why-enter-re-fetches-instead-of-reading-the-suggestions-signal) for why this must be a fresh fetch rather than the (possibly stale or empty) dropdown signal.
+The no-suggestion Enter fallback (`#lookup(new WordLang(term, langConfig.targetLang))`) always assumes the typed term is target-language (Indonesian) and runs it through the Indonesian variation generator. It has no native-language (Dutch) counterpart. So a word like *"dozijn"* is found only because the suggestion fetch — which queries both languages — returns it before Enter falls through to that fallback. See [3.4 Why Enter re-fetches instead of reading the `suggestions` signal](#34-why-enter-re-fetches-instead-of-reading-the-suggestions-signal) for why this must be a fresh fetch rather than the (possibly stale or empty) dropdown signal.
+
+That path is reliable rather than lucky, and the asymmetry costs nothing for an indexed word. Every prefix match begins with the typed term, so the term itself is the alphabetically smallest match; `findWordsStartingWith()` walks the index in ascending folded order and takes the first hits per language, so it is always in the fetched set and sorts to the top of the merged list. Combined with the fresh Enter-time fetch, an indexed native word always resolves. A native word that is **not** indexed cannot be rescued by any fallback either, which is why the real limitation is the absence of native morphology (see [11. Future Improvements](#11-future-improvements)) rather than the language the fallback assumes.
 
 ### 10.5 Enter Picks the Alphabetically-First Suggestion, Not the Best One
 
-When suggestions exist, Enter always calls `onSuggestionClicked(suggestions[0])` — the first entry in the target+native alphabetically-merged array, not a relevance-ranked "best match." A user who types a prefix matching both an Indonesian and a Dutch word and hits Enter before the dropdown renders gets whichever sorts first alphabetically, which may not be the word they meant. Waiting for the dropdown and clicking the intended suggestion avoids this; only the blind type-and-Enter pattern is affected. See [3.5 Suggestion selection & the "first match" pick](#35-suggestion-selection--the-first-match-pick).
+When suggestions exist, Enter always calls `onSuggestionClicked(suggestions[0])` — the first entry in the target+native alphabetically-merged array, not a relevance-ranked "best match." A user who types a prefix matching both an Indonesian and a Dutch word and hits Enter before the dropdown renders gets whichever sorts first alphabetically, which may not be the word they meant.
+
+The sharpest case is an exact **homograph** — 1,720 words are keywords in both languages (`bak` among them). The two suggestions are the same string, so the alphabetical sort is a tie; it is stable and the merge appends target-language hits first, so Enter always takes the Indonesian reading. Defensible for a dictionary whose subject is Indonesian, but it is a fixed preference, not a judgement. Waiting for the dropdown and clicking the intended suggestion avoids this; only the blind type-and-Enter pattern is affected. See [3.5 Suggestion selection & the "first match" pick](#35-suggestion-selection--the-first-match-pick).
 
 ---
 
 ## 11. Future Improvements
 
-1. **Expand word exemptions**: Some words don't follow standard patterns and are currently hardcoded
-2. **Smarter consonant restoration**: Current rules generate some phonetically implausible candidates
-3. **Free-text article search (inverted index)**: A future content-search feature would call for a single-root stemmer such as Nazief–Adriani or Sastrawi (see the [guide](../../../../../docs/docs/how-search-works.md#why-not-a-stemmer) for why a stemmer fits content search but not dictionary lookup)
-4. **Configurable stripping depth**: Trade recall for precision by limiting affix stripping
-5. **Store detailed search metadata**: Track which variation was found, for more intelligent breadcrumb handling
+Nothing is listed for the variation generator: its two standing candidates — tighter strip guards and tighter consonant restoration — have both been measured and rejected, in [5.7 Failure modes and the best-effort contract](#57-failure-modes-and-the-best-effort-contract) and [5.3.5 Multiple Candidate Restoration](#535-multiple-candidate-restoration) respectively.
+
+1. **Native-language morphology**: native inflected forms are indexed only incidentally, wherever a gloss happens to use one — `huizen`, `boeken`, `kinderen` and `gebakken` are all present, but `liep` is not, so it finds nothing. Closing that needs a native-language variation generator alongside the Indonesian one; the target-language-only Enter fallback described in [10.4](#104-a-native-language-word-is-found-through-its-suggestion) is not the obstacle.
+2. **Free-text article search (inverted index)**: A future content-search feature would call for a single-root stemmer such as Nazief–Adriani or Sastrawi (see the [guide](../../../../../docs/docs/how-search-works.md#why-not-a-stemmer) for why a stemmer fits content search but not dictionary lookup).
