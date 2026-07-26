@@ -25,7 +25,7 @@ import { addIcons } from 'ionicons';
 import { ellipsisHorizontalOutline, trash } from 'ionicons/icons';
 
 import { ContentService } from '../../../home/content/content.service';
-import { type ITopic } from '../../../home/content/topic.model';
+import { type Topic } from '../../../home/content/topic.model';
 import { BackButtonComponent } from '../../../shared/back-button/back-button.component';
 import { AdminService } from '../../admin.service';
 
@@ -59,7 +59,7 @@ export class PublicationPage {
   #contentService = inject(ContentService);
   #adminService = inject(AdminService);
 
-  topics = signal<ITopic[]>([]);
+  topics = signal<Topic[]>([]);
   publicationTitle = signal('Publication');
   isToastOpen = signal(false);
 
@@ -74,7 +74,7 @@ export class PublicationPage {
     });
   }
 
-  navigateToArticle(topic: ITopic) {
+  navigateToArticle(topic: Topic) {
     this.#router.navigate(['/', 'admin', 'content', 'article', topic.filename.replace('.md', '')]);
   }
 
@@ -98,7 +98,7 @@ export class PublicationPage {
     await actionSheet.present();
   }
 
-  async onDeleteArticle(topic: ITopic, slidingItem: IonItemSliding) {
+  async onDeleteArticle(topic: Topic, slidingItem: IonItemSliding) {
     slidingItem.close();
 
     const deleteObs$ = this.#adminService.deleteTopic(topic.filename);

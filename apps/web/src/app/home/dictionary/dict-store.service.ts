@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { IDBPDatabase } from 'idb';
 import { DictDB, foldKey, openDictDb } from './dict-db';
-import { ILemma } from './lemma/lemma.model';
+import { Lemma } from './lemma/lemma.model';
 
 // This service is now read-only — the dictionary import runs in
 // `dict-import.worker.ts` and writes directly to the shared IndexedDB. The DB
@@ -22,7 +22,7 @@ export class DictStoreService {
     return record?.value ?? null;
   }
 
-  async findByWordAndLang(word: string, lang: string, keywordOnly = false): Promise<ILemma[]> {
+  async findByWordAndLang(word: string, lang: string, keywordOnly = false): Promise<Lemma[]> {
     // Match on the folded key so lookups are case- and accent-insensitive — the
     // headword "Belanda" is found whether the user typed "belanda" or "Belanda",
     // and Stevens' "boléh" is found by typing "boleh".

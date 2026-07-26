@@ -482,8 +482,8 @@ The service returns a `LookupResult`:
 
 ```typescript
 interface LookupGroup {
-  base: WordLang;   // The group's base word
-  lemmas: ILemma[]; // All lemmas under that base
+  base: WordLang;  // The group's base word
+  lemmas: Lemma[]; // All lemmas under that base
 }
 
 class LookupResult {
@@ -492,7 +492,7 @@ class LookupResult {
 }
 ```
 
-`groups` replaced an earlier `bases: WordLang[]` + `lemmas: Record<string, ILemma[]>` pair. That split existed to merge lemmas arriving in chunks from paginated MongoDB queries; the IndexedDB lookup is a single synchronous read, so there's no incremental merging to support, and one array of `{ base, lemmas }` groups covers what two parallel, hand-synced structures did before.
+`groups` replaced an earlier `bases: WordLang[]` + `lemmas: Record<string, Lemma[]>` pair. That split existed to merge lemmas arriving in chunks from paginated MongoDB queries; the IndexedDB lookup is a single synchronous read, so there's no incremental merging to support, and one array of `{ base, lemmas }` groups covers what two parallel, hand-synced structures did before.
 
 ### 6.2 Grouping by Base
 

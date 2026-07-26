@@ -30,7 +30,7 @@ import { map } from 'rxjs/operators';
 
 import { BackButtonComponent } from '../../../shared/back-button/back-button.component';
 import { ContentService } from '../content.service';
-import { type ITopic } from '../topic.model';
+import { type Topic } from '../topic.model';
 
 // State of the "download all articles for offline use" action:
 // idle (not started), caching (prefetch in progress), done (all cached).
@@ -66,8 +66,8 @@ export class PublicationPage {
   // exposed as a signal so the template reacts to them.
   #topics$ = this.#route.data.pipe(map(({ topics }) => topics));
 
-  #topics: Signal<ITopic[]> = toSignal(this.#topics$, {
-    initialValue: [] as ITopic[],
+  #topics: Signal<Topic[]> = toSignal(this.#topics$, {
+    initialValue: [] as Topic[],
   });
 
   // The rows to render: articles plus the manifest (which carries the

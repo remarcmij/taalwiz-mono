@@ -6,7 +6,7 @@
 // worker (`dict-import.worker.ts`) both import from here.
 
 import { IDBPDatabase, openDB } from 'idb';
-import { ILemma, LineKind } from './lemma/lemma.model';
+import { Lemma, LineKind } from './lemma/lemma.model';
 
 export const DICT_DB_NAME = 'taalwiz-dict';
 export const DICT_DB_VERSION = 4;
@@ -15,7 +15,7 @@ export const DICT_DB_VERSION = 4;
 // searches are case- AND accent-insensitive (typing "belanda" finds "Belanda";
 // typing "boleh" finds Stevens' "boléh", where é is a pronunciation aid).
 // `word` keeps its original casing and accents for display.
-export type DictRecord = ILemma & { wordLower: string };
+export type DictRecord = Lemma & { wordLower: string };
 
 // Folds a word to its lookup key: NFD-decompose, drop combining diacritics, and
 // lowercase. Must be applied identically to the stored key (transformDict) and to

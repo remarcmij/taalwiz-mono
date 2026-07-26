@@ -19,8 +19,8 @@ import { BackButtonComponent } from '../../../../shared/back-button/back-button.
 import { WordClickModalService } from '../../../../shared/word-click-modal/word-click-modal.service';
 import { HashtagModalComponent } from '../../hashtags/hashtag-modal/hashtag-modal.component';
 import { ArticleBodyComponent } from './article-body/article-body.component';
-import { IArticle } from './article.model';
-import { extractHeadings, type IHeading } from './extract-headings.util';
+import { Article } from './article.model';
+import { extractHeadings, type Heading } from './extract-headings.util';
 import { TocService } from './toc.service';
 
 @Component({
@@ -50,10 +50,10 @@ export class ArticlePage {
     addIcons({ listOutline });
   }
 
-  #article$ = this.#route.data.pipe(map(({ article }) => article as IArticle | null));
+  #article$ = this.#route.data.pipe(map(({ article }) => article as Article | null));
 
   article = toSignal(this.#article$, { initialValue: null });
-  headings = computed<IHeading[]>(() => {
+  headings = computed<Heading[]>(() => {
     const article = this.article();
     return article ? extractHeadings(article.htmlText) : [];
   });

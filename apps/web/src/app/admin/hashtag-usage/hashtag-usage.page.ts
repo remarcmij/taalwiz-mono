@@ -22,7 +22,7 @@ import { copyOutline, downloadOutline, printOutline } from 'ionicons/icons';
 
 import { BackButtonComponent } from '../../shared/back-button/back-button.component';
 import { AdminService } from '../admin.service';
-import { IHashtagUsage } from './hashtag-usage.model';
+import { HashtagUsage } from './hashtag-usage.model';
 
 @Component({
   selector: 'app-hashtag-usage',
@@ -45,7 +45,7 @@ export class HashtagUsagePage implements OnInit {
   #adminService = inject(AdminService);
   #toastCtrl = inject(ToastController);
 
-  readonly usage = signal<IHashtagUsage[]>([]);
+  readonly usage = signal<HashtagUsage[]>([]);
   readonly filter = signal('');
   readonly filtered = computed(() => {
     const q = this.filter().trim().toLowerCase();

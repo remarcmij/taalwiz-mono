@@ -3,12 +3,12 @@ import { firstValueFrom } from 'rxjs';
 import { langConfig } from '../../app.constants';
 import { DictionaryService } from '../dictionary/dictionary.service';
 import { segmentIndonesian, type SegmentResult } from '../dictionary/indonesian-segmenter';
-import { ILemma } from '../dictionary/lemma/lemma.model';
+import { Lemma } from '../dictionary/lemma/lemma.model';
 
 /** A back-less card resolved against the dictionary: the chosen lemma line, the
  * headword that actually matched, and the affix decomposition of a derived form. */
 export interface ResolvedCard {
-  lemma: ILemma | null;
+  lemma: Lemma | null;
   /** The headword the lookup resolved on (may differ from the surface term). */
   word: string;
   breakdown: SegmentResult | null;

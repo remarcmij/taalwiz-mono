@@ -6,8 +6,8 @@ import { catchError, filter, map, Observable, of, switchMap } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { ApiErrorAlertService } from '../../shared/api-error-alert.service';
 import { LoggerService } from '../../shared/logger.service';
-import { type IArticle } from './publication/article/article.model';
-import { type ITopic } from './topic.model';
+import { type Article } from './publication/article/article.model';
+import { type Topic } from './topic.model';
 
 // One entry per topic in the server's content manifest. The `sha` changes
 // whenever a topic's content changes, so comparing manifests detects staleness
@@ -61,12 +61,12 @@ export class ContentService {
   }
 
   // The list of publications the current user may see.
-  fetchPublications(): Observable<ITopic[]> {
+  fetchPublications(): Observable<Topic[]> {
     return this.#fetchTopics('/api/v1/content/index');
   }
 
   // The topics (manifest + ordered articles) within one publication.
-  fetchPublicationTopics(groupName: string): Observable<ITopic[]> {
+  fetchPublicationTopics(groupName: string): Observable<Topic[]> {
     return this.#fetchTopics(`/api/v1/content/${groupName}`);
   }
 
@@ -74,7 +74,7 @@ export class ContentService {
   // `false` and stay silent (no alert) since this is a best-effort prefetch.
   prefetchArticle(filename: string): Observable<boolean> {
     return this.#http
-      .get<IArticle>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`)
+      .get<Article>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`)
       .pipe(
         map(() => true),
         catchError(() => of(false)),
@@ -83,9 +83,9 @@ export class ContentService {
 
   // Fetches a single article for display. Unlike prefetch, a failure here is
   // user-visible, so it raises a network-error alert and resolves to null.
-  fetchArticle(filename: string): Observable<IArticle | null> {
+  fetchArticle(filename: string): Observable<Article | null> {
     return this.#http
-      .get<IArticle>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`)
+      .get<Article>(`/api/v1/content/article/${filename.replace(/\.md$/, '')}`)
       .pipe(
         catchError((error) => {
           this.#apiErrorAlertService.showNetworkError(error);
@@ -96,8 +96,8 @@ export class ContentService {
 
   // Shared topic-list fetch. On error, alerts and returns an empty list so
   // callers can render an empty state rather than breaking.
-  #fetchTopics(url: string): Observable<ITopic[]> {
-    return this.#http.get<ITopic[]>(url).pipe(
+  #fetchTopics(url: string): Observable<Topic[]> {
+    return this.#http.get<Topic[]>(url).pipe(
       catchError((error) => {
         this.#apiErrorAlertService.showNetworkError(error);
         return of([]);

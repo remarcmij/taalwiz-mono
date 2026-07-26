@@ -15,8 +15,8 @@ import {
 import { Observable } from 'rxjs';
 
 import { TocService } from '../../publication/article/toc.service';
-import { type IArticle } from '../../publication/article/article.model';
-import { type IHashtag } from '../hashtag.model';
+import { type Article } from '../../publication/article/article.model';
+import { type Hashtag } from '../hashtag.model';
 import { HashtagsService } from '../hashtags.service';
 
 @Component({
@@ -42,15 +42,15 @@ export class HashtagModalComponent implements OnInit {
   #tocService = inject(TocService);
 
   hashtagName = input.required<string>();
-  article = input<IArticle | null>(null);
+  article = input<Article | null>(null);
 
-  hashtags$!: Observable<IHashtag[]>;
+  hashtags$!: Observable<Hashtag[]>;
 
   ngOnInit() {
     this.hashtags$ = this.#hashTagService.findHashtag(this.hashtagName());
   }
 
-  onClick(hashtag: IHashtag) {
+  onClick(hashtag: Hashtag) {
     this.#modalCtrl.dismiss(null, 'close');
     this.#tocService.scrollToId.set(hashtag.id);
     // Strip .md so the URL has no file extension (see publication.page.html).

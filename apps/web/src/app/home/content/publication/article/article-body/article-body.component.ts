@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
-import { type IArticle } from '../article.model';
+import { type Article } from '../article.model';
 
 @Component({
   selector: 'app-article-body',
@@ -19,7 +19,7 @@ import { type IArticle } from '../article.model';
 export class ArticleBodyComponent implements OnInit {
   #sanitizer = inject(DomSanitizer);
 
-  article = input.required<IArticle>();
+  article = input.required<Article>();
   clicked = output<MouseEvent>();
   keyPressed = output<KeyboardEvent>();
 

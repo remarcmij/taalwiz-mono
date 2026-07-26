@@ -4,7 +4,7 @@ import { ActionSheetController, AlertController } from '@ionic/angular/standalon
 import { catchError, map, Observable, of } from 'rxjs';
 import { User } from '../auth/user.model';
 import { ApiErrorAlertService } from '../shared/api-error-alert.service';
-import { IHashtagUsage } from './hashtag-usage/hashtag-usage.model';
+import { HashtagUsage } from './hashtag-usage/hashtag-usage.model';
 
 @Injectable({
   providedIn: 'root',
@@ -57,8 +57,8 @@ export class AdminService {
     return this.#http.post('/api/v1/content/reprocess-hashtags', {});
   }
 
-  getHashtagUsage(): Observable<IHashtagUsage[]> {
-    return this.#http.get<IHashtagUsage[]>('/api/v1/hashtags/usage').pipe(
+  getHashtagUsage(): Observable<HashtagUsage[]> {
+    return this.#http.get<HashtagUsage[]>('/api/v1/hashtags/usage').pipe(
       catchError((error) => {
         this.#apiErrorAlertService.showError(error);
         return of([]);

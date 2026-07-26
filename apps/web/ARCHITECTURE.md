@@ -636,7 +636,7 @@ classDiagram
 
 ```mermaid
 classDiagram
-    class ITopic {
+    class Topic {
         +string _id
         +string title
         +string publication
@@ -648,16 +648,16 @@ classDiagram
         +string sha
     }
 
-    class IArticle {
+    class Article {
         +string _id
-        +ITopic _topic
+        +Topic _topic
         +string title
         +string mdText
         +string htmlText
         +string targetLang
     }
 
-    class IHashtag {
+    class Hashtag {
         +string id
         +string name
         +string publicationTitle
@@ -666,14 +666,14 @@ classDiagram
         +string filename
     }
 
-    IArticle --> ITopic : belongs to
+    Article --> Topic : belongs to
 ```
 
 **Dictionary**
 
 ```mermaid
 classDiagram
-    class ILemma {
+    class Lemma {
         +string word
         +string lang
         +string baseWord
@@ -683,7 +683,7 @@ classDiagram
         +string keyword
     }
 
-    ILemma --> ILemma : baseWord reference
+    Lemma --> Lemma : baseWord reference
 ```
 
 **Vocabulary & Study**

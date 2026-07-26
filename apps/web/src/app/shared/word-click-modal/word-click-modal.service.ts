@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular/standalone';
 import { langConfig } from '../../app.constants';
 import { DictionaryService } from '../../home/dictionary/dictionary.service';
-import { type ILemma } from '../../home/dictionary/lemma/lemma.model';
+import { type Lemma } from '../../home/dictionary/lemma/lemma.model';
 import { WordLang } from '../../home/dictionary/word-lang.model';
 import { WordClickModalComponent } from './word-click-modal.component';
 
@@ -123,7 +123,7 @@ export class WordClickModalService {
     word: string;
     lang: string;
     speech?: string;
-    lemmas: ILemma[];
+    lemmas: Lemma[];
     hideActions?: boolean;
     hideBookmark?: boolean;
     onDismiss?: () => void;

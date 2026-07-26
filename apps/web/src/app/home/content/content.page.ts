@@ -27,7 +27,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Subject, filter, map, startWith, switchMap } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { ContentService } from './content.service';
-import { type ITopic } from './topic.model';
+import { type Topic } from './topic.model';
 
 @Component({
   selector: 'app-content',
@@ -72,7 +72,7 @@ export class ContentPage {
     switchMap(() =>
       this.#contentService.fetchPublications().pipe(
         map((topics) => ({ loading: false, topics })),
-        startWith({ loading: true, topics: [] as ITopic[] }),
+        startWith({ loading: true, topics: [] as Topic[] }),
       ),
     ),
   );

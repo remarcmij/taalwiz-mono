@@ -28,7 +28,7 @@ import { checkmarkOutline, closeOutline } from 'ionicons/icons';
 import { firstValueFrom } from 'rxjs';
 import { MarkdownService } from '../../content/markdown.service';
 import { DictionaryService } from '../../dictionary/dictionary.service';
-import { ILemma } from '../../dictionary/lemma/lemma.model';
+import { Lemma } from '../../dictionary/lemma/lemma.model';
 import { StudyService } from '../../study/study.service';
 
 /**
@@ -69,7 +69,7 @@ export class DictionaryLinePickerComponent implements OnInit {
   #markdown = inject(MarkdownService);
 
   protected readonly loading = signal(true);
-  protected readonly lemmas = signal<ILemma[]>([]);
+  protected readonly lemmas = signal<Lemma[]>([]);
   protected readonly currentIndex = signal(0);
 
   /** The dictionary lines as render-ready rows. The `**bold**`/`*italic*` markup is

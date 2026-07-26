@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 
 import { ApiErrorAlertService } from '../../../shared/api-error-alert.service';
-import { type IHashtag } from './hashtag.model';
+import { type Hashtag } from './hashtag.model';
 
 export interface HashtagGroup {
   _id: string;
@@ -26,8 +26,8 @@ export class HashtagsService {
     );
   }
 
-  findHashtag(name: string): Observable<IHashtag[]> {
-    return this.#http.get<IHashtag[]>(`/api/v1/hashtags/${name}`).pipe(
+  findHashtag(name: string): Observable<Hashtag[]> {
+    return this.#http.get<Hashtag[]>(`/api/v1/hashtags/${name}`).pipe(
       catchError((error) => {
         this.#apiErrorAlertService.showNetworkError(error);
         return of([]);

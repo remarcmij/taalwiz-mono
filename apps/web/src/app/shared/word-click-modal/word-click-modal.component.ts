@@ -35,7 +35,7 @@ import { AffixBreakdownComponent } from '../morphology/affix-breakdown/affix-bre
 import { VocabularyService } from '../../home/vocabulary/vocabulary.service';
 import { MarkdownService } from '../../home/content/markdown.service';
 import { DictionaryService } from '../../home/dictionary/dictionary.service';
-import { type ILemma } from '../../home/dictionary/lemma/lemma.model';
+import { type Lemma } from '../../home/dictionary/lemma/lemma.model';
 import { WordLang } from '../../home/dictionary/word-lang.model';
 import { segmentIndonesian, type SegmentResult } from '../../home/dictionary/indonesian-segmenter';
 import { SpeechSynthesizerService } from '../../home/speech-synthesizer.service';
@@ -88,7 +88,7 @@ export class WordClickModalComponent implements OnInit {
    * tables/lists) the native text sits outside that group, so it is never read aloud in
    * the target-language voice. Falls back to the bare clicked word. */
   speech = input<string>('');
-  lemmas = input.required<ILemma[]>();
+  lemmas = input.required<Lemma[]>();
   /** When true (opened from an SRS study card back) reduce the modal to
    * definition + audio only: hide the quiz toggle, bookmark and dictionary-lookup
    * actions, the affix breakdown, and the "→ word" hop. */
@@ -109,7 +109,7 @@ export class WordClickModalComponent implements OnInit {
 
   ngOnInit() {
     // Group lemmas by homonym
-    const homonymMap = new Map<string, ILemma[]>();
+    const homonymMap = new Map<string, Lemma[]>();
     for (const lemma of this.lemmas()) {
       const key = lemma.baseWord + '.' + lemma.homonym;
       homonymMap.set(key, [...(homonymMap.get(key) ?? []), lemma]);

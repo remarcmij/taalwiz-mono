@@ -1,9 +1,9 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot } from '@angular/router';
 import { ContentService } from '../../content.service';
-import { type IArticle } from './article.model';
+import { type Article } from './article.model';
 
-export const articleResolver: ResolveFn<IArticle | null> = (
+export const articleResolver: ResolveFn<Article | null> = (
   route: ActivatedRouteSnapshot,
   _state: RouterStateSnapshot,
 ) => {

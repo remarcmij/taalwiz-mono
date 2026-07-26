@@ -1,4 +1,4 @@
-export interface IHashtag {
+export interface Hashtag {
   id: string;
   name: string;
   publicationTitle: string;

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { MarkdownService } from '../../content/markdown.service';
-import { lemmaVisibleAt, type DetailLevel, type ILemma } from './lemma.model';
+import { lemmaVisibleAt, type DetailLevel, type Lemma } from './lemma.model';
 
 @Component({
   selector: 'app-lemma',
@@ -12,7 +12,7 @@ import { lemmaVisibleAt, type DetailLevel, type ILemma } from './lemma.model';
 export class LemmaComponent {
   #markdownService = inject(MarkdownService);
 
-  lemmas = input.required<ILemma[]>();
+  lemmas = input.required<Lemma[]>();
   /** Detail tier to render. `keywords` (default) shows the entry's own senses
    * and its derived sub-headwords; `all` additionally shows the italic example
    * usages and cross-references. */

@@ -16,7 +16,7 @@ import {
 } from '@ionic/angular/standalone';
 
 import { ContentService } from '../../home/content/content.service';
-import { type ITopic } from '../../home/content/topic.model';
+import { type Topic } from '../../home/content/topic.model';
 import { BackButtonComponent } from '../../shared/back-button/back-button.component';
 
 @Component({
@@ -43,10 +43,10 @@ export class ContentPage {
   #contentService = inject(ContentService);
 
   topics = toSignal(this.#contentService.fetchPublications(), {
-    initialValue: [] as ITopic[],
+    initialValue: [] as Topic[],
   });
 
-  navigateToArticles(topic: ITopic) {
+  navigateToArticles(topic: Topic) {
     this.#router.navigate(['/', 'admin', 'content', topic.groupName]);
   }
 }

@@ -12,7 +12,7 @@ import {
   IonToolbar,
 } from '@ionic/angular/standalone';
 
-import { type IArticle } from '../../../../home/content/publication/article/article.model';
+import { type Article } from '../../../../home/content/publication/article/article.model';
 import { AdminService } from '../../../admin.service';
 import { BackButtonComponent } from '../../../../shared/back-button/back-button.component';
 
@@ -45,7 +45,7 @@ export class ArticlePage implements OnInit {
   #alertCtrl = inject(AlertController);
   #adminService = inject(AdminService);
 
-  #article!: IArticle;
+  #article!: Article;
   title = signal<string>('');
   safeHtml = signal<SafeHtml | null>(null);
   isDeleted = signal(false);

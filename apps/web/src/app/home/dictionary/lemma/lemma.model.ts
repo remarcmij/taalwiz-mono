@@ -12,7 +12,7 @@ export type LineKind = 'headword' | 'derived' | 'usage';
  * the italic example usages and cross-reference cards. */
 export type DetailLevel = 'keywords' | 'all';
 
-export interface ILemma {
+export interface Lemma {
   word: string;
   lang: string;
   keyword?: number;
@@ -48,7 +48,7 @@ const LEVEL_RANK: Record<DetailLevel, number> = { keywords: 1, all: 2 };
  * derivative of the searched word from the searched word sitting inside a
  * different headword; `keyword` and the `word === baseWord` check supply that.
  */
-function detailRankOf(lemma: ILemma): number {
+function detailRankOf(lemma: Lemma): number {
   if ((lemma.keyword ?? 1) === 1) return 0;
   if (lemma.lineKind === 'derived' && lemma.word === lemma.baseWord) return 1;
   return 2;
@@ -60,6 +60,6 @@ function detailRankOf(lemma: ILemma): number {
  * word's own senses (rank 0) and its derivatives (rank 1) show; `all`
  * additionally admits usages and cross-references (rank 2).
  */
-export function lemmaVisibleAt(lemma: ILemma, level: DetailLevel): boolean {
+export function lemmaVisibleAt(lemma: Lemma, level: DetailLevel): boolean {
   return detailRankOf(lemma) <= LEVEL_RANK[level];
 }

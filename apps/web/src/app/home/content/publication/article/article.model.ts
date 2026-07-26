@@ -1,4 +1,4 @@
-export interface IArticle {
+export interface Article {
   _id: string;
   _topic: string;
   filename: string;

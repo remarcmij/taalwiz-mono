@@ -194,7 +194,7 @@ Provenance is automatic, not editorial, so it cannot be forgotten:
 - The compiler stamps `isSupplement: true` on every lemma sourced from a `+` file
   (omitted for core lemmas, keeping their JSON byte-identical).
 - The flag flows through `CompiledLemma` -> `transformDict` (copied onto each
-  word `DictRecord`) -> `ILemma`.
+  word `DictRecord`) -> `Lemma`.
 - The lemma component binds `[class.is-supplement]="lemma.isSupplement"` on the entry
   `div`. A CSS rule (`global.scss`) renders the defined Indonesian headwords
   inside a `is-supplement` entry in amber (`--supplement-text-color`, with a lighter
@@ -250,7 +250,7 @@ dict version string when the updated content is published.
 - `apps/compiler/src/compiler/Compiler.ts` (multi-file merge, `isSupplement`,
   filename regex)
 - `apps/web/src/app/home/dictionary/dict-db.ts` (`CompiledLemma`, `transformDict`)
-- `apps/web/src/app/home/dictionary/lemma/lemma.model.ts` (`ILemma`)
+- `apps/web/src/app/home/dictionary/lemma/lemma.model.ts` (`Lemma`)
 - `apps/web/src/app/home/dictionary/lemma/lemma.component.html` (class binding)
 - `apps/web/src/global.scss` (colour variable + underline rule)
 - `apps/web/src/app/home/dictionary/word-lang.model.ts` (`isSupplement` flag)

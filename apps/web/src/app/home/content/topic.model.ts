@@ -1,4 +1,4 @@
-export interface ITopic {
+export interface Topic {
   _id: string;
   articles?: string[];
   author: string;
