@@ -40,7 +40,7 @@ After a lookup result arrives (the `#results$` tap in `dictionary.page.ts`):
 
 Suggestion fetching and Enter-key search are **the same pipeline**, not two separate features — one `keyup` listener, set up once per page-visit in `ionViewWillEnter` and torn down on `ionViewWillLeave` (`takeUntil(this.#leave$)`, so a cached-and-reopened Ionic tab doesn't stack a second live listener on the same input).
 
-> **Suggestions are a literal prefix match — no variation generator.** `#fetchSuggestionsAsync()` queries `findWordsStartingWith(term)` directly on the typed text. Both languages carry **equal weight**: target-language and native-language hits (up to 10 each) are merged, de-duplicated, and sorted alphabetically (case-insensitive), so Indonesian and Dutch suggestions **interleave** rather than listing all target matches first. The list is then capped at 10; the user narrows to one language simply by typing another letter or two. The variation generator is deliberately **not** applied to the suggestion list. This was tried and rejected: generating variations of a partially-typed word surfaces alphabetical neighbours of stripped forms (e.g. typing `memperbai` strips `-i` to `memperba` and suggests unrelated `memperba*` words), which reads as a broken filter. Morphological resolution of inflected forms still happens on the **lookup path** (`#searchLocal`, via the variation generator) — reached by tapping a word, tapping a suggestion, or pressing Enter with no matching suggestion (see [4.2 Path 2: Manual Entry Without Autocomplete (no match)](#42-path-2-manual-entry-without-autocomplete-no-match)).
+> **Suggestions are a literal prefix match — no variation generator.** `#fetchSuggestionsAsync()` queries `findWordsStartingWith(term)` directly on the typed text. Only words with an entry of their own are offered: a word indexed solely as a cross-reference is skipped, since the lookup behind the suggestion would find nothing (see [10.2 Word Exists Only as a Cross-Reference](#102-word-exists-only-as-a-cross-reference)). Both languages carry **equal weight**: target-language and native-language hits (up to 10 each) are merged, de-duplicated, and sorted alphabetically (case-insensitive), so Indonesian and Dutch suggestions **interleave** rather than listing all target matches first. The list is then capped at 10; the user narrows to one language simply by typing another letter or two. The variation generator is deliberately **not** applied to the suggestion list. This was tried and rejected: generating variations of a partially-typed word surfaces alphabetical neighbours of stripped forms (e.g. typing `memperbai` strips `-i` to `memperba` and suggests unrelated `memperba*` words), which reads as a broken filter. Morphological resolution of inflected forms still happens on the **lookup path** (`#searchLocal`, via the variation generator) — reached by tapping a word, tapping a suggestion, or pressing Enter with no matching suggestion (see [4.2 Path 2: Manual Entry Without Autocomplete (no match)](#42-path-2-manual-entry-without-autocomplete-no-match)).
 
 ### 3.1 Pipeline shape
 
@@ -765,7 +765,7 @@ The IDB schema (version 4) defines a single index, `by-lang-wordlower`. Both loo
 
 The IDB query uses `IDBKeyRange.only([lang, foldKey(word)])` on the `by-lang-wordlower` compound index — exact match on `lang` plus the folded (case- and accent-stripped) word. There is no prefix or regex matching at this layer. This is why variation generation is necessary on the client side before querying IDB.
 
-Prefix queries (autocomplete suggestions) fold the prefix with `foldKey()` and use `IDBKeyRange.bound([lang, start], [lang, start + '￿'])` on the same index via `DictStoreService.findWordsStartingWith()`. Results are deduplicated by `wordLower`, so `Belanda` and `belanda` collapse to one suggestion.
+Prefix queries (autocomplete suggestions) fold the prefix with `foldKey()` and use `IDBKeyRange.bound([lang, start], [lang, start + '￿'])` on the same index via `DictStoreService.findWordsStartingWith()`. Results are deduplicated by `wordLower`, so `Belanda` and `belanda` collapse to one suggestion; a group whose records are all `keyword: 0` is dropped rather than emitted (see [10.2 Word Exists Only as a Cross-Reference](#102-word-exists-only-as-a-cross-reference)).
 
 ---
 
@@ -783,18 +783,17 @@ If the user had typed "dibakar" and it WAS in autocomplete:
 - User would click the suggestion
 - Same route: `lookup()` → `searchDictionary()` → `#searchLocal()` → full results ✓
 
-### 10.2 Word Exists Only as a Compound
+### 10.2 Word Exists Only as a Cross-Reference
 
-Example: "sampah" (trash) might not have its own entry but appears as "membakar sampah" (burn trash) under the "membakar" entry.
+Some words are indexed **only** with `keyword: 0`: they occur inside other headwords' entries — as a cross-reference target or within an example phrase — but have no entry of their own. There are ~1.3k such target-language words in Teeuw and ~9.9k in Stevens (none on the native side, where the compiler keyword-flags every gloss word).
 
-If a user searches "sampah":
-- Autocomplete might not suggest it (if not indexed as standalone)
-- `#searchLocal()` runs the variation generator for "sampah"
-- Variation generator strips affixes (none apply to "sampah")
-- IndexedDB lookup for "sampah" → not found
-- Returns empty results
+Such a word cannot be looked up, because [9.1 Variation Iteration](#91-variation-iteration) accepts a form only when some line carries it as a keyword. The IndexedDB query does return its mention records; they are then rejected, and the result is empty — "no records at all" and "no keyword records" produce the same outcome here.
 
-This is expected behavior — only words (or their variants) indexed in the dictionary are found.
+**Suggestions are filtered to match.** `findWordsStartingWith()` skips any folded-word group with no headword record, so the dropdown never offers a word whose lookup would come back empty. Without that filter the two halves disagree: the prefix index would offer the word and the search would refuse it.
+
+What remains is the typed-and-Enter case: no suggestion appears, the fallback runs the term through the variation generator, no candidate is keyword-flagged, and the search reports nothing found (with the searchbar redisplaying the term, per [2.3 Clear on Success, Preserve on Failure](#23-clear-on-success-preserve-on-failure)). The word is in the dictionary, just never as a headword — and the search field deliberately shows only headword entries.
+
+The word-tap modal is the exception, and deliberately so: it reads through `#fetchWordLemmasAsync`, whose second pass accepts mention-only lines, so tapping such a word inside an article does show the entry that mentions it.
 
 ### 10.3 Recent Searches: Stored Word vs. Found Word
 

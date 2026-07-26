@@ -59,8 +59,15 @@ export class DictStoreService {
     // captured from another entry in capitalized form (a cross-ref like
     // `→ KERÉTA` or an abbreviation expansion like `[Keréta Api]`), and that
     // record may sort first. Without this preference the dropdown would show
-    // `KERÉTA`/`Keréta` instead of the actual headword `keréta`. A group with no
-    // headword record (a pure cross-ref target) falls back to its first form.
+    // `KERÉTA`/`Keréta` instead of the actual headword `keréta`.
+    //
+    // A group with NO headword record is skipped entirely (`curHasHeadword`): a
+    // word indexed only as a cross-reference has no entry of its own, and the
+    // search path (`#searchLocal`) accepts a form only when some line carries it
+    // as a keyword -- so suggesting it would offer a lookup that then finds
+    // nothing. Roughly 1.3k such words exist in Teeuw and 9.9k in Stevens. The
+    // word-tap modal is unaffected: it reads through `#fetchWordLemmasAsync`,
+    // whose second pass deliberately does show mention-only lines.
     let cursor = await index.openCursor(range);
     let curLower: string | null = null;
     let curWord = '';
@@ -72,8 +79,10 @@ export class DictStoreService {
       const { word, wordLower, isSupplement, keyword } = cursor.value;
       if (have && wordLower !== curLower) {
         // Dedupe case-insensitively so "Belanda" and "belanda" yield one suggestion.
-        results.push({ word: curWord, lang, isSupplement: curAllPlus });
-        if (results.length >= limit) return results;
+        if (curHasHeadword) {
+          results.push({ word: curWord, lang, isSupplement: curAllPlus });
+          if (results.length >= limit) return results;
+        }
         have = false;
       }
       if (!have) {
@@ -92,7 +101,7 @@ export class DictStoreService {
       cursor = await cursor.continue();
     }
 
-    if (have && results.length < limit) {
+    if (have && curHasHeadword && results.length < limit) {
       results.push({ word: curWord, lang, isSupplement: curAllPlus });
     }
 
