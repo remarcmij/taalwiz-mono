@@ -46,7 +46,12 @@ export interface DictDB {
 export interface CompiledWord {
   word: string;
   lang: string;
-  keyword: number;
+  // Optional only because the compiled JSON is untrusted at runtime (nothing
+  // validates a downloaded asset against this interface). The compiler always
+  // emits it; absent is defaulted to 1 (a real keyword) at the two read sites
+  // below, so a malformed asset degrades to "shown" rather than "silently
+  // hidden". Stored records carry it unconditionally -- see Lemma.keyword.
+  keyword?: 0 | 1;
 }
 
 export interface CompiledLemma {
@@ -71,7 +76,7 @@ export interface CompiledDict {
 //   - the block's base is one     → 'headword' (a sense of the entry itself)
 //   - some other source word is   → 'derived'  (e.g. `berabang` under `abang`)
 export function classifyLine(lemma: CompiledLemma, srcLang: string): LineKind {
-  const srcKeywords = lemma.words.filter((w) => w.lang === srcLang && w.keyword === 1);
+  const srcKeywords = lemma.words.filter((w) => w.lang === srcLang && (w.keyword ?? 1) === 1);
   if (srcKeywords.length === 0) return 'usage';
   return srcKeywords.some((w) => w.word === lemma.base) ? 'headword' : 'derived';
 }
@@ -85,7 +90,9 @@ export function transformDict(data: CompiledDict): DictRecord[] {
         word: wordDef.word,
         wordLower: foldKey(wordDef.word),
         lang: wordDef.lang,
-        keyword: wordDef.keyword,
+        // The one place the absent-keyword default is applied, so every stored
+        // record carries the flag and readers can test it as a plain `=== 1`.
+        keyword: wordDef.keyword ?? 1,
         baseWord: lemma.base,
         baseLang: data.targetLang,
         text: lemma.text,

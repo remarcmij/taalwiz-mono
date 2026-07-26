@@ -673,7 +673,7 @@ protected currentTarget = computed(() => this.results()?.target ?? null);
 ```typescript
 for (const w of words) {
   const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
-  if (lemmas.some((l) => (l.keyword ?? 1) === 1)) {
+  if (lemmas.some((l) => l.keyword === 1)) {
     return makeLookupResult({ word: w, lang: target.lang, lemmas });
   }
 }
@@ -688,6 +688,24 @@ for (const w of words) {
 The dictionary page search passes `keywordOnly=false`, so the store returns _all_ lemmas
 that mention the word, including its appearances as a usage inside other headwords
 (`ékor` inside `ékor angin`).
+
+`Lemma.keyword` is **required**, so every read is a plain `=== 1`. The absent-value default
+lives at the single write boundary instead: `CompiledWord.keyword` is optional (the downloaded
+JSON is untrusted at runtime — nothing validates an asset against the interface), and
+`transformDict` writes `wordDef.keyword ?? 1`. Defaulting to 1 means a malformed asset degrades
+to "shown" rather than "silently hidden from search". Historically the `?? 1` sat at each read
+site, guarding IndexedDB records written before `830d430` — when `transformDict` dropped the
+field entirely. Those are long gone: every dict sync `clear()`s the store and re-imports all
+records (`dict-import.worker.ts`).
+
+The type is `0 | 1`, not `boolean`, on both sides. It began as the compiler's compact JSON wire
+format (one byte per record over ~261k Teeuw word records, ~566k for Stevens) and stays numeric
+because it is a **stored IndexedDB field**: booleans are not valid IDB keys, so a boolean could
+never join a compound index — ruling out a future `['lang', 'wordLower', 'keyword']` that would
+push the `keywordOnly` filter into the index instead of the post-fetch `.filter()`. SQLite has no
+boolean type either (`is_keyword INTEGER`). Converting to a real `isKeyword: boolean` would need
+a mapping layer at the store boundary, costing the current `DictRecord = Lemma & { wordLower }`
+identity; narrowing `number` to `0 | 1` buys the two-valued type without one.
 
 **Display-time detail tiers.** Fetching everything but *showing* a chosen level of detail is
 a view concern, kept out of the store so the full set stays available. The dictionary page

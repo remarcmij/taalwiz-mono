@@ -14,7 +14,9 @@ interface LineItem {
 interface Word {
   word: string;
   lang: string;
-  keyword: number;
+  // 1 = a genuine keyword of the entry, 0 = a cross-reference mention. Matches
+  // `JsonWord.keyword` in `src/db/types.ts`, the reader of the same JSON.
+  keyword: 0 | 1;
 }
 
 interface Lemma {

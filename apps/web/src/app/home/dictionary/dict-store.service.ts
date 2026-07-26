@@ -32,7 +32,7 @@ export class DictStoreService {
       IDBKeyRange.only([lang, foldKey(word)]),
     );
     return results
-      .filter((lemma) => !keywordOnly || (lemma.keyword ?? 1) === 1)
+      .filter((lemma) => !keywordOnly || lemma.keyword === 1)
       .sort((a, b) => a.homonym - b.homonym);
   }
 

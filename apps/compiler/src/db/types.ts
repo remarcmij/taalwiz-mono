@@ -10,8 +10,13 @@ export interface JsonWord {
   word: string;
   /** Language of the token: `id` = headword, `nl`/`en` = gloss. */
   lang: Lang;
-  /** 1 when the word is a keyword (indexed headword/gloss), 0 otherwise. */
-  keyword: 0 | 1;
+  /**
+   * 1 when the word is a keyword (indexed headword/gloss), 0 otherwise.
+   * Optional only because this describes untrusted on-disk JSON; the compiler
+   * always emits it and the builder defaults an absent value to 1, as the web
+   * client's `transformDict` does.
+   */
+  keyword?: 0 | 1;
 }
 
 export interface JsonLemma {

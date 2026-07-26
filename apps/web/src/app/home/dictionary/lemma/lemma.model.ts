@@ -15,7 +15,12 @@ export type DetailLevel = 'keywords' | 'all';
 export interface Lemma {
   word: string;
   lang: string;
-  keyword?: number;
+  // 1 when this word is a genuine keyword of the line, 0 when it merely appears
+  // as a cross-reference to another headword. Always present: `transformDict`
+  // defaults an absent compiled value to 1 when writing the record. Numeric
+  // rather than boolean because it is a stored IndexedDB field and booleans are
+  // not valid IDB keys -- see SEARCH.md 9.2.
+  keyword: 0 | 1;
   baseWord: string;
   baseLang: string;
   text: string;
@@ -49,7 +54,7 @@ const LEVEL_RANK: Record<DetailLevel, number> = { keywords: 1, all: 2 };
  * different headword; `keyword` and the `word === baseWord` check supply that.
  */
 function detailRankOf(lemma: Lemma): number {
-  if ((lemma.keyword ?? 1) === 1) return 0;
+  if (lemma.keyword === 1) return 0;
   if (lemma.lineKind === 'derived' && lemma.word === lemma.baseWord) return 1;
   return 2;
 }

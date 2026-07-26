@@ -85,7 +85,10 @@ function buildDatabase(dict: DictName): BuildResult {
 
       for (const w of lemma.words) {
         wordId += 1;
-        insertWord.run(wordId, lemmaId, w.word, toSearchForm(w.word), w.lang, w.keyword ? 1 : 0);
+        // `?? 1` (not `? 1 : 0`): an absent keyword flag in the JSON means "a
+        // real keyword", matching the web client's `transformDict`. Defensive
+        // only -- the compiler always emits it.
+        insertWord.run(wordId, lemmaId, w.word, toSearchForm(w.word), w.lang, w.keyword ?? 1);
       }
     }
 

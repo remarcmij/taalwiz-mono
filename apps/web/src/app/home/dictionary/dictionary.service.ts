@@ -99,7 +99,7 @@ export class DictionaryService {
     let found: LookupResult | null = null;
     for (const w of words) {
       const lemmas = await this.#dictStore.findByWordAndLang(w, target.lang);
-      if (lemmas.some((l) => (l.keyword ?? 1) === 1)) {
+      if (lemmas.some((l) => l.keyword === 1)) {
         foundWord = w;
         found = makeLookupResult({ word: w, lang: target.lang, lemmas });
         found.target = target;
