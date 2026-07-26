@@ -82,9 +82,7 @@ export class DictionaryService {
       }
     }
 
-    merged.sort((a, b) =>
-      a.word.toLowerCase().localeCompare(b.word.toLowerCase()),
-    );
+    merged.sort((a, b) => a.word.toLowerCase().localeCompare(b.word.toLowerCase()));
 
     return merged.slice(0, 10);
   }
@@ -95,9 +93,7 @@ export class DictionaryService {
 
     const word = searchWord ?? target.word;
     const fromGenerator = target.lang !== langConfig.nativeLang;
-    const words = fromGenerator
-      ? langConfig.variationGenerator.getWordVariations(word)
-      : word.split(',').map((w) => w.trim());
+    const words = fromGenerator ? langConfig.variationGenerator.getWordVariations(word) : [word];
 
     let foundWord: string | null = null;
     let found: LookupResult | null = null;
@@ -122,7 +118,7 @@ export class DictionaryService {
     const fromGenerator = lang !== langConfig.nativeLang;
     const variations = fromGenerator
       ? langConfig.variationGenerator.getWordVariations(word)
-      : word.split(',').map((w) => w.trim());
+      : [word];
 
     let result: LookupResponse | null = null;
     for (const keywordOnly of [true, false]) {
