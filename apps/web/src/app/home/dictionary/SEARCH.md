@@ -770,7 +770,7 @@ The IDB schema (version 4) defines a single index, `by-lang-wordlower`. Both loo
 
 The IDB query uses `IDBKeyRange.only([lang, foldKey(word)])` on the `by-lang-wordlower` compound index — exact match on `lang` plus the folded (case- and accent-stripped) word. There is no prefix or regex matching at this layer. This is why variation generation is necessary on the client side before querying IDB.
 
-Prefix queries (autocomplete suggestions) fold the prefix with `foldKey()` and use `IDBKeyRange.bound([lang, start], [lang, start + '￿'])` on the same index via `DictStoreService.findWordsStartingWith()`. Results are deduplicated by `wordLower`, so `Belanda` and `belanda` collapse to one suggestion; a group whose records are all `keyword: 0` is dropped rather than emitted (see [10.2 Word Exists Only as a Cross-Reference](#102-word-exists-only-as-a-cross-reference)).
+Prefix queries (autocomplete suggestions) fold the prefix with `foldKey()` and use `IDBKeyRange.bound([lang, start], [lang, start + '\uFFFF'])` on the same index via `DictStoreService.findWordsStartingWith()`. Results are deduplicated by `wordLower`, so `Belanda` and `belanda` collapse to one suggestion; a group whose records are all `keyword: 0` is dropped rather than emitted (see [10.2 Word Exists Only as a Cross-Reference](#102-word-exists-only-as-a-cross-reference)).
 
 ---
 

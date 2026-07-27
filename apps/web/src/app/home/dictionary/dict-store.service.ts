@@ -45,7 +45,10 @@ export class DictStoreService {
     // bound the lowercased word by prefix — IndexedDB never visits entries from
     // other languages, and matching is case-insensitive.
     const start = foldKey(startString);
-    const range = IDBKeyRange.bound([lang, start], [lang, start + '￿']);
+    // \uFFFF is the largest UTF-16 code unit and a permanent noncharacter, so it
+    // bounds the prefix scan above without excluding any real key — even a
+    // non-BMP character encodes as surrogates (0xD800-0xDFFF), which sort below.
+    const range = IDBKeyRange.bound([lang, start], [lang, start + '\uFFFF']);
     const index = this.#db!.transaction('lemmas', 'readonly').store.index('by-lang-wordlower');
     const results: { word: string; lang: string; isSupplement?: boolean }[] = [];
 
