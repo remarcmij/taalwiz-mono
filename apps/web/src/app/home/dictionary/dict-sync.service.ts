@@ -41,11 +41,27 @@ export class DictSyncService {
 
   #dictStore = inject(DictStoreService);
 
+  // Both `init()` and `syncIfNeeded()` are called fire-and-forget (`void ...`)
+  // from authGuard and AppComponent, so neither may reject: an unhandled
+  // rejection is invisible to the user and would leave the dictionary silently
+  // stuck at 'idle'. Every failure path below ends at #fail() instead.
   async init(): Promise<void> {
-    await this.#dictStore.open();
-    const initialVersion = await this.#dictStore.getStoredVersion();
-    this.#hasCompleteDict$.next(initialVersion != null);
+    try {
+      await this.#dictStore.open();
+      const initialVersion = await this.#dictStore.getStoredVersion();
+      this.#hasCompleteDict$.next(initialVersion != null);
+    } catch (err) {
+      // Opening genuinely can fail: a schema upgrade blocked by another tab, or
+      // a browser denying IndexedDB (private mode, storage pressure).
+      this.#fail('failed to open IndexedDB', err);
+      return;
+    }
     await this.syncIfNeeded();
+  }
+
+  #fail(message: string, err: unknown): void {
+    console.error(`[dict] ${message}`, err);
+    this.#status$.next('error');
   }
 
   async syncIfNeeded(): Promise<void> {
@@ -81,7 +97,15 @@ export class DictSyncService {
       return;
     }
 
-    const storedVersion = await this.#dictStore.getStoredVersion();
+    let storedVersion: string | null;
+    try {
+      storedVersion = await this.#dictStore.getStoredVersion();
+    } catch (err) {
+      // Reachable when the read connection was closed out from under us by the
+      // `blocking` handler in openDictDb (another tab is upgrading the schema).
+      this.#fail('failed to read the stored dictionary version', err);
+      return;
+    }
     if (storedVersion === manifest.version) {
       this.#status$.next('done');
       return;
@@ -105,8 +129,8 @@ export class DictSyncService {
       console.log(
         `[dict] import complete in ${elapsed}s — IDB usage ${mb(usage)} (quota ${mb(quota)})`,
       );
-    } catch {
-      this.#status$.next('error');
+    } catch (err) {
+      this.#fail('dictionary import failed', err);
     } finally {
       this.#progress$.next(null);
     }

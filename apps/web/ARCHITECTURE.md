@@ -461,7 +461,20 @@ The compiled dictionary is ~270,000 word records. The import previously ran on t
 - **Single atomic transaction preserved** — the worker holds _one_ readwrite transaction across the whole insert. All network fetches finish _before_ the tx opens (awaiting a non-IDB promise inside an IDB transaction would auto-commit it early). Inside the tx the loop is fully synchronous; progress is reported with **synchronous `postMessage`** calls that don't yield control, so the tx stays open. IndexedDB isolation then guarantees readers see either the previous complete dictionary or the new one, never a partial state — no per-batch readiness gate needed.
 - **Readiness signal** — `DictSyncService.hasCompleteDict$` is derived from `meta.version` (snapshotted on `init()` and set true after a successful worker import). The search bar is disabled only while syncing _and_ no committed dict exists yet (first-ever build). During a re-sync the existing dictionary stays usable (atomic swap on commit).
 - **Global chip** — a small "Updating dictionary X/Y" chip in `AppComponent` is visible from any route while `isSyncing()`, so background re-syncs aren't invisible outside the Dictionary tab. Tapping it jumps to the Dictionary tab. Driven by the same `status$` + `progress$` observables.
-- **One DB, two connections** — main (read) + worker (write) at the same schema version → no `versionchange`, they coexist. A future schema bump would need to coordinate (main closes the read connection, lets the worker upgrade, reopens).
+- **One DB, two connections** — main (read) + worker (write) at the same schema version → no `versionchange`, they coexist. See [Schema upgrades](#schema-upgrades) for what happens when the version does move.
+
+#### Schema upgrades
+
+Changing the store layout means bumping `DICT_DB_VERSION` in `dict-db.ts` — and that is the entire procedure. The `upgrade` callback is **destructive**: it drops every existing object store and rebuilds from scratch. Nothing here is authoritative (every record derives from `/assets/dict-*.json`), so there is nothing to migrate, and dropping the stores also drops `meta.version` — which puts the client straight into the ordinary not-ready path, `hasCompleteDict$ === false` → `syncIfNeeded()` re-imports. No per-version migration branches to write or test.
+
+This is not merely convenient, it is required: `upgrade` runs against the client's **existing** stores, and `createObjectStore` throws `ConstraintError` when the store already exists. A create-only callback works on a fresh install and fails on every installed client the moment the version moves.
+
+Two connections complicate the bump, and both callbacks in `openDictDb` exist for it:
+
+- **`blocking`** — fires on a connection that is holding the old version open (typically a second tab left open across a deploy) and closes it. `close()` lets any in-flight transaction commit first, so a running import is not lost. The stale connection is not reopened: that tab is running the previous build, and reopening would just block the new tab again. Its dictionary reads fail until the user reloads — the accepted cost of unblocking the upgrade.
+- **`blocked`** — fires on the connection waiting to upgrade, and logs. Without the pair, a blocked `openDB()` never settles: no error, no timeout, just a dictionary that silently never loads.
+
+`DictSyncService` closes the loop: `init()` and `syncIfNeeded()` are both called fire-and-forget (`void ...`) from `authGuard` and `AppComponent`, so neither is allowed to reject. Every failure path routes through `#fail()`, which logs and sets `status = 'error'` rather than surfacing as an unhandled rejection.
 
 `DictionaryService` uses `langConfig.variationGenerator` (a pluggable `VariationGenerator` interface; currently `IndonesianVariationGenerator`) to generate word variants before searching `DictStoreService`; inflected forms resolve to the correct lemma entirely offline.
 

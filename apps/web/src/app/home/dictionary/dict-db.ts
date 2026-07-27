@@ -109,13 +109,50 @@ export function transformDict(data: CompiledDict): DictRecord[] {
 
 export function openDictDb(): Promise<IDBPDatabase<DictDB>> {
   return openDB<DictDB>(DICT_DB_NAME, DICT_DB_VERSION, {
+    // Destructive upgrade: drop whatever is there and rebuild from scratch.
+    //
+    // Two reasons. First, correctness: `upgrade` fires on an EXISTING database
+    // whenever DICT_DB_VERSION goes up, and `createObjectStore` throws
+    // ConstraintError if the store is already there — so a plain create-only
+    // callback works on a fresh install and breaks on every installed client the
+    // moment the version is bumped. Second, this database holds no authoritative
+    // state: every record is derived from `/assets/dict-*.json`, so there is
+    // nothing to migrate. Wiping costs one re-import and the existing readiness
+    // machinery already covers it — `meta.version` goes with the stores, so
+    // `hasCompleteDict$` is false and `syncIfNeeded()` re-downloads.
+    //
+    // Bumping DICT_DB_VERSION is therefore the whole procedure for a schema
+    // change; no per-version migration branches, and no index left behind
+    // (the 3 -> 4 bump dropped two indexes that this callback never deleted).
     upgrade(db) {
+      for (const name of db.objectStoreNames) {
+        db.deleteObjectStore(name);
+      }
       const lemmaStore = db.createObjectStore('lemmas', { autoIncrement: true });
       // [lang, wordLower] ordering pins language as the primary key so IDBKeyRange
       // prefix queries are language-scoped (findWordsStartingWith), and the
       // lowercased word makes lookups case-insensitive ("belanda" finds "Belanda").
       lemmaStore.createIndex('by-lang-wordlower', ['lang', 'wordLower'], { unique: false });
       db.createObjectStore('meta', { keyPath: 'key' });
+    },
+    // An upgrade cannot start while another connection still holds the database
+    // at the old version — typically a second tab left open across a deploy.
+    // Without these two callbacks that `openDB()` never settles: no error, no
+    // timeout, just a dictionary that silently never loads.
+    blocking(_currentVersion, _blockedVersion, event) {
+      // We are the stale connection. `close()` lets any in-flight transaction
+      // finish first (so a running import still commits), then releases the
+      // database so the upgrading tab can proceed. This connection stays closed
+      // — reopening would immediately block that tab again, and this tab is
+      // running the previous build anyway. Its dictionary reads will fail until
+      // the user reloads; that is the accepted cost of unblocking the new tab.
+      (event.target as IDBDatabase).close();
+      console.warn('[dict] closed a stale IndexedDB connection to let a schema upgrade proceed');
+    },
+    blocked(currentVersion, blockedVersion) {
+      console.warn(
+        `[dict] IndexedDB upgrade ${currentVersion} -> ${blockedVersion} is blocked by another open connection`,
+      );
     },
   });
 }
@@ -138,8 +175,6 @@ export interface ImportProgress {
   total: number;
 }
 
-export type ImportResult =
-  | { type: 'done' }
-  | { type: 'error'; error: string };
+export type ImportResult = { type: 'done' } | { type: 'error'; error: string };
 
 export type ImportMessage = ImportProgress | ImportResult;
