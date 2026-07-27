@@ -77,7 +77,7 @@ All apps consume `@repo/eslint-config` (via `workspace:*`). The API uses the `ne
 ### Testing Strategy
 
 - **API**: Vitest with globals (test files: `*.spec.ts` in `src/`)
-- **Web**: Vitest (test files: `*.spec.ts` in `src/`). Pure-logic only — no Angular component/DOM tests yet.
+- **Web**: Vitest (test files: `*.spec.ts` in `src/`). No Angular component/DOM tests yet — no TestBed, no jsdom. Mostly pure logic; the exception is `dict-store.service.spec.ts`, which drives the real IndexedDB layer against `fake-indexeddb` (`import 'fake-indexeddb/auto'`, then a fresh `new IDBFactory()` per test). Services with no constructor dependencies are instantiated directly with `new`.
 - **Compiler**: Vitest (test files: `src/__tests__/**/*.test.ts`)
 
 ## Internationalisation
