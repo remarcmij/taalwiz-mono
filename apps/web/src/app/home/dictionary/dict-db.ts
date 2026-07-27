@@ -5,7 +5,7 @@
 // service layer (`dict-store.service.ts`, `dict-sync.service.ts`) and the
 // worker (`dict-import.worker.ts`) both import from here.
 
-import { IDBPDatabase, openDB } from 'idb';
+import { DBSchema, IDBPDatabase, openDB } from 'idb';
 import { Lemma, LineKind } from './lemma/lemma.model';
 
 export const DICT_DB_NAME = 'taalwiz-dict';
@@ -29,7 +29,12 @@ export interface MetaRecord {
   value: string;
 }
 
-export interface DictDB {
+// Must extend `DBSchema`. idb's helper types are conditional on
+// `DBTypes extends DBSchema`, and an interface without an index signature does
+// not satisfy that (only type aliases get an implicit one). Fail that check and
+// every store name, record, and cursor value silently degrades to `any` --
+// `openDB<DictDB>` still compiles, it just stops checking anything.
+export interface DictDB extends DBSchema {
   lemmas: {
     value: DictRecord;
     key: number;
