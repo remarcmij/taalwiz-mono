@@ -52,59 +52,74 @@ export class DictStoreService {
     const index = this.#db!.transaction('lemmas', 'readonly').store.index('by-lang-wordlower');
     const results: { word: string; lang: string; isSupplement?: boolean }[] = [];
 
-    // Records sharing a wordLower are consecutive in the index, so accumulate
-    // each group before emitting one suggestion. `isSupplement` is set only when
-    // EVERY record for the word is a supplement, so a word that also exists in
-    // core Teeuw (e.g. "aplikasi") is not marked as a new word.
+    // A "group" is every record sharing one folded key. They arrive back to back
+    // (the index is sorted by [lang, wordLower]), so the loop builds up the four
+    // `cur*` values below as it walks a group, then emits one suggestion when the
+    // next record has a different key -- or when the cursor runs out.
     //
-    // The display form prefers a true headword (`keyword === 1`) over a
+    // `isSupplement` is set only when EVERY record for the word is a supplement,
+    // so a word that also exists in core Teeuw (e.g. "aplikasi") is not marked
+    // as a new word.
+    //
+    // The display form prefers a keyword record (`keyword === 1`) over a
     // cross-reference mention (`keyword === 0`): the same folded key can be
     // captured from another entry in capitalized form (a cross-ref like
     // `→ KERÉTA` or an abbreviation expansion like `[Keréta Api]`), and that
     // record may sort first. Without this preference the dropdown would show
-    // `KERÉTA`/`Keréta` instead of the actual headword `keréta`.
+    // `KERÉTA`/`Keréta` instead of the actual entry `keréta`.
     //
-    // A group with NO headword record is skipped entirely (`curHasHeadword`): a
-    // word indexed only as a cross-reference has no entry of its own, and the
-    // search path (`#searchLocal`) accepts a form only when some line carries it
-    // as a keyword -- so suggesting it would offer a lookup that then finds
-    // nothing. Roughly 1.3k such words exist in Teeuw and 9.9k in Stevens. The
-    // word-tap modal is unaffected: it reads through `#fetchWordLemmasAsync`,
-    // whose second pass deliberately does show mention-only lines.
+    // A group with NO keyword record is skipped entirely (`curHasKeyword`): a
+    // word indexed only as a cross-reference has no entry of its own, so
+    // looking it up (`#searchLocal`) comes back empty -- that path needs a
+    // record with `keyword === 1` and there is none. Suggesting the word would
+    // send the user to a lookup that shows nothing. Roughly 1.3k such words
+    // exist in Teeuw and 9.9k in Stevens. The word-tap modal is unaffected: it
+    // reads through `#fetchWordLemmasAsync`, whose second pass deliberately
+    // does show mention-only lines.
     let cursor = await index.openCursor(range);
+    // Folded key of the group being built; a record with a different one ends it.
     let curLower: string | null = null;
+    // The form to show, in its original casing and accents. Starts as the first
+    // record's word, replaced by the first keyword record's word (see below).
     let curWord = '';
-    let curHasHeadword = false;
+    // Does any record in the group have `keyword === 1`? Nothing is emitted
+    // without one.
+    let curHasKeyword = false;
+    // Are ALL of the group's records supplements? One core record turns this off.
     let curAllPlus = true;
-    let have = false;
+    // Is a group being built right now, i.e. do the four values above describe
+    // one? False before the first record and again just after a group is emitted.
+    let inGroup = false;
 
     while (cursor) {
       const { word, wordLower, isSupplement, keyword } = cursor.value;
-      if (have && wordLower !== curLower) {
+      if (inGroup && wordLower !== curLower) {
         // Dedupe case-insensitively so "Belanda" and "belanda" yield one suggestion.
-        if (curHasHeadword) {
+        if (curHasKeyword) {
           results.push({ word: curWord, lang, isSupplement: curAllPlus });
-          if (results.length >= limit) return results;
+          // Full. The `results.length < limit` guard on the flush below stops
+          // the half-built group we are standing on from being emitted too.
+          if (results.length >= limit) break;
         }
-        have = false;
+        inGroup = false;
       }
-      if (!have) {
+      if (!inGroup) {
         curLower = wordLower;
         curWord = word;
-        curHasHeadword = keyword === 1;
+        curHasKeyword = keyword === 1;
         curAllPlus = true;
-        have = true;
-      } else if (!curHasHeadword && keyword === 1) {
-        // First real headword in this group wins the display slot over the
+        inGroup = true;
+      } else if (!curHasKeyword && keyword === 1) {
+        // First keyword record in this group wins the display slot over the
         // cross-reference form picked up earlier.
         curWord = word;
-        curHasHeadword = true;
+        curHasKeyword = true;
       }
       curAllPlus = curAllPlus && !!isSupplement;
       cursor = await cursor.continue();
     }
 
-    if (have && curHasHeadword && results.length < limit) {
+    if (inGroup && curHasKeyword && results.length < limit) {
       results.push({ word: curWord, lang, isSupplement: curAllPlus });
     }
 
