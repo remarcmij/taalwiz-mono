@@ -425,6 +425,7 @@ sequenceDiagram
 
     authGuard->>DictSyncService: init()
     DictSyncService->>IndexedDB: open() (read connection)
+    Note over DictSyncService,IndexedDB: Open can fail (blocked schema upgrade, IDB denied) → status = 'error', stop.
     DictSyncService->>API: GET /assets/dict-manifest.json
     API-->>DictSyncService: { version, files[] }
     DictSyncService->>IndexedDB: getStoredVersion()
@@ -449,6 +450,7 @@ sequenceDiagram
 
     Note over DictSyncService: Network unavailable → status = 'offline'
     Note over DictSyncService: Manifest 404 → status = 'done' (no dict yet)
+    Note over DictSyncService: Any IDB or import failure → status = 'error' (logged, never rejected)
 ```
 
 `DictStoreService` opens the `taalwiz-dict` IndexedDB database (version 4) for reads with two stores: `lemmas` (single index `by-lang-wordlower [lang, wordLower]` — language-scoped _and_ case-insensitive; see [SEARCH.md](src/app/home/dictionary/SEARCH.md)) and `meta`. The `meta.version` record is the **atomic readiness flag**: written inside the worker's single import transaction _after_ all `add()`s, so its presence (and equality with the manifest version) guarantees a complete dictionary is committed. A crash mid-import leaves no new version → next session re-syncs cleanly, with no half-built state ever observable.
